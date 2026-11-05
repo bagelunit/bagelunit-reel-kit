@@ -25,7 +25,7 @@ Ask with multiple-choice questions wherever the answer can be a choice (put a re
 9. **Call to action:** choices: "Save this" (recommended until a DM auto-reply is tested), "Follow for more", "Comment a keyword for a DM" (only listed in `cta.tested_keywords` once the auto-reply has been tested from a second account), "Visit the link in bio".
 
 Then write the answers:
-- `brand/brand.json`: name, slug, handle, `people`, `identity.logo` (and the other identity paths if given), `colors`, `fonts`, `host` (`enabled`, `type` = `stickers`, `drawn` or `none`, `poses_dir`), `voice` (`style`, `never_say`, `pronunciation`, and `voice_id`/`voice_name` once a voice is chosen), `cta.style`. Leave `engine_dir` and `work_dir` as they are unless the user asks.
+- `brand/brand.json`: name, slug, handle, `people`, `identity.logo` (and the other identity paths if given), `colors`, `fonts`, `host` (`enabled`, `type` = `stickers`, `drawn` or `none`, `poses_dir`), `voice` (`style`, `never_say`, `pronunciation`, and `voice_id`/`voice_name` once a voice is chosen), `cta.style`. Leave  and `work_dir` as they are unless the user asks.
 - `brand/voice.md`: fill the "Who I am" lines from the answers. Leave the rest for the user (or offer to draft it from three of their own captions).
 - `brand/facts.md`: only facts the user states and confirms in this conversation, each with its source. If they give none, leave the table empty and say so. Never add a number, result, price or client name from your own knowledge or from the web.
 - If the user wants the handle and accent colour as the kit's defaults for every new reel, the kit stores them in `~/.config/susanoo-reels/config.json` through its own setup; otherwise set them per reel in `reel.json`.
@@ -51,7 +51,7 @@ Rename, move or create nothing outside this folder. Never ask for, print or stor
 ## 2. Where files go
 
 - **Light files** (scripts, plans, approvals, captions, the finished mp4) live in this copy: `reels/<slug>/`.
-- **Heavy files** (frames, drafts, renders, node_modules) should stay out of iCloud-synced folders (Desktop and Documents sync). HyperFrames projects go in `brand.json` → `work_dir` (default `~/dev/reel-work/<slug>/`), using the pinned CLI at `engine_dir` (`~/dev/reel-engine/`). The Susanoo Reel Kit writes its build files inside `reels/<slug>/`: if this copy sits in an iCloud folder, tell the owner before the first render.
+- **Heavy files** (frames, drafts, renders, node_modules) should stay out of iCloud-synced folders (Desktop and Documents sync). HyperFrames projects go in `brand.json` → `work_dir` (default `~/dev/reel-work/<slug>/`),. The Susanoo Reel Kit writes its build files inside `reels/<slug>/`: if this copy sits in an iCloud folder, tell the owner before the first render.
 
 ## The render engines
 

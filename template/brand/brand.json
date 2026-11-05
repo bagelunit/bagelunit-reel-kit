@@ -43,7 +43,7 @@
   },
   "writing": {
     "banned_characters": [
-      "\u2014"
+      "—"
     ],
     "banned_words": []
   },
@@ -53,6 +53,5 @@
     "dm_tool": "",
     "tested_keywords": []
   },
-  "engine_dir": "~/dev/reel-engine",
   "work_dir": "~/dev/reel-work/<slug>"
 }
