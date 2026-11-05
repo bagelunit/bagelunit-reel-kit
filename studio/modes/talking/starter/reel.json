@@ -1,0 +1,10 @@
+{
+  "style": "talking",
+  "name": "",
+  "theme": "studio",
+  "cta": { "keyword": "REEL" },
+  "captions": { "key": [], "hot": [] },
+  "face": { "dx": 0, "dy": 0, "zoom": 1 },
+  "scenes": ["scenes.js"],
+  "tail": 0.6
+}

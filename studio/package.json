@@ -1,0 +1,12 @@
+{
+  "name": "susanoo-reel-kit",
+  "description": "Susanoo Reel Kit studio: tell Claude what the reel is about and it scripts, voices, animates and exports a vertical 1080x1920 video, or edits your talking-head take.",
+  "version": "1.0.0", "type": "module", "private": true,
+  "engines": { "node": ">=18" },
+  "dependencies": { "playwright": "1.63.0", "three": "0.186.1" },
+  "scripts": {
+    "checkup": "node tools/checkup.mjs",
+    "kit": "node tools/kit.mjs",
+    "browser": "npx playwright install chromium-headless-shell"
+  }
+}

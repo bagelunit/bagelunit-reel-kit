@@ -1,0 +1,37 @@
+{
+  "style": "print",
+  "name": "casinos",
+  "cta": {
+    "keyword": "CASINO"
+  },
+  "presenter": {
+    "skin": "medium",
+    "hair": "curly",
+    "hairColor": "black",
+    "beard": "stubble",
+    "beanie": false,
+    "glasses": true,
+    "glassesStyle": "square",
+    "top": "hoodie",
+    "topColor": "#1E2A44",
+    "innerColor": "#F3F1EC",
+    "accessories": [],
+    "face": "adult"
+  },
+  "captions": {
+    "emphasize": [
+      "clocks.",
+      "purpose.",
+      "daylight.",
+      "disappears.",
+      "40",
+      "hour.",
+      "house",
+      "CASINO"
+    ]
+  },
+  "theme": "studio",
+  "brand": {
+    "handle": "@yourhandle"
+  }
+}

@@ -1,0 +1,9 @@
+# Susanoo Reel Kit (repo)
+
+This folder is the kit's source, not a place to make reels.
+
+- **"Set up the reel kit" / first time on this computer:** run `bash setup/install.sh` and walk the user through anything it marks as NOTE, using `SETUP.md`. Never ask for, print or store an API key; the user puts their ElevenLabs key in `~/.config/susanoo-reels/elevenlabs.key` themselves.
+- **Making a reel:** reels are made in a copy of `template/` (one copy per brand), not here. Offer to copy it (for example `cp -R template ~/Reels/<brand>`), then tell the user to start Claude Code inside the copy, where the first-run brand setup begins.
+- **Changing the engine:** `studio/` is the engine installed as `~/.claude/skills/susanoo-reels`. Record every change to it in `studio/LOCAL-CHANGES.md`. After a change, the user re-runs `bash setup/install.sh` (or used `--link`).
+- **Docs:** `docs/process.md`, `docs/avatar.md`, `docs/sound.md`, `docs/reference.md`. No em dashes in anything written here.
+- **Never commit** keys, `.env` files, photos of people, avatar poses, client data, renders, audio or `node_modules`. Never change this repo's visibility.

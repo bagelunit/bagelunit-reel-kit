@@ -1,0 +1,14 @@
+{
+  "style": "depth",
+  "name": "",
+  "theme": "studio",
+  "cta": {
+    "keyword": "BAKE",
+    "sub": "I'll send you the setup"
+  },
+  "tiles": {
+    "keys": ["sells", "laptop", "machine", "sunrise", "BAKE"]
+  },
+  "tape": true,
+  "tail": 1.0
+}

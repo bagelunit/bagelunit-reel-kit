@@ -1,0 +1,217 @@
+[
+ {
+  "t": 0.1,
+  "name": "thud",
+  "gain": -2
+ },
+ {
+  "t": 0.557,
+  "name": "pop",
+  "gain": -5
+ },
+ {
+  "t": 1.073,
+  "name": "impact",
+  "gain": -3
+ },
+ {
+  "t": 1.363,
+  "name": "tick",
+  "gain": -4
+ },
+ {
+  "t": 2.157,
+  "name": "stamp",
+  "gain": 0
+ },
+ {
+  "t": 2.702,
+  "name": "whoosh",
+  "gain": -4
+ },
+ {
+  "t": 2.922,
+  "name": "swoosh",
+  "gain": -5
+ },
+ {
+  "t": 3.061,
+  "name": "tick",
+  "gain": -4
+ },
+ {
+  "t": 3.687,
+  "name": "swoosh",
+  "gain": -5
+ },
+ {
+  "t": 3.826,
+  "name": "thud",
+  "gain": -3
+ },
+ {
+  "t": 4.591,
+  "name": "swoosh",
+  "gain": -5
+ },
+ {
+  "t": 4.73,
+  "name": "swoosh",
+  "gain": -6
+ },
+ {
+  "t": 5.13,
+  "name": "click",
+  "gain": -6
+ },
+ {
+  "t": 5.555,
+  "name": "swoosh",
+  "gain": -5
+ },
+ {
+  "t": 6.261,
+  "name": "shimmer",
+  "gain": -4
+ },
+ {
+  "t": 7.015,
+  "name": "whoosh",
+  "gain": -4
+ },
+ {
+  "t": 7.175,
+  "name": "thud",
+  "gain": -2
+ },
+ {
+  "t": 7.235,
+  "name": "click",
+  "gain": -2
+ },
+ {
+  "t": 7.935,
+  "name": "pop",
+  "gain": -4
+ },
+ {
+  "t": 8.07,
+  "name": "cash",
+  "gain": -2
+ },
+ {
+  "t": 8.32,
+  "name": "swoosh",
+  "gain": -5
+ },
+ {
+  "t": 8.487,
+  "name": "riser",
+  "gain": -8
+ },
+ {
+  "t": 9.08,
+  "name": "swoosh",
+  "gain": -5
+ },
+ {
+  "t": 9.53,
+  "name": "thud",
+  "gain": -3
+ },
+ {
+  "t": 9.902,
+  "name": "whoosh",
+  "gain": -4
+ },
+ {
+  "t": 10.042,
+  "name": "swoosh",
+  "gain": -5
+ },
+ {
+  "t": 10.182,
+  "name": "swoosh",
+  "gain": -5
+ },
+ {
+  "t": 10.246,
+  "name": "pop",
+  "gain": -5
+ },
+ {
+  "t": 10.556,
+  "name": "pop",
+  "gain": -6
+ },
+ {
+  "t": 10.8,
+  "name": "tick",
+  "gain": -6
+ },
+ {
+  "t": 11.043,
+  "name": "pop",
+  "gain": -6
+ },
+ {
+  "t": 11.599,
+  "name": "tick",
+  "gain": -6
+ },
+ {
+  "t": 11.756,
+  "name": "pop",
+  "gain": -6
+ },
+ {
+  "t": 11.826,
+  "name": "stamp",
+  "gain": 0
+ },
+ {
+  "t": 11.912,
+  "name": "tick",
+  "gain": -6
+ },
+ {
+  "t": 12.441,
+  "name": "whoosh",
+  "gain": -4
+ },
+ {
+  "t": 12.854,
+  "name": "type",
+  "gain": -8
+ },
+ {
+  "t": 13.397,
+  "name": "click",
+  "gain": -2
+ },
+ {
+  "t": 13.447,
+  "name": "stamp",
+  "gain": -2
+ },
+ {
+  "t": 13.647,
+  "name": "swoosh",
+  "gain": -5
+ },
+ {
+  "t": 14.052,
+  "name": "thud",
+  "gain": -4
+ },
+ {
+  "t": 14.191,
+  "name": "tick",
+  "gain": -6
+ },
+ {
+  "t": 15.048,
+  "name": "shimmer",
+  "gain": -8
+ }
+]

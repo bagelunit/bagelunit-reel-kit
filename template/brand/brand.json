@@ -1,0 +1,58 @@
+{
+  "name": "",
+  "slug": "",
+  "handle": "",
+  "platforms": [
+    "instagram"
+  ],
+  "approver": "owner",
+  "people": {
+    "_note": "who runs this workspace (asked at first-run setup)",
+    "operator_name": "",
+    "approver_name": ""
+  },
+  "identity": {
+    "_note": "paths to the brand's own identity files, absolute or relative to this copy",
+    "folder": "",
+    "logo": "",
+    "brand_guide": "",
+    "photos": ""
+  },
+  "colors": {
+    "background": "",
+    "ink": "",
+    "accent": ""
+  },
+  "fonts": {
+    "display": "",
+    "body": ""
+  },
+  "host": {
+    "enabled": false,
+    "type": "none",
+    "poses_dir": "",
+    "notes": ""
+  },
+  "voice": {
+    "provider": "elevenlabs",
+    "voice_id": "",
+    "voice_name": "",
+    "style": "",
+    "never_say": [],
+    "pronunciation": {}
+  },
+  "writing": {
+    "banned_characters": [
+      "\u2014"
+    ],
+    "banned_words": []
+  },
+  "cta": {
+    "default": "follow",
+    "style": "",
+    "dm_tool": "",
+    "tested_keywords": []
+  },
+  "engine_dir": "~/dev/reel-engine",
+  "work_dir": "~/dev/reel-work/<slug>"
+}

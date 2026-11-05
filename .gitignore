@@ -1,0 +1,17 @@
+node_modules/
+*.key
+.env*
+.DS_Store
+reels/*/build/
+reels/*/audio/
+template/reels/*/build/
+template/reels/*/audio/
+out/
+*.mp4
+*.wav
+.venv/
+.cache/
+__pycache__/
+*.pyc
+*.orig-*
+.susanoo-reel-kit

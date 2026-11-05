@@ -1,0 +1,28 @@
+{
+  "style": "print",
+  "name": "",
+  "cta": {
+    "keyword": "REEL"
+  },
+  "presenter": {
+    "skin": "medium",
+    "hair": "curly",
+    "hairColor": "black",
+    "beard": "stubble",
+    "beanie": false,
+    "glasses": true,
+    "glassesStyle": "square",
+    "top": "hoodie",
+    "topColor": "#1E2A44",
+    "innerColor": "#F3F1EC",
+    "accessories": [],
+    "face": "adult"
+  },
+  "captions": {
+    "emphasize": []
+  },
+  "theme": "studio",
+  "brand": {
+    "handle": ""
+  }
+}

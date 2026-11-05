@@ -1,0 +1,8 @@
+# Your talking-head script. Record it on camera, then run tools/take.py on the take: the words come from the take, not this file.
+# Lines starting with # are notes. Until a take exists, the page fakes word timings from the text below (scenes.js cues on it).
+Someone just dropped a free tool that turns one rough take into a finished reel.
+It's called Reel Kit, and it already has 12,000 stars.
+Here's how it works. You record, it cuts the pauses, it writes the captions, and it builds every graphic.
+And the best part? It runs on your own laptop.
+My last reel took 20 minutes instead of 4 hours.
+Comment REEL and I'll send you the link.
