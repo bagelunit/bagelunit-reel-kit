@@ -29,7 +29,7 @@ Use multiple-choice questions wherever the answer can be a choice, recommended o
 
 ## Writing the answers
 
-- `brand/brand.json`: `name`, `slug`, `handle`, `people.operator_name`, `people.approver_name`, `identity.logo` (plus other identity paths given), `colors`, `fonts`, `host.enabled`, `host.type` (`stickers`, `drawn` or `none`), `host.poses_dir`, `voice.style`, `voice.voice_id` and `voice.voice_name` (once chosen), `voice.never_say`, `voice.pronunciation`, `cta.style`, `cta.default`. Keep the file valid JSON (check with `python3 -m json.tool brand/brand.json`). Leave `engine_dir` and `work_dir` unless asked.
+- `brand/brand.json`: `name`, `slug`, `handle`, `people.operator_name`, `people.approver_name`, `identity.logo` (plus other identity paths given), `colors`, `fonts`, `host.enabled`, `host.type` (`stickers`, `drawn` or `none`), `host.poses_dir`, `voice.style`, `voice.voice_id` and `voice.voice_name` (once chosen), `voice.never_say`, `voice.pronunciation`, `cta.style`, `cta.default`. Keep the file valid JSON (check with `python3 -m json.tool brand/brand.json`). Leave `work_dir` unless asked.
 - `brand/voice.md`: fill the "Who I am" lines (name, handle, what the brand does if they said it). Leave the rest for the user, or offer to draft it from three of their own captions or reels.
 - `brand/facts.md`: add only facts the user states and confirms here, each with its source and today's date. If none, leave the table empty and say so. Never add a number, result, price or client name from your own knowledge or the web.
 
