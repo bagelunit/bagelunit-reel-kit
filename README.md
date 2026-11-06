@@ -24,7 +24,7 @@ Each person runs the kit on their own computer with their own Claude Code accoun
 
 ## Requirements
 
-- A Mac with [Homebrew](https://brew.sh) (the installer is macOS only for now).
+- **macOS, Windows or Linux.** One installer for all three. It needs [Node.js](https://nodejs.org) 18 or newer to start, and it installs or asks for the rest (ffmpeg, Python 3, git, uv, Whisper) using Homebrew on Mac, winget on Windows, and apt or pacman on Linux. It always shows you a command and asks before installing a program, and never runs anything as administrator by itself.
 - **Claude Code** on a paid plan (Pro or Max), signed in with your own account. A reel takes Claude roughly 30 to 80 minutes of work.
 - An **ElevenLabs** account and API key of your own for the voice (the free plan covers a few reels a month). Your key stays on your computer in `~/.config/susanoo-reels/elevenlabs.key`; you put it there yourself, and it never goes in a chat or in this repo.
 - About 3 GB of disk for the render browser, the sound library and earshot's models.
@@ -34,8 +34,10 @@ Each person runs the kit on their own computer with their own Claude Code accoun
 ```bash
 git clone https://github.com/bagelunit/susanoo-reel-kit.git ~/dev/susanoo-reel-kit
 cd ~/dev/susanoo-reel-kit
-bash setup/install.sh          # safe to run again; prints every step
+bash setup/install.sh          # macOS and Linux. Safe to run again; prints every step
 ```
+
+On Windows, in PowerShell: `.\setup\install.ps1` (or `node setup/install.mjs` on any system). Use `python` where this kit says `python3`, and `.\` paths instead of `~/` shortcuts if your shell needs them.
 
 Then:
 
@@ -54,7 +56,7 @@ The full process, with its three approval gates, is in [docs/process.md](docs/pr
 | `studio/` | The reel engine, installed as the Claude Code skill `susanoo-reels` (`/susanoo-reels`): three styles, the always-ask-the-style rule, the sticker presenter and the real-sound step. Changes are logged in `studio/LOCAL-CHANGES.md`. |
 | `template/` | The generic brand workspace. Copy it once per brand or project and start Claude Code inside the copy. It is self-contained and carries the licence: `CLAUDE.md` (house rules and first-run setup), `brand/`, `reels/`, `docs/` (the hook and review playbook), and the reel skills in `.claude/skills/`. |
 | `template/.claude/skills/` | 17 reel skills that travel with every copy of the template (nothing global, so brands never mix): hook writer, script, caption, teardown, account audit with the 3x outlier script, hook mining, comment mining, A/B test, cover brief, readout, and the opt-in autopilot skills. |
-| `setup/install.sh` | The installer. |
+| `setup/install.mjs` | The installer (Node, runs on macOS, Windows and Linux). `install.sh` and `install.ps1` are tiny launchers for it. |
 | `setup/sync-template.sh` | Keeps copies current: with no argument it refreshes your generic copy-from folder; with a brand workspace path it shows (then with `--apply` performs) an update of that workspace's kit files without touching its `brand/` or `reels/`. |
 | `docs/` | `process.md` (the full loop), `avatar.md` (making sticker poses), `sound.md` (the real-sound step), `reference.md` (what we learned from other reel makers). |
 | `SETUP.md` | Setup by hand, step by step, and common snags. |

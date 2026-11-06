@@ -1,0 +1,48 @@
+name: check
+
+# Runs on macOS, Windows and Linux so the one-repo promise is tested, not assumed.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  portable:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Installer syntax and help
+        run: |
+          node --check setup/install.mjs
+          node setup/install.mjs --help
+
+      - name: Installer dry run (changes nothing)
+        run: node setup/install.mjs --dry-run --skip-plugins --skip-sound --skip-packages
+
+      - name: Script self-tests
+        shell: bash
+        run: |
+          python template/.claude/skills/account-audit/outliers.py --selftest
+          python template/.claude/skills/humanizer/humanize_check.py --selftest
+          python template/.claude/skills/hook-mining/mine_hooks.py --selftest
+          python template/.claude/skills/brand-setup/prefill.py --selftest
+
+      - name: Real install of the engine into a temporary home
+        shell: bash
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: |
+          export HOME="$RUNNER_TEMP/home"; export USERPROFILE="$HOME"; mkdir -p "$HOME"
+          node setup/install.mjs --skip-packages --skip-plugins --skip-sound
+          test -f "$HOME/.claude/skills/susanoo-reels/KIT.md"

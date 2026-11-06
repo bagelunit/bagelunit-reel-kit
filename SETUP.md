@@ -1,14 +1,20 @@
 # Setup
 
-One time per computer. `bash setup/install.sh` does all of this and prints each step; this page is the same path written down, so you can do it by hand or fix a step that failed. The script is safe to run again: it skips anything already done.
+One time per computer, on macOS, Windows or Linux. `bash setup/install.sh` (Mac, Linux) or `.\setup\install.ps1` (Windows PowerShell), or `node setup/install.mjs` anywhere, does all of this and prints each step; this page is the same path written down, so you can do it by hand or fix a step that failed. The script is safe to run again: it skips anything already done.
 
-Installer options: `--link` (symlink `studio/` instead of copying it, handy if you pull updates with git), `--skip-brew`, `--skip-plugins`, `--skip-sound`, `--earshot-mcp`, `--rebuild-sounds`. Run `bash setup/install.sh --help` for the list.
+Installer options: `--link` (symlink `studio/` instead of copying it, handy if you pull updates with git), `--skip-packages` (also `--skip-brew`), `--yes`, `--dry-run`, `--skip-plugins`, `--skip-sound`, `--earshot-mcp`, `--rebuild-sounds`. Run `bash setup/install.sh --help` for the list.
 
 ## 1. Programs
 
-```bash
-brew install ffmpeg node uv whisper-cpp numpy
-```
+Pick your system (the installer does exactly this and asks first; this is for doing it by hand):
+
+| System | Command |
+|---|---|
+| macOS (Homebrew) | `brew install ffmpeg node python git uv whisper-cpp` |
+| Windows (PowerShell) | `winget install OpenJS.NodeJS.LTS Gyan.FFmpeg Python.Python.3.12 Git.Git astral-sh.uv`, then `pip install faster-whisper` |
+| Linux (Debian, Ubuntu) | `sudo apt install ffmpeg python3 python3-venv python3-pip git nodejs npm`, then uv from https://docs.astral.sh/uv/ and `pip install --user faster-whisper` |
+
+On Windows and Linux, Whisper (the tool that times every spoken word) comes from `faster-whisper` instead of `whisper-cpp`; the kit uses whichever it finds. Open a new terminal afterwards so the new commands are found. On Windows, where this kit says `python3` use `python`.
 
 Open a new terminal afterwards so the new commands are found.
 
@@ -19,6 +25,7 @@ The engine is a Claude Code skill. Install it as `susanoo-reels`:
 ```bash
 mkdir -p ~/.claude/skills
 rsync -a --exclude node_modules studio/ ~/.claude/skills/susanoo-reels/    # or: ln -s "$PWD/studio" ~/.claude/skills/susanoo-reels
+# Windows PowerShell: robocopy studio "$HOME\.claude\skills\susanoo-reels" /E /XD node_modules
 cd ~/.claude/skills/susanoo-reels
 npm install          # three.js and the browser driver
 npm run browser      # the headless Chromium used for rendering (about 100 MB)

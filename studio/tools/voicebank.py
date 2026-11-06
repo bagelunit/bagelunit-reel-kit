@@ -11,7 +11,7 @@
   python3 tools/voicebank.py provider elevenlabs|openai|file [--openai-voice ash]
   python3 tools/voicebank.py show                                   what's saved (keys are never printed, only found/missing)
 """
-import json, subprocess, sys, urllib.error, urllib.parse, urllib.request
+import json, os, subprocess, sys, urllib.error, urllib.parse, urllib.request
 
 from kitcore import Flags, HOME_CFG, api_key, has_key, saved_settings, store_settings
 
@@ -65,8 +65,24 @@ def preview(flags):
     out = folder / f'{voice_id}.mp3'
     out.write_bytes(audio)
     print('sample:', out)
-    if sys.platform == 'darwin':
-        subprocess.run(['afplay', str(out)])
+    play(out)
+
+
+def play(path):
+    """Play a sound file on Mac, Windows or Linux; silently do nothing if there is no player."""
+    try:
+        if sys.platform == 'darwin':
+            subprocess.run(['afplay', str(path)])
+        elif sys.platform == 'win32':
+            os.startfile(str(path))   # opens the default player
+        else:
+            import shutil
+            for cmd in (['ffplay', '-nodisp', '-autoexit', '-loglevel', 'quiet'], ['mpv', '--no-video'], ['paplay'], ['aplay']):
+                if shutil.which(cmd[0]):
+                    subprocess.run(cmd + [str(path)])
+                    break
+    except Exception:
+        pass
 
 
 def add(flags):

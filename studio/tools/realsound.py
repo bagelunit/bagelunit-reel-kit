@@ -19,7 +19,7 @@ import numpy as np
 
 HOME = os.path.expanduser("~")
 OPUS = os.path.join(HOME, "dev/sound/opus-sound-layer")
-EARSHOT = os.path.join(HOME, "dev/sound/earshot/.venv/bin/earshot")
+EARSHOT = os.path.join(HOME, "dev", "sound", "earshot", ".venv", "Scripts" if sys.platform == "win32" else "bin", "earshot.exe" if sys.platform == "win32" else "earshot")
 KIT = os.path.join(OPUS, "audio/kit")
 
 # kit cue name -> (opus sound, weight, align, what qa should see, priority)
