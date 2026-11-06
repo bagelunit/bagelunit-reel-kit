@@ -12,6 +12,8 @@ It uses one skill of its own and the installed skills and plugins, as their auth
 
 At the start of every session, read `brand/brand.json`. If `"name"` is empty, this copy has not been set up yet: before any script, caption, plan or DM, run the questionnaire below (the same steps as `/brand-setup`). If the user asks for a reel first, say in one line that the brand comes first and start the questions.
 
+Offer first to pre-fill from the brand's website: `python3 ./.claude/skills/brand-setup/prefill.py <url>` prints proposals only (nothing is written), and each one still needs the user's confirmation. Never take facts from a website.
+
 Ask with multiple-choice questions wherever the answer can be a choice (put a recommended option first), a few questions at a time, never more than four at once. Free-text answers are fine where a choice makes no sense (names, handles, paths). Never guess an answer and never fill a field the user did not confirm.
 
 1. **You:** the user's own name, and whether they are the person who approves reels (if not, the approver's name).
@@ -46,7 +48,7 @@ Rename, move or create nothing outside this folder. Never ask for, print or stor
 | `facts.md` | the ONLY claims, numbers and results allowed on screen, in the voice or in captions | owner only (Claude may propose, owner confirms) |
 | `swipe.md` | research outliers (3x rule) | `/ig-viral` |
 | `plan.md` | this week's posts | `/ig-plan` |
-| `log.md` | what was posted, with hook formula and first line | `/ig-reel` after the owner confirms |
+| `log.md` | what was posted, with hook formula, first line, goal and angle | `/ig-reel` after the owner confirms |
 
 ## 2. Where files go
 
@@ -71,7 +73,7 @@ Rename, move or create nothing outside this folder. Never ask for, print or stor
 4. **Keyword CTA** ("Comment WORD") only when WORD is listed in `brand.json` → `cta.tested_keywords`, meaning the DM auto-reply was tested from a second account. Otherwise end on a save or follow ask, and say why.
 5. **Generated voices** never say any word in `brand.json` → `voice.never_say`; show it as on-screen text instead. Spell tricky words by sound using `voice.pronunciation`.
 6. **DMs.** `/ig-dm` writes replies to people who raised their hand (commented a keyword, messaged the brand, replied to a story). No cold DMs to strangers.
-7. **Research.** `/ig-viral` reads reels in the browser at human speed, with the owner present. No scraping services, and Claude never logs in with the brand's password.
+7. **Research.** `/ig-viral` reads reels in the browser at human speed, with the owner present. No scraping services unless the brand owner has turned on `autopilot.scrape` (then `/account-audit` and `/reel-sources` may use Apify, with the cost shown first). Claude never logs in with the brand's password and never handles an API key.
 8. **Copy formulas, never videos.** Hook shape, structure and length only. Never another creator's script, colours, mascot, characters or prompts.
 9. **Rights.** No other company's logos, footage, music or characters unless the brand owns the rights.
 10. **Approval gates (the approver in `brand.json` → `people` approves, usually the workspace owner, also for client brands):**
@@ -80,6 +82,24 @@ Rename, move or create nothing outside this folder. Never ask for, print or stor
     - Gate C: the final video.
     Record each approval with the date in `reels/<slug>/approvals.md`.
 11. **Nothing is posted, scheduled or sent by Claude.** A person posts.
+12. **No links in public comment replies.** A link goes in the DM only, and only once the keyword auto-reply is tested (rule 4).
+13. **Hook checklist and review.** Before Gate A and again on the draft, check the eight-point frame-0 hook checklist in `docs/hook-and-review-playbook.md` in this folder. Pick one goal and one angle per reel. The reel skills in this folder's `.claude/skills/` (`/reel-analyzer`, `/virality`, `/going-viral`, `/hook-mining`, `/comment-mining`, `/ab-hook-tester`, `/cover-thumbnail-brief`, `/analytics-readout`) give structure only: their numbers are one account's data, so test them against the brand's own median.
+14. **Teardowns use files the person supplies** unless autopilot is on (below). `/reel-analyzer` works on a file or transcript the person gives.
+
+## 3b. Autopilot (OFF by default, the brand owner turns it on)
+
+The kit works for any brand and person, so rules 4, 7, 10 and 11 and the local-renders-only rule are the safe defaults, not laws. The brand owner can relax them for this brand by writing "Autopilot: ON" with the exact permissions in `brand/brand.json` (`"autopilot": {"post": false, "dm_replies": false, "scrape": false, "paid_renders": false}`; each starts false). Ask which ones, with multiple-choice questions, and record the answer and the date. Never turn one on yourself.
+
+When a permission is on, these installed skills may be used for it:
+- `post` or `dm_replies`: `/content-factory` (post, keyword rule), `/comment-responder` (public reply plus DM). Posting still pauses for the owner's OK unless the owner says otherwise in writing.
+- `scrape`: `/account-audit` (outliers via Apify, or from an export), `/reel-sources` (fetch a reel, mine demand), and `/content-factory`.
+- `paid_renders`: Seedance on Runway through `/reel-builder` (about $6 to $12 per reel).
+
+These stay on even in autopilot: rule 1 (only cleared facts, no invented numbers), no links in public comment replies (rule 12), a keyword CTA must really deliver, never search the computer for or print an API key (the person connects tools themselves), and nothing is sent or posted to a brand the permission was not given for.
+
+## 3c. Weekly batch (optional)
+
+To make a week's reels in one sitting: use `/ig-plan` to pick up to 3 topics. Each gets its own goal and its own angle, and no two reels in the batch share an angle. Write all the scripts, then take them to Gate A together, but record each reel's approval separately in its own `approvals.md`. Voice credits are spent only for scripts that were approved. After that every reel runs the normal loop one at a time (visual plan, Gate B, build, verify, Gate C), and a problem in one does not block the others. Update `brand/plan.md` and `brand/log.md` per reel. Never more reels than the approver can review properly that week.
 
 ## 4. Map
 

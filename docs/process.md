@@ -16,13 +16,17 @@ Copy `template/` for the brand and open Claude Code in the copy. With an empty `
 ## 1. Research (monthly)
 
 - Pick 6 to 12 accounts: about 4 in your niche and a bit ahead of you, 4 adjacent (same audience, other topic), 2 to 4 big ones for format ideas only. Stay within about 10x of your own follower count.
-- Read reels in the browser at human speed, with the person present. No scraping services, and Claude never logs in with the brand's password.
+- Read reels in the browser at human speed, with the person present. No scraping services unless the brand owner turned on `autopilot.scrape`: then `/account-audit` computes the 3x rule from Apify data (cost shown first, token in `~/.config/susanoo-reels/apify.key`). Claude never logs in with the brand's password.
 - **The 3x rule:** for each reel, views divided by that account's median views over its last 12 reels. Under 1.5x ignore, 1.5x to 3x note, 3x and up is a formula worth studying. `/ig-viral` does this and saves outliers to `brand/swipe.md`.
 - Copy the shape (hook, structure, length), never the video, its script, colours or characters.
+- **Teardown:** for a reel worth studying (an outlier, or the brand's own best), the person supplies the file; Claude pulls frames and a transcript and runs `/reel-analyzer` (hook, beats, pacing, visual technique, reusable moves, one-line remake). Save it in `brand/swipe.md`. See [hook-and-review-playbook.md](../template/docs/hook-and-review-playbook.md).
+- **Comment mining:** with 30 or more real comments or DMs, run `/comment-mining`; every idea must trace to a real comment.
 
 ## 2. Topic
 
 The person gives a topic or a finished script. A pasted script is used word for word (obvious typos only). Confirm which brand it is for.
+
+Pick ONE goal (save, share, follow or lead) and an angle (result first, self-proving, contrarian, pain first, something breaks) that differs from the brand's last post in `brand/log.md`. Write both next to Gate A.
 
 ## 3. Style question (always)
 
@@ -34,7 +38,7 @@ Read the official source for every claim the reel makes (for a how-to, the produ
 
 ## 5. Hook and script
 
-- Write 3 or 4 hooks, score them with the Instagram plugin's hook scorer, keep one scoring 75 or more. The hook gives the value in the first 1.5 to 3 seconds; it does not tease.
+- Write 3 or 4 hooks, score them with the Instagram plugin's hook scorer, keep one scoring 75 or more and passing the eight-point frame-0 checklist in [hook-and-review-playbook.md](../template/docs/hook-and-review-playbook.md). The hook gives the value in the first 1.5 to 3 seconds; it does not tease. (Only a numbered series reel may promise a payoff for the end, and it must pay it off.)
 - Script: about 85 to 110 words for 30 seconds. Shape: hook > proof (a name, a number from facts.md) > 3 or 4 steps > your own proof or twist > one ask.
 - Write for the ear. Commands, URLs and codes go on screen, not in the voice. Spell tricky names by sound. The generated voice never says a word in `brand.json` > `voice.never_say`; show it as text instead.
 - No em dashes. Run `/ig-human`'s detector on the script.
@@ -50,7 +54,7 @@ Read the official source for every claim the reel makes (for a how-to, the produ
 
 Write `STORYBOARD.md`:
 - **Concept card:** one world or object whose behaviour IS the argument, 3 to 6 props invented from this script, one wow moment per section, and the swap test (could this frame sit in someone else's reel? then it is generic, redo it).
-- **Shot cards:** one per 1.5 to 5 seconds, cued to word indices: what is on stage, what changes on each stressed word, what keeps moving, the camera, the presenter's action, the hits.
+- **Shot cards:** one per 1.5 to 5 seconds, cued to word indices: what is on stage, what changes on each stressed word, what keeps moving, the camera, the presenter's action, the hits. The hook shot must already be moving on frame 0, and a small re-hook ("and it gets better") sits near 4 s, 9 s and 15 s.
 - **Hand-off block:** names, ids, colours, the hero item and each shot's end state, so parallel builders agree.
 
 **GATE B: the approver approves the plan** (also confirm the handle that will show on screen).
@@ -75,7 +79,8 @@ Pull frames from the CURRENT `build/draft.mp4`, not the stills folder (it can ho
 - exact commands and text, and that every typed line finishes and is held on screen before the cut;
 - the handle is visible; nothing is cut off; payoffs stay on screen at least a second before the cut;
 - safe zones: nothing important in the bottom 300 px or right 120 px (Instagram covers them);
-- text size (aim for 40 px or more on screen); no em dash reaches the screen.
+- text size (aim for 40 px or more on screen); no em dash reaches the screen;
+- the hook on frames at 0, 0.5, 1, 2 and 3 s of the draft: moving on frame 0, biggest element at least 40 percent of the frame, claim landing about 1.2 to 1.6 s, readable on mute (checklist in the playbook).
 
 Give the person the draft (with real sound, step 11) to watch on a phone. Apply changes as the smallest possible edits and verify again.
 
@@ -87,7 +92,7 @@ After `kit export`, run the real-sound step (see [sound.md](sound.md)). It repla
 
 - `kit render <reel> --final`, `kit export <reel>`, then the real-sound step on `out/<name>.mp4`.
 - **Caption:** `out/caption.txt`. The first line is under 125 characters, one ask, 3 to 5 hashtags, no em dashes. Lint it with the Instagram plugin's caption checker.
-- **Cover rule:** every reel gets a dedicated cover, never a frame grabbed from the hook. Make a still-only `scenes/cover.js` with a big topic title, a prop that shows the subject, the presenter (if the brand has one) and the handle. Render it with `kit frames <reel> 0 --only cover` to `out/cover.jpg`. Keep the title, prop and face inside the centre 1080x1440 band, which is what the profile grid shows.
+- **Cover rule:** every reel gets a dedicated cover, never a frame grabbed from the hook. Make a still-only `scenes/cover.js` with a big topic title, a prop that shows the subject, the presenter (if the brand has one) and the handle. Render it with `kit frames <reel> 0 --only cover` to `out/cover.jpg`. Keep the title, prop and face inside the centre 1080x1440 band, which is what the profile grid shows. Title of 3 to 5 words; shrink the cover to 150 px wide and simplify if it is unreadable; it should look like family next to the last 8 covers without disappearing (`/cover-thumbnail-brief`).
 
 **GATE C: the approver approves the final.** File the mp4, caption, cover, script, storyboard and approvals in the brand's reels folder and add a row to `brand/log.md`.
 
@@ -98,6 +103,12 @@ On Instagram: turn on "Upload at highest quality", upload `cover.jpg` as the cov
 ## 14. Review
 
 After 24 hours: skip rate, saves, keyword comments. Weekly: each reel's views against your own median, 3-second hold, reach to non-followers, sends and saves. Lessons go back into the swipe file and the next plan.
+
+Run `/analytics-readout` on the numbers: judge against the brand's own median, name the one metric that matters for the reel's goal, and locate the break (about 3 s = hook, about 12 s = middle, the end = CTA). Two actions, not twelve, and say what the data cannot show. To test two hooks, use `/ab-hook-tester` (one variable only). Log the goal and angle in `brand/log.md`.
+
+## Weekly batch (optional)
+
+For a week's reels in one sitting: plan up to 3 topics, each with its own goal and a different angle; write all the scripts; take them to Gate A together but record each approval separately; spend voice credits only on approved scripts; then run each reel through Gates B and C one at a time. A problem in one reel does not block the others. After posting, `/account-audit --all` fills `brand/stats.md` so the review (step 14) uses the brand's own numbers.
 
 ## Lessons from the first reels
 

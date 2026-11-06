@@ -42,8 +42,8 @@ Susanoo Inc. may update this license, or withdraw it and stop distributing the K
 
   a. The fonts in studio/fonts are under the SIL Open Font License 1.1 (see studio/fonts/OFL.txt and studio/fonts/FONTS.md).
   b. Packages installed by npm, such as three.js (MIT) and Playwright (Apache-2.0), are under their own licenses.
-  c. Tools and libraries the setup installs from elsewhere, such as HyperFrames, earshot, opus-sound-layer, the Instagram agent skill, Whisper, sound libraries and AI models, are separate projects under their own licenses and terms. They are not part of the Kit.
-  d. You need your own accounts and keys for the services the Kit uses (for example Claude Code and ElevenLabs). Their terms apply to your use. The Kit contains no keys.
+  c. Tools and libraries the setup installs from elsewhere, such as HyperFrames, earshot, opus-sound-layer, the Instagram agent skill, Whisper, Apify, sound libraries and AI models, are separate projects under their own licenses and terms. They are not part of the Kit.
+  d. You need your own accounts and keys for the services the Kit uses (for example Claude Code, ElevenLabs and Apify). Their terms apply to your use. The Kit contains no keys.
   e. Logos, footage, music, screenshots and trademarks you add to your content are your responsibility.
 
 8. NO WARRANTY AND LIMITATION OF LIABILITY

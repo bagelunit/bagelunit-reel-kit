@@ -1,0 +1,59 @@
+SUSANOO REEL KIT LICENSE
+Version 1.0, 5 November 2026
+
+Copyright (c) 2026 Susanoo Inc. All rights reserved.
+
+1. WHAT THIS LICENSE COVERS
+
+This license covers the Susanoo Reel Kit: the code, engines, scene library, guides, prompts, templates, tools and documentation in this repository (the "Kit"). It does not cover the third-party parts listed in section 7, which keep their own licenses.
+
+2. WHAT YOU CAN DO
+
+Susanoo Inc. gives you a free, non-exclusive, non-transferable and revocable license to:
+
+  a. download, install and use the Kit on the devices you use;
+  b. change the Kit for your own use (new props, styles, presets, brand settings);
+  c. use the Kit to make videos and other content for yourself, your business and your clients, including paid client work.
+
+3. THE CONTENT YOU MAKE IS YOURS
+
+Videos and other content you make with the Kit belong to you. You can publish them anywhere. No credit to Susanoo Inc. is required.
+
+4. WHAT YOU CANNOT DO
+
+You may not:
+
+  a. sell, resell, rent, lend or sublicense the Kit;
+  b. upload, publish, mirror, share or otherwise distribute the Kit or any part of it, changed or unchanged, outside this repository, except as allowed in section 5;
+  c. put the Kit, or anything copied or adapted from it, inside a product or service you distribute or sell, such as a template pack, course, community, membership, app, SaaS, plugin, skill, prompt pack or AI tool;
+  d. remove or change this license or the copyright notices;
+  e. use the Kit's files to train or fine-tune an AI model;
+  f. use the Kit to make content that breaks the law, infringes someone else's rights, or impersonates a real person or business without their permission.
+
+5. VIEWING AND FORKING ON GITHUB
+
+GitHub's Terms of Service let GitHub users view and fork public repositories on GitHub. You may do that. A fork is still covered by this license: it may be used as described in section 2, and may not be used to redistribute the Kit outside these terms.
+
+6. CHANGES, WITHDRAWAL AND ENDING
+
+Susanoo Inc. may update this license, or withdraw it and stop distributing the Kit, at any time. Your license ends when it is withdrawn, or automatically if you break it. When it ends, stop using the Kit and delete every copy you have. Content you already made with the Kit stays yours.
+
+7. THIRD-PARTY PARTS AND YOUR OWN ACCOUNTS
+
+  a. The fonts in studio/fonts are under the SIL Open Font License 1.1 (see studio/fonts/OFL.txt and studio/fonts/FONTS.md).
+  b. Packages installed by npm, such as three.js (MIT) and Playwright (Apache-2.0), are under their own licenses.
+  c. Tools and libraries the setup installs from elsewhere, such as HyperFrames, earshot, opus-sound-layer, the Instagram agent skill, Whisper, Apify, sound libraries and AI models, are separate projects under their own licenses and terms. They are not part of the Kit.
+  d. You need your own accounts and keys for the services the Kit uses (for example Claude Code, ElevenLabs and Apify). Their terms apply to your use. The Kit contains no keys.
+  e. Logos, footage, music, screenshots and trademarks you add to your content are your responsibility.
+
+8. NO WARRANTY AND LIMITATION OF LIABILITY
+
+The Kit is provided "as is", without warranty of any kind, express or implied. To the extent the law allows, Susanoo Inc. is not liable for any damages or losses arising from the Kit or its use. Results depend on your topic, script, voice, account and audience; nothing here promises views, followers or income.
+
+9. GOVERNING LAW
+
+This license is governed by the laws of the Province of Ontario and the federal laws of Canada that apply there.
+
+10. CONTACT
+
+Questions about this license, or permission for anything it does not allow: contact Susanoo Inc. through susanoo.ai.

@@ -52,7 +52,8 @@ The full process, with its three approval gates, is in [docs/process.md](docs/pr
 | Path | What it is |
 |---|---|
 | `studio/` | The reel engine, installed as the Claude Code skill `susanoo-reels` (`/susanoo-reels`): three styles, the always-ask-the-style rule, the sticker presenter and the real-sound step. Changes are logged in `studio/LOCAL-CHANGES.md`. |
-| `template/` | The brand workspace to copy for each brand: `CLAUDE.md` (house rules and first-run setup), `brand/`, `reels/`, and the `/brand-setup` skill. |
+| `template/` | The generic brand workspace. Copy it once per brand or project and start Claude Code inside the copy. It is self-contained and carries the licence: `CLAUDE.md` (house rules and first-run setup), `brand/`, `reels/`, `docs/` (the hook and review playbook), and the reel skills in `.claude/skills/`. |
+| `template/.claude/skills/` | 17 reel skills that travel with every copy of the template (nothing global, so brands never mix): hook writer, script, caption, teardown, account audit with the 3x outlier script, hook mining, comment mining, A/B test, cover brief, readout, and the opt-in autopilot skills. |
 | `setup/install.sh` | The installer. |
 | `docs/` | `process.md` (the full loop), `avatar.md` (making sticker poses), `sound.md` (the real-sound step), `reference.md` (what we learned from other reel makers). |
 | `SETUP.md` | Setup by hand, step by step, and common snags. |

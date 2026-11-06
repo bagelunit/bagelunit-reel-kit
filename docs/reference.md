@@ -72,6 +72,10 @@ This kit combines both: the engine for making, the Instagram skill pack for rese
 - Studying your own best reels frame by frame once you have some.
 - Ignore sales tactics such as countdown prices and invented urgency.
 
+## 5b. The kit's reel skills (added 2026-11-06)
+
+The template ships 17 reel skills in its `.claude/skills/` folder, so a copy of the template carries them (hook writer, script, caption, teardown, hook mining, comment mining, A/B test, cover brief, readout, and the autopilot ones). The checklists are in [hook-and-review-playbook.md](../template/docs/hook-and-review-playbook.md): the eight-point frame-0 hook checklist (built from side-by-side winners and flops), one goal and one rotated angle per reel, re-hooks at the dips, reel teardowns, comment mining, A/B hook tests with one variable, a cover legibility test, and a retention-based review (drop at 3 s = hook, 12 s = middle, end = CTA). The skills' numbers come from one account, so we test them against each brand's own median. Auto-posting, automated DMs, scraping services and paid cloud renders are off by default and only a brand owner turns them on (template `CLAUDE.md` section 3b).
+
 ## 6. Rules we adopted
 
 - **Only cleared facts.** Other creators lean on big round numbers; we put a claim on screen only if it is in `brand/facts.md`. No invented stats, no price or offer claims unless cleared.
