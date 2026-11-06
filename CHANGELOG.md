@@ -2,6 +2,10 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.6.1 (2026-11-06)
+
+- **The README now says exactly what to type first.** Three prompts, one for each folder: set up the kit, set up a brand, make a reel. The same prompts are in the template's README and the first-reel guide.
+
 ## 1.6.0 (2026-11-06)
 
 - **The update script now runs on Windows too** (`setup/sync-template.mjs`; the old `.sh` still works as a launcher). It also keeps each workspace's `.gitignore` current.

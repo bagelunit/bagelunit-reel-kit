@@ -2,6 +2,8 @@
 
 This folder is generic. It holds no brand until you set one up inside the copy you make.
 
+**The prompts to send, in order:** open Claude Code in your copy, then send `Set up this brand.` (it also starts on its own the first time). When that is done, send `Make a reel on <your topic>.`
+
 **To use it for a brand or project:**
 1. Copy this whole folder once per brand or project, for example `cp -R template ~/Reels/<brand>`.
 2. Start Claude Code inside the copy. With an empty `brand/brand.json` it runs the first-run brand setup (or run `/brand-setup`).

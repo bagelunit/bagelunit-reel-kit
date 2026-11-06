@@ -39,13 +39,17 @@ bash setup/install.sh          # macOS and Linux. Safe to run again; prints ever
 
 On Windows, in PowerShell: `.\setup\install.ps1` (or `node setup/install.mjs` on any system). Use `python` where this kit says `python3`, and `.\` paths instead of `~/` shortcuts if your shell needs them.
 
-Then:
+## The first prompts to send
 
-1. Put your ElevenLabs key in `~/.config/susanoo-reels/elevenlabs.key` (one line). [SETUP.md](SETUP.md) shows how.
-2. Copy the template for your brand, outside iCloud if you can: `cp -R template ~/Reels/my-brand`
-3. Open Claude Code in that copy: `cd ~/Reels/my-brand && claude`
-4. Answer the brand setup questions (they start on their own the first time).
-5. Ask for a reel: "A reel on why hotels put mints on the pillow."
+You only ever type three things to Claude Code. Each goes in a different folder.
+
+| Where you open Claude Code | Send this | What happens |
+|---|---|---|
+| In this repo folder (`cd ~/dev/susanoo-reel-kit && claude`) | `Set up the reel kit on this computer.` | Claude runs the installer, explains anything it marks as a NOTE, and tells you where to put your ElevenLabs key. You can skip this and run the installer yourself (above). |
+| In a copy of `template/` for one brand (`cp -R template ~/Reels/my-brand`, then `cd ~/Reels/my-brand && claude`) | `Set up this brand.` (or type `/brand-setup`) | A short set of questions: your name, the brand, handle, colours, logo, fonts, voice and call to action. It starts on its own the first time, whatever you send. |
+| In that same brand folder, once it is set up | `Make a reel on <your topic>.` for example `Make a reel on why hotels put mints on the pillow.` | Claude asks the style, writes the script, and stops at three approval gates. You post it yourself. |
+
+Before the first reel, put your ElevenLabs key in `~/.config/susanoo-reels/elevenlabs.key` (one line; [SETUP.md](SETUP.md) shows how) and keep the copy outside iCloud if you can. New to it? `template/docs/first-reel.md` walks through the first reel.
 
 The full process, with its three approval gates, is in [docs/process.md](docs/process.md).
 

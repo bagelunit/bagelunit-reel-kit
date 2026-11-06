@@ -7,6 +7,11 @@ Claude does the work. You answer a few questions, approve three times, and post 
 - You opened Claude Code inside this brand's folder, and the brand setup is done (your name, the brand, handle, colours, logo, voice, call to action). If not, type `/brand-setup`.
 - Put at least a few true facts about the brand in `brand/facts.md` (or tell Claude, and confirm them). A reel can only state what is in that file.
 
+**The prompts to send, in order**
+1. `Set up this brand.` (or `/brand-setup`), once. It also starts on its own the first time you send anything.
+2. `Make a reel on <your topic>.` for example `Make a reel on how to <something the brand really knows>.`
+3. After you post and a day passes: `/analytics-readout` with your numbers.
+
 **The steps**
 1. **Ask for a reel**, with a topic: "Make a reel on how to <something the brand really knows>."
 2. **Pick the style** when Claude asks (Print, 3D or Talking head). Take its recommendation if unsure.
