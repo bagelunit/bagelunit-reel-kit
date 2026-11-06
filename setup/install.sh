@@ -207,7 +207,7 @@ else
 
   if [ -n "$MISSING" ]; then
     warn "Kenney packs missing:$MISSING"
-    info "Reels still work; the real-sound step just has fewer UI, impact and sci-fi sounds. To add them:"
+    info "Reels still work, but the real-sound step has no ui or zap sounds and fewer impact and sci-fi sounds. To add them:"
     info "  open each page below, click Download, then 'Continue without donating...', leave the zip in Downloads"
     for p in $MISSING; do info "  https://kenney.nl/assets/$p"; done
     info "  then run: bash setup/install.sh --rebuild-sounds"
@@ -232,7 +232,8 @@ else
   else ok "sound library already built with every Kenney pack you have (use --rebuild-sounds to rebuild)"; fi
   if [ -f "$CATALOG" ]; then
     KN=$(grep -c '"id": "[a-z]*/kenney-' "$CATALOG" || true); ALL=$(grep -c '"id": ' "$CATALOG" || true)
-    ok "library: $ALL sounds, $KN of them from Kenney (complete: about 1,140 sounds, about 310 from Kenney)"
+    if [ -z "$MISSING" ]; then ok "library: $ALL sounds, $KN of them from Kenney (complete: about 1,140 sounds, 309 from Kenney)"
+    else warn "library: $ALL sounds, $KN of them from Kenney (complete: about 1,140, 309 from Kenney). Until the packs are in, the ui and zap sound types are empty."; fi
   fi
 
   step "earshot (MIT) at $EARSHOT"

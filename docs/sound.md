@@ -42,5 +42,5 @@ Results go to `build/realsound/report.txt`: every picture check, the loudness, a
 ## Known limits
 
 - Low whooshes and thumps can hide under a deep voice. The checks flag them; try `--hits louder` or a brighter sound.
-- The 7 Kenney packs must be downloaded in a browser; the installer opens the pages and takes the zips from Downloads (see SETUP.md). Without them the library has about 830 sounds instead of about 1,140, and the UI, impact and sci-fi types are thin. The kit checkup shows the count.
+- The 7 Kenney packs must be downloaded in a browser; the installer opens the pages and takes the zips from Downloads (see SETUP.md). Without them the library has about 830 sounds instead of about 1,140: the `ui` and `zap` sound types are empty and the impact and sci-fi sounds are thin. The kit checkup shows the count.
 - earshot's first use downloads about 1.1 GB of open models; after that it works offline.

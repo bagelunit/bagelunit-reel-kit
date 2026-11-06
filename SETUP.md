@@ -97,7 +97,7 @@ cd ~/dev/sound/opus-sound-layer
 uv run scripts/sfx.py kit
 ```
 
-or run `bash setup/install.sh`, which rebuilds when it finds new packs. A complete library has about 1,140 sounds: 309 from Kenney (all 7 packs) and about 830 cuts from the Freesound recordings. The kit checkup shows the count on its "sound library" line. Reels still work without the Kenney packs, but the real-sound step has fewer UI, impact and sci-fi sounds. If Claude Code's auto mode blocks running the downloaded build script, run it yourself in a terminal.
+or run `bash setup/install.sh`, which rebuilds when it finds new packs. A complete library has about 1,140 sounds: 309 from Kenney (all 7 packs) and about 830 cuts from the Freesound recordings. The kit checkup shows the count on its "sound library" line. Reels still work without the Kenney packs, but the real-sound step then has no `ui` or `zap` sounds at all and fewer impact and sci-fi sounds. If Claude Code's auto mode blocks running the downloaded build script, run it yourself in a terminal.
 
 **earshot** (lets Claude "listen" to audio):
 
