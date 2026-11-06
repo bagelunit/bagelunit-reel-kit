@@ -60,5 +60,9 @@
     "dm_replies": false,
     "scrape": false,
     "paid_renders": false
+  },
+  "updates": {
+    "_note": "OFF by default. true = at the start of a session, Claude checks once whether a newer kit version is out and tells you. It reads one public file from GitHub and never updates anything by itself.",
+    "check_on_start": false
   }
 }

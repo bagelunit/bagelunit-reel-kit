@@ -31,6 +31,8 @@ Use multiple-choice questions wherever the answer can be a choice, recommended o
 8. **Voice:** "Pick an ElevenLabs voice together now" (then follow the kit's `KIT.md` voice steps with `voicebank.py`), "Use the voice already saved in the kit", "My own recorded voice", "Decide later". Then: words the generated voice must never say, and how to spell tricky names by sound.
 9. **Call to action:** "Save this" (recommended until a DM auto-reply is tested), "Follow for more", "Comment a keyword for a DM", "Visit the link in bio". A keyword goes in `cta.tested_keywords` only after the user confirms the auto-reply was tested from a second account.
 
+10. **Kit updates:** "Tell me when a newer kit version is out" (sets `updates.check_on_start` to `true`) or "No, I'll check myself" (recommended default, `false`). It reads one public file from GitHub once per session and never updates anything by itself.
+
 ## Writing the answers
 
 - `brand/brand.json`: `name`, `slug`, `handle`, `people.operator_name`, `people.approver_name`, `identity.logo` (plus other identity paths given), `colors`, `fonts`, `host.enabled`, `host.type` (`stickers`, `drawn` or `none`), `host.poses_dir`, `voice.style`, `voice.voice_id` and `voice.voice_name` (once chosen), `voice.never_say`, `voice.pronunciation`, `cta.style`, `cta.default`. Keep the file valid JSON (check with `python3 -m json.tool brand/brand.json`). Leave `work_dir` unless asked.

@@ -97,6 +97,10 @@ When a permission is on, these installed skills may be used for it:
 
 These stay on even in autopilot: rule 1 (only cleared facts, no invented numbers), no links in public comment replies (rule 12), a keyword CTA must really deliver, never search the computer for or print an API key (the person connects tools themselves), and nothing is sent or posted to a brand the permission was not given for.
 
+## 3b2. Kit updates (optional, OFF by default)
+
+This copy records the kit version it is on in `.kit-version`. If `brand/brand.json` -> `updates.check_on_start` is `true`, then once at the start of a session, read `.kit-version` and read the one public file `https://raw.githubusercontent.com/bagelunit/susanoo-reel-kit/main/VERSION` (with the project's web tool or `curl -s`; one read, nothing else). If the number there is higher, say once, in one or two lines: "Kit <new> is out (this workspace is on <old>). What changed: https://github.com/bagelunit/susanoo-reel-kit/blob/main/CHANGELOG.md. To update: in your clone of the kit run `git pull`, then `bash setup/sync-template.sh <this folder>` to see the changes and add `--apply` to do it." If the check fails, is offline, or the numbers match, say nothing. Never update anything yourself, and never ask more than once per session. With the setting `false` or missing, do not check.
+
 ## 3c. Weekly batch (optional)
 
 To make a week's reels in one sitting: use `/ig-plan` to pick up to 3 topics. Each gets its own goal and its own angle, and no two reels in the batch share an angle. Write all the scripts, then take them to Gate A together, but record each reel's approval separately in its own `approvals.md`. Voice credits are spent only for scripts that were approved. After that every reel runs the normal loop one at a time (visual plan, Gate B, build, verify, Gate C), and a problem in one does not block the others. Update `brand/plan.md` and `brand/log.md` per reel. Never more reels than the approver can review properly that week.

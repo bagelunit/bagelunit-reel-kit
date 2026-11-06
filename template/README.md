@@ -13,6 +13,8 @@ This folder is exactly what the Git repo ships in `template/`. The Susanoo Reel 
 
 ## Updating this copy to a newer kit
 
+This copy records the kit version it is on in `.kit-version`. The kit's changes are listed in its `CHANGELOG.md` and announced as GitHub Releases (on the kit's GitHub page: Watch, then Custom, then Releases, to get an email). To have Claude tell you about a newer version at the start of a session, set `updates.check_on_start` to `true` in `brand/brand.json` (it is off by default).
+
 A copy does not update itself. When the kit gets newer rules or skills, update this copy from the kit's repo folder (where `setup/sync-template.sh` lives; ask the kit's owner for it):
 
 1. See what would change, changing nothing: `bash <kit repo>/setup/sync-template.sh <this folder>`

@@ -14,6 +14,8 @@
 #       Files it overwrites are first saved next to them as <name>.bak-<date>.
 #       A brand-specific edit you made to CLAUDE.md or a skill WILL be replaced (the .bak keeps it): re-apply it after.
 #
+#       The dry run also says which kit version the workspace is on, which is current, and what changed in between.
+#
 # Run this from anywhere. Needs rsync and python3. Never run it on the repo itself.
 set -euo pipefail
 
@@ -21,6 +23,7 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SRC="$REPO/template"
 GENERIC="${REEL_TEMPLATE_HOME:-$HOME/Documents/Claude/Reel Template}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
+KITVER="$(tr -d '[:space:]' < "$REPO/VERSION" 2>/dev/null || echo unknown)"
 
 [ -f "$SRC/CLAUDE.md" ] || { echo "Cannot find template/ next to this script."; exit 1; }
 command -v rsync >/dev/null || { echo "rsync not found."; exit 1; }
@@ -45,6 +48,21 @@ PATHS=(CLAUDE.md README.md LICENSE docs .claude/skills)
 
 if [ "$MODE" != "--apply" ]; then
   echo "DRY RUN for: $DEST   (nothing changed; add --apply to do it)"
+  python3 -I - "$REPO" "$DEST" "$KITVER" <<'PY'
+import os,re,sys
+repo,dest,kit=sys.argv[1:4]
+have="unknown"
+f=os.path.join(dest,".kit-version")
+if os.path.exists(f): have=open(f).read().strip() or "unknown"
+print(f"  kit version: {kit}   this workspace: {have}")
+def tup(v): return tuple(int(x) for x in re.findall(r"\d+",v)[:3]) if re.search(r"\d",v) else (0,)
+try: log=open(os.path.join(repo,"CHANGELOG.md")).read()
+except OSError: log=""
+blocks=re.split(r"(?m)^## ",log)[1:]
+new=[b for b in blocks if tup(b.split()[0])>tup(have)] if have!="unknown" else blocks[:1]
+if have!="unknown" and tup(have)>=tup(kit): print("  (this workspace is already on the newest kit version)")
+for b in new: print("\n  What changed in "+b.rstrip().replace("\n","\n  ")+"\n")
+PY
   python3 -I - "$SRC" "$DEST" "${PATHS[@]}" <<'PY'
 import json,os,sys
 src,dst,paths=sys.argv[1],sys.argv[2],sys.argv[3:]
@@ -90,4 +108,5 @@ if added:
 print("brand.json gained:", ", ".join(added) if added else "nothing (already current)")
 PY
 date +%Y-%m-%d > "$DEST/.kit-synced"
-echo "Updated $DEST. Replaced files were saved as *.bak-$STAMP. brand/ and reels/ were not touched."
+printf '%s\n' "$KITVER" > "$DEST/.kit-version"
+echo "Updated $DEST to kit version $KITVER. Replaced files were saved as *.bak-$STAMP. brand/ and reels/ were not touched."
