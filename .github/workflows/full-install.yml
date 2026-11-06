@@ -1,0 +1,41 @@
+name: full-install
+
+# Started by hand (Actions tab > full-install > Run workflow). Runs the whole installer, including the sound
+# library and earshot, on a clean Windows and a clean Linux machine. The Kenney packs cannot be fetched without a
+# browser, so the library is built without them (the installer says so). Takes 10 to 30 minutes.
+on:
+  workflow_dispatch:
+
+jobs:
+  full:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Programs the installer expects to find or ask for
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then choco install ffmpeg -y --no-progress; else sudo apt-get update && sudo apt-get install -y ffmpeg; fi
+
+      - name: Full install
+        run: node setup/install.mjs --yes --skip-plugins
+
+      - name: What got installed
+        shell: bash
+        run: |
+          ls "$HOME/.claude/skills" || true
+          ls "$HOME/dev/sound" || true
+          ls "$HOME/dev/sound/earshot/.venv" || true
+          python --version; python -c "import faster_whisper; print('faster-whisper ok')" || true
