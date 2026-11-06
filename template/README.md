@@ -10,3 +10,12 @@ This folder is generic. It holds no brand until you set one up inside the copy y
 Copies never share state, so brands do not mix. The reel engine itself (`/susanoo-reels`) is installed once per computer by the kit's `setup/install.sh`; it keeps no brand data.
 
 This folder is exactly what the Git repo ships in `template/`. The Susanoo Reel Kit licence (`LICENSE`) travels with every copy; keep it in place. Never commit keys, `.env` files, photos of people, avatar poses, client data, renders or audio from a copy back to the kit.
+
+## Updating this copy to a newer kit
+
+A copy does not update itself. When the kit gets newer rules or skills, update this copy from the kit's repo folder (where `setup/sync-template.sh` lives; ask the kit's owner for it):
+
+1. See what would change, changing nothing: `bash <kit repo>/setup/sync-template.sh <this folder>`
+2. Apply it: `bash <kit repo>/setup/sync-template.sh <this folder> --apply`
+
+It replaces only the kit's own files (`CLAUDE.md`, `README.md`, `LICENSE`, `docs/`, `.claude/skills/`). It never touches `brand/` or `reels/`, except that `brand/brand.json` gains any new setting without changing yours. Any file it replaces is saved next to it as `<name>.bak-<date>`. If you changed the rules or a skill for this brand only, re-apply that change from the backup afterwards.
