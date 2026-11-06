@@ -15,6 +15,11 @@
 #   --skip-sound      do not set up opus-sound-layer and earshot (the real-sound step will not work)
 #   --earshot-mcp     also register earshot as a user-level MCP server in Claude Code
 #   --rebuild-sounds  rebuild the opus-sound-layer library even if it already exists
+#                     (not needed after adding Kenney packs: the script notices them and rebuilds)
+#
+# Kenney sound packs: Kenney only lets a browser download them. The script opens the 7 pack pages,
+# you click Download (then "Continue without donating...") on each, and it takes the zips from
+# ~/Downloads. Run it in a terminal so it can wait for you.
 
 set -euo pipefail
 
@@ -27,7 +32,7 @@ for arg in "$@"; do
     --skip-sound) SKIP_SOUND=1 ;;
     --earshot-mcp) EARSHOT_MCP=1 ;;
     --rebuild-sounds) REBUILD_SOUNDS=1 ;;
-    -h|--help) sed -n '2,20p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,/^set -euo/p' "$0" | sed '$d'; exit 0 ;;
     *) echo "Unknown option: $arg (try --help)"; exit 2 ;;
   esac
 done
@@ -41,6 +46,9 @@ SOUND="$HOME/dev/sound"
 OPUS="$SOUND/opus-sound-layer"
 EARSHOT="$SOUND/earshot"
 MARKER=".susanoo-reel-kit"
+PACKS="interface-sounds ui-audio impact-sounds sci-fi-sounds digital-audio casino-audio rpg-audio"   # Kenney packs
+DL="$HOME/Downloads"
+MISSING=""; IMPORTED=0
 
 STEP=0
 step() { STEP=$((STEP + 1)); printf '\n==> Step %d: %s\n' "$STEP" "$*"; }
@@ -143,19 +151,89 @@ else
   step "opus-sound-layer (MIT) at $OPUS"
   if [ -d "$OPUS/.git" ]; then ok "already cloned"; else git clone https://github.com/Bodila51/opus-sound-layer "$OPUS"; fi
   RAW="$OPUS/audio/kit/_raw"; mkdir -p "$RAW"
-  MISSING=""
-  for p in interface-sounds ui-audio impact-sounds sci-fi-sounds digital-audio casino-audio rpg-audio; do
-    [ -s "$RAW/kenney_$p.zip" ] || MISSING="$MISSING $p"
-  done
+  CATALOG="$OPUS/audio/kit/catalog.json"
+
+  step "Kenney sound packs (7 free CC0 packs, downloaded in your browser)"
+  # Kenney only serves its zips to a browser. A script that tries gets a web page back, and the
+  # sound builder saves that page under the zip's name ("File is not a zip file"). So: never trust
+  # a file just because it exists, test it as a zip, and fetch the real packs through the browser.
+  real_zip() { [ -s "$1" ] && unzip -tqq "$1" >/dev/null 2>&1; }
+  drop_fake_packs() {
+    for p in $PACKS; do
+      f="$RAW/kenney_$p.zip"
+      if [ -e "$f" ] && ! real_zip "$f"; then
+        rm -f "$f"; [ "${1:-}" = quiet ] || warn "removed kenney_$p.zip: it was a web page, not the sound pack"
+      fi
+    done
+  }
+  # A pack downloaded in the browser: the newest real zip in ~/Downloads, or the folder Safari
+  # makes when it unzips a download by itself.
+  import_pack() {
+    local p="$1" dst="$RAW/kenney_$1.zip" f d
+    while IFS= read -r f; do
+      if real_zip "$f"; then cp "$f" "$dst"; ok "kenney_$p.zip taken from Downloads"; IMPORTED=1; return 0; fi
+    done < <(ls -t "$DL"/*"$p"*.zip 2>/dev/null)
+    for d in "$DL"/*"$p"*/; do
+      [ -d "$d" ] || continue
+      if [ -n "$(find "$d" \( -iname '*.ogg' -o -iname '*.wav' \) -print -quit)" ]; then
+        rm -f "$dst"
+        if ( cd "$d" && zip -qr "$dst" . ); then ok "kenney_$p.zip made from the unzipped folder in Downloads"; IMPORTED=1; return 0; fi
+      fi
+    done
+    return 1
+  }
+  # the pack's name inside the sound library (catalog ids look like "hit/kenney-impact-...")
+  lib_name() { case "$1" in interface-sounds) echo interface ;; impact-sounds) echo impact ;; sci-fi-sounds) echo scifi ;;
+                            digital-audio) echo digital ;; casino-audio) echo casino ;; rpg-audio) echo rpg ;; *) echo "$1" ;; esac; }
+
+  drop_fake_packs
+  for p in $PACKS; do real_zip "$RAW/kenney_$p.zip" || import_pack "$p" || MISSING="$MISSING $p"; done
+
+  if [ -n "$MISSING" ] && [ -t 0 ] && [ -t 1 ] && have open; then
+    warn "$(echo $MISSING | wc -w | tr -d ' ') of 7 packs still needed. Kenney only allows downloads from a browser, so this part is by hand (about 2 minutes)."
+    info "Opening each pack page in your browser now. On each page:"
+    info "  1. click Download"
+    info "  2. a 'Consider a donation' box opens: click 'Continue without donating...' (the packs are free)"
+    info "  3. leave the zip in your Downloads folder; this script picks it up from there"
+    for p in $MISSING; do info "  https://kenney.nl/assets/$p"; open "https://kenney.nl/assets/$p"; done
+    while [ -n "$MISSING" ]; do
+      printf '    Press Enter when the downloads have finished (or type s then Enter to skip for now): '
+      read -r reply || reply=s
+      LEFT=""; for p in $MISSING; do import_pack "$p" || LEFT="$LEFT $p"; done; MISSING="$LEFT"
+      [ "$reply" = s ] && break
+      [ -n "$MISSING" ] && warn "not in Downloads yet:$MISSING"
+    done
+  fi
+
   if [ -n "$MISSING" ]; then
-    warn "Kenney sound packs need a download in your browser (their links are signed). For each pack:"
-    for p in $MISSING; do info "  https://kenney.nl/assets/$p  ->  save as $RAW/kenney_$p.zip"; done
-    info "then run: bash setup/install.sh --rebuild-sounds"
-  else ok "all 7 Kenney packs present"; fi
-  if [ ! -f "$OPUS/audio/kit/catalog.json" ] || [ "$REBUILD_SOUNDS" = 1 ]; then
+    warn "Kenney packs missing:$MISSING"
+    info "Reels still work; the real-sound step just has fewer UI, impact and sci-fi sounds. To add them:"
+    info "  open each page below, click Download, then 'Continue without donating...', leave the zip in Downloads"
+    for p in $MISSING; do info "  https://kenney.nl/assets/$p"; done
+    info "  then run: bash setup/install.sh --rebuild-sounds"
+  else ok "all 7 Kenney packs present and valid"; fi
+
+  step "Sound library (opus-sound-layer, about 1,140 CC0 sounds)"
+  NEED_BUILD="$REBUILD_SOUNDS"
+  [ -f "$CATALOG" ] || NEED_BUILD=1
+  [ "$IMPORTED" = 1 ] && NEED_BUILD=1
+  if [ "$NEED_BUILD" = 0 ]; then
+    for p in $PACKS; do
+      if real_zip "$RAW/kenney_$p.zip" && ! grep -q "/kenney-$(lib_name "$p")-" "$CATALOG"; then
+        info "the library was built without the $p pack; rebuilding it"; NEED_BUILD=1; break
+      fi
+    done
+  fi
+  if [ "$NEED_BUILD" = 1 ]; then
     info "building the sound library (uv run scripts/sfx.py kit); this downloads CC0 recordings and takes a few minutes"
-    ( cd "$OPUS" && uv run scripts/sfx.py kit ) || warn "library build reported errors; run it again after the Kenney downloads"
-  else ok "sound library already built (use --rebuild-sounds to rebuild)"; fi
+    [ -n "$MISSING" ] && info "the missing Kenney packs will show as 'skip pack ...: File is not a zip file'; that is expected"
+    ( cd "$OPUS" && uv run scripts/sfx.py kit ) || warn "library build reported errors; run: bash setup/install.sh --rebuild-sounds"
+    drop_fake_packs quiet
+  else ok "sound library already built with every Kenney pack you have (use --rebuild-sounds to rebuild)"; fi
+  if [ -f "$CATALOG" ]; then
+    KN=$(grep -c '"id": "[a-z]*/kenney-' "$CATALOG" || true); ALL=$(grep -c '"id": ' "$CATALOG" || true)
+    ok "library: $ALL sounds, $KN of them from Kenney (complete: about 1,140 sounds, about 310 from Kenney)"
+  fi
 
   step "earshot (MIT) at $EARSHOT"
   if [ -d "$EARSHOT/.git" ]; then ok "already cloned"; else git clone https://github.com/Leonxlnx/earshot "$EARSHOT"; fi
@@ -186,3 +264,6 @@ step "Kit checkup (node tools/checkup.mjs)"
 ( cd "$TARGET" && node tools/checkup.mjs ) || warn "the checkup lists items to fix above; SETUP.md explains each one"
 
 printf '\nDone. Next: copy template/ to a folder for your brand, open Claude Code in that copy and run /brand-setup.\n'
+if [ -n "$MISSING" ]; then
+  printf 'Still to do: the Kenney packs%s (see the "Kenney sound packs" step above). Reels work without them.\n' "$MISSING"
+fi

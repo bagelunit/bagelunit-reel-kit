@@ -68,23 +68,36 @@ Both are separate open-source projects (MIT). They are downloaded to `~/dev/soun
 ```bash
 mkdir -p ~/dev/sound
 git clone https://github.com/Bodila51/opus-sound-layer ~/dev/sound/opus-sound-layer
+```
+
+**The 7 Kenney sound packs (free, CC0): download these in your browser.** Kenney only lets a browser download its zips. A script that tries gets a web page back instead. That is what the build's `skip pack ...: File is not a zip file` message means.
+
+The installer does this part with you. Run it in a terminal and it opens the 7 pages, waits while you download, and takes the zips from your Downloads folder. It also deletes any fake web-page "zips" left from an earlier run. By hand, on each page:
+
+1. Click **Download**.
+2. A "Consider a donation" box opens. Click **Continue without donating...** (donating is optional).
+3. Move the zip into `~/dev/sound/opus-sound-layer/audio/kit/_raw/` with the name below, replacing any file of that name.
+
+| Pack page | Save as | Sounds it adds |
+|---|---|---|
+| https://kenney.nl/assets/interface-sounds | `kenney_interface-sounds.zip` | 66 |
+| https://kenney.nl/assets/ui-audio | `kenney_ui-audio.zip` | 41 |
+| https://kenney.nl/assets/impact-sounds | `kenney_impact-sounds.zip` | 72 |
+| https://kenney.nl/assets/sci-fi-sounds | `kenney_sci-fi-sounds.zip` | 31 |
+| https://kenney.nl/assets/digital-audio | `kenney_digital-audio.zip` | 62 |
+| https://kenney.nl/assets/casino-audio | `kenney_casino-audio.zip` | 27 |
+| https://kenney.nl/assets/rpg-audio | `kenney_rpg-audio.zip` | 10 |
+
+A real pack is between 0.4 and 6 MB. A file of about 18 KB is a web page, not the pack: delete it and download it again in the browser. To test one: `unzip -tq kenney_<pack>.zip` says "No errors detected".
+
+Then build the library (it also downloads about 600 Freesound recordings, which a script can fetch, and takes a few minutes):
+
+```bash
 cd ~/dev/sound/opus-sound-layer
 uv run scripts/sfx.py kit
 ```
 
-Seven Kenney packs (CC0) have signed download links, so you download them in a browser. Open each page, download the zip and save it in `~/dev/sound/opus-sound-layer/audio/kit/_raw/` named `kenney_<pack>.zip`:
-
-| Pack page | Save as |
-|---|---|
-| https://kenney.nl/assets/interface-sounds | `kenney_interface-sounds.zip` |
-| https://kenney.nl/assets/ui-audio | `kenney_ui-audio.zip` |
-| https://kenney.nl/assets/impact-sounds | `kenney_impact-sounds.zip` |
-| https://kenney.nl/assets/sci-fi-sounds | `kenney_sci-fi-sounds.zip` |
-| https://kenney.nl/assets/digital-audio | `kenney_digital-audio.zip` |
-| https://kenney.nl/assets/casino-audio | `kenney_casino-audio.zip` |
-| https://kenney.nl/assets/rpg-audio | `kenney_rpg-audio.zip` |
-
-Then rebuild the library: `uv run scripts/sfx.py kit` again (or `bash setup/install.sh --rebuild-sounds`). If Claude Code's auto mode blocks running the downloaded build script, run it yourself in a terminal.
+or run `bash setup/install.sh`, which rebuilds when it finds new packs. A complete library has about 1,140 sounds: 309 from Kenney (all 7 packs) and about 830 cuts from the Freesound recordings. The kit checkup shows the count on its "sound library" line. Reels still work without the Kenney packs, but the real-sound step has fewer UI, impact and sci-fi sounds. If Claude Code's auto mode blocks running the downloaded build script, run it yourself in a terminal.
 
 **earshot** (lets Claude "listen" to audio):
 

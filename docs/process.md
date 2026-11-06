@@ -104,5 +104,5 @@ After 24 hours: skip rate, saves, keyword comments. Weekly: each reel's views ag
 - The engine's built-in sound reads as fake; real recordings read as real. Always run the real-sound step.
 - With a deep voice, low whooshes and thumps can hide under it; the sound checks flag them, and a person listens.
 - A typed command once never finished typing before the cut. Check every typed line completes and holds.
-- Kenney sound packs need a browser download (signed links); see SETUP.md.
+- Kenney sound packs only download in a browser (a script gets a web page, "File is not a zip file"). The installer opens the pages and takes the zips from Downloads; see SETUP.md.
 - Claude Code's auto mode may block running downloaded build scripts; run those yourself in a terminal.

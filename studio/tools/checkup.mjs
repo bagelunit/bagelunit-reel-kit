@@ -139,11 +139,27 @@ function look() {
   ok('host (print style)', host === false ? 'off' : host ? 'your own look, saved' : 'default look (say "make my host from this photo" to get your own)');
 }
 
+// the real-sound step's library (opus-sound-layer): built, with all 7 Kenney packs in it.
+// Kenney only serves its zips to a browser, so a library built by a script alone is missing them.
+function soundLibrary() {
+  const catalog = path.join(os.homedir(), 'dev', 'sound', 'opus-sound-layer', 'audio', 'kit', 'catalog.json');
+  const rerun = 'run the installer again from your susanoo-reel-kit folder: bash setup/install.sh\n           (it opens the Kenney pages; on each click Download, then "Continue without donating...", and it takes the zips from Downloads)';
+  let sounds;
+  try { sounds = JSON.parse(fs.readFileSync(catalog, 'utf8')).sounds || []; }
+  catch { return maybe('sound library (optional: the real-sound step)', rerun); }
+  const packs = ['interface', 'ui-audio', 'impact', 'scifi', 'digital', 'casino', 'rpg'];   // pack names inside the library
+  const missing = packs.filter((p) => !sounds.some((s) => String(s.id).includes(`/kenney-${p}-`)));
+  const kenney = sounds.filter((s) => String(s.id).includes('/kenney-')).length;
+  if (!missing.length) ok('sound library', `${sounds.length} sounds, ${kenney} from Kenney (all 7 packs)`);
+  else bad(`sound library is missing ${missing.length} of 7 Kenney packs (${sounds.length} sounds; complete is about 1,140)`, rerun);
+}
+
 const hasPython = tools();
 await browser();
 await voice();
 plan();
 whisper(hasPython);
+soundLibrary();
 look();
 console.log(`Susanoo Reel Kit · setup check  (${SKILL})\n${report.join('\n')}`);
 console.log(toFix ? `\n${toFix} thing(s) to fix. Work top to bottom, then run this again.` : '\nAll set. Ask for a reel!');

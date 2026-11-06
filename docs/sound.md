@@ -6,7 +6,7 @@ It uses two open-source tools installed by the setup script into `~/dev/sound/` 
 
 | Tool | Licence | What it does here |
 |---|---|---|
-| [opus-sound-layer](https://github.com/Bodila51/opus-sound-layer) | MIT | a library of about 1,100 CC0 recordings (Kenney + Freesound) in 19 types, the mixer (`mix.py`) and the sound checks (`qa.py`) |
+| [opus-sound-layer](https://github.com/Bodila51/opus-sound-layer) | MIT | a library of about 1,140 CC0 sounds (7 Kenney packs + Freesound) in 19 types, the mixer (`mix.py`) and the sound checks (`qa.py`) |
 | [earshot](https://github.com/Leonxlnx/earshot) | MIT | lets Claude "listen": realness, critique, timelines, A/B |
 
 ## Run it
@@ -42,5 +42,5 @@ Results go to `build/realsound/report.txt`: every picture check, the loudness, a
 ## Known limits
 
 - Low whooshes and thumps can hide under a deep voice. The checks flag them; try `--hits louder` or a brighter sound.
-- The Kenney packs must be downloaded in a browser (see SETUP.md). Without them the library is smaller and some sound types are thin.
+- The 7 Kenney packs must be downloaded in a browser; the installer opens the pages and takes the zips from Downloads (see SETUP.md). Without them the library has about 830 sounds instead of about 1,140, and the UI, impact and sci-fi types are thin. The kit checkup shows the count.
 - earshot's first use downloads about 1.1 GB of open models; after that it works offline.
