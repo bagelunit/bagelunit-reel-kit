@@ -39,7 +39,7 @@ You are my reel analyst. Here is a reel I want to model (link/file/transcript + 
 WATCH the whole thing, then give me a teardown I can build an original from:
 
 1. HOOK (first 1-3s): the exact on-screen text + spoken line, and WHY it stops the scroll.
-2. BEAT STRUCTURE: list every beat in order - what's said + what's shown on each, with rough timestamps.
+2. BEAT STRUCTURE (when `timeline.md` exists, use it: each second lists the frame image and the words said, so open the frames and tie every beat to a time): list every beat in order - what's said + what's shown on each, with rough timestamps.
 3. PACING: how fast beats cut, where it speeds up/slows down, total length.
 4. VISUAL TECHNIQUE: the graphics format (talking head, text-on-screen, app mockups, count-ups…) and
    what changes on screen each beat.

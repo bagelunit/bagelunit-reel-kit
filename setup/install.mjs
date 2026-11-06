@@ -31,6 +31,8 @@ import path from 'node:path';
 import cp from 'node:child_process';
 import readline from 'node:readline/promises';
 import { fileURLToPath } from 'node:url';
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 
 const IS_WIN = process.platform === 'win32';
 const IS_MAC = process.platform === 'darwin';
@@ -207,6 +209,33 @@ else {
   }
 }
 for (const c of ['node', 'npm']) if (!have(c) && !F.dryRun) { warn(`${c} not found on PATH. Open a new terminal and run this again.`); process.exit(1); }
+
+// ---------------------------------------------------------------- 1b. whisper model
+step('Whisper model (word timing for voices and reel teardowns)');
+{
+  const MODELS = [path.join(CONFIG, 'ggml-base.bin'), path.join(HOME, '.cache', 'whisper-cpp', 'ggml-base.bin'), path.join(HOME, '.cache', 'whisper-cpp', 'ggml-base.en.bin')];
+  const hasFaster = !!python() && cp.spawnSync(python(), ['-c', 'import faster_whisper'], { stdio: 'ignore' }).status === 0;
+  if (hasFaster) ok('faster-whisper is installed; it needs no separate model file');
+  else if (!have('whisper-cli')) warn('no Whisper found. Install one: pip install faster-whisper');
+  else if (MODELS.some(exists)) ok('whisper-cli has a model file');
+  else {
+    warn('whisper-cli is installed but has no model file, so word timing would fail.');
+    const dest = MODELS[0], url = 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin';
+    info(`needs: download ${url} (about 142 MB) to ${dest}`);
+    if (F.dryRun) info('[dry run] not downloaded');
+    else if (await confirm('Download it now?')) {
+      try {
+        fs.mkdirSync(CONFIG, { recursive: true, mode: 0o700 });
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await pipeline(Readable.fromWeb(res.body), fs.createWriteStream(`${dest}.part`));
+        if (fs.statSync(`${dest}.part`).size < 100e6) throw new Error('the file is too small, so it is not the model');
+        fs.renameSync(`${dest}.part`, dest);
+        ok(`model saved to ${dest}`);
+      } catch (e) { fs.rmSync(`${dest}.part`, { force: true }); warn(`could not download the model (${e.message}). Do it by hand: save ${url} as ${dest}, or pip install faster-whisper`); }
+    } else info(`(not downloaded) save ${url} as ${dest}, or pip install faster-whisper`);
+  }
+}
 
 // ---------------------------------------------------------------- 2. studio
 step(`Install the studio as the Claude Code skill at ${TARGET}`);

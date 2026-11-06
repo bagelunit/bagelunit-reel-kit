@@ -30,6 +30,6 @@ getting traction. Models only: shape, never the video.
 ## 3. Fetch one reel for a teardown
 `python3 ./.claude/skills/reel-sources/reel_fetch.py <URL or file> --out <folder>`
 - From a URL it needs `autopilot.scrape: true` in `brand/brand.json`. A local file does not.
-- It writes `video.mp4`, `frames/` (one a second), `audio.wav` and `transcript.txt`, then `/reel-analyzer` reads them.
-- Tools used: `yt-dlp`, `ffmpeg`, `whisper-cli` (all installed by the kit's setup; a missing one is reported plainly).
+- It writes `video.mp4`, `frames/` (one a second), `audio.wav`, `transcript.txt` (with timestamps) and `timeline.md`: for every second, the frame and the words spoken then. That is how Claude sees what is shown, hears what is said, and knows exactly when. `/reel-analyzer` reads `timeline.md` and opens the frame images it points to.
+- Tools used: `yt-dlp`, `ffmpeg`, and Whisper (`whisper-cli` with its model file, or `faster-whisper`). The kit's installer sets them up; a missing one is reported plainly.
 - Respect the platform: public reels only, one at a time, no bulk downloading, no re-uploading anyone's video.
