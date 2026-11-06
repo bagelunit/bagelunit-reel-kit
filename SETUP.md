@@ -145,3 +145,7 @@ Keep brand folders out of iCloud-synced folders (Desktop, Documents) if you can:
 - **"opus-sound-layer library missing":** run `uv run scripts/sfx.py kit` in `~/dev/sound/opus-sound-layer`.
 - **realsound.py cannot import numpy:** run it with earshot's Python: `~/dev/sound/earshot/.venv/bin/python`.
 - **The laptop gets loud:** normal during a final render. Drafts are half size, and renders take turns.
+
+## Optional: Apify (outlier scan)
+
+Only if a brand owner wants `/account-audit` to fetch posts instead of using an export. Make a token at https://console.apify.com/settings/integrations, save it yourself to `~/.config/susanoo-reels/apify.key` (`chmod 600`), and set `autopilot.scrape` to `true` in that brand's `brand/brand.json`. It is paid per result (about $2.70 per 1,000 posts on the free plan); the script prints the estimate first and stops above `--max-cost`. Claude never asks for or prints the token.
