@@ -4,7 +4,7 @@ Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. T
 
 ## 1.6.1 (2026-11-06)
 
-- **The README now gives full copy-and-paste prompts, with blanks to fill in.** A setup prompt for the kit's folder, and (in `template/docs/prompts.md`) a set-up-this-brand prompt, a make-a-reel prompt, an after-posting prompt and a weekly-batch prompt. A blank line is a question Claude asks you instead.
+- **A beginner-friendly start, with copy-and-paste prompts.** The README now has a "Start here" guide (what to install, how to open a terminal in a folder) and the first prompt, with every blank explained in plain words. `template/docs/prompts.md` has the set-up-this-brand, make-a-reel (with a filled-in example), after-posting and weekly-batch prompts. A blank you delete becomes a question Claude asks you instead.
 
 ## 1.6.0 (2026-11-06)
 

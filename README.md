@@ -39,36 +39,57 @@ bash setup/install.sh          # macOS and Linux. Safe to run again; prints ever
 
 On Windows, in PowerShell: `.\setup\install.ps1` (or `node setup/install.mjs` on any system). Use `python` where this kit says `python3`, and `.\` paths instead of `~/` shortcuts if your shell needs them.
 
-## The first prompts to send
+## Start here (if you have never done this before)
 
-You send three prompts, each in a different folder. Copy one, replace the [square brackets], delete any line you do not care about (Claude asks you for anything you leave out) and send it.
+You do not need to be technical. You give Claude Code a few messages, and it does the rest. These are the steps, in order.
 
-**1. In this repo folder** (`cd ~/dev/susanoo-reel-kit && claude`), once per computer:
+**Before you begin** (about 15 minutes, once):
+1. Install **Node.js** from https://nodejs.org (choose the "LTS" download and accept the defaults).
+2. Install **Claude Code** and sign in with your own Claude account (Pro or Max): https://claude.com/claude-code
+3. Make an **ElevenLabs** account at https://elevenlabs.io (the free plan is enough to start). It is the voice for your reels. You will save its key later; Claude shows you how.
+4. **Download this kit.** On this page click the green **Code** button, then **Download ZIP**, and unzip it somewhere easy (for example your home folder). Or, if you know git: `git clone https://github.com/bagelunit/susanoo-reel-kit.git`.
+
+**Then send three messages to Claude Code**, each in a different folder. For each: open a terminal in that folder, type `claude`, press Enter, and paste the message.
+- *Mac:* open Terminal, type `cd ` (with a space), drag the folder from Finder into the window, press Enter, then type `claude`.
+- *Windows:* open the folder in File Explorer, click the address bar, type `powershell`, press Enter, then type `claude`.
+
+### Message 1: set up the kit (once per computer)
+
+Open Claude Code in the kit folder you downloaded, then paste this. Replace every part in [SQUARE BRACKETS] (brackets included) with your own answer. Not sure about one? Delete that line and Claude will ask.
 
 ```
 Set up the Susanoo Reel Kit on this computer. Follow CLAUDE.md and SETUP.md in this folder.
 
-About my computer
-- System: [Mac / Windows / Linux]
-- Node.js 18 or newer is already installed: [yes / no / not sure]
+ABOUT MY COMPUTER
+- My system: [Mac / Windows / Linux]
+- Node.js is already installed: [yes / no / not sure]
 - My Claude plan: [Pro / Max / other]
-- ElevenLabs account: [I have one / I need to make one]
+- My ElevenLabs account: [I have one / I need to make one]
 
-What to do
+WHAT TO DO
 1. Run the installer for my system (bash setup/install.sh on Mac and Linux, node setup/install.mjs on Windows). If it lists a missing program, show me each exact command and ask before running it; only re-run with --yes after I agree.
-2. The Kenney sound packs need my own browser and terminal, so skip them here. At the end, tell me the exact command to run in my own terminal to add them, and that reels still work without them.
-3. Never ask for, print or search for an API key. Tell me the exact file path where my ElevenLabs key goes and how to create the file, and let me do it myself.
-4. If something needs a new terminal window, say so before moving on.
+2. The Kenney sound packs need my own web browser and terminal, so skip them here. At the end, tell me the exact command to run myself to add them, and remind me that reels still work without them.
+3. Never ask for, print or search for any key or password. Tell me the exact file location where my ElevenLabs key goes and how to create that file, and let me do it myself.
+4. If something needs me to close and reopen the terminal window, say so before moving on.
 5. When it finishes, run the checkup and give me two lists in order: what is working, and what I still have to do myself.
 
-Do not make any reel or brand folder yet. End by telling me the next prompt to send (making a brand workspace).
+Do not make any reel or brand folder yet. End by telling me what to do next.
 ```
 
-**2. In a copy of `template/` for one brand** (`cp -R template ~/Reels/my-brand`, then `cd ~/Reels/my-brand && claude`), once per brand: the full "Set up this brand" prompt is in [`template/docs/prompts.md`](template/docs/prompts.md).
+**What goes in each blank**
+- **My system:** Apple computer = Mac; Windows laptop or PC = Windows. If you are unsure, Claude can tell from the installer.
+- **Node.js installed:** not sure? Say "not sure". Claude checks by running `node --version`; a number like `v22.1.0` (18 or higher) means yes.
+- **Claude plan, ElevenLabs:** tells Claude how many credits to expect and whether to walk you through making an account.
 
-**3. In that same brand folder, for every reel:** the "Make a reel" prompt (with blanks for topic, goal, angle, style, facts and your own script) is in the same file, along with prompts for reading results afterwards and for planning a weekly batch.
+### Message 2: set up a brand (once per brand)
 
-Before the first reel, put your ElevenLabs key in `~/.config/susanoo-reels/elevenlabs.key` (one line; [SETUP.md](SETUP.md) shows how) and keep the brand folder outside iCloud if you can. New to it? `template/docs/first-reel.md` walks through the first reel.
+Make a copy of the `template` folder for the brand (for example copy it to a folder called `my-brand` in your home folder; keep it out of iCloud or OneDrive if you can), open Claude Code inside that copy, and paste the "Set up this brand" message from [`template/docs/prompts.md`](template/docs/prompts.md). It has blanks for the brand name, handle, website, colours, logo, fonts, voice and call to action, each with a plain-words hint.
+
+### Message 3: make a reel (every time)
+
+In that same brand folder, paste the "Make a reel" message from the same file. It has blanks for the topic, the one goal, the style, the facts you allow, and something only you can say, plus a filled-in example. Claude then stops three times for your yes (script, plan, final video) and never posts anything for you.
+
+When you are ready for results, the same file also has a message for reading your numbers after posting and one for planning a week of reels. A walk-through of the first reel is in [`template/docs/first-reel.md`](template/docs/first-reel.md).
 
 The full process, with its three approval gates, is in [docs/process.md](docs/process.md).
 
