@@ -4,7 +4,7 @@ Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. T
 
 ## 1.6.1 (2026-11-06)
 
-- **The README now says exactly what to type first.** Three prompts, one for each folder: set up the kit, set up a brand, make a reel. The same prompts are in the template's README and the first-reel guide.
+- **The README now gives full copy-and-paste prompts, with blanks to fill in.** A setup prompt for the kit's folder, and (in `template/docs/prompts.md`) a set-up-this-brand prompt, a make-a-reel prompt, an after-posting prompt and a weekly-batch prompt. A blank line is a question Claude asks you instead.
 
 ## 1.6.0 (2026-11-06)
 

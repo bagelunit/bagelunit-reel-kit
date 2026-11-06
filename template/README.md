@@ -2,7 +2,7 @@
 
 This folder is generic. It holds no brand until you set one up inside the copy you make.
 
-**The prompts to send, in order:** open Claude Code in your copy, then send `Set up this brand.` (it also starts on its own the first time). When that is done, send `Make a reel on <your topic>.`
+**The prompts to send, in order:** open Claude Code in your copy, then copy the "Set up this brand" prompt from `docs/prompts.md` (it also starts on its own the first time you send anything). When that is done, copy the "Make a reel" prompt from the same file and fill in the blanks.
 
 **To use it for a brand or project:**
 1. Copy this whole folder once per brand or project, for example `cp -R template ~/Reels/<brand>`.

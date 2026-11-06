@@ -41,15 +41,34 @@ On Windows, in PowerShell: `.\setup\install.ps1` (or `node setup/install.mjs` on
 
 ## The first prompts to send
 
-You only ever type three things to Claude Code. Each goes in a different folder.
+You send three prompts, each in a different folder. Copy one, replace the [square brackets], delete any line you do not care about (Claude asks you for anything you leave out) and send it.
 
-| Where you open Claude Code | Send this | What happens |
-|---|---|---|
-| In this repo folder (`cd ~/dev/susanoo-reel-kit && claude`) | `Set up the reel kit on this computer.` | Claude runs the installer, explains anything it marks as a NOTE, and tells you where to put your ElevenLabs key. You can skip this and run the installer yourself (above). |
-| In a copy of `template/` for one brand (`cp -R template ~/Reels/my-brand`, then `cd ~/Reels/my-brand && claude`) | `Set up this brand.` (or type `/brand-setup`) | A short set of questions: your name, the brand, handle, colours, logo, fonts, voice and call to action. It starts on its own the first time, whatever you send. |
-| In that same brand folder, once it is set up | `Make a reel on <your topic>.` for example `Make a reel on why hotels put mints on the pillow.` | Claude asks the style, writes the script, and stops at three approval gates. You post it yourself. |
+**1. In this repo folder** (`cd ~/dev/susanoo-reel-kit && claude`), once per computer:
 
-Before the first reel, put your ElevenLabs key in `~/.config/susanoo-reels/elevenlabs.key` (one line; [SETUP.md](SETUP.md) shows how) and keep the copy outside iCloud if you can. New to it? `template/docs/first-reel.md` walks through the first reel.
+```
+Set up the Susanoo Reel Kit on this computer. Follow CLAUDE.md and SETUP.md in this folder.
+
+About my computer
+- System: [Mac / Windows / Linux]
+- Node.js 18 or newer is already installed: [yes / no / not sure]
+- My Claude plan: [Pro / Max / other]
+- ElevenLabs account: [I have one / I need to make one]
+
+What to do
+1. Run the installer for my system (bash setup/install.sh on Mac and Linux, node setup/install.mjs on Windows). If it lists a missing program, show me each exact command and ask before running it; only re-run with --yes after I agree.
+2. The Kenney sound packs need my own browser and terminal, so skip them here. At the end, tell me the exact command to run in my own terminal to add them, and that reels still work without them.
+3. Never ask for, print or search for an API key. Tell me the exact file path where my ElevenLabs key goes and how to create the file, and let me do it myself.
+4. If something needs a new terminal window, say so before moving on.
+5. When it finishes, run the checkup and give me two lists in order: what is working, and what I still have to do myself.
+
+Do not make any reel or brand folder yet. End by telling me the next prompt to send (making a brand workspace).
+```
+
+**2. In a copy of `template/` for one brand** (`cp -R template ~/Reels/my-brand`, then `cd ~/Reels/my-brand && claude`), once per brand: the full "Set up this brand" prompt is in [`template/docs/prompts.md`](template/docs/prompts.md).
+
+**3. In that same brand folder, for every reel:** the "Make a reel" prompt (with blanks for topic, goal, angle, style, facts and your own script) is in the same file, along with prompts for reading results afterwards and for planning a weekly batch.
+
+Before the first reel, put your ElevenLabs key in `~/.config/susanoo-reels/elevenlabs.key` (one line; [SETUP.md](SETUP.md) shows how) and keep the brand folder outside iCloud if you can. New to it? `template/docs/first-reel.md` walks through the first reel.
 
 The full process, with its three approval gates, is in [docs/process.md](docs/process.md).
 
