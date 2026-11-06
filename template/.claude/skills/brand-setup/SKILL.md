@@ -12,6 +12,10 @@ Run this in the workspace root (the folder holding `brand/` and `reels/`). It is
 1. Read `brand/brand.json`, `brand/voice.md` and `brand/facts.md`.
 2. If `"name"` is already filled, show the current values in a short list and ask (multiple choice): "Change some fields", "Start over", "Cancel". For "Change some fields", ask only about the fields they pick.
 
+## Optional: pre-fill from the website
+
+Before the questions, offer (multiple choice) "Read the brand's website to suggest answers" or "Skip, I'll answer myself". If yes, ask for the URL and run `python3 ./.claude/skills/brand-setup/prefill.py <url>`. It prints PROPOSALS only (name, description, likely accent colours, fonts, Instagram handles, logo links) and writes nothing. Show them as the recommended choice in the matching questions below; the user confirms or changes each one. A logo link is a suggestion: download nothing without asking. Never take facts (numbers, results, prices, clients) from the website; those only come from the user into `brand/facts.md`.
+
 ## The questions
 
 Use multiple-choice questions wherever the answer can be a choice, recommended option first, at most four questions at once. Free text only where a choice makes no sense (names, handles, paths). Never guess, never fill a field the user did not confirm.

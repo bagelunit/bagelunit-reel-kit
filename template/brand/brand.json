@@ -53,5 +53,12 @@
     "dm_tool": "",
     "tested_keywords": []
   },
-  "work_dir": "~/dev/reel-work/<slug>"
+  "work_dir": "~/dev/reel-work/<slug>",
+  "autopilot": {
+    "_note": "OFF by default. The brand owner turns a permission on, see template CLAUDE.md section 3b",
+    "post": false,
+    "dm_replies": false,
+    "scrape": false,
+    "paid_renders": false
+  }
 }
