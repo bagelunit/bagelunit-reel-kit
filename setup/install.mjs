@@ -79,7 +79,7 @@ function have(cmd) {
 /** Run a command. Prints instead of running with --dry-run. capture:true returns {status,out}. */
 function sh(cmd, argv = [], o = {}) {
   if (F.dryRun && !o.always) { info(`[dry run] ${cmd} ${argv.join(' ')}`); return { status: 0, out: '' }; }
-  const q = (s) => (IS_WIN && !o.noShell && /[\s&|<>^"]/.test(s) ? `"${String(s).replace(/"/g, '\\"')}"` : s);   // Windows shell: quote paths with spaces
+  const q = (s) => (IS_WIN && !o.noShell && /[\s&|<>^"();]/.test(s) ? `"${String(s).replace(/"/g, '\\"')}"` : s);   // Windows shell: quote paths with spaces
   const r = cp.spawnSync(q(cmd), argv.map(q), {
     cwd: o.cwd, env: o.env || process.env, encoding: 'utf8',
     stdio: o.capture ? ['ignore', 'pipe', 'pipe'] : 'inherit', shell: IS_WIN && !o.noShell,
@@ -90,7 +90,7 @@ let PY = null;
 function python() {
   if (PY) return PY;
   for (const c of IS_WIN ? ['python', 'py'] : ['python3', 'python']) {
-    const r = cp.spawnSync(c, ['-c', 'import sys;print(sys.version_info[0])'], { encoding: 'utf8', shell: IS_WIN });
+    const r = cp.spawnSync(c, ['-c', 'import sys;print(sys.version_info[0])'], { encoding: 'utf8' });
     if (r.status === 0 && r.stdout.trim() === '3') return (PY = c);
   }
   return null;
@@ -146,7 +146,7 @@ else {
   if (!python()) need.push('python'); else ok(`Python 3 found (${python()})`);
   if (!have('git')) need.push('git'); else ok('git found');
   if (!have('uv')) need.push('uv'); else ok('uv found');
-  const whisperOk = have('whisper-cli') || (python() && cp.spawnSync(python(), ['-c', 'import faster_whisper'], { stdio: 'ignore', shell: IS_WIN }).status === 0);
+  const whisperOk = have('whisper-cli') || (python() && cp.spawnSync(python(), ['-c', 'import faster_whisper'], { stdio: 'ignore' }).status === 0);
   if (!whisperOk) need.push('whisper'); else ok('Whisper (word timing) found');
 
   if (need.length) {
@@ -293,8 +293,8 @@ if (F.skipSound) { step('Sound tools'); warn('skipped (--skip-sound). The real-s
 else {
   const py = python() || 'python3';
   const zipOk = (f) => exists(f) && fs.statSync(f).size > 0 &&
-    cp.spawnSync(py, ['-c', 'import sys,zipfile;sys.exit(1 if zipfile.ZipFile(sys.argv[1]).testzip() else 0)', f], { stdio: 'ignore', shell: IS_WIN }).status === 0;
-  const zipDir = (dir, dst) => cp.spawnSync(py, ['-c', 'import sys,shutil;shutil.make_archive(sys.argv[2][:-4],"zip",sys.argv[1])', dir, dst], { stdio: 'ignore', shell: IS_WIN }).status === 0;
+    cp.spawnSync(py, ['-c', 'import sys,zipfile;sys.exit(1 if zipfile.ZipFile(sys.argv[1]).testzip() else 0)', f], { stdio: 'ignore' }).status === 0;
+  const zipDir = (dir, dst) => cp.spawnSync(py, ['-c', 'import sys,shutil;shutil.make_archive(sys.argv[2][:-4],"zip",sys.argv[1])', dir, dst], { stdio: 'ignore' }).status === 0;
   if (!F.dryRun) fs.mkdirSync(SOUND, { recursive: true });
 
   step(`opus-sound-layer (MIT) at ${OPUS}`);
