@@ -1,0 +1,7 @@
+{{HOOK: the value in the first second. Name the viewer's problem or the result. Example shape: "Stop doing X. Do this instead."}}
+{{PROOF: one name or number from brand/facts.md. If nothing is cleared yet, leave it out; do not invent one.}}
+{{STEP 1: one short sentence}}
+{{STEP 2: one short sentence}}
+{{STEP 3: one short sentence}}
+{{YOUR OWN TWIST OR PROOF: what you actually do or saw. This is the part nobody else can copy.}}
+Save this so you have it later.

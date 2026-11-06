@@ -2,6 +2,8 @@
 
 This folder makes Instagram reels for ONE brand. It is a copy of the `template/` folder from the Susanoo Reel Kit: copy the whole folder once per brand (for example `~/Reels/<brand>/`), then start Claude Code inside the copy. The kit itself is installed once per computer by the repo's `setup/install.sh`.
 
+On Windows, wherever a command says `python3` use `python`; paths written with `~` mean your home folder.
+
 It uses one skill of its own and the installed skills and plugins, as their authors ship them:
 - `/brand-setup` (in this folder's `.claude/skills/`): the first-run brand questionnaire below, on demand,
 - `/susanoo-reels`, the reel engine installed at `~/.claude/skills/susanoo-reels` (script, voice, animated shots, self-check, export, plus the sticker presenter and the real-sound step),
@@ -77,7 +79,7 @@ Rename, move or create nothing outside this folder. Never ask for, print or stor
 8. **Copy formulas, never videos.** Hook shape, structure and length only. Never another creator's script, colours, mascot, characters or prompts.
 9. **Rights.** No other company's logos, footage, music or characters unless the brand owns the rights.
 10. **Approval gates (the approver in `brand.json` → `people` approves, usually the workspace owner, also for client brands):**
-    - Gate A: script. No voice credits are spent before this.
+    - Gate A: script. No voice credits are spent before this. Before showing the script for approval, run `python3 ~/.claude/skills/susanoo-reels/tools/budget.py reels/<slug>/script.txt` (on Windows `python`) and tell the approver the credits it needs against what is left; if it says NOT ENOUGH, say so before they approve.
     - Gate B: visual plan (concept card + shot cards).
     - Gate C: the final video.
     Record each approval with the date in `reels/<slug>/approvals.md`.
@@ -97,15 +99,21 @@ When a permission is on, these installed skills may be used for it:
 
 These stay on even in autopilot: rule 1 (only cleared facts, no invented numbers), no links in public comment replies (rule 12), a keyword CTA must really deliver, never search the computer for or print an API key (the person connects tools themselves), and nothing is sent or posted to a brand the permission was not given for.
 
+## 3b1. Private history (only if this folder is a git repo)
+
+If this folder has a `.git` folder, it is this brand's private, local history. After each approved gate, commit what changed with a short message such as `Gate A: <slug>` (add `-c user.name="Reel workspace" -c user.email="reels@localhost"` if git has no name set). Never add a remote, never push, and never commit anything `.gitignore` leaves out (keys, renders, audio). If there is no `.git` folder, do nothing; never create one without being asked.
+
 ## 3b2. Kit updates (optional, OFF by default)
 
-This copy records the kit version it is on in `.kit-version`. If `brand/brand.json` -> `updates.check_on_start` is `true`, then once at the start of a session, read `.kit-version` and read the one public file `https://raw.githubusercontent.com/bagelunit/susanoo-reel-kit/main/VERSION` (with the project's web tool or `curl -s`; one read, nothing else). If the number there is higher, say once, in one or two lines: "Kit <new> is out (this workspace is on <old>). What changed: https://github.com/bagelunit/susanoo-reel-kit/blob/main/CHANGELOG.md. To update: in your clone of the kit run `git pull`, then `bash setup/sync-template.sh <this folder>` to see the changes and add `--apply` to do it." If the check fails, is offline, or the numbers match, say nothing. Never update anything yourself, and never ask more than once per session. With the setting `false` or missing, do not check.
+This copy records the kit version it is on in `.kit-version`. If `brand/brand.json` -> `updates.check_on_start` is `true`, then once at the start of a session, read `.kit-version` and read the one public file `https://raw.githubusercontent.com/bagelunit/susanoo-reel-kit/main/VERSION` (with the project's web tool or `curl -s`; one read, nothing else). If the number there is higher, say once, in one or two lines: "Kit <new> is out (this workspace is on <old>). What changed: https://github.com/bagelunit/susanoo-reel-kit/blob/main/CHANGELOG.md. To update: in your clone of the kit run `git pull`, then `node setup/sync-template.mjs <this folder>` to see the changes and add `--apply` to do it." If the check fails, is offline, or the numbers match, say nothing. Never update anything yourself, and never ask more than once per session. With the setting `false` or missing, do not check.
 
 ## 3c. Weekly batch (optional)
 
 To make a week's reels in one sitting: use `/ig-plan` to pick up to 3 topics. Each gets its own goal and its own angle, and no two reels in the batch share an angle. Write all the scripts, then take them to Gate A together, but record each reel's approval separately in its own `approvals.md`. Voice credits are spent only for scripts that were approved. After that every reel runs the normal loop one at a time (visual plan, Gate B, build, verify, Gate C), and a problem in one does not block the others. Update `brand/plan.md` and `brand/log.md` per reel. Never more reels than the approver can review properly that week.
 
 ## 4. Map
+
+- `reels/_example/`: a blank pattern for a script, approvals and caption. Never treat it as a real reel. `docs/first-reel.md` walks a new user through the first reel.
 
 - `brand/`: this brand's identity, voice, cleared facts, research and log.
 - `reels/<slug>/`: one folder per reel (script, plan, approvals, caption, `out/` with the final mp4).

@@ -111,6 +111,41 @@ def find_brand():
     return None
 
 
+def brand_dir():
+    p = pathlib.Path.cwd()
+    for d in [p, *p.parents]:
+        if (d / "brand" / "brand.json").exists():
+            return d / "brand"
+    return None
+
+
+def spend_total(bdir):
+    """Total estimated USD already logged for this brand in brand/spend.csv."""
+    f = bdir / "spend.csv" if bdir else None
+    if not f or not f.exists():
+        return 0.0
+    total = 0.0
+    for line in f.read_text().splitlines()[1:]:
+        try:
+            total += float(line.rsplit(",", 1)[1])
+        except (IndexError, ValueError):
+            pass
+    return total
+
+
+def log_spend(bdir, handles, results):
+    """Append one row to brand/spend.csv: date, service, accounts, results, estimated USD."""
+    if not bdir:
+        return
+    f = bdir / "spend.csv"
+    new = not f.exists()
+    est = results / 1000 * COST_PER_1000
+    with open(f, "a") as fh:
+        if new:
+            fh.write("date,service,accounts,results,estimated_usd\n")
+        fh.write(f"{datetime.date.today().isoformat()},apify,{'+'.join(h.strip().lstrip('@') for h in handles)},{results},{est:.2f}\n")
+
+
 def fetch(handles, limit, max_cost):
     brand = find_brand()
     if not brand or (brand.get("autopilot") or {}).get("scrape") is not True:
@@ -118,6 +153,9 @@ def fetch(handles, limit, max_cost):
                  "(or run again with --json on an export you already have).")
     est = len(handles) * limit / 1000 * COST_PER_1000
     print(f"Plan: {len(handles)} account(s) x up to {limit} posts, about ${est:.2f} at ${COST_PER_1000}/1,000 results.", file=sys.stderr)
+    so_far = spend_total(brand_dir())
+    if so_far:
+        print(f"Already spent on this brand (brand/spend.csv): about ${so_far:.2f}.", file=sys.stderr)
     if est > max_cost:
         sys.exit(f"Stopped: estimate ${est:.2f} is over --max-cost ${max_cost:.2f}. Lower --limit or raise --max-cost.")
     if not KEYFILE.exists() or not KEYFILE.read_text().strip():
@@ -130,7 +168,9 @@ def fetch(handles, limit, max_cost):
                                  headers={"Content-Type": "application/json", "Authorization": f"Bearer {token}"})
     try:
         with urllib.request.urlopen(req, timeout=300) as r:
-            return json.loads(r.read().decode())
+            items = json.loads(r.read().decode())
+        log_spend(brand_dir(), handles, len(items))
+        return items
     except urllib.error.HTTPError as e:
         hint = " (the token looks wrong or expired)" if e.code in (401, 403) else ""
         sys.exit(f"Apify answered HTTP {e.code}{hint}.")
@@ -151,6 +191,13 @@ def selftest():
     assert t[1000] == "ignore", t
     assert res["few"]["reels"][0]["tier"] is None
     assert "Only 1 reels" in render(res, 12)
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        bd = pathlib.Path(d)
+        log_spend(bd, ["@a", "b"], 500)
+        log_spend(bd, ["a"], 1000)
+        assert abs(spend_total(bd) - 4.05) < 0.001, spend_total(bd)
+        assert (bd / "spend.csv").read_text().startswith("date,service")
     print("selftest OK")
 
 

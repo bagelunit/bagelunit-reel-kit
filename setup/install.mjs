@@ -148,6 +148,8 @@ else {
   if (!python()) need.push('python'); else ok(`Python 3 found (${python()})`);
   if (!have('git')) need.push('git'); else ok('git found');
   if (!have('uv')) need.push('uv'); else ok('uv found');
+  const wantYt = !have('yt-dlp');   // only needed to fetch a reel from a link; optional
+  if (!wantYt) ok('yt-dlp found'); else need.push('ytdlp');
   const whisperOk = have('whisper-cli') || (python() && cp.spawnSync(python(), ['-c', 'import faster_whisper'], { stdio: 'ignore' }).status === 0);
   if (!whisperOk) need.push('whisper'); else ok('Whisper (word timing) found');
 
@@ -157,13 +159,13 @@ else {
     if (IS_MAC) {
       if (!have('brew')) manual.push('Homebrew is not installed. Install it from https://brew.sh, open a new terminal, then run this again.');
       else {
-        const map = { ffmpeg: 'ffmpeg', python: 'python', git: 'git', uv: 'uv', whisper: 'whisper-cpp' };
+        const map = { ffmpeg: 'ffmpeg', python: 'python', git: 'git', uv: 'uv', whisper: 'whisper-cpp', ytdlp: 'yt-dlp' };
         cmds.push(['brew', 'install', ...need.map((n) => map[n])]);
       }
     } else if (IS_WIN) {
       if (!have('winget')) manual.push('winget was not found. Install: ffmpeg (https://www.gyan.dev/ffmpeg/builds/), Python 3 (https://python.org, tick "Add to PATH"), Git (https://git-scm.com), uv (https://docs.astral.sh/uv/).');
       else {
-        const ids = { ffmpeg: 'Gyan.FFmpeg', python: 'Python.Python.3.12', git: 'Git.Git', uv: 'astral-sh.uv' };
+        const ids = { ffmpeg: 'Gyan.FFmpeg', python: 'Python.Python.3.12', git: 'Git.Git', uv: 'astral-sh.uv', ytdlp: 'yt-dlp.yt-dlp' };
         for (const n of need) if (ids[n]) cmds.push(['winget', 'install', '--id', ids[n], '-e', '--accept-package-agreements', '--accept-source-agreements']);
       }
     } else if (have('apt-get')) {
@@ -180,6 +182,7 @@ else {
     }
     // Whisper on Windows and Linux: faster-whisper through pip (no compiler needed). The engine falls back to it.
     if (want('whisper') && !IS_MAC) manual.push('__whisper__');
+    if (want('ytdlp') && !IS_MAC && !IS_WIN) manual.push('__ytdlp__');
 
     for (const c of cmds) {
       info(`needs: ${c.join(' ')}`);
@@ -189,6 +192,13 @@ else {
       } else info('(not run) copy the command above into a terminal yourself, then run this installer again');
     }
     for (const m of manual) {
+      if (m === '__ytdlp__') {
+        const py = python();
+        if (!py) { warn('yt-dlp (optional, to fetch a reel from a link): install Python 3 first, then pip install yt-dlp'); continue; }
+        info('optional: pip install --user yt-dlp   (only needed to fetch a reel from a link)');
+        if (await confirm('Run this command now?')) { if (sh(py, ['-m', 'pip', 'install', '--user', 'yt-dlp']).status !== 0) warn('pip could not install yt-dlp; use pipx or a virtual environment. It is optional.'); }
+        continue;
+      }
       if (m === '__whisper__') {
         const py = python();
         if (!py) { warn('Whisper: install Python 3 first, then run: pip install faster-whisper'); continue; }

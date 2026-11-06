@@ -2,6 +2,17 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.6.0 (2026-11-06)
+
+- **The update script now runs on Windows too** (`setup/sync-template.mjs`; the old `.sh` still works as a launcher). It also keeps each workspace's `.gitignore` current.
+- **A first-reel guide and a blank example.** `docs/first-reel.md` walks a new user through a reel in plain steps; `reels/_example/` is a blank pattern for a script, approvals and caption.
+- **Voice credit check before Gate A.** `tools/budget.py` counts the script's characters and compares them with the ElevenLabs credits left, so you know before approving.
+- **Apify spend log.** Every paid outlier fetch is recorded in `brand/spend.csv`, and the next plan shows the running total.
+- **Private history per workspace (optional).** Brand setup can start a local-only history of the brand's files, with a `.gitignore` that keeps keys, renders and audio out. Claude commits after each approved gate and never uploads it.
+- **`yt-dlp` help.** The installer now offers it, and a failed download says how to update it.
+- **Safer public repo.** A scan on every push checks for keys, private files, banned names, personal paths and em dashes.
+- **Releases publish themselves.** Changing `VERSION` on main now creates the GitHub Release from this file.
+
 ## 1.5.0 (2026-11-06)
 
 First numbered release of the whole kit.

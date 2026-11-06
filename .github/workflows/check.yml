@@ -30,6 +30,9 @@ jobs:
           test "$v" = "$t" || { echo "VERSION ($v) and template/.kit-version ($t) differ"; exit 1; }
           grep -q "^## $v " CHANGELOG.md || { echo "CHANGELOG.md has no entry for $v"; exit 1; }
 
+      - name: Safety scan (secrets, private files, banned names, em dashes)
+        run: node setup/scan-repo.mjs
+
       - name: Installer syntax and help
         run: |
           node --check setup/install.mjs
@@ -41,10 +44,23 @@ jobs:
       - name: Script self-tests
         shell: bash
         run: |
+          python studio/tools/budget.py --selftest
           python template/.claude/skills/account-audit/outliers.py --selftest
           python template/.claude/skills/humanizer/humanize_check.py --selftest
           python template/.claude/skills/hook-mining/mine_hooks.py --selftest
           python template/.claude/skills/brand-setup/prefill.py --selftest
+
+      - name: Update script works (dry run, apply, brand data untouched)
+        shell: bash
+        run: |
+          W="$RUNNER_TEMP/ws"; cp -R template "$W"
+          echo "keep me" > "$W/reels/mine.txt"
+          echo "local edit" >> "$W/CLAUDE.md"
+          node setup/sync-template.mjs "$W" | grep -q "kit version"
+          node setup/sync-template.mjs "$W" --apply
+          cmp template/CLAUDE.md "$W/CLAUDE.md"
+          test "$(cat "$W/reels/mine.txt")" = "keep me"
+          test "$(tr -d '[:space:]' < "$W/.kit-version")" = "$(tr -d '[:space:]' < VERSION)"
 
       - name: Real install of the engine into a temporary home
         shell: bash

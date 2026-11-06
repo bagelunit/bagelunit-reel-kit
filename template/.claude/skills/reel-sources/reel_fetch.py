@@ -52,7 +52,12 @@ def main():
     video = out / "video.mp4"
     if is_url:
         need("yt-dlp")
-        run(["yt-dlp", "-q", "--no-playlist", "-f", "mp4/best", "-o", str(video), a.src])
+        r = subprocess.run(["yt-dlp", "-q", "--no-playlist", "-f", "mp4/best", "-o", str(video), a.src], capture_output=True, text=True)
+        if r.returncode:
+            sys.exit(f"yt-dlp could not download that link: {r.stderr.strip()[-300:]}\n"
+                     "yt-dlp breaks whenever a platform changes, and a new version usually fixes it. Update it, then try again:\n"
+                     "  yt-dlp -U     (or: brew upgrade yt-dlp, or: pip install -U yt-dlp, or: winget upgrade yt-dlp)\n"
+                     "The link may also be private or removed. A screen recording of the reel works too: pass the file instead.")
     else:
         src = pathlib.Path(a.src).expanduser()
         if not src.exists():

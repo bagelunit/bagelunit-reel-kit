@@ -33,6 +33,8 @@ Use multiple-choice questions wherever the answer can be a choice, recommended o
 
 10. **Kit updates:** "Tell me when a newer kit version is out" (sets `updates.check_on_start` to `true`) or "No, I'll check myself" (recommended default, `false`). It reads one public file from GitHub once per session and never updates anything by itself.
 
+11. **History:** "Keep a private history of this brand's files (local only, never uploaded)" (recommended) or "No". If yes, and this folder is not already a git repo: run `git init`, then `git add -A` and `git commit -m "Brand workspace set up"` (if git has no name set, add `-c user.name="Reel workspace" -c user.email="reels@localhost"`). Never add a remote and never push. The `.gitignore` here already keeps keys, renders and audio out.
+
 ## Writing the answers
 
 - `brand/brand.json`: `name`, `slug`, `handle`, `people.operator_name`, `people.approver_name`, `identity.logo` (plus other identity paths given), `colors`, `fonts`, `host.enabled`, `host.type` (`stickers`, `drawn` or `none`), `host.poses_dir`, `voice.style`, `voice.voice_id` and `voice.voice_name` (once chosen), `voice.never_say`, `voice.pronunciation`, `cta.style`, `cta.default`. Keep the file valid JSON (check with `python3 -m json.tool brand/brand.json`). Leave `work_dir` unless asked.

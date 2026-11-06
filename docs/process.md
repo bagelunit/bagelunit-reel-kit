@@ -44,6 +44,8 @@ Read the official source for every claim the reel makes (for a how-to, the produ
 - No em dashes. Run `/ig-human`'s detector on the script.
 - End with "Save this" (or follow) unless a comment keyword has a DM auto-reply that was tested from a second account.
 
+Before the approver sees the script, run the credit check (`python3 ~/.claude/skills/susanoo-reels/tools/budget.py reels/<slug>/script.txt`): it counts the script's characters and compares them with the ElevenLabs credits left.
+
 **GATE A: the approver approves the script.** No voice credits are spent before this.
 
 ## 6. Voice

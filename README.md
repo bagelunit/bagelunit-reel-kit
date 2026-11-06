@@ -57,8 +57,9 @@ The full process, with its three approval gates, is in [docs/process.md](docs/pr
 | `template/` | The generic brand workspace. Copy it once per brand or project and start Claude Code inside the copy. It is self-contained and carries the licence: `CLAUDE.md` (house rules and first-run setup), `brand/`, `reels/`, `docs/` (the hook and review playbook), and the reel skills in `.claude/skills/`. |
 | `template/.claude/skills/` | 17 reel skills that travel with every copy of the template (nothing global, so brands never mix): hook writer, script, caption, teardown, account audit with the 3x outlier script, hook mining, comment mining, A/B test, cover brief, readout, and the opt-in autopilot skills. |
 | `setup/install.mjs` | The installer (Node, runs on macOS, Windows and Linux). `install.sh` and `install.ps1` are tiny launchers for it. |
-| `setup/sync-template.sh` | Keeps copies current: with no argument it refreshes your generic copy-from folder; with a brand workspace path it shows (then with `--apply` performs) an update of that workspace's kit files without touching its `brand/` or `reels/`. |
+| `setup/sync-template.mjs` | Keeps copies current (runs on Mac, Windows and Linux; `sync-template.sh` is a launcher): with no argument it refreshes your generic copy-from folder; with a brand workspace path it shows (then with `--apply` performs) an update of that workspace's kit files without touching its `brand/` or `reels/`. |
 | `docs/` | `process.md` (the full loop), `avatar.md` (making sticker poses), `sound.md` (the real-sound step), `reference.md` (what we learned from other reel makers). |
+| `setup/scan-repo.mjs` | A safety scan run on every push: keys, private files, banned names, personal paths, em dashes. |
 | `SETUP.md` | Setup by hand, step by step, and common snags. |
 
 **Settings and keys** live in `~/.config/susanoo-reels/` on each computer, never in the repo. Upgrading from an install made before the rename? `setup/install.sh` copies your old settings folder over once and tells you which old skill folder to remove.

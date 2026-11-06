@@ -27,7 +27,7 @@ The step that tells you what to make next: which reels beat an account's own nor
 1. **Pick accounts.** The brand's own handle, plus 6 to 12 others: about 4 in the niche and a bit ahead, 4 adjacent,
    2 to 4 big ones for format ideas only. Stay within about 10x of the brand's followers. Ask if unsure.
 2. **Check the cost first.** `python3 ./.claude/skills/account-audit/outliers.py --handles a,b,c --dry-run`
-   prints the plan and the price (about $2.70 per 1,000 posts on the free plan). Tell the owner the number.
+   prints the plan and the price (about $2.70 per 1,000 posts on the free plan). Tell the owner the number. Every real fetch is logged in `brand/spend.csv` (date, accounts, results, estimated cost) and the next plan shows the running total.
 3. **Run it.** `... --handles a,b,c --limit 30 --out brand/swipe.md` (or `--json export.json`).
    It computes each account's median over its last 12 reels and each reel's ratio to it:
    3x or more = STUDY, 1.5x to 3x = NOTE, below = ignore. Fewer than 5 reels = no ranking.

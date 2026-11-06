@@ -1,0 +1,14 @@
+# Heavy or private files that never belong in this brand's history
+node_modules/
+*.key
+.env*
+.DS_Store
+reels/*/build/
+reels/*/audio/
+reels/*/out/*.mp4
+reels/*/out/*.mov
+*.wav
+*.mp3
+*.bak-*
+.cache/
+__pycache__/

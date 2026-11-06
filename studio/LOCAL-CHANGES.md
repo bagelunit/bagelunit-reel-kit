@@ -23,3 +23,4 @@
    `susanoo-reels`, install path `~/.claude/skills/susanoo-reels`, settings folder `~/.config/susanoo-reels/` (tools fall back to the pre-rebrand folder until `setup/install.sh` copies it over),
    page titles, file headers, the render lock file name and the example handles. Behaviour unchanged.
 6. 2026-11-06 · Cross-platform: `tools/voicebank.py` plays the voice preview on Windows (default player) and Linux (ffplay, mpv, paplay or aplay) as well as Mac (afplay); `tools/realsound.py` finds earshot at `.venv/Scripts/earshot.exe` on Windows. Behaviour on Mac unchanged.
+7. 2026-11-06 · NEW `tools/budget.py` (ours): counts a script's characters and compares them with the ElevenLabs credits left (a free read of your own subscription; the key is never printed). Run before Gate A.
