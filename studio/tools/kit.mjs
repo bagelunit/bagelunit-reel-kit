@@ -67,14 +67,20 @@ function start() {
   if (!target) die('usage: kit start <dir> --style <style>');
   const dir = path.resolve(target);
   if (fs.existsSync(path.join(dir, 'reel.json'))) die(`${dir} already holds a reel (reel.json is there)`);
-  fs.cpSync(path.join(MODES_DIR, style, 'starter'), dir, { recursive: true });
+  // local addition: never overwrite a file already in the folder (a script written before Gate A must survive)
+  const starter = path.join(MODES_DIR, style, 'starter');
+  const kept = fs.readdirSync(starter).filter(f => fs.existsSync(path.join(dir, f)));
+  fs.cpSync(starter, dir, { recursive: true, force: false, errorOnExist: false });
   for (const sub of ['build', 'audio', 'stills', 'out', 'assets']) fs.mkdirSync(path.join(dir, sub), { recursive: true });
   const reel = applySavedLook({ ...readJSON(path.join(dir, 'reel.json'), {}), style, name: text('name') ?? path.basename(dir) }, style);
   fs.writeFileSync(path.join(dir, 'reel.json'), JSON.stringify(reel, null, 2));
+  const hasScript = kept.includes('script.txt');
   const next = style === 'talking'
     ? `record your take, then  ${PY} ${path.join(SKILL, 'tools', 'take.py')} ${dir} --video <your-take.mov>`
-    : `write script.txt, then  ${PY} ${path.join(SKILL, 'tools', 'voice.py')} ${dir}`;
-  console.log(`new ${style} reel: ${dir}\nnext: ${next}`);
+    : `${hasScript ? 'check' : 'write'} script.txt, then  ${PY} ${path.join(SKILL, 'tools', 'voice.py')} ${dir}`;
+  console.log(`new ${style} reel: ${dir}`);
+  if (kept.length) console.log(`kept what was already there (not replaced by the sample): ${kept.join(', ')}`);
+  console.log(`next: ${next}`);
 }
 
 // a grid of stills, 4 across, for looking at before any video exists
