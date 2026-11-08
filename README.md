@@ -39,9 +39,11 @@ Each person runs the kit on their own computer with their own Claude Code accoun
 ## Requirements
 
 - **macOS, Windows or Linux.** One installer for all three. It needs [Node.js](https://nodejs.org) 18 or newer to start, and it installs or asks for the rest (ffmpeg, Python 3, git, uv, Whisper) using Homebrew on Mac, winget on Windows, and apt or pacman on Linux. It always shows you a command and asks before installing a program, and never runs anything as administrator by itself.
-- **Claude Code** on a paid plan (Pro or Max), signed in with your own account. A reel takes Claude roughly 30 to 80 minutes of work.
-- An **ElevenLabs** account and API key of your own for the voice (the free plan covers a few reels a month). Your key stays on your computer in `~/.config/bagelunit-reels/elevenlabs.key`; you put it there yourself, and it never goes in a chat or in this repo.
+- **Claude Code** on a paid plan (Pro or Max), signed in with your own account. A reel takes Claude roughly 30 to 80 minutes of work. If your plan's usage limit stops Claude partway, nothing is lost: see "If Claude stops partway" in [`template/docs/first-reel.md`](template/docs/first-reel.md).
+- An **ElevenLabs** account and API key of your own for the voice. The free plan is fine for trying the kit, but ElevenLabs allows only non-commercial use on it, with credit to ElevenLabs. For a business's or a client's reels, use a paid plan (Starter or higher; check ElevenLabs' current terms). Your key stays on your computer in `~/.config/bagelunit-reels/elevenlabs.key`; you put it there yourself, and it never goes in a chat or in this repo.
 - About 3 GB of disk for the render browser, the sound library and earshot's models.
+
+**What it costs you.** The kit itself is free. You pay for your own Claude plan and, for business use, an ElevenLabs paid plan. A 40-second voiced reel uses about 750 ElevenLabs credits, and Claude shows the number before any are spent. A talking-head reel uses your own voice, so it needs no voice credits. The outlier scan with Apify is optional and paid per result (see [SETUP.md](SETUP.md)); it stays off unless you turn it on.
 
 ## Quick start
 
@@ -51,7 +53,7 @@ cd ~/dev/bagelunit-reel-kit
 bash setup/install.sh          # macOS and Linux. Safe to run again; prints every step
 ```
 
-On Windows, in PowerShell: `.\setup\install.ps1` (or `node setup/install.mjs` on any system). Use `python` where this kit says `python3`, and `.\` paths instead of `~/` shortcuts if your shell needs them.
+On Windows, in PowerShell: `node setup/install.mjs` (it works on every system). Use `python` where this kit says `python3`, and `.\` paths instead of `~/` shortcuts if your shell needs them.
 
 ## Start here (if you have never done this before)
 
@@ -60,7 +62,7 @@ You do not need to be technical. You give Claude Code a few messages, and it doe
 **Before you begin** (about 15 minutes, once):
 1. Install **Node.js** from https://nodejs.org (choose the "LTS" download and accept the defaults).
 2. Install **Claude Code** and sign in with your own Claude account (Pro or Max): https://claude.com/claude-code
-3. Make an **ElevenLabs** account at https://elevenlabs.io (the free plan is enough to start). It is the voice for your reels. You will save its key later; Claude shows you how.
+3. Make an **ElevenLabs** account at https://elevenlabs.io (the free plan is enough to try the kit; for a business or a client you need a paid plan, see Requirements above). It is the voice for your reels. You will save its key later; Claude shows you how.
 4. **Download this kit.** On this page click the green **Code** button, then **Download ZIP**, and unzip it somewhere easy (for example your home folder). Or, if you know git: `git clone https://github.com/bagelunit/bagelunit-reel-kit.git`.
 
 **Then send three messages to Claude Code**, each in a different folder. For each: open a terminal in that folder, type `claude`, press Enter, and paste the message.
@@ -105,7 +107,7 @@ In that same brand folder, paste the "Make a reel" message from the same file. I
 
 When you are ready for results, the same file also has a message for reading your numbers after posting and one for planning a week of reels. A walk-through of the first reel is in [`template/docs/first-reel.md`](template/docs/first-reel.md).
 
-The full process, with its three approval gates, is in [docs/process.md](docs/process.md).
+The full process, with its three approval gates, is in [docs/process.md](docs/process.md). It is a technical reference for how Claude runs each reel; you do not need to read it to make one.
 
 ### After your first reel
 

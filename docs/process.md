@@ -1,5 +1,7 @@
 # The reel process
 
+> A technical reference for how Claude runs each reel. You do not need it to make a reel: start with the [README](../README.md) and [your first reel](../template/docs/first-reel.md).
+
 One loop, the same for every brand. It runs inside a brand workspace (a copy of `template/`). Claude does the work; a person approves at three gates and, by default, a person posts. Claude posts, schedules or sends nothing unless the brand owner connected a publisher or an auto-reply and turned it on (sections 13 and 15).
 
 ```
@@ -11,13 +13,13 @@ Every gate is asked as a question block (Approve, Change something, or Stop this
 
 ## 0. Brand setup (once per workspace)
 
-Copy `template/` for the brand and open Claude Code in the copy. With an empty `brand/brand.json` Claude runs the brand questions (or run `/brand-setup`): your name, the brand, handle, colours, logo, fonts, sticker avatar or no host, voice, call-to-action style, kit update notices, a private local history, and how many reels a week to post (saved as `batch.max_reels`). Every question is a clickable question block: pick an option, or pick "Other" and type. `brand/facts.md` holds the only claims allowed on screen, in the voice or in a caption, and only the user adds or confirms them.
+Copy `template/` for the brand and open Claude Code in the copy. With an empty `brand/brand.json` Claude runs the brand questions (or run `/brand-setup`): your name, the brand, handle, colours, logo, fonts, presenter (sticker, drawn or none), voice, call-to-action style, kit update notices, a private local history, and how many reels a week to post (saved as `batch.max_reels`). Every question is a clickable question block: pick an option, or pick "Other" and type. `brand/facts.md` holds the only claims allowed on screen, in the voice or in a caption, and only the user adds or confirms them.
 
 ## 1. Research (monthly)
 
 - Pick 6 to 12 accounts: about 4 in your niche and a bit ahead of you, 4 adjacent (same audience, other topic), 2 to 4 big ones for format ideas only. Stay within about 10x of your own follower count.
 - Read reels in the browser at human speed, with the person present. No scraping services unless the brand owner turned on `autopilot.scrape`: then `/account-audit` computes the 3x rule from Apify data (cost shown first, token in `~/.config/bagelunit-reels/apify.key`). Claude never logs in with the brand's password.
-- **The 3x rule:** for each reel, views divided by that account's median views over its last 12 reels. Under 1.5x ignore, 1.5x to 3x note, 3x and up is a formula worth studying. `/ig-viral` does this and saves outliers to `brand/swipe.md`.
+- **The 3x rule:** for each reel, views divided by that account's median views over its last 12 reels. Under 1.5x ignore, 1.5x to 3x note, 3x and up is a formula worth studying. By hand in the browser, the Instagram plugin's `/ig-viral` does this; from an export or Apify data, `/account-audit` does. Either way the outliers go in `brand/swipe.md`.
 - Copy the shape (hook, structure, length), never the video, its script, colours or characters.
 - **Teardown:** for a reel worth studying (an outlier, or the brand's own best), the person supplies the file; Claude pulls frames and a transcript and runs `/reel-analyzer` (hook, beats, pacing, visual technique, reusable moves, one-line remake). Save it in `brand/swipe.md`. See [hook-and-review-playbook.md](../template/docs/hook-and-review-playbook.md).
 - **Comment mining:** with 30 or more real comments or DMs, run `/comment-mining`; every idea must trace to a real comment.
@@ -30,7 +32,7 @@ Pick ONE goal (save, share, follow or lead) and an angle (result first, self-pro
 
 ## 3. Style question (always)
 
-Before anything else, Claude asks one question block: **Print**, **3D** or **Talking head** (only if there is a video of the person talking), with a recommendation first and why. It never picks a style silently. Print is the only style that uses the sticker presenter.
+Before anything else, Claude asks one question block: **Print**, **3D** or **Talking head** (only if there is a video of the person talking: any phone video, filmed upright; `take.py` cuts the pauses, never speeds the person up, and spends no voice credits), with a recommendation first and why. It never picks a style silently. Print is the only style that uses the sticker presenter.
 
 ## 4. Facts
 
@@ -39,9 +41,10 @@ Read the official source for every claim the reel makes (for a how-to, the produ
 ## 5. Hook and script
 
 - Write 3 or 4 hooks, score them with the Instagram plugin's hook scorer, keep one scoring 75 or more and passing the eight-point frame-0 checklist in [hook-and-review-playbook.md](../template/docs/hook-and-review-playbook.md). The hook gives the value in the first 1.5 to 3 seconds; it does not tease. (Only a numbered series reel may promise a payoff for the end, and it must pay it off.)
-- Script: about 110 to 125 words (about 40 seconds). Shape: hook > proof (a name, a number from facts.md) > 3 or 4 steps > your own proof or twist > one ask.
+- Start the reel folder first: `kit start <reel> --style <style>`. It fills a new folder with a sample `script.txt` (a script already in the folder is kept).
+- Script: about 110 to 125 words for about 40 seconds, the usual length (about 85 words for 30 seconds, at most 130 for 45). Shape: hook > proof (a name, a number from facts.md) > 3 or 4 steps > your own proof or twist > one ask.
 - Write for the ear. Commands, URLs and codes go on screen, not in the voice. Spell tricky names by sound. The generated voice never says a word in `brand.json` > `voice.never_say`; show it as text instead.
-- No em dashes. Run `/ig-human`'s detector on the script.
+- No em dashes. Run the Instagram plugin's `/ig-human` detector on the script, then `/humanizer` to rewrite anything it flags.
 - End with "Save this" (or follow) unless a comment keyword has a DM auto-reply that was tested from a second account.
 
 Before the approver sees the script, run the credit check (`python3 ~/.claude/skills/bagelunit-reels/tools/budget.py reels/<slug>/script.txt`): it counts the script's characters and compares them with the ElevenLabs credits left.
@@ -52,7 +55,9 @@ Before the approver sees the script, run the credit check (`python3 ~/.claude/sk
 
 ## 6. Voice
 
-`kit start <reel> --style <style>`, write `script.txt`, run the kit's `voice.py`. It cuts long pauses, speeds the take up slightly, sets loudness and writes `build/words.json`: a time for every spoken word. Every animation, caption and sound is cued on words, never on seconds. A 30-second reel uses roughly 800 ElevenLabs characters. The person's own recording works too.
+Run the kit's `voice.py` on the approved `script.txt` (the folder was started in step 5). It cuts long pauses, speeds the take up slightly, sets loudness and writes `build/words.json`: a time for every spoken word. Every animation, caption and sound is cued on words, never on seconds. A 40-second script (about 120 words) uses roughly 750 ElevenLabs credits, one per character. The same request again reuses the take and spends nothing. The person's own recording works too.
+
+**Picking up after a break.** If a session ends partway (a usage limit, a closed window), the person says "carry on with the reel about [topic]". Claude reads `reels/<slug>/approvals.md` and the folder to find the last finished step and continues from there; it never redoes a gate that is recorded.
 
 ## 7. Visual plan
 

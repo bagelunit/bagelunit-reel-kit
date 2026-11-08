@@ -1,6 +1,6 @@
 # Hook and review playbook
 
-Added November 2026, with the reel skills in this folder's `.claude/skills/`. These are ideas and checklists that sharpen steps 1, 2, 5, 7, 12 and 14 of the kit's `docs/process.md`. The skills' numbers come from one account in one niche, so treat every number below as a hypothesis to test against the brand's own median, not as a law.
+Added November 2026, with the reel skills in this folder's `.claude/skills/`. These are ideas and checklists that sharpen steps 1, 2, 5, 7, 12 and 14 of the kit's [reel process](https://github.com/bagelunit/bagelunit-reel-kit/blob/main/docs/process.md) (in the kit's own folder, not in this copy). The skills' numbers come from one account in one niche, so treat every number below as a hypothesis to test against the brand's own median, not as a law.
 
 ## 1. Frame-0 hook checklist (step 5 and step 7)
 

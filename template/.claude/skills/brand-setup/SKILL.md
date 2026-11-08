@@ -1,6 +1,6 @@
 ---
 name: brand-setup
-description: Sets up (or redoes) this reel workspace's brand. Asks the user's name, the company or client name, Instagram handle, accent colour and theme, logo path, fonts, sticker avatar or no host, voice, call-to-action style, kit update notices, private history and how many reels a week to post (12 questions, each as a clickable question block), then fills brand/brand.json, brand/voice.md and brand/facts.md. Use on /brand-setup, when brand/brand.json has an empty "name", or when the user wants to change the brand's identity, presenter, voice or CTA.
+description: Sets up (or redoes) this reel workspace's brand. Asks the user's name, the company or client name, Instagram handle, accent colour and theme, logo path, fonts, presenter (sticker, drawn or none), voice, call-to-action style, kit update notices, private history and how many reels a week to post (12 questions, each as a clickable question block), then fills brand/brand.json, brand/voice.md and brand/facts.md. Use on /brand-setup, when brand/brand.json has an empty "name", or when the user wants to change the brand's identity, presenter, voice or CTA.
 ---
 
 # Brand setup for this reel workspace
@@ -26,7 +26,7 @@ Before the questions, offer with a question block (AskUserQuestion) "Read the br
 4. **Colours:** accent hex. Choices: studio (warm white + vermilion), harbor (deep blue), ochre (warm gold), ink (black and white), "my own accent: #......". Offer to read colours from a logo or brand guide path. Background and ink hex are optional.
 5. **Logo:** path to the logo file. Check it exists (`ls`); if not, ask again or leave empty.
 6. **Fonts:** "Use the kit's fonts" or "My brand fonts: display ..., body ...".
-7. **Presenter:** "Sticker avatar (I have a pose folder)", "Sticker avatar (make one later, see docs/avatar.md in the kit repo)", "No host", "The kit's drawn presenter".
+7. **Presenter** (Print style only): "Sticker presenter (I have a pose folder)", "Sticker presenter (make one later: https://github.com/bagelunit/bagelunit-reel-kit/blob/main/docs/avatar.md)", "No presenter", "The kit's drawn presenter".
    - For a pose folder: ask the path, list the PNGs, and report which of the 19 pose names are present and which are missing: idle, point, guns, thumbs, shock, shrug, think, wave, magnifier, open, tshirt, one, two, three, four, five, celebrate, facepalm, raise. Missing poses are fine; the presenter falls back to idle.
 8. **Voice:** "Pick an ElevenLabs voice together now" (then follow the kit's `KIT.md` voice steps with `voicebank.py`), "Use the voice already saved in the kit", "My own recorded voice", "Decide later". Then: words the generated voice must never say, and how to spell tricky names by sound.
 9. **Call to action:** "Save this" (recommended until a DM auto-reply is tested), "Follow for more", "Comment a keyword for a DM", "Visit the link in bio". A keyword goes in `cta.tested_keywords` only after the user confirms the auto-reply was tested from a second account.

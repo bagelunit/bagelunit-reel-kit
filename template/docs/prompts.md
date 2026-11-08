@@ -40,7 +40,7 @@ HOW IT LOOKS
 - Background and text colours (optional): [CODES, or skip]
 - Logo file: [PATH TO A PNG OR SVG FILE, or "none yet"]
 - Fonts: [use the kit's fonts, or "display font: NAME, body font: NAME"]
-- On-screen host: [a cartoon-style host using my pose pictures in FOLDER PATH / make my host later / no host / the kit's simple drawn host]
+- On-screen presenter: [my own sticker presenter, poses in FOLDER PATH / make my sticker presenter later / no presenter / the kit's simple drawn presenter]
 
 HOW IT SOUNDS
 - Voice: [pick an ElevenLabs voice together now / use the voice already saved / my own recording / decide later]
@@ -63,8 +63,8 @@ Rules: write down only what I confirm. Do not put any number, result, price or c
 - **Website:** Claude only suggests a name, colours and fonts from it. It never takes claims, numbers or prices from it.
 - **Main colour:** a code looks like `#E4572E`. Do not know it? Write the colour's name, or "read it from my logo" and Claude will suggest one.
 - **Logo file:** drag the file into the terminal to get its location. A PNG or SVG works best.
-- **On-screen host:** optional. A host is a character who appears on screen. Skip it ("no host") if you are unsure; you can add one later.
-- **Voice:** the AI voice that reads the script. "Pick together" lets you listen to a few options. You need an ElevenLabs account for this.
+- **On-screen presenter:** optional, Print style only. A presenter is a character who points and reacts on screen. A sticker presenter is your own character as 19 cut-out poses you make once ([how to make them](https://github.com/bagelunit/bagelunit-reel-kit/blob/main/docs/avatar.md)). Pick "no presenter" if you are unsure; you can add one later.
+- **Voice:** the AI voice that reads the script. "Pick together" lets you listen to a few options. You need an ElevenLabs account for this. Its free plan is for trying the kit only (non-commercial, with credit to ElevenLabs); for a business or a client, use a paid plan.
 - **Words the voice must never say:** for example a brand name it says wrongly. Claude puts those on screen as text instead.
 - **Reels each week:** how many you want to post. Claude plans at most this many at once, and you still approve each reel. Start small; you can change it later.
 - **The one thing viewers are asked to do:** keep it to one. "Comment a keyword" is not offered until you have tested the auto-reply yourself.
@@ -81,8 +81,9 @@ Make a reel for [BRAND NAME] on [THE TOPIC, IN ONE LINE].
 WHAT I WANT FROM IT
 - The one goal: [save / share / follow / lead (people ask for something)]
 - The angle (optional; if blank, suggest one different from my last post): [result first / the reel proves itself / go against common advice / start with the pain / something goes wrong]
-- Length: [about 30 seconds / about 45 seconds]
+- Length: [about 30 seconds / about 40 seconds / about 45 seconds]
 - Style: [Print / 3D / Talking head / not sure: recommend one and ask me]
+- My video (Talking head only): [DRAG YOUR VIDEO FILE INTO THE TERMINAL HERE, or delete this line]
 
 WHAT IS TRUE AND OK TO SAY
 - Facts you may use: [FACT 1; FACT 2; or "none yet, so use no numbers"]
@@ -97,7 +98,9 @@ Follow the house rules in CLAUDE.md. Check the first-frame hook checklist before
 
 **What goes in each blank**
 - **Goal:** pick the single result you want. Save = people keep it for later. Share = people send it to others. Follow = people follow you. Lead = people ask you for something.
+- **Length:** about 40 seconds is the usual. Shorter is easier to watch to the end; pick 45 only if the topic needs it.
 - **Style:** Print is the safe default. 3D is more cinematic. Talking head edits your own video of you talking. Unsure? Leave "not sure" and Claude recommends one.
+- **My video:** only for Talking head. Film yourself with the phone held upright, at your normal pace; Claude cuts the pauses. Drag the file into the terminal to fill in its location. It uses your voice, so no voice credits.
 - **Facts:** Claude will only state facts you give it here or have saved in `brand/facts.md`. If you give none, it uses no numbers.
 - **Something only we can say:** the part nobody can copy, like what you actually do differently. This is what makes a reel yours.
 - **The fact check:** before you see the script, Claude re-reads the source of every claim. A claim it cannot back up is flagged before any voice credits are spent, and it checks again on the final video.
@@ -131,13 +134,18 @@ Follow the house rules in CLAUDE.md. Check the first-frame hook checklist before
 Open the reel in Instagram, tap View insights, and fill in what you see (where each number is: `docs/after-posting.md`). Leave out any number you cannot find.
 
 ```
-Add my numbers for [REEL FOLDER NAME]: views [N], reach [N], average watch time [SECONDS], skip rate [PERCENT], likes [N], comments [N], saves [N], shares [N], follows [N]. Add them to brand/insights.csv and read the row back to me. Then run /analytics-readout against this brand's own usual results, not outside benchmarks: two things to do next, not twelve, and what these numbers cannot tell us. If brand/insights.csv now has 8 or more reels, run kit calibrate and tell me how accurate it is.
+Add my numbers for [THE REEL: its folder name inside reels/, or its topic in a few words]: views [N], reach [N], average watch time [SECONDS], skip rate [PERCENT], likes [N], comments [N], saves [N], shares [N], follows [N]. Add them to brand/insights.csv and read the row back to me. Then run /analytics-readout against this brand's own usual results, not outside benchmarks: two things to do next, not twelve, and what these numbers cannot tell us. If brand/insights.csv now has 8 or more reels, run the calibration step (kit calibrate) and tell me how accurate it is.
 ```
+
+**What goes in each blank**
+- **The reel:** each reel has its own folder inside `reels/`, named after its topic (for example `reels/sourdough-two-days`). The topic in a few words works too.
+- **The numbers:** type them as Instagram shows them. Leave out any you cannot find.
+- **The calibration step:** once 8 of your reels have numbers, Claude learns how your reels usually hold viewers, so it can estimate how a new draft will do before you post it.
 
 ---
 
 ## 4. Plan a week of reels (optional)
 
 ```
-Plan this week's reels for [BRAND NAME]: [HOW MANY, up to the batch.max_reels setting in brand.json, 3 unless you changed it] reels. Give each one goal (goals may repeat) and a different angle, write all the scripts, and bring them to the first checkpoint together. I will approve each one separately. Topics I have in mind: [TOPICS, or "suggest some"].
+Plan this week's reels for [BRAND NAME]: [HOW MANY: up to the number of reels a week you chose in the brand setup] reels. Give each one goal (goals may repeat) and a different angle, write all the scripts, and bring them to the first checkpoint together. I will approve each one separately. Topics I have in mind: [TOPICS, or "suggest some"].
 ```

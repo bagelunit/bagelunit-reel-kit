@@ -1,6 +1,6 @@
 # Setup
 
-One time per computer, on macOS, Windows or Linux. `bash setup/install.sh` (Mac, Linux) or `.\setup\install.ps1` (Windows PowerShell), or `node setup/install.mjs` anywhere, does all of this and prints each step; this page is the same path written down, so you can do it by hand or fix a step that failed. The script is safe to run again: it skips anything already done.
+One time per computer, on macOS, Windows or Linux. `bash setup/install.sh` (Mac, Linux) or `node setup/install.mjs` (Windows, or any system) does all of this and prints each step; this page is the same path written down, so you can do it by hand or fix a step that failed. The script is safe to run again: it skips anything already done.
 
 When Claude runs setup for you (the kit's setup here, or a brand's setup in a workspace), it asks every question as a clickable question block: pick an option, or pick "Other" and type your own answer.
 
@@ -16,7 +16,7 @@ Pick your system (the installer does exactly this and asks first; this is for do
 | Windows (PowerShell) | `winget install OpenJS.NodeJS.LTS Gyan.FFmpeg Python.Python.3.12 Git.Git astral-sh.uv`, then `pip install faster-whisper` |
 | Linux (Debian, Ubuntu) | `sudo apt install ffmpeg python3 python3-venv python3-pip git nodejs npm`, then uv from https://docs.astral.sh/uv/ and `pip install --user faster-whisper` |
 
-On Windows and Linux, Whisper (the tool that times every spoken word) comes from `faster-whisper` instead of `whisper-cpp`; the kit uses whichever it finds. Open a new terminal afterwards so the new commands are found. On Windows, where this kit says `python3` use `python`.
+On Windows and Linux, Whisper (the tool that times every spoken word) comes from `faster-whisper` instead of `whisper-cpp`; the kit uses whichever it finds. On Windows, where this kit says `python3` use `python`.
 
 Open a new terminal afterwards so the new commands are found.
 
@@ -35,17 +35,28 @@ npm run browser      # the headless Chromium used for rendering (about 100 MB)
 
 If a copy not installed by this repo is already at `~/.claude/skills/bagelunit-reels`, the installer moves it aside to `bagelunit-reels.backup-<date>` first.
 
-**Upgrading from the pre-rebrand install:** the installer copies your old settings folder (keys, saved voice, handle, theme) to `~/.config/bagelunit-reels/` once and keeps the old folder. It does not touch an old skill folder under its previous name; it prints a note instead. Remove that old skill folder yourself once the new one works, because two installed copies would both answer reel requests.
+**Only if you used the kit before it was renamed BagelUnit Reel Kit** (new users skip this): the installer copies your old settings folder (keys, saved voice, handle, theme) to `~/.config/bagelunit-reels/` once and keeps the old folder. It does not touch an old skill folder under its previous name; it prints a note instead. Remove that old skill folder yourself once the new one works, because two installed copies would both answer reel requests.
 
 ## 3. Your ElevenLabs key (you do this yourself)
 
-1. Make an account at https://elevenlabs.io and create an API key at https://elevenlabs.io/app/settings/api-keys. Allow **Text to Speech** and **Voices** ("User: read" is optional; it lets the checkup show your credits). Add **Speech to Text** if you want talking-head edits without installing Whisper.
-2. Save it, alone on one line, in `~/.config/bagelunit-reels/elevenlabs.key`:
+1. Make an account at https://elevenlabs.io and create an API key at https://elevenlabs.io/app/settings/api-keys. Allow **Text to Speech** and **Voices** ("User: read" is optional; it lets the checkup show your credits). Add **Speech to Text** if you want talking-head edits without installing Whisper. The free plan is fine for trying the kit, but ElevenLabs allows only non-commercial use on it, with credit to ElevenLabs; for a business's or a client's reels use a paid plan (Starter or higher).
+2. Save it, alone on one line, in `~/.config/bagelunit-reels/elevenlabs.key` (on Windows that is `C:\Users\<you>\.config\bagelunit-reels\elevenlabs.key`):
+
+   Mac:
 
    ```bash
    mkdir -p ~/.config/bagelunit-reels && chmod 700 ~/.config/bagelunit-reels
    touch ~/.config/bagelunit-reels/elevenlabs.key && chmod 600 ~/.config/bagelunit-reels/elevenlabs.key
    open -e ~/.config/bagelunit-reels/elevenlabs.key      # paste the key, save, close
+   ```
+
+   Linux: the same first two lines, then `nano ~/.config/bagelunit-reels/elevenlabs.key` (paste the key, press Ctrl+O, Enter, then Ctrl+X).
+
+   Windows (PowerShell):
+
+   ```powershell
+   New-Item -ItemType Directory -Force "$HOME\.config\bagelunit-reels" | Out-Null
+   notepad "$HOME\.config\bagelunit-reels\elevenlabs.key"    # click Yes to create it, paste the key, save, close
    ```
 
 3. Never paste the key into a Claude chat, a brand file or this repo. Each person uses their own key.
@@ -138,9 +149,12 @@ Done when it shows only checks (lines marked optional can stay open).
 ## 7. Your first brand
 
 ```bash
+mkdir -p ~/Reels
 cp -R ~/dev/bagelunit-reel-kit/template ~/Reels/my-brand
 cd ~/Reels/my-brand && claude
 ```
+
+Use your own kit folder's path in the `cp` line: a ZIP download unzips to a folder called `bagelunit-reel-kit-main`, wherever you put it. You can also copy the `template` folder in Finder or File Explorer and rename the copy.
 
 Claude sees an empty brand and starts the brand setup questions. Run `/brand-setup` any time to change the answers.
 

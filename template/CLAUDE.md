@@ -23,7 +23,7 @@ Offer first to pre-fill from the brand's website: `python3 ./.claude/skills/bran
 4. **Colours:** the accent colour as a hex code (offer to read it from a logo or brand guide if they give a path), plus background and ink if they have them. Offer the kit's ready themes as choices: studio (warm white + vermilion), harbor (deep blue), ochre (warm gold), ink (black and white), or "my own accent".
 5. **Logo:** the path to the logo file (PNG or SVG). Check the file exists; if it does not, ask again or leave it empty.
 6. **Fonts:** display and body fonts (choices: "use the kit's fonts", "my brand fonts: ...").
-7. **Presenter:** sticker avatar or no host. Choices: "Sticker avatar (I have a pose folder)", "Sticker avatar (make one later, see the kit's docs/avatar.md)", "No host", "The kit's drawn presenter". For a pose folder, ask for its path and check which of the 19 pose names it holds (idle, point, guns, thumbs, shock, shrug, think, wave, magnifier, open, tshirt, one, two, three, four, five, celebrate, facepalm, raise); list any missing ones.
+7. **Presenter** (Print style only): a sticker presenter, the kit's drawn presenter, or none. Choices: "Sticker presenter (I have a pose folder)", "Sticker presenter (make one later: https://github.com/bagelunit/bagelunit-reel-kit/blob/main/docs/avatar.md)", "No presenter", "The kit's drawn presenter". For a pose folder, ask for its path and check which of the 19 pose names it holds (idle, point, guns, thumbs, shock, shrug, think, wave, magnifier, open, tshirt, one, two, three, four, five, celebrate, facepalm, raise); list any missing ones.
 8. **Voice:** choices: "Pick an ElevenLabs voice together now", "Use the voice already saved in the kit", "My own recorded voice", "Decide later". Also ask for words the generated voice must never say (for example a brand name it mispronounces) and how to spell any tricky name by sound.
 9. **Call to action:** choices: "Save this" (recommended until a DM auto-reply is tested), "Follow for more", "Comment a keyword for a DM" (only listed in `cta.tested_keywords` once the auto-reply has been tested from a second account), "Visit the link in bio".
 10. **Kit updates:** "Tell me when a newer kit version is out" (sets `brand.json` -> `updates.check_on_start` to `true`) or "No, I'll check myself" (recommended default, `false`). See section 3b2.
@@ -83,7 +83,9 @@ When a request matches a row, load that skill with the Skill tool first and foll
 | Research: what the audience asks, reels to model, best reels | `/comment-mining`, `/reel-sources`, `/account-audit`, `/reel-analyzer` (a file the person supplies) |
 | Plan: goal, angle, why a post flopped | `/going-viral`, `/virality` |
 | Hooks before Gate A | `/viral-hook-writer` (from nothing), `/hook-mining` (from a CSV of real hooks) |
-| Script before Gate A | `/reel-scripter` writes `reels/<slug>/script.txt`; `/reel-builder` for a shoot plan without rendering |
+| Script before Gate A | Start the reel folder first (`kit start reels/<slug> --style <style>`: it fills a new folder with a sample `script.txt` and keeps one already there), then `/reel-scripter` writes the real `reels/<slug>/script.txt`; `/reel-builder` for a shoot plan without rendering |
+| Talking head: the person's own video | `kit start reels/<slug> --style talking`, then the engine's `take.py` with the file the person gives (any phone video, filmed upright). No voice credits |
+| Carry on with a reel after a break ("carry on with the reel about ...") | Read `reels/<slug>/approvals.md` and the folder to find the last finished step, say which step that is, and continue from there. Never re-record a gate that is already recorded, and never re-run a paid step with `--force` without asking |
 | Fact check before Gate A and Gate C | `/reel-factcheck` |
 | Voice, visual plan, build, render, export | `/bagelunit-reels` (the engine) |
 | Review of every draft and final | `/reel-review`, then `/reel-predict` for measurements |

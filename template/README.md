@@ -1,11 +1,11 @@
 # Reel workspace (BagelUnit Reel Kit template)
 
-This folder is generic. It holds no brand until you set one up inside the copy you make.
+A brand workspace: one folder per brand. The `template` folder in the kit stays generic; each copy you make holds one brand once you set it up.
 
 **The prompts to send, in order:** open Claude Code in your copy, then copy the "Set up this brand" prompt from `docs/prompts.md` (it also starts on its own the first time you send anything). When that is done, copy the "Make a reel" prompt from the same file and fill in the blanks. Claude asks every setup choice and every approval as a question block: click an option, or pick "Other" and type.
 
 **To use it for a brand or project:**
-1. Copy this whole folder once per brand or project, for example `cp -R template ~/Reels/<brand>`.
+1. Copy this whole folder once per brand or project: in Finder or File Explorer, or in a terminal from the kit's folder with `mkdir -p ~/Reels && cp -R template ~/Reels/<brand>`.
 2. Start Claude Code inside the copy. With an empty `brand/brand.json` it runs the first-run brand setup (or run `/brand-setup`).
 3. Make reels from there. Everything this copy needs travels with it: the house rules (`CLAUDE.md`), the skills (`.claude/skills/`), the guides (`docs/`), and this brand's own files (`brand/`, `reels/`).
 
@@ -13,7 +13,9 @@ Copies never share state, so brands do not mix. The reel engine itself (`/bagelu
 
 New here? Read `docs/first-reel.md`, a walk through your first reel. `reels/_example/` is a blank pattern for a script, approvals and caption.
 
-This folder is exactly what the Git repo ships in `template/`. The BagelUnit Reel Kit licence (`LICENSE`) travels with every copy; keep it in place. Never commit keys, `.env` files, photos of people, avatar poses, client data, renders or audio from a copy back to the kit.
+The BagelUnit Reel Kit licence (`LICENSE`) travels with every copy; keep it in place. If you share or upload this folder anywhere, leave out keys, `.env` files, photos of people, sticker poses, client data, renders and audio.
+
+Two kit guides live in the kit's own folder, not in this copy: [how to make a sticker presenter](https://github.com/bagelunit/bagelunit-reel-kit/blob/main/docs/avatar.md) and [the full reel process](https://github.com/bagelunit/bagelunit-reel-kit/blob/main/docs/process.md) (a technical reference; you do not need it to make a reel).
 
 ## What is in this folder
 
@@ -48,7 +50,7 @@ This folder is exactly what the Git repo ships in `template/`. The BagelUnit Ree
 |---|---|
 | `/brand-setup` | sets up or changes this brand |
 | `/kit-update` | updates this workspace to the newest kit |
-| `/account-audit` | finds the reels that beat an account's own median (the 3x rule) |
+| `/account-audit` | finds the reels that beat an account's own median (the 3x rule), from an export or Apify data; `/ig-viral` from the Instagram plugin does the same by hand in the browser |
 | `/reel-sources` | finds what your audience asks and reels to model |
 | `/reel-analyzer` | breaks down why a reel works: hook, beats, pacing, visuals |
 | `/comment-mining` | turns your comments and DMs into content ideas |
@@ -59,7 +61,7 @@ This folder is exactly what the Git repo ships in `template/`. The BagelUnit Ree
 | `/ab-hook-tester` | two different hooks for the same reel, to test |
 | `/reel-scripter` | writes the script |
 | `/reel-builder` | turns an idea into a shoot plan without rendering |
-| `/humanizer` | makes text sound like you, not like AI |
+| `/humanizer` | makes text sound like you, not like AI (after the Instagram plugin's `/ig-human` detector flags it) |
 | `/reel-factcheck` | re-reads every source, before the script is approved and again on the final |
 | `/reel-review` | checks a draft or final and gives one verdict line |
 | `/reel-predict` | measures a reel, and estimates how it will hold viewers once 8 posted reels have numbers |
