@@ -2,6 +2,15 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.7.1 (2026-11-08)
+
+- **The ElevenLabs free plan is for trying the kit only.** ElevenLabs allows only non-commercial use on it, with credit to ElevenLabs, so reels for a business or a client need a paid plan. The README has a new "What it costs you" note.
+- **Clearer docs for new users.** Every guide was read as a brand-new customer would read it. Copying the template, saving the key on Windows and Linux, and handing over a talking-head video now work as written. A stopped reel picks up again with "carry on with the reel about ...", and brand folders link to guides they can actually open. One name for the presenter and the same reel lengths everywhere.
+- **Your approved script is safe.** `kit start` used to replace a `script.txt` already in the reel folder with the sample script. It now keeps it and tells you so.
+- **Node.js 22 or newer.** Node 20 reached end of life in April 2026. On Linux, install Node from nodejs.org, because the `nodejs` package from apt is too old on most versions.
+- **GitHub checks updated.** The kit's own checks on GitHub moved off the GitHub Actions that ran on Node 20, which GitHub had marked as deprecated, and now test on Node 22.
+- Existing brand workspaces update with "update the kit" (or `node setup/sync-template.mjs <workspace>` as a dry run, then `--apply`). Run `bash setup/install.sh` again so the engine gets the script fix.
+
 ## 1.7.0 (2026-11-07)
 
 - **New name: BagelUnit Reel Kit** (formerly Susanoo Reel Kit). The engine command is now `/bagelunit-reels`, installed in `~/.claude/skills/bagelunit-reels`, with settings in `~/.config/bagelunit-reels/`. Run the installer again: it copies your old settings and keys over once and tells you which old folder to remove. The licence is now the BagelUnit Reel Kit License; its terms did not change.
