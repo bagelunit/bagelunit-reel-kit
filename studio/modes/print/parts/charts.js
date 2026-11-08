@@ -1,4 +1,4 @@
-/* Susanoo Reel Kit print · charts
+/* BagelUnit Reel Kit print · charts
    Bars, a line, a ring, a before/after wipe and a versus card. Bars grow on a spring and their values count up; the one bar that
    matters is printed in the accent, the rest in grey dots with ink outlines. Everything is drawn on K (dot patterns stand in for
    tone fills), so charts also work inside cards and windows where T is covered. */

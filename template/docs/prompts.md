@@ -52,6 +52,9 @@ HOW EACH REEL ENDS
 - Keep a private history of this folder on my computer only (never uploaded): [yes / no]
 - Tell me when a newer kit version is out: [yes / no]
 
+HOW OFTEN
+- Reels I want to post each week: [1 / 2 or 3 / 4 or 5 / one a day]
+
 Rules: write down only what I confirm. Do not put any number, result, price or client name in brand/facts.md unless I state it here and you read it back to me. Never ask for or show any key or password. When done, give me a short summary of what you wrote and what is still empty.
 ```
 
@@ -63,13 +66,14 @@ Rules: write down only what I confirm. Do not put any number, result, price or c
 - **On-screen host:** optional. A host is a character who appears on screen. Skip it ("no host") if you are unsure; you can add one later.
 - **Voice:** the AI voice that reads the script. "Pick together" lets you listen to a few options. You need an ElevenLabs account for this.
 - **Words the voice must never say:** for example a brand name it says wrongly. Claude puts those on screen as text instead.
+- **Reels each week:** how many you want to post. Claude plans at most this many at once, and you still approve each reel. Start small; you can change it later.
 - **The one thing viewers are asked to do:** keep it to one. "Comment a keyword" is not offered until you have tested the auto-reply yourself.
 
 ---
 
 ## 2. Make a reel (every time)
 
-Send this in the brand folder, after the brand is set up. Claude writes the script, builds the video, and stops three times for your yes. Nothing is ever posted for you.
+Send this in the brand folder, after the brand is set up. Claude asks the style, writes the script, fact checks it, builds the video, and stops three times for your yes, each time with a clickable approval (Approve, Change something, or Stop this reel). Nothing is ever posted for you.
 
 ```
 Make a reel for [BRAND NAME] on [THE TOPIC, IN ONE LINE].
@@ -88,7 +92,7 @@ WHAT IS TRUE AND OK TO SAY
 IF I ALREADY HAVE A SCRIPT
 - [PASTE IT HERE and use it word for word, or delete this whole part]
 
-Follow the house rules in CLAUDE.md. Check the first-frame hook checklist before writing the script. Run the voice credit check and tell me the number before I approve the script. Stop at each of the three checkpoints (script, visual plan, final video) and wait for my yes. Do not post, schedule or send anything; I will post it myself.
+Follow the house rules in CLAUDE.md. Check the first-frame hook checklist before writing the script. Fact check the script against its sources before I see it, and tell me about any claim you could not back up. Run the voice credit check and tell me the number before I approve the script. Stop at each of the three checkpoints (script, visual plan, final video), ask me with a clickable approval, and wait for my yes. Do not post, schedule or send anything; I will post it myself.
 ```
 
 **What goes in each blank**
@@ -96,6 +100,7 @@ Follow the house rules in CLAUDE.md. Check the first-frame hook checklist before
 - **Style:** Print is the safe default. 3D is more cinematic. Talking head edits your own video of you talking. Unsure? Leave "not sure" and Claude recommends one.
 - **Facts:** Claude will only state facts you give it here or have saved in `brand/facts.md`. If you give none, it uses no numbers.
 - **Something only we can say:** the part nobody can copy, like what you actually do differently. This is what makes a reel yours.
+- **The fact check:** before you see the script, Claude re-reads the source of every claim. A claim it cannot back up is flagged before any voice credits are spent, and it checks again on the final video.
 
 **A filled-in example** (a made-up bakery, so you can see the level of detail):
 
@@ -116,17 +121,17 @@ WHAT IS TRUE AND OK TO SAY
 IF I ALREADY HAVE A SCRIPT
 - (none, so write it)
 
-Follow the house rules in CLAUDE.md. Check the first-frame hook checklist before writing the script. Run the voice credit check and tell me the number before I approve the script. Stop at each of the three checkpoints (script, visual plan, final video) and wait for my yes. Do not post, schedule or send anything; I will post it myself.
+Follow the house rules in CLAUDE.md. Check the first-frame hook checklist before writing the script. Fact check the script against its sources before I see it, and tell me about any claim you could not back up. Run the voice credit check and tell me the number before I approve the script. Stop at each of the three checkpoints (script, visual plan, final video), ask me with a clickable approval, and wait for my yes. Do not post, schedule or send anything; I will post it myself.
 ```
 
 ---
 
 ## 3. After you post (a day or more later)
 
-Copy the numbers from Instagram's insights for the reel.
+Open the reel in Instagram, tap View insights, and fill in what you see (where each number is: `docs/after-posting.md`). Leave out any number you cannot find.
 
 ```
-Read these numbers for [REEL NAME OR TOPIC] and tell me what to do next. Compare them with this brand's own usual results, not outside benchmarks. Views: [NUMBER]. Percent who watched past 3 seconds: [NUMBER, or "not shown"]. Saves: [NUMBER]. Shares: [NUMBER]. Comments: [NUMBER]. New follows from this reel: [NUMBER]. Give me two things to do next, not twelve, and tell me what these numbers cannot tell us.
+Add my numbers for [REEL FOLDER NAME]: views [N], reach [N], average watch time [SECONDS], skip rate [PERCENT], likes [N], comments [N], saves [N], shares [N], follows [N]. Add them to brand/insights.csv and read the row back to me. Then run /analytics-readout against this brand's own usual results, not outside benchmarks: two things to do next, not twelve, and what these numbers cannot tell us. If brand/insights.csv now has 8 or more reels, run kit calibrate and tell me how accurate it is.
 ```
 
 ---
@@ -134,5 +139,5 @@ Read these numbers for [REEL NAME OR TOPIC] and tell me what to do next. Compare
 ## 4. Plan a week of reels (optional)
 
 ```
-Plan this week's reels for [BRAND NAME]: [2 or 3] reels. Give each its own goal and a different angle, write all the scripts, and bring them to the first checkpoint together. I will approve each one separately. Topics I have in mind: [TOPICS, or "suggest some"].
+Plan this week's reels for [BRAND NAME]: [HOW MANY, up to the batch.max_reels setting in brand.json, 3 unless you changed it] reels. Give each one goal (goals may repeat) and a different angle, write all the scripts, and bring them to the first checkpoint together. I will approve each one separately. Topics I have in mind: [TOPICS, or "suggest some"].
 ```

@@ -19,6 +19,8 @@
     "photos": ""
   },
   "colors": {
+    "_note": "theme = the kit theme picked at setup (studio, harbor, ochre or ink). Each reel's reel.json uses {\"theme\": {\"preset\": <theme>, \"accent\": <accent>}}; background and ink only if the brand has its own.",
+    "theme": "",
     "background": "",
     "ink": "",
     "accent": ""
@@ -54,6 +56,15 @@
     "tested_keywords": []
   },
   "work_dir": "~/dev/reel-work/<slug>",
+  "posting": {
+    "_note": "How this brand's reels get posted: \"by hand\" (default), \"instagram-scheduler\", \"tool: <name>\" or \"own publisher\". Set with /reel-posting. Timezone for scheduling, e.g. America/Toronto.",
+    "method": "by hand",
+    "timezone": ""
+  },
+  "batch": {
+    "_note": "Weekly batch: the most reels Claude plans in one sitting for this brand. Each reel is still approved on its own. Goals may repeat; angles may not.",
+    "max_reels": 3
+  },
   "autopilot": {
     "_note": "OFF by default. The brand owner turns a permission on, see template CLAUDE.md section 3b",
     "post": false,

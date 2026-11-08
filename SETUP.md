@@ -2,6 +2,8 @@
 
 One time per computer, on macOS, Windows or Linux. `bash setup/install.sh` (Mac, Linux) or `.\setup\install.ps1` (Windows PowerShell), or `node setup/install.mjs` anywhere, does all of this and prints each step; this page is the same path written down, so you can do it by hand or fix a step that failed. The script is safe to run again: it skips anything already done.
 
+When Claude runs setup for you (the kit's setup here, or a brand's setup in a workspace), it asks every question as a clickable question block: pick an option, or pick "Other" and type your own answer.
+
 Installer options: `--link` (symlink `studio/` instead of copying it, handy if you pull updates with git), `--skip-packages` (also `--skip-brew`), `--yes`, `--dry-run`, `--skip-plugins`, `--skip-sound`, `--earshot-mcp`, `--rebuild-sounds`. Run `bash setup/install.sh --help` for the list.
 
 ## 1. Programs
@@ -20,30 +22,30 @@ Open a new terminal afterwards so the new commands are found.
 
 ## 2. The engine (studio)
 
-The engine is a Claude Code skill. Install it as `susanoo-reels`:
+The engine is a Claude Code skill. Install it as `bagelunit-reels`:
 
 ```bash
 mkdir -p ~/.claude/skills
-rsync -a --exclude node_modules studio/ ~/.claude/skills/susanoo-reels/    # or: ln -s "$PWD/studio" ~/.claude/skills/susanoo-reels
-# Windows PowerShell: robocopy studio "$HOME\.claude\skills\susanoo-reels" /E /XD node_modules
-cd ~/.claude/skills/susanoo-reels
+rsync -a --exclude node_modules studio/ ~/.claude/skills/bagelunit-reels/    # or: ln -s "$PWD/studio" ~/.claude/skills/bagelunit-reels
+# Windows PowerShell: robocopy studio "$HOME\.claude\skills\bagelunit-reels" /E /XD node_modules
+cd ~/.claude/skills/bagelunit-reels
 npm install          # three.js and the browser driver
 npm run browser      # the headless Chromium used for rendering (about 100 MB)
 ```
 
-If a copy not installed by this repo is already at `~/.claude/skills/susanoo-reels`, the installer moves it aside to `susanoo-reels.backup-<date>` first.
+If a copy not installed by this repo is already at `~/.claude/skills/bagelunit-reels`, the installer moves it aside to `bagelunit-reels.backup-<date>` first.
 
-**Upgrading from the pre-rebrand install:** the installer copies your old settings folder (keys, saved voice, handle, theme) to `~/.config/susanoo-reels/` once and keeps the old folder. It does not touch an old skill folder under its previous name; it prints a note instead. Remove that old skill folder yourself once the new one works, because two installed copies would both answer reel requests.
+**Upgrading from the pre-rebrand install:** the installer copies your old settings folder (keys, saved voice, handle, theme) to `~/.config/bagelunit-reels/` once and keeps the old folder. It does not touch an old skill folder under its previous name; it prints a note instead. Remove that old skill folder yourself once the new one works, because two installed copies would both answer reel requests.
 
 ## 3. Your ElevenLabs key (you do this yourself)
 
 1. Make an account at https://elevenlabs.io and create an API key at https://elevenlabs.io/app/settings/api-keys. Allow **Text to Speech** and **Voices** ("User: read" is optional; it lets the checkup show your credits). Add **Speech to Text** if you want talking-head edits without installing Whisper.
-2. Save it, alone on one line, in `~/.config/susanoo-reels/elevenlabs.key`:
+2. Save it, alone on one line, in `~/.config/bagelunit-reels/elevenlabs.key`:
 
    ```bash
-   mkdir -p ~/.config/susanoo-reels && chmod 700 ~/.config/susanoo-reels
-   touch ~/.config/susanoo-reels/elevenlabs.key && chmod 600 ~/.config/susanoo-reels/elevenlabs.key
-   open -e ~/.config/susanoo-reels/elevenlabs.key      # paste the key, save, close
+   mkdir -p ~/.config/bagelunit-reels && chmod 700 ~/.config/bagelunit-reels
+   touch ~/.config/bagelunit-reels/elevenlabs.key && chmod 600 ~/.config/bagelunit-reels/elevenlabs.key
+   open -e ~/.config/bagelunit-reels/elevenlabs.key      # paste the key, save, close
    ```
 
 3. Never paste the key into a Claude chat, a brand file or this repo. Each person uses their own key.
@@ -128,7 +130,7 @@ claude mcp add --scope user earshot -- ~/dev/sound/earshot/.venv/bin/earshot mcp
 ## 6. Check
 
 ```bash
-cd ~/.claude/skills/susanoo-reels && node tools/checkup.mjs
+cd ~/.claude/skills/bagelunit-reels && node tools/checkup.mjs
 ```
 
 Done when it shows only checks (lines marked optional can stay open).
@@ -136,7 +138,7 @@ Done when it shows only checks (lines marked optional can stay open).
 ## 7. Your first brand
 
 ```bash
-cp -R ~/dev/susanoo-reel-kit/template ~/Reels/my-brand
+cp -R ~/dev/bagelunit-reel-kit/template ~/Reels/my-brand
 cd ~/Reels/my-brand && claude
 ```
 
@@ -146,7 +148,7 @@ Keep brand folders out of iCloud-synced folders (Desktop, Documents) if you can:
 
 ## Common snags
 
-- **headless browser fails in the checkup:** in `~/.claude/skills/susanoo-reels`, run `npm run browser` again.
+- **headless browser fails in the checkup:** in `~/.claude/skills/bagelunit-reels`, run `npm run browser` again.
 - **ffmpeg not found right after installing:** the terminal was opened before the install; open a new one.
 - **ElevenLabs 401:** wrong key or no credits left; make a new key and replace the line in the key file.
 - **"opus-sound-layer library missing":** run `uv run scripts/sfx.py kit` in `~/dev/sound/opus-sound-layer`.
@@ -155,4 +157,4 @@ Keep brand folders out of iCloud-synced folders (Desktop, Documents) if you can:
 
 ## Optional: Apify (outlier scan)
 
-Only if a brand owner wants `/account-audit` to fetch posts instead of using an export. Make a token at https://console.apify.com/settings/integrations, save it yourself to `~/.config/susanoo-reels/apify.key` (`chmod 600`), and set `autopilot.scrape` to `true` in that brand's `brand/brand.json`. It is paid per result (about $2.70 per 1,000 posts on the free plan); the script prints the estimate first and stops above `--max-cost`. Claude never asks for or prints the token.
+Only if a brand owner wants `/account-audit` to fetch posts instead of using an export. Make a token at https://console.apify.com/settings/integrations, save it yourself to `~/.config/bagelunit-reels/apify.key` (`chmod 600`), and set `autopilot.scrape` to `true` in that brand's `brand/brand.json`. It is paid per result (about $2.70 per 1,000 posts on the free plan); the script prints the estimate first and stops above `--max-cost`. Claude never asks for or prints the token.

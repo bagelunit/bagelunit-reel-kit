@@ -1,15 +1,15 @@
 ---
 name: reel-analyzer
 description: >
-  Feed Claude any viral reel (a link or a file) and it studies the whole thing - frame by frame
-  plus the transcript - then breaks down exactly why it works: the hook, the beat structure, the
-  pacing, and the on-screen visuals. Use when the user says "study this reel", "break down this
-  video", "analyze this reel", "why did this go viral", "what's the structure of this", or pastes a
-  reel/TikTok/Short link and wants to model it.
+  Study a reel (a file the person supplies, or a link when autopilot.scrape is on) frame by frame plus
+  the transcript, then break down why it works: the hook, the beat structure, the pacing and the
+  on-screen visuals. Use when the user says "study this reel", "break down this video", "analyze this
+  reel", "why did this go viral" or "what's the structure of this". If no file is attached, this skill
+  says what to supply.
 user-invokable: true
 argument-hint: "[reel/TikTok/Short URL or video file]"
 metadata:
-  author: Susanoo
+  author: BagelUnit
   version: "1.0.0"
   category: content
 ---
@@ -30,6 +30,8 @@ The reel **link** (or a downloaded video file). Don't have one yet, or only have
 (and mines Reddit for what to make it about) and **downloads** any URL to its transcript, which is what
 this skill reads. Optional: your niche and the angle you want, so the breakdown is framed for *your* remake.
 
+For a local file run `python3 ./.claude/skills/reel-sources/reel_fetch.py <file> --out <folder>` first; it writes `timeline.md` and `frames/`. A URL needs `autopilot.scrape: true` (CLAUDE.md rule 14: teardowns use files the person supplies unless autopilot is on).
+
 ## Instructions
 Give Claude the reel and run this. (In Claude Code, point it at the file/frames + transcript; on
 claude.ai, upload the video or paste the transcript + a few screenshots.)
@@ -49,7 +51,7 @@ WATCH the whole thing, then give me a teardown I can build an original from:
 Rule: model the technique, never reproduce the creator's words/voice (copies get reach-suppressed).
 ```
 
-**Honesty:** this gives you the *structure and technique* to model - your remake must be original
+**Honesty:** the transcript comes from Whisper, which may misspell brand names; use the spelling you see on screen. This gives you the *structure and technique* to model - your remake must be original
 words and your own examples, not a re-upload.
 
-**Next:** feed the teardown into the hook and script skills of the instagram-agent plugin → [reel-builder](../reel-builder/SKILL.md).
+**Next:** feed the teardown into `/viral-hook-writer` and `/reel-scripter` in this workspace → [reel-builder](../reel-builder/SKILL.md).

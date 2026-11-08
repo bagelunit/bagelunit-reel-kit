@@ -1,11 +1,18 @@
 ---
 name: virality
-description: Plan, script and review short-form videos (Instagram Reels, TikTok, YouTube Shorts) so they actually get watched, with hooks that do something extraordinary in the first 3 seconds. Use when the user asks for /virality, or wants to know why a post flopped. In a reel workspace the hook checklist lives in the playbook and the loop runs through /susanoo-reels, so do not trigger on a plain reel idea, hook or script. Built from a frame-by-frame study of winning and flopping reels.
+description: >
+  Plan and review short-form videos (Instagram Reels, TikTok, YouTube Shorts) so they actually get
+  watched, with a first 3 seconds that does something unexpected. Use when the user wants a reel
+  planned so it gets watched, asks why a post flopped or got no views, or asks for /virality. Built
+  from a frame-by-frame study of one page's winning and flopping reels.
 ---
 
 # Virality
 
 This skill comes from the record of one Instagram page: 262 posts, 3,503,488 views, 124,163 comments. It is one page in one niche, so treat every number as a hypothesis and test it against your own median.
+
+> Figures here are unsourced and come from one account; treat them as hypotheses, test against this brand's own median (docs/hook-and-review-playbook.md), and never put them in a script or caption (house rule 1).
+
 It was not built from theory.
 It was built by putting our biggest winners and our worst flops side by side and studying the first 3 seconds of each, frame by frame.
 
@@ -63,7 +70,7 @@ What happened on screen was.
 
 **Winners:**
 
-1. **The two logos the viewer knows, on frame 0.** Five of our seven biggest reels opened on Claude and Instagram side by side, joined by a line, a plus sign or a cable. The viewer instantly knows what this is about, and that it is about their account.
+1. **The platform and tool the viewer knows, on frame 0.** Five of our seven biggest reels opened on Claude and Instagram side by side, joined by a line, a plus sign or a cable. The viewer instantly knows what this is about, and that it is about their account. Use tool names as plain text; no third-party logos (CLAUDE.md rule 9). Show the real app screen or the name in your own type instead.
 2. **Something moves or happens on frame 0.** A counter climbs, a cable connects, a character drops in, a logo breaks, a headline burns. Never a still card.
 3. **The claim builds word by word, in sync with the voice**, big and high contrast, readable on mute.
 4. **It promises a result on the viewer's own account.** "Your Instagram", "edit video", "make reels", "don't post anything else until".
@@ -115,7 +122,7 @@ The tool is the vehicle.
 
 In the same two months, posts with a comment keyword in the first line had a median of 5,684 views, against 4,311 without.
 
-- End with one keyword: "Comment SETUP and I'll send you the setup."
+- A keyword ask ("Comment SETUP and I'll send you the setup") is allowed only if the word is listed in `brand.json` -> `cta.tested_keywords` (the DM auto-reply was tested from a second account). In a reel workspace a keyword CTA needs a tested keyword; otherwise end on a save or follow ask, per `cta.style`.
 - The keyword must deliver something real in the DM. If you promise it, send it.
 - The link goes in the DM, never in a public comment.
 - Keep the reel short and put the depth in the caption.
@@ -135,12 +142,14 @@ Rotate between:
 
 When the user asks for a reel, a hook, or a script:
 
+0. In a reel workspace, ask the style first (Print, 3D, or Talking head) as one multiple-choice question, and pick one goal and one angle for the reel.
 1. Ask who it is for and what they should get. One sentence.
 2. Write **three** hooks. For each, describe frame 0 and every half second up to 3 seconds, and check all eight points of the checklist.
 3. Pick the strongest and say why, naming the winning pattern it uses.
 4. Write the script line by line. Next to every line, write what happens on screen. No line without a visual.
 5. Write the comment keyword and the real thing the DM delivers.
-6. Write the caption: problem, solution, the steps, then the keyword.
+6. Write the caption: problem, solution, the steps, then the ask (a tested keyword, or save or follow).
+7. In a reel workspace: run /reel-factcheck on the script (and budget.py) before Gate A, and record the gates, goal and angle in `reels/<slug>/approvals.md`. Numbers from this file never go in a script or caption; only `brand/facts.md` ones do.
 
 When the user asks why a post flopped:
 
@@ -162,6 +171,6 @@ CHECKLIST: 1 ✓ 2 ✓ 3 ✓ 4 ✓ 5 ✓ 6 ✓ 7 ✓ 8 ✓
 SCRIPT:
   line 1 -> on screen: ...
   line 2 -> on screen: ...
-CTA: Comment <KEYWORD> -> DM delivers: ...
+CTA: [tested keyword -> DM delivers: ...]  OR  [save / follow ask, if no keyword is tested]
 CAPTION: ...
 ```

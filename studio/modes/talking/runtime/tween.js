@@ -1,4 +1,4 @@
-// ───────────────────────── tween.js: a tiny frame-exact tween timeline (Susanoo Reel Kit talking engine) ─────────────────────────
+// ───────────────────────── tween.js: a tiny frame-exact tween timeline (BagelUnit Reel Kit talking engine) ─────────────────────────
 // A timeline of tweens at ABSOLUTE times. seek(t) is a pure function of t: every property's value is computed from the tweens on
 // it (no recorded state, no clock), so frames render identically in any order.
 //

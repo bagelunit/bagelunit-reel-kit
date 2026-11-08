@@ -12,3 +12,14 @@ reels/*/out/*.mov
 *.bak-*
 .cache/
 __pycache__/
+
+# Library media stays out of git (READMEs, INDEX.md and .gitkeep stay in)
+brand/library/**/*.png
+brand/library/**/*.jpg
+brand/library/**/*.jpeg
+brand/library/**/*.webp
+brand/library/**/*.gif
+brand/library/**/*.svg
+brand/library/**/*.mp4
+brand/library/**/*.mov
+brand/library/**/*.webm

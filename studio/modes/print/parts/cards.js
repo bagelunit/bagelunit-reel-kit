@@ -1,4 +1,4 @@
-/* Susanoo Reel Kit print · cards
+/* BagelUnit Reel Kit print · cards
    Interface cards in the house look (white card stock, hairlines, mono labels, the accent only on what matters): tags, avatars,
    toggles, progress bars, a checklist, the comment sheet of the CTA, a DM bubble, a notification and a stat card. */
 

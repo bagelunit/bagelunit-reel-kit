@@ -74,6 +74,10 @@ Optional, once a brand has steady views. Two hooks with different mechanisms (no
 
 Use `/analytics-readout`: judge every figure against the brand's own median, name the one metric that matters for the reel's goal, and diagnose where it broke. A drop at about 3 s is a hook problem, around 12 s a middle problem, at the end a CTA problem. Give two actions, not twelve, and say plainly what the data cannot tell. Never use an outside benchmark as if it were our data.
 
+## 10b. Reel review before Gate C (step 10 and step 12)
+
+`/reel-review` checks a built reel on its real frames and numbers: seven must-pass checks (facts, words match, frame 0 and the hook, safe zones and size, handle and payoffs, sound, honesty) and eight scored checks from 1 to 5. It ends in one verdict line: meets the bar (every must-pass passes and the average is 4.0 or more), close (3.5 to 3.9), or not ready. The verdict goes in `approvals.md` next to Gate C and the scores go in `brand/log.md`, so after a few reels you can see which check keeps scoring lowest for the brand. A reel that is not ready still goes to the approver with the line attached.
+
 ## 11. Comment replies and links
 
 A public comment reply never contains a link. The link goes in the DM only, and only after the keyword auto-reply is tested (see the house rules in `template/CLAUDE.md`).
@@ -91,8 +95,12 @@ Know before you turn them on:
 - Posting, DMs and scraping act on a real account and can break a platform's rules or get an account limited. The brand owner decides, per brand.
 - Paid services (Apify, Composio, Runway) cost money; check the plan first.
 - Keep the honesty rules the skills themselves carry: a keyword call to action must really deliver, no links in public replies, no invented numbers, never search the computer for someone's API key.
-- Our gated build (`/susanoo-reels`, Gates A to C, a person posts) is the default and is still the better route when quality matters more than volume.
+- Our gated build (`/bagelunit-reels`, Gates A to C, a person posts) is the default and is still the better route when quality matters more than volume.
 
 Not part of the kit: any hosted connector that would send an account's data to a third party we cannot inspect.
 
 Not needed: word-synced timing, safe zones and real sound. Our kit already does these better.
+
+## Craft after the hook
+
+Once the hook works, what is on screen follows `docs/craft-playbook.md` (world, through-line, line-to-picture table, no repeats). Real media lives in `brand/library/`.

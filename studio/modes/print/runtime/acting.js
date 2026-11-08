@@ -1,4 +1,4 @@
-/* Susanoo Reel Kit print · acting
+/* BagelUnit Reel Kit print · acting
    Directing the presenter. A scene's guy(t) returns a presenter state ({ x, y, s, armL, armR, armLp, armRp, pointAng, brow,
    smile, … }, see the guide). act(t, options) builds a fully acted one: it points at the focus, changes gesture and face every
    phrase, jabs on the key words, and turns its eyes, head and body toward what it points at. arms() and expr() take hand-written

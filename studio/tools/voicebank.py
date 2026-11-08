@@ -4,7 +4,7 @@
   python3 tools/voicebank.py mine                                  voices already in your ElevenLabs account
   python3 tools/voicebank.py search "warm deep male narrator" [--lang en] [--gender male] [--age middle_aged]
                                                                     look through the public Voice Library (prints preview links)
-  python3 tools/voicebank.py preview <voice_id> ["a sample line"]   speak a sample → ~/.config/susanoo-reels/previews/<id>.mp3
+  python3 tools/voicebank.py preview <voice_id> ["a sample line"]   speak a sample → ~/.config/bagelunit-reels/previews/<id>.mp3
   python3 tools/voicebank.py add <owner_id> <voice_id> "<name>"     copy a Library voice into your account (needed before using it)
   python3 tools/voicebank.py use <voice_id> [--name Sam] [--speed 1.15] [--model eleven_v4] [--language en]
                                                                     make it the default voice for every reel

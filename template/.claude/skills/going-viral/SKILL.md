@@ -10,7 +10,7 @@ description: >
 user-invokable: true
 argument-hint: "[your reel topic/idea + your goal: saves / shares / followers / leads]"
 metadata:
-  author: Susanoo
+  author: BagelUnit
   version: "1.0.0"
   category: content
 ---
@@ -24,6 +24,8 @@ manufactures the *feeling*; the caption/DM delivers the *value*.
 > Distilled from 160+ analysed viral reels + the research consensus (Berger & Milkman: sharing is driven
 > by high **arousal**, not positivity; ~68% of people share to signal *who they are*; saves = a promise to
 > future-self; open loops must stay open past the 7–15s checkpoint).
+>
+> Figures here are unsourced and come from one account; treat them as hypotheses, test against this brand's own median (docs/hook-and-review-playbook.md), and never put them in a script or caption (house rule 1).
 
 ## When to use
 The user has an idea (or a flopping account) and wants reach/saves/shares/followers/leads - not just a
@@ -35,9 +37,9 @@ pipeline, use **content-factory**.)
 | GOAL | Emotion to trigger | The mechanic | How to build it |
 |---|---|---|---|
 | **SAVE** | relief + fear-of-forgetting | a finite numbered system + "future-you will need this" | a list/steps that *assembles on one frame* → "save so you don't lose it"; put the depth in the caption |
-| **SHARE** | awe / indignation / status | meta self-proving · "you're being ripped off" · "almost nobody knows" | open on the finished result then reveal how · "$5K agency → free" · scarcity + "send this to someone still doing it the hard way" |
+| **SHARE** | awe / indignation / status | meta self-proving · "you're being ripped off" · "almost nobody knows" | open on the finished result then reveal how · "the expensive way vs the free way" (only with a price cleared in brand/facts.md) · scarcity + "send this to someone still doing it the hard way" |
 | **FOLLOW** | FOMO ("don't fall behind") + aspiration | anti-falling-behind framing + result-first proof + a consistent brand | show the gap (manual you vs automated them), a real climbing number, a recognizable look every post |
-| **LEAD** | greed + terminal curiosity | a named *free* deliverable withheld behind a keyword | show the value, withhold the thing → "comment WORD" → instant honest DM |
+| **LEAD** | greed + terminal curiosity | a named *free* deliverable withheld behind a keyword | show the value, withhold the thing → "comment WORD" → instant honest DM (only with a tested keyword, see Step 4) |
 
 Pick the goal **before** scripting. Optimize for **identity signal**, not raw value - a share has to make
 the *sender* look smart/early/right. High-arousal beats positive: awe, anger, FOMO over calm tips.
@@ -46,7 +48,7 @@ the *sender* look smart/early/right. High-arousal beats positive: awe, anger, FO
 
 - **Frame 0 IS the hook.** The biggest element is already on screen AND moving - a count-up number, a
   finished artifact, a UI caught mid-action. It owns ≥40% of the frame and is **legible on mute**
-  (70–85% watch sound-off). No fade-from-black, no slow logo build, no title card.
+  (a large share watch sound-off, so check mute first). No fade-from-black, no slow logo build, no title card.
 - **Order: motion → lock → claim.** Let the moving element run ~1s, lock it, *then* spring the one-line
   claim. The claim lands **~1.2–1.6s** - never at 0s (no payoff yet), never at 3s+ (too late).
 - **Open a gap, not a fact.** "The one setting that doubled my reach" - never "here are some reach tips."
@@ -65,6 +67,8 @@ the *sender* look smart/early/right. High-arousal beats positive: awe, anger, FO
   and replays drive reach.
 
 ## Step 3.5 - Curiosity & the incentivized wait (make them watch to the END)
+
+Promise/withhold series are for a brand's own multi-part story (a real run of days, steps or tests it did), not neutral comparison reels. Only tease a payoff the reel really delivers.
 
 The single biggest watch-time lever: **give them a reason to wait - promise the payoff up front, then
 withhold it until the end.** This is exactly what made *"I let Claude post for 6 days - Day 6 broke
@@ -104,9 +108,9 @@ The reel hooks + teases → the **caption** delivers the full value → a **comm
 a watcher into a lead.
 
 - **CTA = one action.** Save ("don't lose this") / Share ("send to someone still doing it by hand") /
-  Follow ("don't fall behind") / Comment a keyword ("comment WORD → I'll DM it").
-- **Keyword in the first line of the caption** (most people never tap "more"). Keyword CTAs convert
-  ~5–15% vs ~1–3% for "link in bio."
+  Follow ("don't fall behind") / Comment a keyword ("comment WORD → I'll DM it"). Keyword CTA only if the word is listed in `brand.json` -> `cta.tested_keywords` (tested from a second account); otherwise end on a save or follow ask, per `brand.json` -> `cta.style`.
+- **If the keyword is tested, put it in the first line of the caption** (most people never tap "more"). Keyword CTAs are
+  often claimed to convert better than "link in bio"; that is an unsourced hypothesis, so test it on this brand.
 - **The link goes in the DM, never the public comment** (links in comments get reach-suppressed; the DM
   keeps the lead in your inbox).
 - Wire the keyword→DM loop with the **comment-responder** skill, and only once the auto-reply has been tested from a second account.
@@ -125,10 +129,10 @@ a watcher into a lead.
 3. Open a curiosity gap in the hook - **promise the payoff up front, withhold it to the end** (escalating
    series w/ a visible finish line → save the best for last → reward the wait). Never resolve it early.
 4. Decide where the payoff lives - in-reel (proof) or withheld to caption + DM (default for value/lead posts).
-5. Convert with one CTA - Save / Share / Follow / Comment-keyword - and close every loop you opened.
+5. Convert with one CTA - Save / Share / Follow / Comment-keyword (tested keywords only) - and close every loop you opened.
 
 ## Works with
-**account-audit** + **reel-sources** (find outliers, mine demand, fetch the reel to model - the FIND step) ·
+**account-audit** + **reel-sources** (find outliers, mine demand, fetch the reel to model - the FIND step; needs the matching autopilot permission) ·
 **viral-hook-writer** (the hook itself) · **reel-analyzer** (study a proven viral reel first) ·
 **reel-scripter** + **reel-builder** (build it) · **caption-and-hashtags** (the caption funnel) ·
-**comment-responder** (the keyword → DM lead loop) · **content-factory** (runs the whole pipeline).
+**comment-responder** (the keyword → DM lead loop) · **content-factory** (runs the whole pipeline; needs the matching autopilot permission).

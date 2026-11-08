@@ -3,9 +3,11 @@
 
 Two ways to feed it:
   1. --json FILE      an Instagram scraper export you already have (a list of posts). Offline, no key, no gate.
+  1b. --csv FILE      an Instagram Insights export as CSV. Needs a views column and a date or timestamp column
+                      (names matched without regard to case). Owner name from --owner (default "account").
   2. --handles a,b    fetch the accounts' latest posts from Apify (paid per result). Needs:
                         - brand/brand.json -> "autopilot": {"scrape": true}   (the brand owner turns this on)
-                        - an Apify token in ~/.config/susanoo-reels/apify.key  (you put it there; this script never prints it)
+                        - an Apify token in ~/.config/bagelunit-reels/apify.key  (you put it there; this script never prints it)
 
 Rule: for each account, median views over its most recent reels (default 12). Each reel's ratio = views / median.
   ratio >= 3.0  -> STUDY   (a formula worth tearing down)
@@ -20,9 +22,9 @@ Examples:
   python3 outliers.py --selftest
 Standard library only.
 """
-import argparse, datetime, json, os, pathlib, statistics, sys, urllib.error, urllib.request
+import argparse, csv, datetime, json, os, pathlib, statistics, sys, urllib.error, urllib.request
 
-CONFIG = pathlib.Path(os.environ.get("SUSANOO_REELS_HOME", pathlib.Path.home() / ".config" / "susanoo-reels"))
+CONFIG = pathlib.Path(os.environ.get("BAGELUNIT_REELS_HOME", pathlib.Path.home() / ".config" / "bagelunit-reels"))
 KEYFILE = CONFIG / "apify.key"
 ACTOR = "apify~instagram-scraper"
 COST_PER_1000 = 2.70          # USD per 1,000 results on Apify's free plan; check your plan
@@ -48,6 +50,41 @@ def when(item):
         return datetime.datetime.fromisoformat(str(s).replace("Z", "+00:00"))
     except ValueError:
         return datetime.datetime.min.replace(tzinfo=datetime.timezone.utc)
+
+
+def items_from_csv(path, owner="account"):
+    """Read an Insights CSV into the same item shape as the scraper export. Columns are matched case-insensitively:
+    views (or plays, reach) and date (or timestamp); caption/title, url/permalink, likes, comments are optional."""
+    with open(path, newline="", encoding="utf-8-sig") as fh:
+        rows = list(csv.DictReader(fh))
+    if not rows:
+        return []
+    cols = {(k or "").strip().lower(): k for k in rows[0]}
+    def col(*names):
+        for n in names:
+            if n in cols:
+                return cols[n]
+        return None
+    vc, dc = col("views", "plays", "video views"), col("timestamp", "date", "publish time", "publish date")
+    if not vc or not dc:
+        sys.exit("The CSV needs a 'views' column and a 'date' or 'timestamp' column. Found: " + ", ".join(rows[0].keys()))
+    cc, uc, lc, mc = col("caption", "title", "description"), col("url", "permalink", "link"), col("likes"), col("comments")
+    items = []
+    for r in rows:
+        raw = (r.get(vc) or "").replace(",", "").strip()
+        try:
+            v = int(float(raw))
+        except ValueError:
+            continue
+        it = {"ownerUsername": owner, "type": "Video", "videoPlayCount": v, "timestamp": (r.get(dc) or "").strip()}
+        for key, c in (("caption", cc), ("url", uc)):
+            if c:
+                it[key] = r.get(c) or ""
+        for key, c in (("likesCount", lc), ("commentsCount", mc)):
+            if c and (r.get(c) or "").strip():
+                it[key] = r[c].strip()
+        items.append(it)
+    return items
 
 
 def owner_of(item):
@@ -86,7 +123,7 @@ def render(result, window, show_all=False):
         if d["n"] < MIN_REELS:
             lines.append(f"## @{acct}\nOnly {d['n']} reels found, so no trustworthy median (need {MIN_REELS}). Not ranked.\n")
             continue
-        lines.append(f"## @{acct}\nMedian views over the last {min(d['n'], window)} reels: {int(d['median']):,}\n")
+        lines.append(f"## @{acct}\nMedian views over the last {min(d['n'], window)} reels: {d['median']:,.1f}\n")
         keep = [r for r in d["reels"] if r["ratio"] is not None] if show_all else [r for r in d["reels"] if r["tier"] in ("STUDY", "NOTE")]
         if not keep:
             lines.append("No reel beat 1.5x its median.\n")
@@ -94,7 +131,7 @@ def render(result, window, show_all=False):
         keep.sort(key=lambda r: r["ratio"], reverse=True)
         lines.append("| Tier | Ratio | Views | Likes | Comments | Date | Hook (first line) | Link |\n|---|---|---|---|---|---|---|---|")
         for r in keep:
-            lines.append(f"| {r['tier']} | {r['ratio']:.1f}x | {r['views']:,} | {r['likes']} | {r['comments']} | {r['date']} | {r['caption']} | {r['url']} |")
+            lines.append(f"| {r['tier']} | {r['ratio']:.2f}x | {r['views']:,} | {r['likes']} | {r['comments']} | {r['date']} | {r['caption']} | {r['url']} |")
         lines.append("")
     return "\n".join(lines)
 
@@ -192,6 +229,13 @@ def selftest():
     assert res["few"]["reels"][0]["tier"] is None
     assert "Only 1 reels" in render(res, 12)
     import tempfile
+    assert "5.20x" in render(res, 12) and "1,000.0" in render(res, 12)
+    with tempfile.TemporaryDirectory() as d:
+        cp = pathlib.Path(d) / "ins.csv"
+        cp.write_text("Date,Views,Caption\n" + "\n".join(f"2026-10-{i + 1:02d},{v},hook {i}" for i, v in enumerate([1000, 1100, 900, 5200, 1000, 950, 1050])) + "\n")
+        ci = items_from_csv(cp, "me")
+        cr = analyse(ci)
+        assert len(ci) == 7 and cr["me"]["median"] == 1000 and any(r["tier"] == "STUDY" for r in cr["me"]["reels"]), cr
     with tempfile.TemporaryDirectory() as d:
         bd = pathlib.Path(d)
         log_spend(bd, ["@a", "b"], 500)
@@ -204,6 +248,8 @@ def selftest():
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--json", help="a scraper export (list of posts)")
+    ap.add_argument("--csv", help="an Instagram Insights export as CSV (needs views and date or timestamp columns)")
+    ap.add_argument("--owner", default="account", help="account name to use for a --csv file (default: account)")
     ap.add_argument("--handles", help="comma-separated Instagram handles to fetch via Apify")
     ap.add_argument("--limit", type=int, default=30, help="posts per account to fetch (default 30)")
     ap.add_argument("--window", type=int, default=12, help="reels used for the median (default 12)")
@@ -218,6 +264,8 @@ def main():
     if a.json:
         data = json.loads(pathlib.Path(a.json).read_text())
         items = data if isinstance(data, list) else data.get("items", [])
+    elif a.csv:
+        items = items_from_csv(a.csv, a.owner.lstrip("@"))
     elif a.handles:
         handles = [h for h in a.handles.split(",") if h.strip()]
         if a.dry_run:
@@ -226,7 +274,7 @@ def main():
             return
         items = fetch(handles, a.limit, a.max_cost)
     else:
-        ap.error("give --json FILE or --handles a,b")
+        ap.error("give --json FILE, --csv FILE or --handles a,b")
     report = render(analyse(items, a.window), a.window, a.all)
     print(report)
     if a.out:

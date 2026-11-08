@@ -11,7 +11,7 @@ Standard library only; calls yt-dlp, ffmpeg and whisper-cli if they are installe
 import argparse, json, pathlib, re, shutil, subprocess, sys
 
 HOME = pathlib.Path.home()
-MODELS = [HOME / ".config/susanoo-reels/ggml-base.bin", HOME / ".cache/whisper-cpp/ggml-base.bin", HOME / ".cache/whisper-cpp/ggml-base.en.bin"]
+MODELS = [HOME / ".config/bagelunit-reels/ggml-base.bin", HOME / ".cache/whisper-cpp/ggml-base.bin", HOME / ".cache/whisper-cpp/ggml-base.en.bin"]
 
 
 def need(tool):

@@ -1,4 +1,4 @@
-// ───────────────────────── talking engine (Susanoo Reel Kit): face take + hard-cut layouts + per-word captions ─────────────────────────
+// ───────────────────────── talking engine (BagelUnit Reel Kit): face take + hard-cut layouts + per-word captions ─────────────────────────
 // A frame-exact seek(t) page. Every tween lives on ONE timeline (TH.tl, core/tween.js) at absolute word times; tl.seek(t) is a
 // pure function of t, so any frame renders identically in any order. Values that aren't element tweens (counters, typing,
 // caption state, the face frame) are computed per frame in TH.fx callbacks.

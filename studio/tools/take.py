@@ -8,6 +8,12 @@
            --transcriber auto|scribe|whisper   word timings: ElevenLabs Scribe (auto when a key exists), else local Whisper
            --language en      language code for the transcriber (default: reel.json "language", else auto)
            --retranscribe     ask the transcriber again (default: reuse vo_raw/take_words.json for the same take, no extra cost)
+           --force            send the paid transcription again even if the same one is already done or may have been billed
+
+Credit guard: before a Scribe call the take's fingerprint (size, modified time, first and last megabyte), the transcriber, model and
+language are hashed and compared with build/.markers/take.json (tools/markers.py). The same take again prints "take: reused (no
+credits spent)" and sends nothing. If an earlier Scribe request timed out or broke after it was sent, it may have been billed: this
+run then refuses to resend it (Whisper still works with --transcriber whisper) until you re-run with --force.
 
 Outputs (the talking engine and the shared tools read these):
   audio/vo.mp3            the polished voice (highpass, gentle denoise, de-ess, light compression, limiter, -14 LUFS)
@@ -17,15 +23,18 @@ Outputs (the talking engine and the shared tools read these):
   build/word_index.txt    "index  start  end  word" (pick cue words for scenes.js here)
   vo_raw/                 take_words.json (raw transcription, reused next run), cuts.json, transcript.txt
 
-Keys: ELEVENLABS_API_KEY env var, or one line in ~/.config/susanoo-reels/elevenlabs.key (same as tools/voice.py).
+Keys: ELEVENLABS_API_KEY env var, or one line in ~/.config/bagelunit-reels/elevenlabs.key (same as tools/voice.py).
 Needs only ffmpeg/ffprobe (plus faster-whisper or whisper.cpp if you use the Whisper fallback).
 """
 import json, os, re, shutil, subprocess, sys, urllib.error, urllib.request, uuid
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from markers import Markers, MaybeBilled, digest, source_fingerprint
+
 FPS = 30
-_NEW_CFG = Path.home() / '.config' / 'susanoo-reels'
-_OLD_CFG = Path.home() / '.config' / 'susanoo-reels'   # migration fallback: same folder (kept for compatibility)
+_NEW_CFG = Path.home() / '.config' / 'bagelunit-reels'
+_OLD_CFG = Path.home() / '.config' / 'susanoo-reels'   # migration fallback: the folder used before the BagelUnit rename (2026-11-08)
 CFG_DIR = _NEW_CFG if _NEW_CFG.is_dir() or not _OLD_CFG.is_dir() else _OLD_CFG
 
 def arg(name, default=None):
@@ -52,7 +61,7 @@ def eleven_key():
     return None
 
 def multipart(fields, files):
-    b = '----susanooreels' + uuid.uuid4().hex
+    b = '----bagelunitreels' + uuid.uuid4().hex
     body = bytearray()
     for k, v in fields.items():
         body += f'--{b}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n'.encode()
@@ -115,26 +124,43 @@ def main():
     cache = raw / 'take_words.json'
     stamp = {'src': src.name, 'size': src.stat().st_size}
     old = json.loads(cache.read_text()) if cache.exists() else {}
-    if old.get('src') == stamp['src'] and old.get('size') == stamp['size'] and old.get('words') and not arg('retranscribe'):
+    mode, key = arg('transcriber', 'auto'), eleven_key()
+    scribe_on = mode in ('auto', 'scribe') and bool(key)
+    marks, force = Markers(proj, 'take'), bool(arg('force'))
+    h = digest({'source': source_fingerprint(src), 'transcriber': 'scribe', 'model': arg('scribe-model', 'scribe_v1'), 'language': lang}) if scribe_on else None
+    state = marks.state('take', h, force) if scribe_on else 'run'
+    if (old.get('src') == stamp['src'] and old.get('size') == stamp['size'] and old.get('words') and not arg('retranscribe')) \
+            or (state == 'reuse' and old.get('words') and not arg('retranscribe')):
         words, how = old['words'], old.get('how', 'cache') + ' (cached)'
+        if state == 'reuse': marks.reused()
     else:
         wav = raw / 'take16k.wav'
         run(['ffmpeg', '-nostdin', '-v', 'error', '-y', '-i', str(src), '-vn', '-ac', '1', '-ar', '16000', str(wav)])
-        mode, key, words, how = arg('transcriber', 'auto'), eleven_key(), None, ''
-        if mode in ('auto', 'scribe') and key:
+        words, how = None, ''
+        if scribe_on:
             mp3 = raw / 'take_scribe.mp3'
             run(['ffmpeg', '-nostdin', '-v', 'error', '-y', '-i', str(wav), '-ac', '1', '-b:a', '96k', str(mp3)])
-            try: words, how = scribe_words(mp3, key, lang, arg('scribe-model', 'scribe_v1')), 'ElevenLabs Scribe'
-            except urllib.error.HTTPError as e:
-                msg = e.read().decode(errors='ignore')[:300]
-                if mode == 'scribe': die(f'Scribe HTTP {e.code}: {msg}')
-                print(f'Scribe failed (HTTP {e.code}: {msg}); using local Whisper')
-            except Exception as e:
-                if mode == 'scribe': die(f'Scribe failed: {e}')
-                print(f'Scribe failed ({e}); using local Whisper')
+            if state == 'blocked':
+                msg = ('an earlier Scribe request for this exact take was sent but never confirmed, so it may already have been billed. '
+                       'Nothing was sent now. If you accept paying again, re-run with --force (marker: build/.markers/take.json).')
+                if mode == 'scribe': die(msg)
+                print('take: ' + msg + ' Using local Whisper instead.')
+            else:
+                try: words, how = marks.paid('take', h, lambda: scribe_words(mp3, key, lang, arg('scribe-model', 'scribe_v1')), 'Scribe'), 'ElevenLabs Scribe'
+                except urllib.error.HTTPError as e:     # a clear refusal (4xx): nothing was charged, the marker is already gone
+                    msg = e.read().decode(errors='ignore')[:300]
+                    if mode == 'scribe': die(f'Scribe HTTP {e.code}: {msg}')
+                    print(f'Scribe failed (HTTP {e.code}: {msg}); using local Whisper')
+                except SystemExit as e:                 # sent but unconfirmed (timeout, 5xx): possibly billed, so never resent here
+                    if mode == 'scribe': raise
+                    print(f'{e} Using local Whisper instead.')
+                except Exception as e:
+                    if mode == 'scribe': die(f'Scribe failed: {e}')
+                    print(f'Scribe failed ({e}); using local Whisper')
         elif mode == 'scribe': die('no ElevenLabs key: set ELEVENLABS_API_KEY or save it to ' + str(CFG_DIR / 'elevenlabs.key'))
         if words is None: words, how = whisper_fallback(proj, wav), 'Whisper'
         cache.write_text(json.dumps(dict(stamp, how=how, words=words), ensure_ascii=False))
+        if how == 'ElevenLabs Scribe': marks.done('take', h, [cache, raw / 'scribe.json'])
     words = [w for w in words if str(w[0]).strip()]
     if not words: die('no speech found in the take')
     (raw / 'transcript.txt').write_text(' '.join(w[0] for w in words) + '\n', encoding='utf-8')

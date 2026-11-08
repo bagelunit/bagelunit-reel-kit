@@ -6,7 +6,13 @@
   python3 tools/voice.py <project> --provider openai       OpenAI speech (word clock from Whisper)
   python3 tools/voice.py <project> --provider file --audio take.mp3    your own recording (word clock from Whisper)
   python3 tools/voice.py <project> --reuse                 re-cut the last take instead of paying for a new one
+  python3 tools/voice.py <project> --force                 pay for a new take even though the same one was already made
   tuning: --speed 1.15 (tempo once the pauses are cut)  --gap 0.28 (breath left where a long pause was)  --no-cut
+
+Credit guard: before a paid call the script, provider, model, voice and settings are hashed and compared with
+build/.markers/voice.json (tools/markers.py). The same request again prints "voice: reused (no credits spent)" and sends nothing.
+If an earlier request timed out or broke after it was sent, it may have been billed: this run refuses to resend it until you
+re-run with --force. Changing the script, voice, model or any setting is a new request and goes ahead.
 
 Every mode reads what this writes:
   audio/vo.mp3           the finished voice: long pauses shortened, sped up, levelled to -14 LUFS
@@ -14,12 +20,13 @@ Every mode reads what this writes:
   build/word_index.txt   "index  start  end  word", the list cue words are picked from
   vo_raw/                the untouched take and its alignment
 
-Which voice and which defaults: tools/voicebank.py (saved in ~/.config/susanoo-reels/config.json); reel.json "voice" overrides per reel.
+Which voice and which defaults: tools/voicebank.py (saved in ~/.config/bagelunit-reels/config.json); reel.json "voice" overrides per reel.
 """
 import base64, io, json, re, shutil, subprocess, urllib.error, urllib.request
 from pathlib import Path
 
 from kitcore import (Flags, CJK_CHAR, api_key, fail, ffmpeg, media_length, tidy_word, voice_settings, whisper_words, write_words)
+from markers import Markers, MaybeBilled, digest
 
 TOOL = 'voice'
 LONG_PAUSE = 0.45                 # a pause longer than this is shortened to --gap
@@ -88,9 +95,13 @@ def elevenlabs(text, opts, take):
             print(f'{opts["model"]} is not on this account; voicing with {FALLBACK_MODEL} instead')
             reply, problem = attempt(FALLBACK_MODEL)
             if problem:
+                if problem[0] >= 500 or problem[0] == 408:
+                    raise MaybeBilled(f'ElevenLabs answered HTTP {problem[0]}: {problem[1]}')
                 fail(TOOL, f'ElevenLabs answered HTTP {problem[0]}: {problem[1]}')
         elif code == 401:
             fail(TOOL, 'ElevenLabs refused the key, or the account is out of credits: ' + body)
+        elif code >= 500 or code == 408:
+            raise MaybeBilled(f'ElevenLabs answered HTTP {code}: {body}')
         else:
             fail(TOOL, f'ElevenLabs answered HTTP {code}: {body}')
     take.write_bytes(base64.b64decode(reply['audio_base64']))
@@ -106,6 +117,8 @@ def openai(text, opts, take):
     try:
         take.write_bytes(post_json('https://api.openai.com/v1/audio/speech', payload, {'Authorization': 'Bearer ' + api_key('openai', TOOL)}).read())
     except urllib.error.HTTPError as err:
+        if err.code >= 500 or err.code == 408:
+            raise MaybeBilled(f'OpenAI answered HTTP {err.code}: {err.read().decode()[:400]}')
         fail(TOOL, f'OpenAI answered HTTP {err.code}: {err.read().decode()[:400]}')
     return whisper_words(take, opts)
 
@@ -157,7 +170,24 @@ def record(project, flags, opts, provider, take, saved):
     if not script.exists():
         fail(TOOL, f'no script found at {script}')
     speak = {'elevenlabs': elevenlabs, 'openai': openai}.get(provider) or fail(TOOL, f'unknown provider "{provider}" (elevenlabs, openai or file)')
-    return speak(re.sub(r'\s+', ' ', script.read_text(encoding='utf-8')).strip(), opts, take)
+    text = re.sub(r'\s+', ' ', script.read_text(encoding='utf-8')).strip()
+
+    # credit guard: the same request again costs nothing; an unconfirmed one is not resent without --force
+    keys = ('model', 'voice_id', 'stability', 'similarity', 'style', 'language', 'openai_model', 'openai_voice', 'instructions')
+    request = {'text': text, 'provider': provider, 'speed': float(flags.get('speed', opts['speed'])), 'gap': float(flags.get('gap', opts['gap'])),
+               **{k: opts.get(k) for k in keys}}
+    outputs = [take, saved] + ([take.parent / 'align.json'] if provider == 'elevenlabs' else [])
+    marks, h = Markers(project, TOOL), digest(request)
+    state = marks.state('voice', h, flags.on('force'))
+    if state == 'reuse':
+        marks.reused()
+        return json.loads(saved.read_text(encoding='utf-8'))
+    if state == 'blocked':
+        marks.blocked('voice')
+    words = marks.paid('voice', h, lambda: speak(text, opts, take), 'voice')
+    saved.write_text(json.dumps(words))
+    marks.done('voice', h, outputs)
+    return words
 
 
 def main():

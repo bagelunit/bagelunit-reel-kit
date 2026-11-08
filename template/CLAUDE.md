@@ -1,12 +1,11 @@
-# Reel workspace (Susanoo Reel Kit template)
+# Reel workspace (BagelUnit Reel Kit template)
 
-This folder makes Instagram reels for ONE brand. It is a copy of the `template/` folder from the Susanoo Reel Kit: copy the whole folder once per brand (for example `~/Reels/<brand>/`), then start Claude Code inside the copy. The kit itself is installed once per computer by the repo's `setup/install.sh`.
+This folder makes Instagram reels for ONE brand. It is a copy of the `template/` folder from the BagelUnit Reel Kit: copy the whole folder once per brand (for example `~/Reels/<brand>/`), then start Claude Code inside the copy. The kit itself is installed once per computer by the repo's `setup/install.sh`.
 
 On Windows, wherever a command says `python3` use `python`; paths written with `~` mean your home folder.
 
-It uses one skill of its own and the installed skills and plugins, as their authors ship them:
-- `/brand-setup` (in this folder's `.claude/skills/`): the first-run brand questionnaire below, on demand,
-- `/susanoo-reels`, the reel engine installed at `~/.claude/skills/susanoo-reels` (script, voice, animated shots, self-check, export, plus the sticker presenter and the real-sound step),
+It uses its own skills (23, in this folder's `.claude/skills/`; the table "Which skill for which step" says when each one runs, and `/brand-setup` runs the first-run questionnaire below) and the installed skills and plugins, as their authors ship them:
+- `/bagelunit-reels`, the reel engine installed at `~/.claude/skills/bagelunit-reels` (script, voice, animated shots, self-check, export, plus the sticker presenter and the real-sound step),
 - `/ig-*` from the **instagram-agent** plugin (research, hooks, scripts, captions, plans, DMs, audits),
 - `/hyperframes` from the **hyperframes** plugin (HTML scenes rendered to MP4, optional second engine).
 
@@ -16,7 +15,7 @@ At the start of every session, read `brand/brand.json`. If `"name"` is empty, th
 
 Offer first to pre-fill from the brand's website: `python3 ./.claude/skills/brand-setup/prefill.py <url>` prints proposals only (nothing is written), and each one still needs the user's confirmation. Never take facts from a website.
 
-Ask with multiple-choice questions wherever the answer can be a choice (put a recommended option first), a few questions at a time, never more than four at once. Free-text answers are fine where a choice makes no sense (names, handles, paths). Never guess an answer and never fill a field the user did not confirm.
+**Every question is a question block.** Ask each setup question with the AskUserQuestion tool (the block where the person clicks an option or picks "Other" and types). Never ask a setup question as plain text. Up to four questions per block, two to four options each, the recommended option first with "(Recommended)" after its label. For answers that are typed (names, handle, file paths, a colour code), still use a block: offer the best guesses as options (from the website pre-fill, the folder name, `git config user.name`, "No account yet", "None yet", "Skip for now") and the person types the real answer under Other. Only if the AskUserQuestion tool is not available (for example a run without a person at the keyboard), ask the same questions as a numbered list with the options written out. Never guess an answer and never fill a field the user did not confirm.
 
 1. **You:** the user's own name, and whether they are the person who approves reels (if not, the approver's name).
 2. **The brand:** company or client name, and a short slug for folders (suggest one from the name, lowercase with dashes).
@@ -29,14 +28,16 @@ Ask with multiple-choice questions wherever the answer can be a choice (put a re
 9. **Call to action:** choices: "Save this" (recommended until a DM auto-reply is tested), "Follow for more", "Comment a keyword for a DM" (only listed in `cta.tested_keywords` once the auto-reply has been tested from a second account), "Visit the link in bio".
 10. **Kit updates:** "Tell me when a newer kit version is out" (sets `brand.json` -> `updates.check_on_start` to `true`) or "No, I'll check myself" (recommended default, `false`). See section 3b2.
 11. **History:** "Keep a private history of this brand's files (local only, never uploaded)" (recommended) or "No". If yes and this folder is not already a git repo: `git init`, `git add -A`, `git commit -m "Brand workspace set up"` (add `-c user.name="Reel workspace" -c user.email="reels@localhost"` if git has no name set). Never add a remote and never push. See section 3b1.
+12. **Posting plan:** "How many reels a week do you want to post?" Choices: "1", "2 or 3" (recommended to start), "4 or 5", "One a day (7)". Save the number in `brand.json` -> `batch.max_reels` (for "2 or 3" save 3). It caps how many reels Claude plans in one weekly sitting; each reel is still approved on its own, and the owner can change it any time.
 
 Then write the answers:
-- `brand/brand.json`: name, slug, handle, `people`, `identity.logo` (and the other identity paths if given), `colors`, `fonts`, `host` (`enabled`, `type` = `stickers`, `drawn` or `none`, `poses_dir`), `voice` (`style`, `never_say`, `pronunciation`, and `voice_id`/`voice_name` once a voice is chosen), `cta.style`. Leave  and `work_dir` as they are unless the user asks.
+- `brand/brand.json`: name, slug, handle, `people`, `identity.logo` (and the other identity paths if given), `colors` (`theme` is the theme name they picked, or empty for "my own accent"), `fonts`, `host` (`enabled`, `type` = `stickers`, `drawn` or `none`, `poses_dir`), `voice` (`style`, `never_say`, `pronunciation`, and `voice_id`/`voice_name` once a voice is chosen), `cta.style` and `cta.default` (set `cta.default` to the same value as `cta.style`), `batch.max_reels`. If the owner skips a question, leave the field empty and say it is empty. Leave `work_dir` as it is unless the user asks.
 - `brand/voice.md`: fill the "Who I am" lines from the answers. Leave the rest for the user (or offer to draft it from three of their own captions).
 - `brand/facts.md`: only facts the user states and confirms in this conversation, each with its source. If they give none, leave the table empty and say so. Never add a number, result, price or client name from your own knowledge or from the web.
-- If the user wants the handle and accent colour as the kit's defaults for every new reel, the kit stores them in `~/.config/susanoo-reels/config.json` through its own setup; otherwise set them per reel in `reel.json`.
+- Every new reel's `reel.json` gets `"theme": {"preset": <colors.theme or "studio">, "accent": <colors.accent>}` and the handle from `brand.json`.
+- If the user wants the handle and accent colour as the kit's defaults for every new reel, the kit stores them in `~/.config/bagelunit-reels/config.json` through its own setup; otherwise set them per reel in `reel.json`.
 
-Rename, move or create nothing outside this folder. Never ask for, print or store an API key; keys go in `~/.config/susanoo-reels/` and the user puts them there themselves. Finish with a short summary of what was written and anything still empty.
+Rename, move or create nothing outside this folder. Never ask for, print or store an API key; keys go in `~/.config/bagelunit-reels/` and the user puts them there themselves. Finish with a short summary of what was written and anything still empty.
 
 ## 1. The brand
 
@@ -52,22 +53,47 @@ Rename, move or create nothing outside this folder. Never ask for, print or stor
 | `facts.md` | the ONLY claims, numbers and results allowed on screen, in the voice or in captions | owner only (Claude may propose, owner confirms) |
 | `swipe.md` | research outliers (3x rule) | `/ig-viral` |
 | `plan.md` | this week's posts | `/ig-plan` |
-| `log.md` | what was posted, with hook formula, first line, goal and angle | `/ig-reel` after the owner confirms |
+| `log.md` | what was posted, with hook formula, first line, goal and angle | `/ig-reel` or `/reel-posting` after the owner confirms |
+| `stats.md` | the brand's median summary, written by `/account-audit --all` from `insights.csv` | `/account-audit` |
+| `insights.csv` | the raw numbers, one row per posted reel: views, reach, average watch time, skip rate, likes, comments, saves, shares, follows (see `docs/after-posting.md`) | Claude, from numbers the owner gives |
 
 ## 2. Where files go
 
 - **Light files** (scripts, plans, approvals, captions, the finished mp4) live in this copy: `reels/<slug>/`.
-- **Heavy files** (frames, drafts, renders, node_modules) should stay out of iCloud-synced folders (Desktop and Documents sync). HyperFrames projects go in `brand.json` → `work_dir` (default `~/dev/reel-work/<slug>/`),. The Susanoo Reel Kit writes its build files inside `reels/<slug>/`: if this copy sits in an iCloud folder, tell the owner before the first render.
+- **Heavy files** (frames, drafts, renders, node_modules) should stay out of iCloud-synced folders (Desktop and Documents sync). HyperFrames projects go in `brand.json` → `work_dir` (default `~/dev/reel-work/<slug>/`). The BagelUnit Reel Kit writes its build files inside `reels/<slug>/`: if this copy sits in an iCloud folder, tell the owner before the first render.
+- **Library** (`brand/library/`: `broll/`, `product-images/`, `components/`, `screens/`, plus `INDEX.md`): the brand's own real footage, images, pieces and screenshots. Use these before inventing anything, only rows marked rights OK, and add a row to `INDEX.md` for every file added. The media itself stays out of git.
 
 ## The render engines
 
-- **Always ask the style first.** Before starting any reel, ask the owner which style to use: Print, 3D, or Talking head (only if there is a video of them). One multiple-choice question, recommendation first. Never pick a style silently.
-- `/susanoo-reels` builds reels into `reels/<slug>/` of the folder Claude was started in, and keeps its own settings in `~/.config/susanoo-reels/`. Follow its `KIT.md`; its approval points come in addition to the gates below.
+- **Always ask the style first.** Before starting any reel, ask the owner which style to use: Print, 3D, or Talking head (only if there is a video of them). One question block (AskUserQuestion), recommendation first. Never pick a style silently.
+- `/bagelunit-reels` builds reels into `reels/<slug>/` of the folder Claude was started in, and keeps its own settings in `~/.config/bagelunit-reels/`. Follow its `KIT.md`; its approval points come in addition to the gates below.
 - `/hyperframes`: run the CLI with `HYPERFRAMES_NO_TELEMETRY=1`. Local only: never use `hyperframes publish`, cloud rendering, HeyGen sign-in or paid HeyGen models without the owner's explicit OK for that reel.
 - **Sticker presenter (print only):** when `brand.json` → `host.type` is `stickers`, set the reel's `reel.json` `"presenter": {"type": "stickers", "dir": "host", "cues": [[word, pose, nth], ...]}` and link or copy `host.poses_dir` to the reel's `host/` folder. Check each cue's occurrence number against `build/word_index.txt`. With `host.type` `none`, turn the presenter off.
 - **Real sound:** after `kit export`, run the kit's real-sound step (`KIT.md` section G step 5) so the effects are real recordings, not synthesised ones. Report its numbers honestly.
 - **Cover:** every reel gets a dedicated cover: a still-only cover scene with a big topic title, a prop that shows the subject, the presenter if any and the handle, kept inside the centre 1080x1440 grid band. Never a frame grabbed from the hook.
 - Before any final render the approver has seen the stills (Gate B). The finished mp4 ends up in `reels/<slug>/out/`.
+
+## Which skill for which step
+
+When a request matches a row, load that skill with the Skill tool first and follow it, even for a quick answer ("10 hooks", "plan a reel", "turn this idea into a reel plan"). Do not do that job from memory: the skill carries this kit's format and checks. Then carry on with the loop.
+
+| Step | Skill |
+|---|---|
+| Brand setup | `/brand-setup` |
+| Research: what the audience asks, reels to model, best reels | `/comment-mining`, `/reel-sources`, `/account-audit`, `/reel-analyzer` (a file the person supplies) |
+| Plan: goal, angle, why a post flopped | `/going-viral`, `/virality` |
+| Hooks before Gate A | `/viral-hook-writer` (from nothing), `/hook-mining` (from a CSV of real hooks) |
+| Script before Gate A | `/reel-scripter` writes `reels/<slug>/script.txt`; `/reel-builder` for a shoot plan without rendering |
+| Fact check before Gate A and Gate C | `/reel-factcheck` |
+| Voice, visual plan, build, render, export | `/bagelunit-reels` (the engine) |
+| Review of every draft and final | `/reel-review`, then `/reel-predict` for measurements |
+| Caption, hashtags, first comment, cover before Gate C | `/caption-and-hashtags`, `/cover-thumbnail-brief` |
+| Any text before it is handed over | `/humanizer` |
+| After posting: add the numbers to `brand/insights.csv`, then read them | `/analytics-readout`, `/account-audit`, `/ab-hook-tester`; `kit calibrate brand/insights.csv --project-root reels` once 8 or more reels have numbers |
+| Posting an approved reel, scheduling, setting up automatic posting | `/reel-posting` |
+| Comment auto-reply and DMs (set up step by step, then off by default until tested) | `/comment-responder` |
+| Opt-in autopilot (off by default, section 3b) | `/content-factory` |
+| Updating this workspace to a newer kit | `/kit-update` |
 
 ## 3. House rules (they override the skills)
 
@@ -81,21 +107,23 @@ Rename, move or create nothing outside this folder. Never ask for, print or stor
 8. **Copy formulas, never videos.** Hook shape, structure and length only. Never another creator's script, colours, mascot, characters or prompts.
 9. **Rights.** No other company's logos, footage, music or characters unless the brand owns the rights.
 10. **Approval gates (the approver in `brand.json` → `people` approves, usually the workspace owner, also for client brands):**
-    - Gate A: script. No voice credits are spent before this. Before showing the script for approval, run `python3 ~/.claude/skills/susanoo-reels/tools/budget.py reels/<slug>/script.txt` (on Windows `python`) and tell the approver the credits it needs against what is left; if it says NOT ENOUGH, say so before they approve.
+    - Fact check first: run `/reel-factcheck` on the script (scope `script`) before showing it for Gate A, and again on the final (scope `final`) before Gate C. `kit gate` refuses to record A or C without a current PASS (`--skip-facts "reason"` is the owner's override and is written into the record).
+    - Gate A: script. No voice credits are spent before this. Before showing the script for approval, run `python3 ~/.claude/skills/bagelunit-reels/tools/budget.py reels/<slug>/script.txt` (on Windows `python`) and tell the approver the credits it needs against what is left; if it says NOT ENOUGH, say so before they approve.
     - Gate B: visual plan (concept card + shot cards).
     - Gate C: the final video.
-    Record each approval with the date in `reels/<slug>/approvals.md`.
-11. **Nothing is posted, scheduled or sent by Claude.** A person posts.
+    Ask for each gate with a question block (AskUserQuestion): show what is being approved first (the script text, the visual plan, or the final video's path and how to watch it on a phone), then ask "Gate A: approve this script?" (or B, C) with the options "Approve (Recommended)" when every check passed, "Change something" (they say what under Other or next), and "Stop this reel". Never treat silence or a vague reply as a yes.
+    Record each approval with the date in `reels/<slug>/approvals.md` (`kit gate <reel> record --gate A|B|C`).
+11. **Nothing is posted, scheduled or sent by Claude.** A person posts. The one exception is a publisher the brand owner connected (`docs/auto-post.md`) with `autopilot.post` on: then Claude may schedule a reel only after Gate C, only the approved file (`kit gate <reel> check` prints MATCH), and only after the owner says yes to that reel's time.
 12. **No links in public comment replies.** A link goes in the DM only, and only once the keyword auto-reply is tested (rule 4).
-13. **Hook checklist and review.** Before Gate A and again on the draft, check the eight-point frame-0 hook checklist in `docs/hook-and-review-playbook.md` in this folder. Pick one goal and one angle per reel. The reel skills in this folder's `.claude/skills/` (`/reel-analyzer`, `/virality`, `/going-viral`, `/hook-mining`, `/comment-mining`, `/ab-hook-tester`, `/cover-thumbnail-brief`, `/analytics-readout`) give structure only: their numbers are one account's data, so test them against the brand's own median.
+13. **Hook checklist and review.** Before Gate A and again on the draft, check the eight-point frame-0 hook checklist in `docs/hook-and-review-playbook.md` in this folder. Pick one goal and one angle per reel. The reel skills in this folder's `.claude/skills/` (`/reel-analyzer`, `/virality`, `/going-viral`, `/hook-mining`, `/comment-mining`, `/ab-hook-tester`, `/cover-thumbnail-brief`, `/analytics-readout`) give structure only (`/reel-review` is the exception: run it on every draft and every final, and put its verdict line in `approvals.md`): their numbers are one account's data, so test them against the brand's own median.
 14. **Teardowns use files the person supplies** unless autopilot is on (below). `/reel-analyzer` works on a file or transcript the person gives.
 
 ## 3b. Autopilot (OFF by default, the brand owner turns it on)
 
-The kit works for any brand and person, so rules 4, 7, 10 and 11 and the local-renders-only rule are the safe defaults, not laws. The brand owner can relax them for this brand by writing "Autopilot: ON" with the exact permissions in `brand/brand.json` (`"autopilot": {"post": false, "dm_replies": false, "scrape": false, "paid_renders": false}`; each starts false). Ask which ones, with multiple-choice questions, and record the answer and the date. Never turn one on yourself.
+The kit works for any brand and person, so rules 4, 7, 10 and 11 and the local-renders-only rule are the safe defaults, not laws. The brand owner can relax them for this brand by writing "Autopilot: ON" with the exact permissions in `brand/brand.json` (`"autopilot": {"post": false, "dm_replies": false, "scrape": false, "paid_renders": false}`; each starts false). Ask which ones with a question block (AskUserQuestion, one option per permission, multi-select), and record the answer and the date. Never turn one on yourself.
 
 When a permission is on, these installed skills may be used for it:
-- `post` or `dm_replies`: `/content-factory` (post, keyword rule), `/comment-responder` (public reply plus DM). Posting still pauses for the owner's OK unless the owner says otherwise in writing.
+- `post` or `dm_replies`: `/reel-posting` (scheduling approved reels), `/content-factory` (post, keyword rule), `/comment-responder` (public reply plus DM). The kit has no comment monitor of its own: `docs/auto-reply.md` explains how to connect one for this brand. Posting still needs the owner's yes for each reel and its time (rule 11); it is never a standing permission. The kit posts nothing itself: `docs/auto-post.md` explains how to connect a publisher.
 - `scrape`: `/account-audit` (outliers via Apify, or from an export), `/reel-sources` (fetch a reel, mine demand), and `/content-factory`.
 - `paid_renders`: Seedance on Runway through `/reel-builder` (about $6 to $12 per reel).
 
@@ -107,15 +135,18 @@ If this folder has a `.git` folder, it is this brand's private, local history. A
 
 ## 3b2. Kit updates (optional, OFF by default)
 
-This copy records the kit version it is on in `.kit-version`. If `brand/brand.json` -> `updates.check_on_start` is `true`, then once at the start of a session, read `.kit-version` and read the one public file `https://raw.githubusercontent.com/bagelunit/susanoo-reel-kit/main/VERSION` (with the project's web tool or `curl -s`; one read, nothing else). If the number there is higher, say once, in one or two lines: "Kit <new> is out (this workspace is on <old>). What changed: https://github.com/bagelunit/susanoo-reel-kit/blob/main/CHANGELOG.md. To update: in your clone of the kit run `git pull`, then `node setup/sync-template.mjs <this folder>` to see the changes and add `--apply` to do it." If the check fails, is offline, or the numbers match, say nothing. Never update anything yourself, and never ask more than once per session. With the setting `false` or missing, do not check.
+This copy records the kit version it is on in `.kit-version`. If `brand/brand.json` -> `updates.check_on_start` is `true`, then once at the start of a session, read `.kit-version` and read the one public file `https://raw.githubusercontent.com/bagelunit/bagelunit-reel-kit/main/VERSION` (with the project's web tool or `curl -s`; one read, nothing else). If the number there is higher, say once, in one or two lines: "Kit <new> is out (this workspace is on <old>). Say \"update the kit\" and I will show what changed and update it step by step (`/kit-update`)." If the check fails, is offline, or the numbers match, say nothing. Never update anything yourself, and never ask more than once per session. With the setting `false` or missing, do not check.
 
 ## 3c. Weekly batch (optional)
 
-To make a week's reels in one sitting: use `/ig-plan` to pick up to 3 topics. Each gets its own goal and its own angle, and no two reels in the batch share an angle. Write all the scripts, then take them to Gate A together, but record each reel's approval separately in its own `approvals.md`. Voice credits are spent only for scripts that were approved. After that every reel runs the normal loop one at a time (visual plan, Gate B, build, verify, Gate C), and a problem in one does not block the others. Update `brand/plan.md` and `brand/log.md` per reel. Never more reels than the approver can review properly that week.
+To make a week's reels in one sitting: use `/ig-plan` to pick up to `brand.json` -> `batch.max_reels` topics (3 if the setting is missing; the owner can change it any time). Each reel gets one goal (goals may repeat in a batch) and its own angle, and no two reels in the batch share an angle. Write all the scripts, then take them to Gate A together, but record each reel's approval separately in its own `approvals.md`. Voice credits are spent only for scripts that were approved. After that every reel runs the normal loop one at a time (visual plan, Gate B, build, verify, Gate C), and a problem in one does not block the others. Update `brand/plan.md` and `brand/log.md` per reel. If the owner asks for more reels than `batch.max_reels`, say so and ask before going over: every reel still needs a proper review.
 
 ## 4. Map
 
 - `reels/_example/`: a blank pattern for a script, approvals and caption. Never treat it as a real reel. `docs/first-reel.md` walks a new user through the first reel.
 
-- `brand/`: this brand's identity, voice, cleared facts, research and log.
+- `brand/`: this brand's identity, voice, cleared facts, research and log. `brand/library/` holds its real media (see `INDEX.md`).
+- `docs/auto-reply.md`: how to connect a comment auto-reply and DM for this brand (optional, owner's accounts).
+- `docs/auto-post.md`: how to post approved reels on a schedule for this brand (optional, owner's accounts).
+- `docs/craft-playbook.md`: what is on screen (one world, a through-line, a line-to-picture table, no repeats). Read it before writing the storyboard. `docs/style-ideas.md` lists style concepts that are not built yet.
 - `reels/<slug>/`: one folder per reel (script, plan, approvals, caption, `out/` with the final mp4).

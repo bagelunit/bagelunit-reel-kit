@@ -1,6 +1,6 @@
 ---
 name: brand-setup
-description: Sets up (or redoes) this reel workspace's brand. Asks the user's name, the company or client name, Instagram handle, accent colour, logo path, fonts, sticker avatar or no host, voice and call-to-action style, then fills brand/brand.json, brand/voice.md and brand/facts.md. Use on /brand-setup, when brand/brand.json has an empty "name", or when the user wants to change the brand's identity, presenter, voice or CTA.
+description: Sets up (or redoes) this reel workspace's brand. Asks the user's name, the company or client name, Instagram handle, accent colour and theme, logo path, fonts, sticker avatar or no host, voice, call-to-action style, kit update notices, private history and how many reels a week to post (12 questions, each as a clickable question block), then fills brand/brand.json, brand/voice.md and brand/facts.md. Use on /brand-setup, when brand/brand.json has an empty "name", or when the user wants to change the brand's identity, presenter, voice or CTA.
 ---
 
 # Brand setup for this reel workspace
@@ -10,15 +10,15 @@ Run this in the workspace root (the folder holding `brand/` and `reels/`). It is
 ## Before asking
 
 1. Read `brand/brand.json`, `brand/voice.md` and `brand/facts.md`.
-2. If `"name"` is already filled, show the current values in a short list and ask (multiple choice): "Change some fields", "Start over", "Cancel". For "Change some fields", ask only about the fields they pick.
+2. If `"name"` is already filled, show the current values in a short list and ask with a question block (AskUserQuestion): "Change some fields", "Start over", "Cancel". For "Change some fields", ask only about the fields they pick.
 
 ## Optional: pre-fill from the website
 
-Before the questions, offer (multiple choice) "Read the brand's website to suggest answers" or "Skip, I'll answer myself". If yes, ask for the URL and run `python3 ./.claude/skills/brand-setup/prefill.py <url>`. It prints PROPOSALS only (name, description, likely accent colours, fonts, Instagram handles, logo links) and writes nothing. Show them as the recommended choice in the matching questions below; the user confirms or changes each one. A logo link is a suggestion: download nothing without asking. Never take facts (numbers, results, prices, clients) from the website; those only come from the user into `brand/facts.md`.
+Before the questions, offer with a question block (AskUserQuestion) "Read the brand's website to suggest answers" or "Skip, I'll answer myself". If yes, ask for the URL and run `python3 ./.claude/skills/brand-setup/prefill.py <url>`. It fetches the page itself with Python's built-in urllib (the kit's own design, not the crawler). It prints PROPOSALS only (name, description, likely accent colours, fonts, Instagram handles, logo links) and writes nothing. Show them as the recommended choice in the matching questions below; the user confirms or changes each one. A logo link is a suggestion: download nothing without asking. Never take facts (numbers, results, prices, clients) from the website; those only come from the user into `brand/facts.md`.
 
 ## The questions
 
-Use multiple-choice questions wherever the answer can be a choice, recommended option first, at most four questions at once. Free text only where a choice makes no sense (names, handles, paths). Never guess, never fill a field the user did not confirm.
+**Every question is a question block.** Ask each setup question with the AskUserQuestion tool (the block where the person clicks an option or picks "Other" and types). Never ask a setup question as plain text. Up to four questions per block, two to four options each, the recommended option first with "(Recommended)" after its label. For answers that are typed (names, handle, file paths, a colour code), still use a block: offer the best guesses as options (from the website pre-fill, the folder name, `git config user.name`, "No account yet", "None yet", "Skip for now") and the person types the real answer under Other. Only if the AskUserQuestion tool is not available (for example a run without a person at the keyboard), ask the same questions as a numbered list with the options written out. Never guess an answer and never fill a field the user did not confirm.
 
 1. **You:** your name; are you the person who approves reels? (Yes / No, the approver is ...).
 2. **Brand:** company or client name; folder slug (suggest one: lowercase, dashes).
@@ -34,17 +34,18 @@ Use multiple-choice questions wherever the answer can be a choice, recommended o
 10. **Kit updates:** "Tell me when a newer kit version is out" (sets `updates.check_on_start` to `true`) or "No, I'll check myself" (recommended default, `false`). It reads one public file from GitHub once per session and never updates anything by itself.
 
 11. **History:** "Keep a private history of this brand's files (local only, never uploaded)" (recommended) or "No". If yes, and this folder is not already a git repo: run `git init`, then `git add -A` and `git commit -m "Brand workspace set up"` (if git has no name set, add `-c user.name="Reel workspace" -c user.email="reels@localhost"`). Never add a remote and never push. The `.gitignore` here already keeps keys, renders and audio out.
+12. **Posting plan:** "How many reels a week do you want to post?" Choices: "1", "2 or 3" (recommended to start), "4 or 5", "One a day (7)". Save the number in `brand.json` -> `batch.max_reels` (for "2 or 3" save 3). It caps how many reels Claude plans in one weekly sitting; each reel is still approved on its own, and the owner can change it any time.
 
 ## Writing the answers
 
-- `brand/brand.json`: `name`, `slug`, `handle`, `people.operator_name`, `people.approver_name`, `identity.logo` (plus other identity paths given), `colors`, `fonts`, `host.enabled`, `host.type` (`stickers`, `drawn` or `none`), `host.poses_dir`, `voice.style`, `voice.voice_id` and `voice.voice_name` (once chosen), `voice.never_say`, `voice.pronunciation`, `cta.style`, `cta.default`. Keep the file valid JSON (check with `python3 -m json.tool brand/brand.json`). Leave `work_dir` unless asked.
+- `brand/brand.json`: `name`, `slug`, `handle`, `people.operator_name`, `people.approver_name`, `identity.logo` (plus other identity paths given), `colors` (`colors.theme` = the theme name picked: studio, harbor, ochre or ink; empty for "my own accent"), `fonts`, `host.enabled`, `host.type` (`stickers`, `drawn` or `none`), `host.poses_dir`, `voice.style`, `voice.voice_id` and `voice.voice_name` (once chosen), `voice.never_say`, `voice.pronunciation`, `cta.style`, `cta.default`, `batch.max_reels`. Set `cta.default` to the same value as `cta.style`. If the owner skips a question, leave the field empty and say it is empty. Keep the file valid JSON (check with `python3 -m json.tool brand/brand.json`). Leave `work_dir` unless asked.
 - `brand/voice.md`: fill the "Who I am" lines (name, handle, what the brand does if they said it). Leave the rest for the user, or offer to draft it from three of their own captions or reels.
 - `brand/facts.md`: add only facts the user states and confirms here, each with its source and today's date. If none, leave the table empty and say so. Never add a number, result, price or client name from your own knowledge or the web.
 
 ## Limits
 
 - Change nothing outside this workspace folder. Do not rename or move any file.
-- Never ask for, print or store an API key. The ElevenLabs key lives in `~/.config/susanoo-reels/elevenlabs.key` and the user puts it there.
+- Never ask for, print or store an API key. The ElevenLabs key lives in `~/.config/bagelunit-reels/elevenlabs.key` and the user puts it there.
 - No em dashes in anything you write.
 
 Finish with a short summary: what was written to each file, and which fields are still empty.

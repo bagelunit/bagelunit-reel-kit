@@ -1,4 +1,4 @@
-# Susanoo Reel Kit installer: launcher for Windows (PowerShell).
+# BagelUnit Reel Kit installer: launcher for Windows (PowerShell).
 # The real installer is setup/install.mjs (Node). All options pass straight through:  .\setup\install.ps1 --help
 $ErrorActionPreference = 'Stop'
 if (-not (Get-Command node -ErrorAction SilentlyContinue)) {

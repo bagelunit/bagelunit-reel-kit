@@ -15,7 +15,7 @@ drawn in code, so any user can have their own look without generating images.
 3. **Render and compare:** `node "$KIT_DIR/tools/kit.mjs" frames <project> 0 1 2 3 4 5 --only presenter` draws the presenter sheet
    (0 portrait, 1 poses, 2 expressions, 3 every hairstyle in their colours, 4 pointing aims, 5 moods). Put page 0 next to the photo
    and adjust. Hair shape, hair colour, glasses and beard carry most of the likeness.
-4. **Save it as their default** in `~/.config/susanoo-reels/config.json` under `"host"`. `kit start` copies it into every new print
+4. **Save it as their default** in `~/.config/bagelunit-reels/config.json` under `"host"`. `kit start` copies it into every new print
    reel as `"presenter"`. Tell them it's saved and easy to change ("give my presenter longer hair").
 
 ## What the options cover

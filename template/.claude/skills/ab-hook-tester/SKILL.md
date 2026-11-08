@@ -7,7 +7,7 @@ description: >
 user-invokable: true
 argument-hint: "[the reel idea or script]"
 metadata:
-  author: Susanoo
+  author: BagelUnit
   version: "1.0.0"
   category: content
 ---
@@ -38,9 +38,11 @@ Then:
 1. HYPOTHESIS: what I learn if A wins, and what I learn if B wins.
 2. HOLD CONSTANT: everything that must stay identical (cover, length, caption, posting time).
 3. READ: which metric decides it, and at what point (3s retention, not likes).
-4. SAMPLE: roughly how many views before the result means anything.
+4. SAMPLE: roughly how many views before the result means anything. For SAMPLE, use the brand's own median views from its insights, not a generic number.
+5. POSTING: post the second variant without repeating the same content to the same audience (a different day or a different account section; the owner decides).
 
 If both hooks pull the same lever, say so and replace one.
+Rules: Never invent a result, number or personal claim; use only brand/facts.md, and write {{needs cleared fact}} where one is missing.
 ```
 
 **Honesty:** One variable. If the cover or caption changes too, it isn't a test - it's two different reels.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Susanoo Reel Kit installer: launcher for macOS and Linux.
+# BagelUnit Reel Kit installer: launcher for macOS and Linux.
 # The real installer is setup/install.mjs (Node), which also runs on Windows (use install.ps1 there).
 # All options pass straight through: bash setup/install.sh --help
 set -euo pipefail

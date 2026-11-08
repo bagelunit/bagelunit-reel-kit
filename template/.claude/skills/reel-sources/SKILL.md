@@ -9,7 +9,7 @@ description: >
 user-invokable: true
 argument-hint: "[reel URL, a local video file, or a topic to research]"
 metadata:
-  author: Susanoo
+  author: BagelUnit
   version: "1.0.0"
   category: research
 ---
@@ -23,9 +23,11 @@ Read the niche's real questions (Reddit threads, YouTube comments, forum posts) 
 speed. Report the recurring questions with counts and the exact phrases people use. Each topic idea must trace to a
 real post. Do not log in anywhere.
 
+Reddit pages are blocked to the crawler (robots.txt, login). Use the owner's own browser or pasted threads for post bodies. The search source kind can be a paid call (state the cost first, and only with the owner's OK); if threads cannot be read, say so and report titles only, never invent comment counts or phrases.
+
 ## 2. Trending reels to model
 Search for reels in the niche (web search, or the owner's own browser). List 5 with the hook, length and why it is
-getting traction. Models only: shape, never the video.
+getting traction. Models only: shape, never the video. Web search can cost money, so say so before using a paid one. A SearXNG search is not running by default.
 
 ## 3. Fetch one reel for a teardown
 `python3 ./.claude/skills/reel-sources/reel_fetch.py <URL or file> --out <folder>`

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// Susanoo Reel Kit installer: macOS, Windows and Linux, one script.
+// BagelUnit Reel Kit installer: macOS, Windows and Linux, one script.
 //
 // Safe to run again: every step checks what is already there and skips it.
 // It never asks for, reads or stores an API key. Your ElevenLabs key is yours to put in
-// ~/.config/susanoo-reels/elevenlabs.key yourself (see SETUP.md).
+// ~/.config/bagelunit-reels/elevenlabs.key yourself (see SETUP.md).
 // It never runs a command with administrator rights by itself: when a program has to be installed it
 // shows you the exact command and asks first (or run with --yes to say yes to those questions).
 //
@@ -11,7 +11,7 @@
 //   node setup/install.mjs [--link] [--skip-packages] [--skip-plugins] [--skip-sound] [--earshot-mcp]
 //                          [--rebuild-sounds] [--yes] [--dry-run]
 //
-//   --link            link studio/ into ~/.claude/skills/susanoo-reels instead of copying it
+//   --link            link studio/ into ~/.claude/skills/bagelunit-reels instead of copying it
 //                     (good if you will edit the kit or pull updates with git)
 //   --skip-packages   do not install ffmpeg, Python, git, uv and Whisper (--skip-brew is the same)
 //   --skip-plugins    do not add the Claude Code plugins (hyperframes, instagram-agent)
@@ -57,12 +57,12 @@ const HOME = os.homedir();
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const STUDIO = path.join(REPO, 'studio');
 const SKILLS = path.join(HOME, '.claude', 'skills');
-const TARGET = path.join(SKILLS, 'susanoo-reels');
-const CONFIG = path.join(HOME, '.config', 'susanoo-reels');
+const TARGET = path.join(SKILLS, 'bagelunit-reels');
+const CONFIG = path.join(HOME, '.config', 'bagelunit-reels');
 const SOUND = path.join(HOME, 'dev', 'sound');
 const OPUS = path.join(SOUND, 'opus-sound-layer');
 const EARSHOT = path.join(SOUND, 'earshot');
-const MARKER = '.susanoo-reel-kit';
+const MARKER = '.bagelunit-reel-kit';
 const PACKS = ['interface-sounds', 'ui-audio', 'impact-sounds', 'sci-fi-sounds', 'digital-audio', 'casino-audio', 'rpg-audio'];
 const DL = path.join(HOME, 'Downloads');
 const VENV_BIN = (name) => path.join(EARSHOT, '.venv', IS_WIN ? 'Scripts' : 'bin', IS_WIN ? `${name}.exe` : name);
@@ -135,10 +135,19 @@ function openUrl(u) {
 
 // ---------------------------------------------------------------- start
 if (!exists(path.join(STUDIO, 'KIT.md'))) { console.error('Cannot find studio/KIT.md next to this script. Run it from a clone of the repo.'); process.exit(1); }
-console.log(`Susanoo Reel Kit installer\nRepo: ${REPO}\nSystem: ${process.platform} (${os.arch()}), Node ${process.versions.node}${F.dryRun ? '\nDRY RUN: nothing will be changed' : ''}`);
+console.log(`BagelUnit Reel Kit installer\nRepo: ${REPO}\nSystem: ${process.platform} (${os.arch()}), Node ${process.versions.node}${F.dryRun ? '\nDRY RUN: nothing will be changed' : ''}`);
 if (Number(process.versions.node.split('.')[0]) < 18) { console.error('Node 18 or newer is needed. Install the current LTS from https://nodejs.org and run this again.'); process.exit(1); }
 
 // ---------------------------------------------------------------- 1. programs
+// The kit was renamed (Susanoo Reel Kit -> BagelUnit Reel Kit, 2026-11-08): copy the old settings folder over once.
+const OLD_CONFIG = path.join(HOME, '.config', 'susanoo-reels');
+const OLD_TARGET = path.join(SKILLS, 'susanoo-reels');
+if (exists(OLD_CONFIG) && !exists(CONFIG)) {
+  if (!F.dryRun) { fs.cpSync(OLD_CONFIG, CONFIG, { recursive: true }); try { fs.chmodSync(CONFIG, 0o700); } catch { /* Windows */ } }
+  console.log(`    OK: copied your settings and keys from ${OLD_CONFIG} to ${CONFIG} (the old folder is kept; files were not read)`);
+}
+if (exists(OLD_TARGET)) console.log(`    NOTE: `+`an engine from before the rename is still at ${OLD_TARGET}. Once /bagelunit-reels works, remove that old folder yourself, or both copies answer reel requests.`);
+
 step('Programs: ffmpeg, Python 3, git, uv, speech-to-text (Whisper)');
 let missingAfter = [];
 if (F.skipPackages) warn('skipped (--skip-packages)');
@@ -319,7 +328,7 @@ if (IS_WIN) {
   for (const rc of [path.join(HOME, '.zshrc'), path.join(HOME, '.bashrc')]) {
     if (!exists(rc)) continue;
     if (fs.readFileSync(rc, 'utf8').includes('HYPERFRAMES_NO_TELEMETRY')) ok(`already set in ${rc}`);
-    else { if (!F.dryRun) fs.appendFileSync(rc, '\n# Susanoo Reel Kit: no HyperFrames telemetry\nexport HYPERFRAMES_NO_TELEMETRY=1\n'); ok(`added HYPERFRAMES_NO_TELEMETRY=1 to ${rc}`); }
+    else { if (!F.dryRun) fs.appendFileSync(rc, '\n# BagelUnit Reel Kit: no HyperFrames telemetry\nexport HYPERFRAMES_NO_TELEMETRY=1\n'); ok(`added HYPERFRAMES_NO_TELEMETRY=1 to ${rc}`); }
   }
 }
 process.env.HYPERFRAMES_NO_TELEMETRY = '1';

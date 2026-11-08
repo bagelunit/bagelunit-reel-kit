@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-const FILE = path.join(os.tmpdir(), 'susanoo-reels-render.lock.json');
+const FILE = path.join(os.tmpdir(), 'bagelunit-reels-render.lock.json');
 
 function owner() {
   try { return JSON.parse(fs.readFileSync(FILE, 'utf8')).pid || 0; } catch { return 0; }

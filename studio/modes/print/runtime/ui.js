@@ -1,4 +1,4 @@
-/* Susanoo Reel Kit print · ui
+/* BagelUnit Reel Kit print · ui
    Interface pieces drawn in the house finish (paper-white card stock, a 3 px ink edge, a hard offset shadow on the tone layer,
    Oswald labels) and the on-screen words of the kit in the reel's language. Helpers draw at the coordinates they are given; wrap
    them in X([T, K], x, y, s, rotDeg, fn) to place or animate a group. */

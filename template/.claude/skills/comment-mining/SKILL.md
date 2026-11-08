@@ -7,7 +7,7 @@ description: >
 user-invokable: true
 argument-hint: "[paste comments/DMs, or point at a post]"
 metadata:
-  author: Susanoo
+  author: BagelUnit
   version: "1.0.0"
   category: content
 ---
@@ -22,7 +22,7 @@ uses - and turns them into content ideas.
 You're out of ideas, but your audience has been telling you what they want.
 
 ## What you'll need
-Your last 30-100 comments or DMs. Paste them in, or export them from the platform.
+Your last 30-100 comments or DMs. Paste them in, or export them from the platform. 30 to 100 gives a fair picture. With fewer, still run it, but say the sample is small and treat counts as hints, not patterns.
 
 ## Instructions
 Give Claude the input and run this.
@@ -40,6 +40,6 @@ Use their vocabulary, not mine.
 ```
 
 **Honesty:** Every idea must trace to a real comment. Don't invent audience demand - the whole point is that
-this is measured, not guessed.
+this is measured, not guessed. Answers and content ideas may only state facts found in brand/facts.md. For a question about prices, plans, limits or comparisons with no cleared fact, write {{needs cleared fact}} and flag it; never answer from memory.
 
 **Next:** [viral-hook-writer](../viral-hook-writer/SKILL.md) → [reel-scripter](../reel-scripter/SKILL.md)

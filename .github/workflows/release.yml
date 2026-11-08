@@ -23,4 +23,4 @@ jobs:
           if gh release view "$tag" >/dev/null 2>&1; then echo "$tag is already released"; exit 0; fi
           awk -v ver="$v" '$0 ~ "^## " ver " " {f=1; next} /^## / {f=0} f' CHANGELOG.md > notes.md
           test -s notes.md || { echo "CHANGELOG.md has no entry for $v"; exit 1; }
-          gh release create "$tag" --target "$GITHUB_SHA" --title "Susanoo Reel Kit $v" --notes-file notes.md
+          gh release create "$tag" --target "$GITHUB_SHA" --title "BagelUnit Reel Kit $v" --notes-file notes.md

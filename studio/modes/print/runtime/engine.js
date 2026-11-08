@@ -1,4 +1,4 @@
-/* Susanoo Reel Kit print · engine
+/* BagelUnit Reel Kit print · engine
    Boot, the scene timeline, the camera, the presenter's automatic life, the chapter chrome and the frame itself.
    The page publishes window.studio = { ready, length, show(t), grab: 'canvas', cues } for the kit's tools (tools/session.mjs).
    Boot: reel.json → build/words.json (or stand-in timings from script.txt) → timeline.js → each file in SCENE_FILES → TIMELINE()

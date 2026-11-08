@@ -1,9 +1,9 @@
 ---
-name: susanoo-reels
-description: Susanoo Reel Kit. Makes ready-to-post 1080x1920 Instagram Reels / TikToks / Shorts from one prompt, either animated explainers (it writes or uses the script, voices it, animates every scene, reviews its own frames, exports an mp4) or edited talking-head reels from the user's own face take (layouts, captions, graphics over the footage). Use whenever the user asks for a reel, short, TikTok, explainer video, faceless video, talking-head edit, animated video for social, or says /susanoo-reels.
+name: bagelunit-reels
+description: BagelUnit Reel Kit. Makes ready-to-post 1080x1920 Instagram Reels / TikToks / Shorts from one prompt, either animated explainers (it writes or uses the script, voices it, animates every scene, reviews its own frames, exports an mp4) or edited talking-head reels from the user's own face take (layouts, captions, graphics over the footage). Use whenever the user asks for a reel, short, TikTok, explainer video, faceless video, talking-head edit, animated video for social, or says /bagelunit-reels.
 ---
 
-# Susanoo Reel Kit · studio guide
+# BagelUnit Reel Kit · studio guide
 
 You're the editor and this folder is your studio. You write the words and the shot code; the studio's tools voice, render, check and export. `KIT_DIR` = the folder this file is in (`<workspace>/studio`). Run every tool by absolute path, e.g. `node "$KIT_DIR/tools/kit.mjs" frames <project> 2.5`.
 
@@ -46,7 +46,7 @@ Run the checkup again whenever a tool fails with a setup-looking error.
 From the prompt, settle five things: **topic/angle**, **their script or yours**, **mode**, **CTA keyword**, **language**. Infer the rest. Only ask when the topic itself is unclear.
 - **A video of them talking** → `talking`. Jump to section T.
 - **A pasted script** is used **word for word**. Fix only obvious typos.
-- **Mode:** ALWAYS ask the user which style to use before anything else, even when the topic or a pasted script suggests one: one multiple-choice question (Print, 3D (`depth`), Talking head (`talking`, only if they have a video of themselves)), with your recommendation first and why. Never default silently. This is the brief's one question. <!-- local change, owner rule 2026-11-05; re-apply after kit updates -->
+- **Mode:** ALWAYS ask the user which style to use before anything else, even when the topic or a pasted script suggests one: one question block with the AskUserQuestion tool (Print, 3D (`depth`), Talking head (`talking`, only if they have a video of themselves)), with your recommendation first and why. Never default silently. This is the brief's one question. <!-- local change, owner rule 2026-11-05; re-apply after kit updates -->
 - **CTA keyword:** one memorable uppercase word tied to the topic (COFFEE, PLUGINS). It goes in `reel.json`.
 - **Language:** set `"language": "xx"` in `reel.json` (ru, es, de, ar…). The voice, captions, CTA and UI text follow it.
   - Latin, Cyrillic, Greek and Vietnamese fonts ship with the kit.
@@ -152,8 +152,15 @@ Full checklist: `playbook/self-review.md`.
    - `pace` lists every flat stretch with its words. Give each one a build-up, secondary motion, a camera move or a host act.
    - `effort` checks for enough original work, with no stock prop carrying the reel.
    - Never render the final while a gate fails.
+   - `kit lint <project>` (local addition) checks shot grammar: shot length, face time, repeated layouts, cuts on words, rhythm, movement in the first second. Errors must be fixed; print reels have no shot data yet, so it says so and checks nothing.
 4. **Last look:** the sheet once more through `playbook/taste.md`'s questions. If any answer is "not yet", improve first.
 5. **Final:** `kit render <project> --final`, then `kit export <project>`, which writes `out/<name>.mp4` (1080×1920, 30 fps, H.264 + AAC). **Then the real-sound step (local add-on, owner 2026-11-05, replaces the synthesised effects):** `~/dev/sound/earshot/.venv/bin/python "$KIT_DIR/tools/realsound.py" <project> --video out/<name>.mp4 --out out/<name>.mp4.tmp.mp4`, check `build/realsound/report.txt` (every picture check passes; earshot realness), then replace `out/<name>.mp4` with it. It mixes real CC0 recordings (opus-sound-layer), snaps every hit to the frame where the motion lands, and keeps the voice on top. <!-- local change, re-apply after kit updates --> Export mixes the sound cues and keeps them sparse: at most about one cue per 0.75 s, with cuts, stamps and slams winning over pops and ticks. Fewer cues may play than the shots asked for; that's on purpose, so place sounds only on the moments that matter.
+
+5b. **Fact check (local addition):** `kit facts <project> check --scope final` (mechanical: digits, sources, clearance dates, absolute wording; writes `build/factcheck.md`), then the fresh re-read of every source (`/reel-factcheck` in the brand workspace) and `kit facts <project> record --scope final --result PASS|FAIL`. The same check runs on the script before Gate A (`--scope script`, before any voice credits). `kit gate` refuses Gate A and Gate C without a current PASS.
+6. **File check and fingerprint (local addition):** run `kit qa <project>` on `out/<name>.mp4` (format, loudness and peak, black or frozen stretches, first-word sync; it must print PASS, and it says which checks it skipped). After the approver says yes at Gate C, run `kit gate <project> record --gate C`: it stores the file's fingerprint with the QA result and the review verdict in `approvals.md`. Later, `kit gate <project> check` shows whether the file changed after approval.
+7. **Facts and estimate (local addition):** `kit measure <project>` writes plain facts (cuts, pauses, loudness, still stretches, contact sheets); `kit predict <project>` adds a watch-time and skip-rate estimate only once `kit calibrate <insights.csv>` has been run on at least 8 of the brand's own reels. Until then it gives measurements, never a prediction.
+
+**Paid calls are guarded (local addition):** `voice.py` and `take.py` keep a marker in `build/.markers/` for every paid request. The same request again prints "reused (no credits spent)"; a request that may already have been billed is refused until you re-run with `--force`.
 
 One render runs at a time (built-in lock). Drafts first, final once.
 

@@ -10,8 +10,8 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { SKILL } from './server.mjs';
 
-const NEW_CONFIG_DIR = path.join(os.homedir(), '.config', 'susanoo-reels');
-const OLD_CONFIG_DIR = path.join(os.homedir(), '.config', 'susanoo-reels');   // migration fallback: same folder (kept for compatibility)
+const NEW_CONFIG_DIR = path.join(os.homedir(), '.config', 'bagelunit-reels');
+const OLD_CONFIG_DIR = path.join(os.homedir(), '.config', 'susanoo-reels');   // migration fallback: the folder used before the BagelUnit rename (2026-11-08)
 const CONFIG_DIR = fs.existsSync(NEW_CONFIG_DIR) || !fs.existsSync(OLD_CONFIG_DIR) ? NEW_CONFIG_DIR : OLD_CONFIG_DIR;
 const CONFIG = path.join(CONFIG_DIR, 'config.json');
 const PLATFORM = os.platform();
@@ -143,7 +143,7 @@ function look() {
 // Kenney only serves its zips to a browser, so a library built by a script alone is missing them.
 function soundLibrary() {
   const catalog = path.join(os.homedir(), 'dev', 'sound', 'opus-sound-layer', 'audio', 'kit', 'catalog.json');
-  const rerun = 'run the installer again from your susanoo-reel-kit folder: bash setup/install.sh\n           (it opens the Kenney pages; on each click Download, then "Continue without donating...", and it takes the zips from Downloads)';
+  const rerun = 'run the installer again from your bagelunit-reel-kit folder: bash setup/install.sh\n           (it opens the Kenney pages; on each click Download, then "Continue without donating...", and it takes the zips from Downloads)';
   let sounds;
   try { sounds = JSON.parse(fs.readFileSync(catalog, 'utf8')).sounds || []; }
   catch { return maybe('sound library (optional: the real-sound step)', rerun); }
@@ -161,6 +161,6 @@ plan();
 whisper(hasPython);
 soundLibrary();
 look();
-console.log(`Susanoo Reel Kit · setup check  (${SKILL})\n${report.join('\n')}`);
+console.log(`BagelUnit Reel Kit · setup check  (${SKILL})\n${report.join('\n')}`);
 console.log(toFix ? `\n${toFix} thing(s) to fix. Work top to bottom, then run this again.` : '\nAll set. Ask for a reel!');
 process.exit(toFix ? 1 : 0);

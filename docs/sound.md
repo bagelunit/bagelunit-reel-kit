@@ -14,7 +14,7 @@ It uses two open-source tools installed by the setup script into `~/dev/sound/` 
 After `kit export <reel>`:
 
 ```bash
-~/dev/sound/earshot/.venv/bin/python ~/.claude/skills/susanoo-reels/tools/realsound.py <reel> \
+~/dev/sound/earshot/.venv/bin/python ~/.claude/skills/bagelunit-reels/tools/realsound.py <reel> \
   --video out/<name>.mp4 --out out/<name>-real.mp4
 ```
 

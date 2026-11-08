@@ -47,10 +47,10 @@ function reelAt(dir) {
   return { dir: full, cfg, name: cfg.name || path.basename(full) };
 }
 
-// the saved look (host, theme, brand) from ~/.config/susanoo-reels/config.json, laid over a new reel's reel.json
+// the saved look (host, theme, brand) from ~/.config/bagelunit-reels/config.json, laid over a new reel's reel.json
 function applySavedLook(reel, style) {
-  const cfgDir = [path.join(os.homedir(), '.config', 'susanoo-reels'), path.join(os.homedir(), '.config', 'susanoo-reels')]   // second = migration fallback
-    .find((d) => fs.existsSync(d)) || path.join(os.homedir(), '.config', 'susanoo-reels');
+  const cfgDir = [path.join(os.homedir(), '.config', 'bagelunit-reels'), path.join(os.homedir(), '.config', 'susanoo-reels')]   // second = migration fallback
+    .find((d) => fs.existsSync(d)) || path.join(os.homedir(), '.config', 'bagelunit-reels');
   const saved = readJSON(path.join(cfgDir, 'config.json'), {});
   const host = saved.host ?? saved.presenter;
   if (host !== undefined && ('host' in reel || 'presenter' in reel || style === 'print')) reel['host' in reel ? 'host' : 'presenter'] = host;
@@ -167,6 +167,13 @@ const COMMANDS = {
   render: [render, '<dir> [--final] [--from s --to s] [--fps 30] [--blur 2] [--out file]', 'half-size draft → build/draft.mp4 · --final (1080x1920) → build/video.mp4'],
   pace: [() => runPython('pace.py', [reelAt(target).dir, ...rest]), '<dir>', 'does it keep moving? a score and the still stretches'],
   effort: [() => runPython('effort.py', [reelAt(target).dir]), '<dir>', 'built for THIS script, or from ready-made pieces?'],
+  lint: [() => runPython('lint.py', [reelAt(target).dir, ...rest]), '<dir> [video.mp4]', 'shot grammar: lengths, adjacent layouts, cuts on words, rhythm, first-frame motion'],
+  qa: [() => runPython('qa.py', [reelAt(target).dir, ...rest]), '<dir> [video.mp4]', 'final file checks: spec, loudness, black/frozen frames, text safe zone, A/V sync; writes build/qa.json'],
+  facts: [() => runPython('facts.py', [reelAt(target).dir, ...rest]), '<dir> [check] [--scope script|final]  |  <dir> record --scope script|final --result PASS|FAIL', 'fact check: mechanical check of the reel against brand/facts.md (writes build/factcheck.md), then record the fresh re-read verdict (/reel-factcheck)'],
+  gate: [() => runPython('gate.py', [reelAt(target).dir, ...rest]), '<dir> record|check [--gate A|B|C] [--note "text"] [--skip-facts "reason"]', 'record an approval (gate C also hashes the final mp4) or check it is unchanged'],
+  measure: [() => runPython('measure.py', [reelAt(target).dir, ...rest]), '<dir> [video]', 'facts only: cuts, words, loudness, silence, still stretches; contact sheets in build/measure'],
+  calibrate: [() => runPython('calibrate.py', [target, ...rest]), '<insights.csv> [--project-root <reels>]', 'fit the estimator on this brand\'s own Instagram Insights (needs 8+ measured reels)'],
+  predict: [() => runPython('predict.py', [reelAt(target).dir, ...rest]), '<dir>', 'measured facts, plus a watch-time and skip-rate estimate once calibrated'],
   sound: [sound, '<dir>', 'voice + effects (+ music) → build/mix.wav'],
   export: [exportReel, '<dir> [--remix]', 'picture + sound → out/<name>.mp4, ready for Instagram'],
   live: [live, '<dir> [--port n]', 'serve the reel and print a link to watch it play'],

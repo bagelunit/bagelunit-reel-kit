@@ -14,4 +14,14 @@ out/
 __pycache__/
 *.pyc
 *.orig-*
-.susanoo-reel-kit
+.bagelunit-reel-kit
+
+template/brand/library/**/*.png
+template/brand/library/**/*.jpg
+template/brand/library/**/*.jpeg
+template/brand/library/**/*.webp
+template/brand/library/**/*.gif
+template/brand/library/**/*.svg
+template/brand/library/**/*.mp4
+template/brand/library/**/*.mov
+template/brand/library/**/*.webm

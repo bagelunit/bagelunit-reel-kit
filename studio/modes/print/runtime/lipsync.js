@@ -1,4 +1,4 @@
-/* Susanoo Reel Kit print · lipsync
+/* BagelUnit Reel Kit print · lipsync
    Mouth shapes from the word timings, with no outside tools. Letters become rough phonemes (letter pairs first), each word's
    phonemes share its time (vowels get more), keyframes are joined, smoothed (quick to open, slower to close), and m / b / p press
    the lips shut. Cyrillic and Greek are spelled out in Latin first, accents are dropped (é ñ ü ç ş ß…); a word in any other script

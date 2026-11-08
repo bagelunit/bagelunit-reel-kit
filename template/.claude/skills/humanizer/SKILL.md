@@ -8,7 +8,7 @@ description: >
 user-invokable: true
 argument-hint: "[text to rewrite, or a path to a script or caption]"
 metadata:
-  author: Susanoo
+  author: BagelUnit
   version: "1.0.0"
   category: content
 ---

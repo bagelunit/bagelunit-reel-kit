@@ -1,4 +1,4 @@
-/* Susanoo Reel Kit print · compositor (WebGL)
+/* BagelUnit Reel Kit print · compositor (WebGL)
    Prints the two 2D layers into the output canvas like a riso print on warm stock:
      T (tone) → an engraved line screen: grey / black = key-ink lines at 45°, pure #FF0000 = accent-ink lines at -45° (a touch
                 mis-registered, like a second drum), pure #00FF00 = second-ink lines at 0°. Overlapping inks crosshatch; white = paper.

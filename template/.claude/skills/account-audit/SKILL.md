@@ -8,7 +8,7 @@ description: >
 user-invokable: true
 argument-hint: "[handles, or a path to a scraper export]"
 metadata:
-  author: Susanoo
+  author: BagelUnit
   version: "1.0.0"
   category: research
 ---
@@ -19,9 +19,10 @@ The step that tells you what to make next: which reels beat an account's own nor
 
 ## What you need
 - The brand workspace (a copy of `template/`), so results go into `brand/swipe.md`.
-- EITHER an export of posts you already have (`--json file`), OR Apify with the brand owner's permission:
+- EITHER an export of posts you already have, OR Apify with the brand owner's permission:
   `brand/brand.json` -> `autopilot.scrape` is `true`, and the owner has saved an Apify token to
-  `~/.config/susanoo-reels/apify.key`. Never ask for, print, read aloud or search for the token.
+  `~/.config/bagelunit-reels/apify.key`. Never ask for, print, read aloud or search for the token.
+- About the export: `--json file` takes a scraper export (a list of posts). An Instagram Insights export saved as CSV goes in with `--csv file --owner <handle>`; it needs a views column and a date or timestamp column (any capitalisation), and `--owner` defaults to "account". `--csv` works offline, like `--json`.
 
 ## Steps
 1. **Pick accounts.** The brand's own handle, plus 6 to 12 others: about 4 in the niche and a bit ahead, 4 adjacent,
@@ -38,7 +39,7 @@ The step that tells you what to make next: which reels beat an account's own nor
    characters or prompts. Every number in a script still has to be in `brand/facts.md`.
 
 ## Own stats for the review (step 14)
-`python3 ./.claude/skills/account-audit/outliers.py --handles <the brand's handle> --all --out brand/stats.md` (or `--json` on an export) lists every recent reel with views, likes, comments and its ratio to the brand's own median. `/analytics-readout` and the review step read `brand/stats.md`; the reel's row in `brand/log.md` can then point to it. It appends a dated block each time, so history stays.
+`python3 ./.claude/skills/account-audit/outliers.py --csv brand/insights.csv --owner <the brand's handle> --all --out brand/stats.md` (the brand's own numbers, no scraping; or `--handles <handle>` with `autopilot.scrape` on, or `--json` on an export) lists every recent reel with views, likes, comments and its ratio to the brand's own median. `/analytics-readout` and the review step read `brand/stats.md`; the reel's row in `brand/log.md` can then point to it. It appends a dated block each time, so history stays.
 
 ## Honest limits
 - Views only; the scraper does not give retention, saves or shares.

@@ -1,4 +1,4 @@
-/* talking engine (Susanoo Reel Kit): page skeleton. Colours come from the theme as CSS variables on :root (set at boot):
+/* talking engine (BagelUnit Reel Kit): page skeleton. Colours come from the theme as CSS variables on :root (set at boot):
    --paper --ink --accent --ink2 --line --tint --dark --card --mute --onaccent. Use them in scene HTML: style="color:var(--accent)". */
 html, body { margin: 0; background: #000; }
 #frame { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--dark);

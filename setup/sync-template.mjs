@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Susanoo Reel Kit: keep the template copies up to date. Runs on macOS, Windows and Linux.
+// BagelUnit Reel Kit: keep the template copies up to date. Runs on macOS, Windows and Linux.
 //
 //   node setup/sync-template.mjs
 //       Refresh the generic folder you copy from (~/Documents/Claude/Reel Template, or $REEL_TEMPLATE_HOME)
@@ -10,6 +10,7 @@
 //       Updates ONE brand workspace (a copy you already set up) with the newer kit files.
 //       It updates only what the kit owns: CLAUDE.md, README.md, LICENSE, .gitignore, docs/, .claude/skills/, reels/_example/.
 //       It NEVER touches brand/ or reels/ (the brand's own data), except that brand/brand.json gains any NEW
+//       setting (at any depth) and brand starter files that do not exist yet (log.md, swipe.md, insights.csv) are added.
 //       top-level setting the template added (existing values are never changed).
 //       Files it overwrites are first saved next to them as <name>.bak-<date>.
 //       A brand-specific edit you made to CLAUDE.md or a skill WILL be replaced (the .bak keeps it): re-apply it after.
@@ -84,7 +85,24 @@ for (const p of PATHS) {
 const newBrand = JSON.parse(fs.readFileSync(path.join(SRC, 'brand', 'brand.json'), 'utf8'));
 const oldBrandPath = path.join(DEST, 'brand', 'brand.json');
 const oldBrand = JSON.parse(fs.readFileSync(oldBrandPath, 'utf8'));
-const missing = Object.keys(newBrand).filter((k) => !(k in oldBrand));
+// settings the template added, at any depth; existing values are never changed
+function missingKeys(src, dst, prefix = '') {
+  const out = [];
+  for (const k of Object.keys(src)) {
+    if (!(k in dst)) out.push(prefix + k);
+    else if (src[k] && typeof src[k] === 'object' && !Array.isArray(src[k]) && dst[k] && typeof dst[k] === 'object' && !Array.isArray(dst[k])) out.push(...missingKeys(src[k], dst[k], prefix + k + '.'));
+  }
+  return out;
+}
+function addKey(dst, src, dotted) {
+  const parts = dotted.split('.'); let d = dst, s = src;
+  for (const p of parts.slice(0, -1)) { d = d[p]; s = s[p]; }
+  d[parts.at(-1)] = s[parts.at(-1)];
+}
+const missing = missingKeys(newBrand, oldBrand).filter((k) => !k.split('.').pop().startsWith('_note') || !k.includes('.'));
+// brand starter files the template added (log, swipe, insights...): created only when absent, never overwritten
+const BRAND_STARTERS = fs.readdirSync(path.join(SRC, 'brand')).filter((f) => f !== 'brand.json' && fs.statSync(path.join(SRC, 'brand', f)).isFile());
+const newStarters = BRAND_STARTERS.filter((f) => !fs.existsSync(path.join(DEST, 'brand', f)));
 
 if (!apply) {
   console.log(`DRY RUN for: ${DEST}   (nothing changed; add --apply to do it)`);
@@ -102,6 +120,7 @@ if (!apply) {
   for (const r of changed) console.log(`  replaced  ${r}`);
   if (!added.length && !changed.length) console.log('  all kit files are current');
   console.log(`  brand.json would gain: ${missing.length ? missing.join(', ') : 'nothing'}`);
+  console.log(`  new brand files (created empty, nothing overwritten): ${newStarters.length ? newStarters.map((f) => 'brand/' + f).join(', ') : 'none'}`);
   process.exit(0);
 }
 
@@ -114,10 +133,12 @@ for (const r of [...added, ...changed]) {
 }
 if (missing.length) {
   fs.copyFileSync(oldBrandPath, `${oldBrandPath}.bak-${S}`);
-  for (const k of missing) oldBrand[k] = newBrand[k];
+  for (const k of missing) addKey(oldBrand, newBrand, k);
   fs.writeFileSync(oldBrandPath, JSON.stringify(oldBrand, null, 2) + '\n');
 }
 console.log(`brand.json gained: ${missing.length ? missing.join(', ') : 'nothing (already current)'}`);
+for (const f of newStarters) fs.copyFileSync(path.join(SRC, 'brand', f), path.join(DEST, 'brand', f));
+if (newStarters.length) console.log(`new brand files: ${newStarters.map((f) => 'brand/' + f).join(', ')}`);
 fs.writeFileSync(path.join(DEST, '.kit-synced'), new Date().toISOString().slice(0, 10) + '\n');
 fs.writeFileSync(path.join(DEST, '.kit-version'), kitVersion + '\n');
-console.log(`Updated ${DEST} to kit version ${kitVersion}. Replaced files were saved as *.bak-${S}. brand/ and reels/ were not touched.`);
+console.log(`Updated ${DEST} to kit version ${kitVersion}. Replaced files were saved as *.bak-${S}. Your brand data and reels were not changed (only new settings and missing starter files were added).`);

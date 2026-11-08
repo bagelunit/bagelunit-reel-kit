@@ -1,4 +1,4 @@
-/* Susanoo Reel Kit print · mechanics
+/* BagelUnit Reel Kit print · mechanics
    How things MOVE, not finished props: springs, a pendulum, gravity, speed curves, idle float; the build-up stage and its camera;
    presenter acting presets (moods and their effects, stepping into the hero spot, a REC viewfinder); live interface mocks (a chat
    composer, a video player with a scrubber, an odometer, a live stat card, a notification stack); and the palette flood.

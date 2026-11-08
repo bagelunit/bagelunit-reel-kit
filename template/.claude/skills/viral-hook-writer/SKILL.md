@@ -1,14 +1,13 @@
 ---
 name: viral-hook-writer
 description: >
-  Write scroll-stopping hooks for a short-form video (the first 1-3 seconds).
-  Use ONLY when the user asks for it by name (/viral-hook-writer) or for "10 hook options" as a
-  standalone list. Inside a Susanoo reel workspace the hook step belongs to /susanoo-reels (Gate A)
-  and /ig-reel, so do not trigger on a plain "hook" or "make a reel".
+  Write scroll-stopping hooks for a short-form video (the first 1 to 3 seconds). Use when the user
+  asks for hooks, hook options or opening lines, and at the hook step of every reel in this workspace,
+  before the script goes to Gate A. Only cleared facts from brand/facts.md.
 user-invokable: true
 argument-hint: "[reel topic / what the video is about]"
 metadata:
-  author: Susanoo
+  author: BagelUnit
   version: "1.0.0"
   category: content
 ---
@@ -38,9 +37,9 @@ Write 10 hooks for the first 1-3 seconds. Use a spread of proven angles:
 - Result-first ("I went from X to Y")
 - Question that names the pain
 
-Rules: under 12 words each, spoken-language, no fluff, no hashtags. For each hook add a 3-5 word on-screen text version. Mark the 3 you'd test first and say why in one line.
+Rules: under 12 words each, spoken-language, no fluff, no hashtags. Never invent a result, number or personal claim; use only brand/facts.md, and write {{needs cleared fact}} where one is missing. For each hook add a 3-5 word on-screen text version. Mark the 3 you'd test first and say why in one line.
 ```
 
-**Memory tip:** point Claude at the brand's `brand/swipe.md` and `brand/log.md` - "use the hooks that performed best there as the pattern." Hooks grounded in *your* winners beat generic ones.
+**Memory tip:** if present, point Claude at the brand's `brand/swipe.md` and `brand/log.md` (they may be empty at first) - "use the hooks that performed best there as the pattern." Hooks grounded in *your* winners beat generic ones.
 
 **Tip:** Always generate 10 and test 2-3. The hook you love is rarely the one that wins.

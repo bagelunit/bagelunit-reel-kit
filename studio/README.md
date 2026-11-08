@@ -1,4 +1,4 @@
-# Susanoo Reel Kit · studio
+# BagelUnit Reel Kit · studio
 
 The engine room of the kit. You talk to your AI; it works in here.
 

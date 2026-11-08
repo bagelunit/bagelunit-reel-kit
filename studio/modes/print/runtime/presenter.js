@@ -1,4 +1,4 @@
-/* Susanoo Reel Kit print · presenter
+/* BagelUnit Reel Kit print · presenter
    The host: a flat cut-paper bust drawn with Canvas 2D. On the ink layer every shape is one flat colour with one shade plane;
    on the tone layer the whole silhouette casts one soft offset shadow.
 

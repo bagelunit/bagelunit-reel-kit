@@ -1,4 +1,4 @@
-/* Susanoo Reel Kit print · media
+/* BagelUnit Reel Kit print · media
    Images from the reel's assets/ folder, and typing helpers. A scene registers an image while it loads:
      ASSETS.push(['shot', 'assets/screenshot.png'])   → IMG.shot once the page is ready
    Every helper does nothing when an image is missing, so a bad path never breaks a frame. */

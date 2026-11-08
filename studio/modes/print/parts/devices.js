@@ -1,4 +1,4 @@
-/* Susanoo Reel Kit print · devices
+/* BagelUnit Reel Kit print · devices
    A phone, a browser window, an app panel and a terminal, drawn in the caller's space: shadows on T (they print as lines),
    surfaces and type on K. Wrap them in X([T, K], x, y, s, rotDeg, () => …) to move, scale or turn them. */
 

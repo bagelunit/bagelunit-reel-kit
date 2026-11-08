@@ -1,16 +1,16 @@
 ---
 name: hook-mining
 description: >
-  Mine a CSV of REAL top-performing hooks and generate alternatives that keep what made them work:
-  hold the storytelling psychology and structure fixed, hot-swap only the power words.
-  Use when the user has hook performance data (a Sandcastles / social-analytics export, scraped
-  competitor hooks, their own analytics) and says "mine hooks", "remix hooks", "hook variations",
-  "make hooks from this CSV", or "give me hook options from what's working".
-  NOT for inventing hooks from nothing - that's viral-hook-writer.
+  Mine a CSV of real top-performing hooks and generate alternatives that keep what made them work:
+  hold the storytelling psychology and structure fixed, swap only the power words. Use when the user
+  says "mine hooks", "remix hooks", "hook variations", "make hooks from this CSV", "mine my top
+  performers" or "give me hook options from what's working". If no hook data is in the workspace yet,
+  the skill says exactly what file to bring. NOT for inventing hooks from nothing (that is
+  viral-hook-writer).
 user-invokable: true
 argument-hint: "[path to your hooks CSV]"
 metadata:
-  author: Susanoo
+  author: BagelUnit
   version: "1.0.0"
 ---
 
@@ -36,15 +36,17 @@ Column names are never predictable, so don't hand-parse.
 ## 2. Mine it
 
 ```bash
-python3 ./.claude/skills/hook-mining/mine_hooks.py hooks.csv [--top 40]
+python3 ./.claude/skills/hook-mining/mine_hooks.py hooks.csv [--top 40] [--metric Saves]
 ```
 
 Auto-detects the hook column and the performance column, ranks, buckets by pattern, and flags the
 power words already present. Writes `hooks.mined.json`. Run `--selftest` to verify the parsing.
 
+`--metric <column>` ranks by the named column instead of the first metric it finds (case does not matter). If the goal is save, rank by the saves column: `--metric Saves`. `--top` larger than the number of rows is fine; you just get every row. Rows or files marked SYNTHETIC are flagged in the output.
+
 Patterns it sorts into: `result-proof` · `time-bound` · `contrarian` · `secret-gap` · `listicle` ·
-`how-to` · `warning-fear` · `newsjack` · `comparison` · `question` · `curiosity-tease` ·
-`plain-statement`.
+`how-to` · `warning-fear` (this is where "Stop ..." lines go) · `newsjack` · `comparison` · `question` · `curiosity-tease` ·
+`number-led` (has a number but fits no other pattern) · `plain-statement`.
 
 ## 3. Remix - the part that matters
 
@@ -76,7 +78,8 @@ Then hand the winners to **viral-hook-writer** to rank, or straight into **reel-
 - **Never remix the structure.** Change the clause order or drop the number and you have thrown away
   the only thing the data proved.
 - **A number in the source stays a number in the remix - and it must be YOURS and real.** Swapping in
-  a stat you cannot defend is the fastest way to lose an audience.
+  a stat you cannot defend is the fastest way to lose an audience. In a reel workspace the number must be in brand/facts.md; otherwise drop it or write {{needs cleared fact}}.
+- **Data marked SYNTHETIC must never be presented as real hooks.** Say it is sample data, and do not quote it as proof of what works.
 - **Rank before you mine.** Remixing a hook that did not perform just launders a bad idea.
 - **Small buckets are signal.** A pattern with two entries that both went viral beats one with forty
   mediocre ones. Weight by performance, not by count.

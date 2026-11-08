@@ -1,4 +1,4 @@
-/* Susanoo Reel Kit print · captions
+/* BagelUnit Reel Kit print · captions
    The headline that builds word by word from the voice: Barlow Condensed caps, 80 px, ink, centred on x 540, first baseline at
    y 330, wrapping at 840 px. A key word turns accent and a thick ink marker stroke swipes in under it, with a small spring.
    Timing: each word arrives 0.15 s before it is spoken (0.07 s fade, 18 px drop); when the next phrase starts the old one lifts

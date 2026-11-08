@@ -1,4 +1,4 @@
-/* Susanoo Reel Kit print · lib
+/* BagelUnit Reel Kit print · lib
    The drawing vocabulary every scene shares. Each frame is drawn on two canvases:
      T  the tone layer: the compositor prints it as engraved lines (greys = key ink, pure #FF0000 = accent ink, white = paper)
      K  the ink layer: composited on top exactly as drawn (type, outlines, flat colour, stamps)

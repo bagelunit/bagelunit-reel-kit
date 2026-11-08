@@ -69,4 +69,4 @@ jobs:
         run: |
           export HOME="$RUNNER_TEMP/home"; export USERPROFILE="$HOME"; mkdir -p "$HOME"
           node setup/install.mjs --skip-packages --skip-plugins --skip-sound
-          test -f "$HOME/.claude/skills/susanoo-reels/KIT.md"
+          test -f "$HOME/.claude/skills/bagelunit-reels/KIT.md"

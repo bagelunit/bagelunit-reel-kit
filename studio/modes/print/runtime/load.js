@@ -1,4 +1,4 @@
-/* Susanoo Reel Kit print · load
+/* BagelUnit Reel Kit print · load
    The one script a print page includes. It queues the engine core, the prop kits and the boot in a fixed order (each file sees
    the ones before it). The boot loads reel.json, build/words.json (or estimates from script.txt), timeline.js, then every scene. */
 [

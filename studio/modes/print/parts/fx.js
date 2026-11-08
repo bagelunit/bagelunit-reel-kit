@@ -1,4 +1,4 @@
-/* Susanoo Reel Kit print · fx
+/* BagelUnit Reel Kit print · fx
    Print-style effects: glows and dust on the tone layer T (grey prints as key-ink lines, '255,0,0' as accent lines), impacts,
    cables, energy flow, pen marks and confetti on the ink layer K. Every effect is a pure function of its time arguments. */
 

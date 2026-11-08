@@ -1,7 +1,7 @@
 """Shared plumbing for the kit's Python tools: where settings live, how keys are found, flags, ffmpeg helpers,
 word-timing files. Every tool imports this module, so behaviour stays the same everywhere.
 
-Settings folder: ~/.config/susanoo-reels/ (falls back to the same folder (kept for compatibility) until setup copies it over)
+Settings folder: ~/.config/bagelunit-reels/ (falls back to ~/.config/susanoo-reels/, the folder used before the rename, until setup copies it over)
   config.json        saved defaults (voice, theme, brand, host, AI plan)
   elevenlabs.key     one line, the ElevenLabs API key (or the ELEVENLABS_API_KEY environment variable)
   openai.key         one line, only if you voice with OpenAI
@@ -10,8 +10,8 @@ Keys are only read, never printed.
 import json, os, re, subprocess, sys
 from pathlib import Path
 
-_NEW_CFG = Path.home() / '.config' / 'susanoo-reels'
-_OLD_CFG = Path.home() / '.config' / 'susanoo-reels'   # migration fallback: same folder (kept for compatibility)
+_NEW_CFG = Path.home() / '.config' / 'bagelunit-reels'
+_OLD_CFG = Path.home() / '.config' / 'susanoo-reels'   # migration fallback: the folder used before the BagelUnit rename (2026-11-08)
 HOME_CFG = _NEW_CFG if _NEW_CFG.is_dir() or not _OLD_CFG.is_dir() else _OLD_CFG
 KIT_ROOT = Path(__file__).resolve().parent.parent          # the studio/ folder
 

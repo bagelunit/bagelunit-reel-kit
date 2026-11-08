@@ -1,4 +1,4 @@
-/* Susanoo Reel Kit print · words
+/* BagelUnit Reel Kit print · words
    The voice clock. WORDS = build/words.json as [{ w, s, e }] (seconds on the finished audio), loaded before timeline.js and the
    scenes, so a scene can work out its beats while it loads:  const T_SLAM = wordAt('camera', 0, 1, 0.2 * VO_END);
    Every beat is a word (a fraction of the voice is the fallback when a word isn't in the script); never hard-coded seconds. */
