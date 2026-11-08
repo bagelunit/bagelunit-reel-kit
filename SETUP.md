@@ -14,7 +14,7 @@ Pick your system (the installer does exactly this and asks first; this is for do
 |---|---|
 | macOS (Homebrew) | `brew install ffmpeg node python git uv whisper-cpp` |
 | Windows (PowerShell) | `winget install OpenJS.NodeJS.LTS Gyan.FFmpeg Python.Python.3.12 Git.Git astral-sh.uv`, then `pip install faster-whisper` |
-| Linux (Debian, Ubuntu) | `sudo apt install ffmpeg python3 python3-venv python3-pip git nodejs npm`, then uv from https://docs.astral.sh/uv/ and `pip install --user faster-whisper` |
+| Linux (Debian, Ubuntu) | Node.js 22 or newer from https://nodejs.org (the `nodejs` package from apt is too old on most versions), then `sudo apt install ffmpeg python3 python3-venv python3-pip git`, uv from https://docs.astral.sh/uv/ and `pip install --user faster-whisper` |
 
 On Windows and Linux, Whisper (the tool that times every spoken word) comes from `faster-whisper` instead of `whisper-cpp`; the kit uses whichever it finds. On Windows, where this kit says `python3` use `python`.
 

@@ -15,7 +15,7 @@ Prefer one global install? Copy just `studio/` into your skills folder as `bagel
 
 ## Programs the kit calls
 
-Three programs: Node.js (version 18 or later), ffmpeg (it brings ffprobe along) and Python 3.
+Three programs: Node.js (version 22 or later), ffmpeg (it brings ffprobe along) and Python 3.
 
 | System | One line installs all three |
 |---|---|

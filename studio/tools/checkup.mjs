@@ -59,7 +59,7 @@ const cfg = loadConfig();
 
 function tools() {
   const nodeMajor = Number(process.versions.node.split('.')[0]);
-  nodeMajor >= 18 ? ok('Node.js', `v${process.versions.node}`) : bad('Node.js 18 or newer', 'install the LTS from https://nodejs.org, then reopen the terminal');
+  nodeMajor >= 22 ? ok('Node.js', `v${process.versions.node}`) : bad('Node.js 22 or newer', 'install the LTS from https://nodejs.org, then reopen the terminal');
   installed('playwright') && installed('three') ? ok('npm packages', 'playwright, three') : bad('npm packages', `cd "${SKILL}" && npm install`);
   const ff = output('ffmpeg', ['-version']);
   if (!ff) bad('ffmpeg', perOS({ mac: 'brew install ffmpeg   (no Homebrew yet? https://brew.sh)', win: 'winget install Gyan.FFmpeg   (then reopen the terminal)', linux: 'sudo apt install ffmpeg' }));

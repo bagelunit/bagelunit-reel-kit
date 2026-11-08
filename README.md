@@ -38,7 +38,7 @@ Each person runs the kit on their own computer with their own Claude Code accoun
 
 ## Requirements
 
-- **macOS, Windows or Linux.** One installer for all three. It needs [Node.js](https://nodejs.org) 18 or newer to start, and it installs or asks for the rest (ffmpeg, Python 3, git, uv, Whisper) using Homebrew on Mac, winget on Windows, and apt or pacman on Linux. It always shows you a command and asks before installing a program, and never runs anything as administrator by itself.
+- **macOS, Windows or Linux.** One installer for all three. It needs [Node.js](https://nodejs.org) 22 or newer to start, and it installs or asks for the rest (ffmpeg, Python 3, git, uv, Whisper) using Homebrew on Mac, winget on Windows, and apt or pacman on Linux. It always shows you a command and asks before installing a program, and never runs anything as administrator by itself.
 - **Claude Code** on a paid plan (Pro or Max), signed in with your own account. A reel takes Claude roughly 30 to 80 minutes of work. If your plan's usage limit stops Claude partway, nothing is lost: see "If Claude stops partway" in [`template/docs/first-reel.md`](template/docs/first-reel.md).
 - An **ElevenLabs** account and API key of your own for the voice. The free plan is fine for trying the kit, but ElevenLabs allows only non-commercial use on it, with credit to ElevenLabs. For a business's or a client's reels, use a paid plan (Starter or higher; check ElevenLabs' current terms). Your key stays on your computer in `~/.config/bagelunit-reels/elevenlabs.key`; you put it there yourself, and it never goes in a chat or in this repo.
 - About 3 GB of disk for the render browser, the sound library and earshot's models.
@@ -94,7 +94,7 @@ Do not make any reel or brand folder yet. End by telling me what to do next.
 
 **What goes in each blank**
 - **My system:** Apple computer = Mac; Windows laptop or PC = Windows. If you are unsure, Claude can tell from the installer.
-- **Node.js installed:** not sure? Say "not sure". Claude checks by running `node --version`; a number like `v22.1.0` (18 or higher) means yes.
+- **Node.js installed:** not sure? Say "not sure". Claude checks by running `node --version`; a number like `v22.1.0` (22 or higher) means yes.
 - **Claude plan, ElevenLabs:** tells Claude how many credits to expect and whether to walk you through making an account.
 
 ### Message 2: set up a brand (once per brand)

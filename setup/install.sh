@@ -5,9 +5,9 @@
 set -euo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if ! command -v node >/dev/null 2>&1; then
-  echo "Node.js 18 or newer is needed first."
+  echo "Node.js 22 or newer is needed first."
   if command -v brew >/dev/null 2>&1; then echo "Install it with:  brew install node"
-  elif command -v apt-get >/dev/null 2>&1; then echo "Install it with:  sudo apt-get install -y nodejs npm   (or use https://nodejs.org for the current LTS)"
+  elif command -v apt-get >/dev/null 2>&1; then echo "Install the current LTS from https://nodejs.org (the nodejs package from apt is too old on most Linux versions)"
   else echo "Install the current LTS from https://nodejs.org"; fi
   echo "Then open a new terminal and run this again."
   exit 1

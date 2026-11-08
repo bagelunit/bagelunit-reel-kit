@@ -136,7 +136,7 @@ function openUrl(u) {
 // ---------------------------------------------------------------- start
 if (!exists(path.join(STUDIO, 'KIT.md'))) { console.error('Cannot find studio/KIT.md next to this script. Run it from a clone of the repo.'); process.exit(1); }
 console.log(`BagelUnit Reel Kit installer\nRepo: ${REPO}\nSystem: ${process.platform} (${os.arch()}), Node ${process.versions.node}${F.dryRun ? '\nDRY RUN: nothing will be changed' : ''}`);
-if (Number(process.versions.node.split('.')[0]) < 18) { console.error('Node 18 or newer is needed. Install the current LTS from https://nodejs.org and run this again.'); process.exit(1); }
+if (Number(process.versions.node.split('.')[0]) < 22) { console.error('Node 22 or newer is needed. Install the current LTS from https://nodejs.org and run this again.'); process.exit(1); }
 
 // ---------------------------------------------------------------- 1. programs
 // The kit was renamed (Susanoo Reel Kit -> BagelUnit Reel Kit, 2026-11-08): copy the old settings folder over once.
