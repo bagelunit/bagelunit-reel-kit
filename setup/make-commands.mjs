@@ -135,6 +135,9 @@ async function pdf() {
   console.log('wrote docs/commands.pdf');
 }
 
+// Windows checkouts may turn line endings into CRLF; compare the text, not the line endings.
+const lf = (t) => t.replace(/\r\n/g, '\n');
+
 function check() {
   const problems = [];
   const listed = new Set(rows.map((r) => r.cmd));
@@ -145,9 +148,9 @@ function check() {
   const block = kit.slice(kit.indexOf('const COMMANDS = {'));
   for (const m of block.matchAll(/^\s{2}([a-z]+): \[/gm)) if (!listed.has(`kit ${m[1]}`)) problems.push(`engine command kit ${m[1]} has no entry`);
   const now = fs.existsSync(path.join(REPO, 'COMMANDS.md')) ? fs.readFileSync(path.join(REPO, 'COMMANDS.md'), 'utf8') : '';
-  if (now !== markdown()) problems.push('COMMANDS.md is out of date: run node setup/make-commands.mjs');
+  if (lf(now) !== lf(markdown())) problems.push('COMMANDS.md is out of date: run node setup/make-commands.mjs');
   const csvNow = fs.existsSync(path.join(REPO, 'docs', 'commands.csv')) ? fs.readFileSync(path.join(REPO, 'docs', 'commands.csv'), 'utf8') : '';
-  if (csvNow !== csv()) problems.push('docs/commands.csv is out of date: run node setup/make-commands.mjs');
+  if (lf(csvNow) !== lf(csv())) problems.push('docs/commands.csv is out of date: run node setup/make-commands.mjs');
   if (problems.length) { console.error('Commands reference:\n  ' + problems.join('\n  ')); process.exit(1); }
   console.log(`Commands reference is complete (${rows.length} commands).`);
 }
