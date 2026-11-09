@@ -5,7 +5,7 @@ A brand workspace: one folder per brand. The `template` folder in the kit stays 
 **The prompts to send, in order:** open Claude Code in your copy, then copy the "Set up this brand" prompt from `docs/prompts.md` (it also starts on its own the first time you send anything). When that is done, copy the "Make a reel" prompt from the same file and fill in the blanks. Claude asks every setup choice and every approval as a question block: click an option, or pick "Other" and type.
 
 **To use it for a brand or project:**
-1. Copy this whole folder once per brand or project: in Finder or File Explorer, or in a terminal from the kit's folder with `mkdir -p ~/Reels && cp -R template ~/Reels/<brand>`.
+1. Make one copy of this folder per brand or project. The easy way: open Claude Code in the kit's folder and type `/brand-setup`; it makes the copy and sets up the brand in one go. By hand: copy this whole folder in Finder or File Explorer, or in a terminal from the kit's folder with `node setup/new-brand.mjs ~/Reels/<brand>`.
 2. Start Claude Code inside the copy. With an empty `brand/brand.json` it runs the first-run brand setup (or run `/brand-setup`).
 3. Make reels from there. Everything this copy needs travels with it: the house rules (`CLAUDE.md`), the skills (`.claude/skills/`), the guides (`docs/`), and this brand's own files (`brand/`, `reels/`).
 
@@ -83,4 +83,4 @@ This copy records the kit version it is on in `.kit-version`. The kit's changes 
 1. See what would change, changing nothing: `node <kit folder>/setup/sync-template.mjs <this folder>`
 2. Apply it: `node <kit folder>/setup/sync-template.mjs <this folder> --apply`
 
-Either way, only the kit's own files are replaced (`CLAUDE.md`, `README.md`, `LICENSE`, `.gitignore`, `docs/`, `.claude/skills/`, `reels/_example/`). `brand/` and `reels/` are never touched, except that `brand/brand.json` gains any new setting without changing yours. Any file that is replaced is saved next to it as `<name>.bak-<date>`. If you changed the rules or a skill for this brand only, re-apply that change from the backup afterwards.
+Either way, only the kit's own files are replaced (`CLAUDE.md`, `README.md`, `LICENSE`, `.gitignore`, `docs/`, `.claude/skills/`, `reels/_example/`). `brand/` and `reels/` are never touched, except that `brand/brand.json` gains any new setting without changing yours. Any file that is replaced is saved next to it as `<name>.bak-<date>`. If you changed the rules or a skill for this brand only, re-apply that change from the backup afterwards. Better: keep rules for just this brand in `CLAUDE.local.md` in this folder. Claude Code reads it automatically and updates never touch it.

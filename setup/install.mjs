@@ -441,5 +441,5 @@ else {
 step('Kit checkup (node tools/checkup.mjs)');
 if (sh('node', ['tools/checkup.mjs'], { cwd: exists(TARGET) ? TARGET : STUDIO }).status !== 0) warn('the checkup lists items to fix above; SETUP.md explains each one');
 
-console.log('\nDone. Next: copy template/ to a folder for your brand, open Claude Code in that copy and run /brand-setup.');
+console.log('\nDone. Next: open Claude Code in this kit folder and type /brand-setup. It makes your brand\'s own folder and asks about your brand.');
 if (MISSING.length) console.log(`Still to do: the Kenney packs ${MISSING.join(' ')} (see the "Kenney sound packs" step above). Reels work without them.`);

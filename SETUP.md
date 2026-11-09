@@ -148,15 +148,16 @@ Done when it shows only checks (lines marked optional can stay open).
 
 ## 7. Your first brand
 
+Open Claude Code in the kit's folder and type `/brand-setup`. It asks the brand's name and where its folder goes (it suggests `~/Reels/<brand>`), makes the folder, asks the brand questions, and tells you how to open the folder to make reels.
+
+By hand, from the kit's folder (works on every system):
+
 ```bash
-mkdir -p ~/Reels
-cp -R ~/dev/bagelunit-reel-kit/template ~/Reels/my-brand
+node setup/new-brand.mjs ~/Reels/my-brand
 cd ~/Reels/my-brand && claude
 ```
 
-Use your own kit folder's path in the `cp` line: a ZIP download unzips to a folder called `bagelunit-reel-kit-main`, wherever you put it. You can also copy the `template` folder in Finder or File Explorer and rename the copy.
-
-Claude sees an empty brand and starts the brand setup questions. Run `/brand-setup` any time to change the answers.
+You can also copy the `template` folder in Finder or File Explorer and rename the copy. Claude sees an empty brand and starts the brand setup questions. Inside a brand folder, run `/brand-setup` any time to change the answers.
 
 Keep brand folders out of iCloud-synced folders (Desktop, Documents) if you can: renders write many frames, and syncing them slows everything down.
 

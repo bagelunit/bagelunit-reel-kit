@@ -50,6 +50,18 @@ jobs:
           python template/.claude/skills/hook-mining/mine_hooks.py --selftest
           python template/.claude/skills/brand-setup/prefill.py --selftest
 
+      - name: New brand folder script works (copy, refuse existing, refuse inside the kit)
+        shell: bash
+        run: |
+          node --check setup/new-brand.mjs
+          B="$RUNNER_TEMP/new-brand"
+          node setup/new-brand.mjs "$B" | grep -q "OK: made a new brand folder"
+          diff -r template "$B"
+          if node setup/new-brand.mjs "$B"; then echo "should refuse an existing folder"; exit 1; fi
+          if node setup/new-brand.mjs ./inside-kit; then echo "should refuse a folder inside the kit"; exit 1; fi
+          test ! -e inside-kit
+          test -f .claude/skills/brand-setup/SKILL.md
+
       - name: Update script works (dry run, apply, brand data untouched)
         shell: bash
         run: |

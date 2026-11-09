@@ -13,7 +13,7 @@ Every gate is asked as a question block (Approve, Change something, or Stop this
 
 ## 0. Brand setup (once per workspace)
 
-Copy `template/` for the brand and open Claude Code in the copy. With an empty `brand/brand.json` Claude runs the brand questions (or run `/brand-setup`): your name, the brand, handle, colours, logo, fonts, presenter (sticker, drawn or none), voice, call-to-action style, kit update notices, a private local history, and how many reels a week to post (saved as `batch.max_reels`). Every question is a clickable question block: pick an option, or pick "Other" and type. `brand/facts.md` holds the only claims allowed on screen, in the voice or in a caption, and only the user adds or confirms them.
+Type `/brand-setup` in the kit's folder: it copies `template/` to a new brand folder and asks the brand questions there. Or copy `template/` yourself and open Claude Code in the copy: with an empty `brand/brand.json` Claude runs the brand questions (or run `/brand-setup`): your name, the brand, handle, colours, logo, fonts, presenter (sticker, drawn or none), voice, call-to-action style, kit update notices, a private local history, and how many reels a week to post (saved as `batch.max_reels`). Every question is a clickable question block: pick an option, or pick "Other" and type. `brand/facts.md` holds the only claims allowed on screen, in the voice or in a caption, and only the user adds or confirms them.
 
 ## 1. Research (monthly)
 

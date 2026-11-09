@@ -2,6 +2,14 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.8.0 (2026-11-08)
+
+- **One first command after installing: `/brand-setup`.** Type it in Claude Code in the kit's folder. It asks the brand's name and where its folder should go (it suggests `~/Reels/<brand>`), makes the folder, asks the brand questions there, and tells you how to open it to make reels. No more copying the `template` folder by hand. The installer now ends by pointing at it.
+- **`setup/new-brand.mjs`** makes a new brand folder from the command line on Mac, Windows and Linux: `node setup/new-brand.mjs ~/Reels/my-brand`. It never overwrites a folder that already has files, and never puts a brand inside the kit's own folder.
+- **The kit's own folders stay blank.** `/brand-setup` now refuses to fill in the kit's `template/` folder or the generic `Reel Template` folder, and makes a brand folder first.
+- **A safe place for your own rules: `CLAUDE.local.md`.** Rules for one brand only (for example "you pick the style for each reel") go in `CLAUDE.local.md` in that brand's folder. Claude Code reads it automatically, and kit updates never touch it, while the workspace's `CLAUDE.md` is replaced by each update. "Update the kit" now offers to move a brand-only change there.
+- Existing brand workspaces update with "update the kit" (or `node setup/sync-template.mjs <workspace>` as a dry run, then `--apply`). To get `/brand-setup` in the kit's folder, download the new kit (or `git pull`).
+
 ## 1.7.1 (2026-11-08)
 
 - **The ElevenLabs free plan is for trying the kit only.** ElevenLabs allows only non-commercial use on it, with credit to ElevenLabs, so reels for a business or a client need a paid plan. The README has a new "What it costs you" note.

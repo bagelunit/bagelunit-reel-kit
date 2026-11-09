@@ -19,7 +19,7 @@ The prompt for the kit's own folder (installing the kit) is in the main README. 
 
 ## 1. Set up this brand (once per brand)
 
-Send this in a fresh copy of this template. It teaches Claude who the brand is. It takes about five minutes.
+The quickest way is to type `/brand-setup` in the kit's folder: it makes this brand's folder and asks the same questions. Or send this in a fresh copy of this template. It teaches Claude who the brand is. It takes about five minutes.
 
 ```
 Set up this brand. Follow the first-run brand setup in CLAUDE.md. Use my answers below where I filled them in, and ask me the rest as multiple-choice questions (a few at a time, recommended option first).

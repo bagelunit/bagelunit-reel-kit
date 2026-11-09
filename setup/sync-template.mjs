@@ -14,6 +14,7 @@
 //       top-level setting the template added (existing values are never changed).
 //       Files it overwrites are first saved next to them as <name>.bak-<date>.
 //       A brand-specific edit you made to CLAUDE.md or a skill WILL be replaced (the .bak keeps it): re-apply it after.
+//       Rules for one brand belong in its CLAUDE.local.md, which this script never touches.
 //       The dry run also says which kit version the workspace is on, which is current, and what changed in between.
 //
 // Never run it on the repo itself. (setup/sync-template.sh is a launcher for this file.)
@@ -141,4 +142,4 @@ for (const f of newStarters) fs.copyFileSync(path.join(SRC, 'brand', f), path.jo
 if (newStarters.length) console.log(`new brand files: ${newStarters.map((f) => 'brand/' + f).join(', ')}`);
 fs.writeFileSync(path.join(DEST, '.kit-synced'), new Date().toISOString().slice(0, 10) + '\n');
 fs.writeFileSync(path.join(DEST, '.kit-version'), kitVersion + '\n');
-console.log(`Updated ${DEST} to kit version ${kitVersion}. Replaced files were saved as *.bak-${S}. Your brand data and reels were not changed (only new settings and missing starter files were added).`);
+console.log(`Updated ${DEST} to kit version ${kitVersion}. Replaced files were saved as *.bak-${S}. Your brand data and reels were not changed (only new settings and missing starter files were added). Rules for this brand only belong in CLAUDE.local.md, which updates never touch.`);

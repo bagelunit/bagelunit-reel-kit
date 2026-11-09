@@ -26,7 +26,8 @@ brand's data (`brand/` values, `reels/`): it adds new settings and missing start
    prints the changelog entries since this workspace's version, then the list of files that would be added or
    replaced and the settings `brand.json` would gain. Summarise in plain words: what is new for this brand, and
    which files get replaced. If the owner changed `CLAUDE.md` or a skill for this brand only, warn that the change
-   will be replaced (a `.bak-<date>` copy is kept) and offer to re-apply it afterwards.
+   will be replaced (a `.bak-<date>` copy is kept) and offer to move it into `CLAUDE.local.md` (rules for this
+   brand only; Claude Code reads it automatically and updates never touch it) instead of re-applying it.
 3. **Ask** (question block): "Update this workspace (Recommended)", "Not now".
 4. **Apply:** `node .claude/skills/kit-update/update.mjs apply`. Report what changed in two or three lines.
 5. **The engine** (`/bagelunit-reels`) is updated once per computer, not per workspace. Ask (question block):

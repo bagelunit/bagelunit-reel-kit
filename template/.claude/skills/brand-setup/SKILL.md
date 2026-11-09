@@ -7,6 +7,15 @@ description: Sets up (or redoes) this reel workspace's brand. Asks the user's na
 
 Run this in the workspace root (the folder holding `brand/` and `reels/`). It is the same questionnaire as section 0 of the workspace `CLAUDE.md`.
 
+## First: is this a brand folder?
+
+Never fill in the kit's own copy-from folders. Stop and make a brand folder first if this folder is:
+- the kit's own folder (it holds `studio/KIT.md` and `template/`): follow that folder's `.claude/skills/brand-setup/SKILL.md` instead, which makes the brand folder and then comes back here;
+- the kit's `template/` folder (its parent folder holds `studio/KIT.md`): run `node ../setup/new-brand.mjs "<folder>"` from here, or `/brand-setup` in the kit's folder, which does the whole thing;
+- the generic copy-from folder `Reel Template` (in `~/Documents/Claude/`, or wherever `REEL_TEMPLATE_HOME` points): the kit refreshes it, so brand answers here would be lost. Copy it to a new folder (for example `~/Reels/<brand>`) first.
+
+Then do the setup in the new folder. If the kit's `/brand-setup` sent you here, "this folder" means the new brand folder: run every command from inside it.
+
 ## Before asking
 
 1. Read `brand/brand.json`, `brand/voice.md` and `brand/facts.md`.

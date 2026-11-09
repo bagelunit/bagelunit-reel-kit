@@ -4,6 +4,8 @@ Make ready-to-post vertical reels (1080x1920, Instagram, TikTok, Shorts) with Cl
 
 Each person runs the kit on their own computer with their own Claude Code account and their own keys. Nothing in this repo holds a key, a photo of anyone or any client data.
 
+> **Quick start.** 1) Download this kit. 2) Open Claude Code in its folder and say "set up the reel kit". 3) Type **`/brand-setup`** to make your brand's folder. 4) Open that folder and ask for a reel. Step by step: [Start here](#start-here-if-you-have-never-done-this-before).
+
 > **License.** Free to use, including for paid client work, under the [BagelUnit Reel Kit License](LICENSE). The videos you make are yours. Please do not resell, re-upload or repackage the kit.
 
 ## What you get
@@ -20,7 +22,7 @@ Each person runs the kit on their own computer with their own Claude Code accoun
 
 **Real-sound step (add-on).** The engine's built-in effects are synthesised and can sound fake. After export, `realsound.py` swaps them for real CC0 recordings, snaps every hit to the frame where the motion lands, mixes to -14 LUFS with the voice on top, and listens to the result with earshot. See [docs/sound.md](docs/sound.md).
 
-**A brand workspace.** `template/` is copied once per brand. On first use Claude runs a short brand setup (your name, the brand, handle, colours, logo, fonts, presenter, voice, call to action, kit updates, a private history, and how many reels a week) and keeps that brand's rules, voice and cleared facts in `brand/`. Run it again any time with `/brand-setup`.
+**A brand workspace.** Each brand gets its own folder. Type `/brand-setup` in the kit's folder: it makes the folder and runs a short brand setup (your name, the brand, handle, colours, logo, fonts, presenter, voice, call to action, kit updates, a private history, and how many reels a week), and keeps that brand's rules, voice and cleared facts in its `brand/`. Inside a brand folder, `/brand-setup` changes the answers any time.
 
 **Checks on every reel.** Claude fact checks the script before you approve it (before any voice credits are spent) and again on the final: a fresh reader re-reads every source, and a claim it cannot back up is flagged. `kit qa` checks the finished file (format, loudness, black or frozen stretches, and whether the first word lines up with the first sound), `/reel-review` writes a one-line verdict (meets the bar, close, or not ready), and each approval is tied to the file's fingerprint, so a change after approval shows up.
 
@@ -65,7 +67,7 @@ You do not need to be technical. You give Claude Code a few messages, and it doe
 3. Make an **ElevenLabs** account at https://elevenlabs.io (the free plan is enough to try the kit; for a business or a client you need a paid plan, see Requirements above). It is the voice for your reels. You will save its key later; Claude shows you how.
 4. **Download this kit.** On this page click the green **Code** button, then **Download ZIP**, and unzip it somewhere easy (for example your home folder). Or, if you know git: `git clone https://github.com/bagelunit/bagelunit-reel-kit.git`.
 
-**Then send three messages to Claude Code**, each in a different folder. For each: open a terminal in that folder, type `claude`, press Enter, and paste the message.
+**Then send three messages to Claude Code.** The first two go in the kit's folder, the third in your brand's folder (Message 2 makes it). To open Claude Code in a folder: open a terminal there, type `claude` and press Enter (or in VS Code: File, Open Folder, then open Claude Code).
 - *Mac:* open Terminal, type `cd ` (with a space), drag the folder from Finder into the window, press Enter, then type `claude`.
 - *Windows:* open the folder in File Explorer, click the address bar, type `powershell`, press Enter, then type `claude`.
 
@@ -99,11 +101,13 @@ Do not make any reel or brand folder yet. End by telling me what to do next.
 
 ### Message 2: set up a brand (once per brand)
 
-Make a copy of the `template` folder for the brand (for example copy it to a folder called `my-brand` in your home folder; keep it out of iCloud or OneDrive if you can), open Claude Code inside that copy, and paste the "Set up this brand" message from [`template/docs/prompts.md`](template/docs/prompts.md). It has blanks for the brand name, handle, website, colours, logo, fonts, voice and call to action, each with a plain-words hint.
+In the same kit folder, type **`/brand-setup`** and press Enter. Claude asks the brand's name and where its folder should go (it suggests `~/Reels/<brand>`), makes that folder for you, then asks about the brand with clickable questions: your name, handle, colours, logo, fonts, presenter, voice and call to action. At the end it tells you how to open the new folder.
+
+Every brand gets its own folder, so brands never mix. Run `/brand-setup` again in the kit folder for each new brand. Inside a brand's folder, `/brand-setup` changes that brand's answers. (Doing it by hand also works: copy the `template` folder, open Claude Code in the copy, and paste the "Set up this brand" message from [`template/docs/prompts.md`](template/docs/prompts.md).)
 
 ### Message 3: make a reel (every time)
 
-In that same brand folder, paste the "Make a reel" message from the same file. It has blanks for the topic, the one goal, the style, the facts you allow, and something only you can say, plus a filled-in example. Claude asks which style you want, writes hooks and the script, fact checks it, and shows you what the voice will cost. Then it stops three times for your yes (script, visual plan, final video), each time with a clickable approval. It never posts anything for you unless you connected a publisher yourself and approve each reel's time.
+Open Claude Code in the brand folder `/brand-setup` made (in VS Code: File, Open Folder), and paste the "Make a reel" message from the same file. It has blanks for the topic, the one goal, the style, the facts you allow, and something only you can say, plus a filled-in example. Claude asks which style you want, writes hooks and the script, fact checks it, and shows you what the voice will cost. Then it stops three times for your yes (script, visual plan, final video), each time with a clickable approval. It never posts anything for you unless you connected a publisher yourself and approve each reel's time.
 
 When you are ready for results, the same file also has a message for reading your numbers after posting and one for planning a week of reels. A walk-through of the first reel is in [`template/docs/first-reel.md`](template/docs/first-reel.md).
 
@@ -121,9 +125,10 @@ The full process, with its three approval gates, is in [docs/process.md](docs/pr
 | Path | What it is |
 |---|---|
 | `studio/` | The reel engine, installed as the Claude Code skill `bagelunit-reels` (`/bagelunit-reels`): three styles, the always-ask-the-style rule, the sticker presenter and the real-sound step. Changes are logged in `studio/LOCAL-CHANGES.md`. |
-| `template/` | The generic brand workspace. Copy it once per brand or project and start Claude Code inside the copy. It is self-contained and carries the licence: `CLAUDE.md` (house rules and first-run setup), `brand/`, `reels/`, `docs/`, and the skills in `.claude/skills/`. |
+| `template/` | The generic brand workspace. `/brand-setup` (or `node setup/new-brand.mjs <folder>`) copies it once per brand or project; start Claude Code inside the copy. It is self-contained and carries the licence: `CLAUDE.md` (house rules and first-run setup), `brand/`, `reels/`, `docs/`, and the skills in `.claude/skills/`. |
 | `template/docs/` | `first-reel.md` (your first reel, step by step), `prompts.md` (messages to copy and fill in), `after-posting.md` (your numbers), `auto-reply.md` (comment auto-reply and DMs), `auto-post.md` (posting on a schedule), `hook-and-review-playbook.md`, `craft-playbook.md` (what is on screen) and `style-ideas.md` (style concepts not built yet). |
 | `template/.claude/skills/` | 23 skills that travel with every copy of the template (nothing global, so brands never mix). Setup and updates: `brand-setup`, `kit-update`. Research and planning: `account-audit` (with the 3x outlier script), `reel-sources`, `reel-analyzer`, `comment-mining`, `going-viral`, `virality`. Hooks and script: `viral-hook-writer`, `hook-mining`, `ab-hook-tester`, `reel-scripter`, `reel-builder`, `humanizer`. Checks: `reel-factcheck`, `reel-review`, `reel-predict`. Finishing and posting: `caption-and-hashtags`, `cover-thumbnail-brief`, `reel-posting`. After posting: `analytics-readout`, `comment-responder`, and the opt-in autopilot `content-factory`. |
+| `.claude/skills/brand-setup/` | `/brand-setup` in the kit's folder: the first step after installing. Makes a brand folder with `setup/new-brand.mjs` (a copy of `template/`) and asks the brand questions there. |
 | `setup/install.mjs` | The installer (Node, runs on macOS, Windows and Linux). `install.sh` and `install.ps1` are tiny launchers for it. |
 | `setup/sync-template.mjs` | Keeps copies current (runs on Mac, Windows and Linux; `sync-template.sh` is a launcher): with no argument it refreshes your generic copy-from folder; with a brand workspace path it shows (then with `--apply` performs) an update of that workspace's kit files without touching its `brand/` or `reels/`. |
 | `docs/` | `process.md` (the full loop), `avatar.md` (making sticker poses), `sound.md` (the real-sound step), `reference.md` (what we learned from other reel makers). |

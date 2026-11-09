@@ -1,8 +1,10 @@
 # Reel workspace (BagelUnit Reel Kit template)
 
-This folder makes Instagram reels for ONE brand. It is a copy of the `template/` folder from the BagelUnit Reel Kit: copy the whole folder once per brand (for example `~/Reels/<brand>/`), then start Claude Code inside the copy. The kit itself is installed once per computer by the repo's `setup/install.sh`.
+This folder makes Instagram reels for ONE brand. It is a copy of the `template/` folder from the BagelUnit Reel Kit: each brand gets its own copy (made by `/brand-setup` in the kit's folder, or by copying this folder, for example to `~/Reels/<brand>/`), and Claude Code is started inside the copy. The kit itself is installed once per computer by the repo's `setup/install.sh`.
 
 On Windows, wherever a command says `python3` use `python`; paths written with `~` mean your home folder.
+
+**Rules for this brand only go in `CLAUDE.local.md`** in this folder (create it if it is missing). Claude Code reads it automatically, next to this file, and kit updates never touch it, while this `CLAUDE.md` is replaced by each update. When the owner gives a standing rule for this brand (for example "you pick the style for each reel"), write it in `CLAUDE.local.md`, never here. Where it differs from a default in this file, the owner's rule there wins, except the safety rules in section 3 that say they always stay on.
 
 It uses its own skills (23, in this folder's `.claude/skills/`; the table "Which skill for which step" says when each one runs, and `/brand-setup` runs the first-run questionnaire below) and the installed skills and plugins, as their authors ship them:
 - `/bagelunit-reels`, the reel engine installed at `~/.claude/skills/bagelunit-reels` (script, voice, animated shots, self-check, export, plus the sticker presenter and the real-sound step),
