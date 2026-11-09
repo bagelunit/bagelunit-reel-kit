@@ -60,6 +60,14 @@ function applySavedLook(reel, style) {
   return reel;
 }
 
+// the brand folder a reel folder sits in: the nearest folder above it holding brand/brand.json and .kit-version
+function brandFolderOf(dir) {
+  for (let d = path.dirname(dir); ; d = path.dirname(d)) {
+    if (fs.existsSync(path.join(d, 'brand', 'brand.json')) && fs.existsSync(path.join(d, '.kit-version'))) return d;
+    if (path.dirname(d) === d) return null;
+  }
+}
+
 /* ── verbs ──────────────────────────────────────────────────────────────────────────────────────────────────────────── */
 function start() {
   const style = text('style') ?? 'print';
@@ -67,6 +75,13 @@ function start() {
   if (!target) die('usage: kit start <dir> --style <style>');
   const dir = path.resolve(target);
   if (fs.existsSync(path.join(dir, 'reel.json'))) die(`${dir} already holds a reel (reel.json is there)`);
+  // local addition: reels are made only inside a set-up brand folder (<brand>-reels, holding brand/brand.json and .kit-version)
+  if (!flags.anywhere) {
+    const home = brandFolderOf(dir);
+    if (!home) die(`${dir} is not inside a brand folder. Reels are made only in a brand's <brand>-reels folder (the one holding brand/ and .kit-version), so each brand's reels, facts and voice stay together. Open Claude Code in that folder and start the reel there. No brand folder yet? Type /brand-setup in the kit's folder. (--anywhere skips this check, for tests only.)`);
+    if (!readJSON(path.join(home, 'brand', 'brand.json'), {}).name) die(`the brand in ${home} is not set up yet (brand.json has no name). Run /brand-setup in that folder first.`);
+    if (!/-reels$/i.test(path.basename(home))) console.log(`note: brand folders are named <brand>-reels; this one is ${path.basename(home)}.`);
+  }
   // local addition: never overwrite a file already in the folder (a script written before Gate A must survive)
   const starter = path.join(MODES_DIR, style, 'starter');
   const kept = fs.readdirSync(starter).filter(f => fs.existsSync(path.join(dir, f)));

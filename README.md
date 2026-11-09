@@ -107,7 +107,9 @@ Every brand gets its own folder, so brands never mix. Run `/brand-setup` again i
 
 ### Message 3: make a reel (every time)
 
-Open Claude Code in the brand folder `/brand-setup` made (in VS Code: File, Open Folder), and paste the "Make a reel" message from the same file. It has blanks for the topic, the one goal, the style, the facts you allow, and something only you can say, plus a filled-in example. Claude asks which style you want, writes hooks and the script, fact checks it, and shows you what the voice will cost. Then it stops three times for your yes (script, visual plan, final video), each time with a clickable approval. It never posts anything for you unless you connected a publisher yourself and approve each reel's time.
+Every reel is made in the brand's `<brand>-reels` folder, never in the kit's folder or another folder. The kit refuses to start a reel anywhere else, so each brand's reels, facts and voice stay together.
+
+Open Claude Code in the brand folder `/brand-setup` made, the one named `<brand>-reels` (in VS Code: File, Open Folder), and paste the "Make a reel" message from the same file. It has blanks for the topic, the one goal, the style, the facts you allow, and something only you can say, plus a filled-in example. Claude asks which style you want, writes hooks and the script, fact checks it, and shows you what the voice will cost. Then it stops three times for your yes (script, visual plan, final video), each time with a clickable approval. It never posts anything for you unless you connected a publisher yourself and approve each reel's time.
 
 When you are ready for results, the same file also has a message for reading your numbers after posting and one for planning a week of reels. A walk-through of the first reel is in [`template/docs/first-reel.md`](template/docs/first-reel.md).
 

@@ -75,7 +75,8 @@ Save it as `<project>/script.txt`. Show it first only if they asked to review; o
 node "$KIT_DIR/tools/kit.mjs" start <REELS>/<slug> --style <print|depth|talking>
 python3 "$KIT_DIR/tools/voice.py" <REELS>/<slug>
 ```
-- `<REELS>` is the workspace's `reels/` folder (else `./reels/`). `<slug>` is a short kebab-case topic.
+- `<REELS>` is the brand folder's `reels/` folder. `<slug>` is a short kebab-case topic.
+- **Reels are made only in a brand folder** (local addition): the brand's `<brand>-reels` folder, which holds `brand/brand.json` and `.kit-version`. If Claude Code was started anywhere else (the brand's project folder, the kit's folder, a home folder), do not start the reel there: ask which brand, look for its `*-reels` folder (for example under `~/Reels/` or a project's `*.nosync/Reels/`), and tell the person to open Claude Code in that folder. If the brand has none, point them to `/brand-setup` in the kit's folder. `kit start` refuses a folder outside a set-up brand folder for the same reason (`--anywhere` is for tests only).
 - `voice.py` writes:
   - `audio/vo.mp3`: pauses over 0.45 s cut to 0.28 s, ×1.15, −14 LUFS;
   - `build/words.json` and `build/word_index.txt`: every word with its time.

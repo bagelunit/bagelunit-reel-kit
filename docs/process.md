@@ -41,7 +41,7 @@ Read the official source for every claim the reel makes (for a how-to, the produ
 ## 5. Hook and script
 
 - Write 3 or 4 hooks, score them with the Instagram plugin's hook scorer, keep one scoring 75 or more and passing the eight-point frame-0 checklist in [hook-and-review-playbook.md](../template/docs/hook-and-review-playbook.md). The hook gives the value in the first 1.5 to 3 seconds; it does not tease. (Only a numbered series reel may promise a payoff for the end, and it must pay it off.)
-- Start the reel folder first: `kit start <reel> --style <style>`. It fills a new folder with a sample `script.txt` (a script already in the folder is kept).
+- Start the reel folder first: `kit start <reel> --style <style>`, always inside the brand's `<brand>-reels` folder (it refuses anywhere else). It fills a new folder with a sample `script.txt` (a script already in the folder is kept).
 - Script: about 110 to 125 words for about 40 seconds, the usual length (about 85 words for 30 seconds, at most 130 for 45). Shape: hook > proof (a name, a number from facts.md) > 3 or 4 steps > your own proof or twist > one ask.
 - Write for the ear. Commands, URLs and codes go on screen, not in the voice. Spell tricky names by sound. The generated voice never says a word in `brand.json` > `voice.never_say`; show it as text instead.
 - No em dashes. Run the Instagram plugin's `/ig-human` detector on the script, then `/humanizer` to rewrite anything it flags.

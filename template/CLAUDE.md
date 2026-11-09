@@ -61,6 +61,7 @@ Rename, move or create nothing outside this folder. Never ask for, print or stor
 
 ## 2. Where files go
 
+- **Every reel for this brand is made in this folder** (its name ends in `-reels`), never in the brand's project folder, the kit's folder or another brand's folder. If the owner asks for this brand's reel in a session started elsewhere, the reel still goes here: tell them to open Claude Code in this folder.
 - **Light files** (scripts, plans, approvals, captions, the finished mp4) live in this copy: `reels/<slug>/`.
 - **Heavy files** (frames, drafts, renders, node_modules) should stay out of iCloud-synced folders (Desktop and Documents sync). HyperFrames projects go in `brand.json` → `work_dir` (default `~/dev/reel-work/<slug>/`). The BagelUnit Reel Kit writes its build files inside `reels/<slug>/`: if this copy sits in an iCloud folder, tell the owner before the first render.
 - **Library** (`brand/library/`: `broll/`, `product-images/`, `components/`, `screens/`, plus `INDEX.md`): the brand's own real footage, images, pieces and screenshots. Use these before inventing anything, only rows marked rights OK, and add a row to `INDEX.md` for every file added. The media itself stays out of git.

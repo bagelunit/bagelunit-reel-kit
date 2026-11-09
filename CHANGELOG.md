@@ -2,6 +2,12 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.8.2 (2026-11-09)
+
+- **Reels are only made in the brand's `<brand>-reels` folder.** The engine now refuses to start a reel anywhere else (the brand's project folder, the kit's folder, a home folder) and says which folder to open instead. It also refuses a brand folder whose brand is not set up yet, so the kit's blank `template` can never fill up with reels. Brand folders with an older name still work, with a note.
+- The README, the brand folder's rules and the engine's steps say the same thing.
+- Run `bash setup/install.sh` again (or "update the kit" in a brand folder, then let it update the engine) so the engine gets the new check.
+
 ## 1.8.1 (2026-11-09)
 
 - **Brand folders are named `<brand>-reels`.** `/brand-setup` now suggests `~/Reels/<brand>-reels` (for example `bagel-unit-reels`), and every example in the guides uses that name, so a brand's reel folder never looks like the brand's other folders. `setup/new-brand.mjs` always adds `-reels` if the name does not end in it, so `~/Reels/acme` becomes `~/Reels/acme-reels`. Existing brand folders keep their names.
