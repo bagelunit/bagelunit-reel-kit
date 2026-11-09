@@ -1,6 +1,6 @@
 # Reel workspace (BagelUnit Reel Kit template)
 
-This folder makes Instagram reels for ONE brand. It is a copy of the `template/` folder from the BagelUnit Reel Kit: each brand gets its own copy (made by `/brand-setup` in the kit's folder, or by copying this folder, for example to `~/Reels/<brand>/`), and Claude Code is started inside the copy. The kit itself is installed once per computer by the repo's `setup/install.sh`.
+This folder makes Instagram reels for ONE brand. It is a copy of the `template/` folder from the BagelUnit Reel Kit: each brand gets its own copy (made by `/brand-setup` in the kit's folder, or by copying this folder, for example to `~/Reels/<brand>-reels/`), and Claude Code is started inside the copy. The kit itself is installed once per computer by the repo's `setup/install.sh`.
 
 On Windows, wherever a command says `python3` use `python`; paths written with `~` mean your home folder.
 

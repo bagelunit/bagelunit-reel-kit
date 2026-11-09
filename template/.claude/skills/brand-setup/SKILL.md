@@ -12,7 +12,7 @@ Run this in the workspace root (the folder holding `brand/` and `reels/`). It is
 Never fill in the kit's own copy-from folders. Stop and make a brand folder first if this folder is:
 - the kit's own folder (it holds `studio/KIT.md` and `template/`): follow that folder's `.claude/skills/brand-setup/SKILL.md` instead, which makes the brand folder and then comes back here;
 - the kit's `template/` folder (its parent folder holds `studio/KIT.md`): run `node ../setup/new-brand.mjs "<folder>"` from here, or `/brand-setup` in the kit's folder, which does the whole thing;
-- the generic copy-from folder `Reel Template` (in `~/Documents/Claude/`, or wherever `REEL_TEMPLATE_HOME` points): the kit refreshes it, so brand answers here would be lost. Copy it to a new folder (for example `~/Reels/<brand>`) first.
+- the generic copy-from folder `Reel Template` (in `~/Documents/Claude/`, or wherever `REEL_TEMPLATE_HOME` points): the kit refreshes it, so brand answers here would be lost. Copy it to a new folder (for example `~/Reels/<brand>-reels`) first.
 
 Then do the setup in the new folder. If the kit's `/brand-setup` sent you here, "this folder" means the new brand folder: run every command from inside it.
 

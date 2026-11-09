@@ -2,6 +2,10 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.8.1 (2026-11-09)
+
+- **Brand folders are named `<brand>-reels`.** `/brand-setup` now suggests `~/Reels/<brand>-reels` (for example `bagel-unit-reels`), and every example in the guides uses that name, so a brand's reel folder never looks like the brand's other folders. `setup/new-brand.mjs` always adds `-reels` if the name does not end in it, so `~/Reels/acme` becomes `~/Reels/acme-reels`. Existing brand folders keep their names.
+
 ## 1.8.0 (2026-11-08)
 
 - **One first command after installing: `/brand-setup`.** Type it in Claude Code in the kit's folder. It asks the brand's name and where its folder should go (it suggests `~/Reels/<brand>`), makes the folder, asks the brand questions there, and tells you how to open it to make reels. No more copying the `template` folder by hand. The installer now ends by pointing at it.

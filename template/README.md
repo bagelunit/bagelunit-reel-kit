@@ -5,7 +5,7 @@ A brand workspace: one folder per brand. The `template` folder in the kit stays 
 **The prompts to send, in order:** open Claude Code in your copy, then copy the "Set up this brand" prompt from `docs/prompts.md` (it also starts on its own the first time you send anything). When that is done, copy the "Make a reel" prompt from the same file and fill in the blanks. Claude asks every setup choice and every approval as a question block: click an option, or pick "Other" and type.
 
 **To use it for a brand or project:**
-1. Make one copy of this folder per brand or project. The easy way: open Claude Code in the kit's folder and type `/brand-setup`; it makes the copy and sets up the brand in one go. By hand: copy this whole folder in Finder or File Explorer, or in a terminal from the kit's folder with `node setup/new-brand.mjs ~/Reels/<brand>`.
+1. Make one copy of this folder per brand or project. The easy way: open Claude Code in the kit's folder and type `/brand-setup`; it makes the copy and sets up the brand in one go. By hand: copy this whole folder in Finder or File Explorer, or in a terminal from the kit's folder with `node setup/new-brand.mjs ~/Reels/<brand>-reels`.
 2. Start Claude Code inside the copy. With an empty `brand/brand.json` it runs the first-run brand setup (or run `/brand-setup`).
 3. Make reels from there. Everything this copy needs travels with it: the house rules (`CLAUDE.md`), the skills (`.claude/skills/`), the guides (`docs/`), and this brand's own files (`brand/`, `reels/`).
 

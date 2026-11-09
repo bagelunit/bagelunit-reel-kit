@@ -15,8 +15,8 @@ Check that `~/.claude/skills/bagelunit-reels/KIT.md` exists. If it does not, the
 
 Ask with one question block (AskUserQuestion), never as plain text:
 
-1. **Brand name:** "What is the brand or company called?" Offer "Skip for now (call the folder my-brand)" as an option; the person types the real name under Other.
-2. **Where:** "Where should the brand's folder go?" Options: `~/Reels/<slug>` (Recommended; `<slug>` is the name in lowercase with dashes), "Somewhere else (type the full path under Other)". Say in the option text that a folder outside iCloud Drive, OneDrive or Dropbox is best, because renders are large.
+1. **Brand name:** "What is the brand or company called?" Offer "Skip for now (call the folder my-brand-reels)" as an option; the person types the real name under Other.
+2. **Where:** "Where should the brand's folder go?" Options: `~/Reels/<slug>-reels` (Recommended; `<slug>` is the name in lowercase with dashes, so "Bagel Unit" becomes `bagel-unit-reels`; the person can type their own spelling under Other, and the folder name always ends in `-reels`), "Somewhere else (type the full path under Other)". Say in the option text that a folder outside iCloud Drive, OneDrive or Dropbox is best, because renders are large.
 
 Then run, from this kit folder:
 
@@ -24,7 +24,7 @@ Then run, from this kit folder:
 node setup/new-brand.mjs "<folder>"
 ```
 
-It copies `template/` there and prints `OK: made a new brand folder at ...`. If it says the folder already exists, ask for another name or offer to open that existing folder instead (it may be a brand already set up). Never copy into this kit folder, and never fill in `template/` itself.
+It copies `template/` there and prints `OK: made a new brand folder at ...`. If the name did not end in `-reels`, it adds it and says so: use the folder it printed from here on. If it says the folder already exists, ask for another name or offer to open that existing folder instead (it may be a brand already set up). Never copy into this kit folder, and never fill in `template/` itself.
 
 ## 3. Set up the brand in that folder
 

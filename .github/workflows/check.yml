@@ -54,13 +54,15 @@ jobs:
         shell: bash
         run: |
           node --check setup/new-brand.mjs
-          B="$RUNNER_TEMP/new-brand"
+          B="$RUNNER_TEMP/test-reels"
           node setup/new-brand.mjs "$B" | grep -q "OK: made a new brand folder"
           diff -r template "$B"
           if node setup/new-brand.mjs "$B"; then echo "should refuse an existing folder"; exit 1; fi
           if node setup/new-brand.mjs ./inside-kit; then echo "should refuse a folder inside the kit"; exit 1; fi
-          test ! -e inside-kit
+          test ! -e inside-kit && test ! -e inside-kit-reels
           test -f .claude/skills/brand-setup/SKILL.md
+          node setup/new-brand.mjs "$RUNNER_TEMP/acme" | grep -q "acme-reels"
+          test -f "$RUNNER_TEMP/acme-reels/CLAUDE.md" && test ! -e "$RUNNER_TEMP/acme"
 
       - name: Update script works (dry run, apply, brand data untouched)
         shell: bash

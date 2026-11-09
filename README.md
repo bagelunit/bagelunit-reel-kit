@@ -101,7 +101,7 @@ Do not make any reel or brand folder yet. End by telling me what to do next.
 
 ### Message 2: set up a brand (once per brand)
 
-In the same kit folder, type **`/brand-setup`** and press Enter. Claude asks the brand's name and where its folder should go (it suggests `~/Reels/<brand>`), makes that folder for you, then asks about the brand with clickable questions: your name, handle, colours, logo, fonts, presenter, voice and call to action. At the end it tells you how to open the new folder.
+In the same kit folder, type **`/brand-setup`** and press Enter. Claude asks the brand's name and where its folder should go (it suggests `~/Reels/<brand>-reels`), makes that folder for you, then asks about the brand with clickable questions: your name, handle, colours, logo, fonts, presenter, voice and call to action. At the end it tells you how to open the new folder.
 
 Every brand gets its own folder, so brands never mix. Run `/brand-setup` again in the kit folder for each new brand. Inside a brand's folder, `/brand-setup` changes that brand's answers. (Doing it by hand also works: copy the `template` folder, open Claude Code in the copy, and paste the "Set up this brand" message from [`template/docs/prompts.md`](template/docs/prompts.md).)
 

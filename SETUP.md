@@ -148,13 +148,13 @@ Done when it shows only checks (lines marked optional can stay open).
 
 ## 7. Your first brand
 
-Open Claude Code in the kit's folder and type `/brand-setup`. It asks the brand's name and where its folder goes (it suggests `~/Reels/<brand>`), makes the folder, asks the brand questions, and tells you how to open the folder to make reels.
+Open Claude Code in the kit's folder and type `/brand-setup`. It asks the brand's name and where its folder goes (it suggests `~/Reels/<brand>-reels`), makes the folder, asks the brand questions, and tells you how to open the folder to make reels.
 
 By hand, from the kit's folder (works on every system):
 
 ```bash
-node setup/new-brand.mjs ~/Reels/my-brand
-cd ~/Reels/my-brand && claude
+node setup/new-brand.mjs ~/Reels/my-brand-reels
+cd ~/Reels/my-brand-reels && claude
 ```
 
 You can also copy the `template` folder in Finder or File Explorer and rename the copy. Claude sees an empty brand and starts the brand setup questions. Inside a brand folder, run `/brand-setup` any time to change the answers.
