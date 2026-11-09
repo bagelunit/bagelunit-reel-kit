@@ -2,6 +2,10 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.8.3 (2026-11-09)
+
+- **Every step names its command.** The guides and Claude's own instructions now lead with the command for each step: `bash setup/install.sh`, `/brand-setup`, `/bagelunit-reels` with your topic, `/analytics-readout` with your numbers, `/kit-update`. The longer prompts in `docs/prompts.md` are still there for anyone who wants every blank explained.
+
 ## 1.8.2 (2026-11-09)
 
 - **Reels are only made in the brand's `<brand>-reels` folder.** The engine now refuses to start a reel anywhere else (the brand's project folder, the kit's folder, a home folder) and says which folder to open instead. It also refuses a brand folder whose brand is not set up yet, so the kit's blank `template` can never fill up with reels. Brand folders with an older name still work, with a note.

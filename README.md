@@ -4,7 +4,7 @@ Make ready-to-post vertical reels (1080x1920, Instagram, TikTok, Shorts) with Cl
 
 Each person runs the kit on their own computer with their own Claude Code account and their own keys. Nothing in this repo holds a key, a photo of anyone or any client data.
 
-> **Quick start.** 1) Download this kit. 2) Open Claude Code in its folder and say "set up the reel kit". 3) Type **`/brand-setup`** to make your brand's folder. 4) Open that folder and ask for a reel. Step by step: [Start here](#start-here-if-you-have-never-done-this-before).
+> **Quick start.** 1) Download this kit. 2) In its folder run **`bash setup/install.sh`** (Windows: `node setup/install.mjs`), or let Claude Code run it with Message 1 below. 3) Open Claude Code there and type **`/brand-setup`** to make your brand's folder. 4) Open that folder and type **`/bagelunit-reels`** with your topic. Step by step: [Start here](#start-here-if-you-have-never-done-this-before).
 
 > **License.** Free to use, including for paid client work, under the [BagelUnit Reel Kit License](LICENSE). The videos you make are yours. Please do not resell, re-upload or repackage the kit.
 
@@ -34,9 +34,9 @@ Each person runs the kit on their own computer with their own Claude Code accoun
 
 **Comment auto-reply.** `/comment-responder` walks you through connecting a "comment a keyword, get a DM" reply for your brand, one step at a time ([`template/docs/auto-reply.md`](template/docs/auto-reply.md)). It stays off until you have tested it from a second account and turned it on.
 
-**Your numbers after posting.** Tell Claude "add my numbers" and it keeps one row per posted reel in `brand/insights.csv`, then `/analytics-readout` says what to make more of and what to stop, against your own results. Once 8 of your posted reels have numbers, `/reel-predict` can estimate how a new draft will hold viewers before you post it. See [`template/docs/after-posting.md`](template/docs/after-posting.md).
+**Your numbers after posting.** Type `/analytics-readout` with your numbers: it keeps one row per posted reel in `brand/insights.csv` and says what to make more of and what to stop, against your own results. Once 8 of your posted reels have numbers, `/reel-predict` can estimate how a new draft will hold viewers before you post it. See [`template/docs/after-posting.md`](template/docs/after-posting.md).
 
-**One-command updates.** Say "update the kit" in a brand workspace: `/kit-update` shows what changed, previews, updates the workspace without touching your brand's files, and offers to update the engine too. It works even if you downloaded the kit as a ZIP.
+**One-command updates.** Type `/kit-update` in a brand folder: it shows what changed, previews, updates the workspace without touching your brand's files, and offers to update the engine too. It works even if you downloaded the kit as a ZIP.
 
 ## Requirements
 
@@ -117,10 +117,10 @@ The full process, with its three approval gates, is in [docs/process.md](docs/pr
 
 ### After your first reel
 
-- **Your numbers:** a day or more after posting, say "add my numbers" in the brand folder. Where to find each number in Instagram: [`template/docs/after-posting.md`](template/docs/after-posting.md).
+- **Your numbers:** a day or more after posting, type `/analytics-readout` in the brand folder with the numbers. Where to find each number in Instagram: [`template/docs/after-posting.md`](template/docs/after-posting.md).
 - **Comment auto-reply (optional):** [`template/docs/auto-reply.md`](template/docs/auto-reply.md), or ask Claude to set it up with you (`/comment-responder`).
 - **Automatic posting (optional):** [`template/docs/auto-post.md`](template/docs/auto-post.md), or ask Claude (`/reel-posting`).
-- **Updates:** say "update the kit" in a brand folder (`/kit-update`).
+- **Updates:** type `/kit-update` in a brand folder.
 
 ## What is in the repo
 

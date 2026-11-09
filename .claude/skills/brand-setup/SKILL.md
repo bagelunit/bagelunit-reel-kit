@@ -41,7 +41,7 @@ Finish with:
 - how to open the brand folder for making reels, in plain words:
   - **VS Code:** File, then Open Folder, then pick `<folder>`. Open Claude Code there.
   - **Terminal:** `cd "<folder>"` then `claude`.
-- the first thing to say there: paste the "Make a reel" prompt from `<folder>/docs/prompts.md`, or just say "make a reel about ...". In that folder, `/brand-setup` changes the brand's answers later, and "update the kit" updates it.
+- the first command there: `/bagelunit-reels` followed by the topic (for example `/bagelunit-reels a reel about our new menu`). The "Make a reel" prompt in `<folder>/docs/prompts.md` is the longer form with every blank. In that folder, `/brand-setup` changes the brand's answers later, and "update the kit" updates it.
 
 ## Limits
 

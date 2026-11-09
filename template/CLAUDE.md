@@ -4,6 +4,8 @@ This folder makes Instagram reels for ONE brand. It is a copy of the `template/`
 
 On Windows, wherever a command says `python3` use `python`; paths written with `~` mean your home folder.
 
+**Point to the command.** When telling the owner a next step that has a command (`/brand-setup`, `/bagelunit-reels`, `/kit-update`, `/analytics-readout`, `/reel-posting` and the rest in the table below), name the command first. A plain-words request also works, but the command is the recommended way.
+
 **Rules for this brand only go in `CLAUDE.local.md`** in this folder (create it if it is missing). Claude Code reads it automatically, next to this file, and kit updates never touch it, while this `CLAUDE.md` is replaced by each update. When the owner gives a standing rule for this brand (for example "you pick the style for each reel"), write it in `CLAUDE.local.md`, never here. Where it differs from a default in this file, the owner's rule there wins, except the safety rules in section 3 that say they always stay on.
 
 It uses its own skills (23, in this folder's `.claude/skills/`; the table "Which skill for which step" says when each one runs, and `/brand-setup` runs the first-run questionnaire below) and the installed skills and plugins, as their authors ship them:
@@ -140,7 +142,7 @@ If this folder has a `.git` folder, it is this brand's private, local history. A
 
 ## 3b2. Kit updates (optional, OFF by default)
 
-This copy records the kit version it is on in `.kit-version`. If `brand/brand.json` -> `updates.check_on_start` is `true`, then once at the start of a session, read `.kit-version` and read the one public file `https://raw.githubusercontent.com/bagelunit/bagelunit-reel-kit/main/VERSION` (with the project's web tool or `curl -s`; one read, nothing else). If the number there is higher, say once, in one or two lines: "Kit <new> is out (this workspace is on <old>). Say \"update the kit\" and I will show what changed and update it step by step (`/kit-update`)." If the check fails, is offline, or the numbers match, say nothing. Never update anything yourself, and never ask more than once per session. With the setting `false` or missing, do not check.
+This copy records the kit version it is on in `.kit-version`. If `brand/brand.json` -> `updates.check_on_start` is `true`, then once at the start of a session, read `.kit-version` and read the one public file `https://raw.githubusercontent.com/bagelunit/bagelunit-reel-kit/main/VERSION` (with the project's web tool or `curl -s`; one read, nothing else). If the number there is higher, say once, in one or two lines: "Kit <new> is out (this workspace is on <old>). Type `/kit-update` and I will show what changed and update it step by step." If the check fails, is offline, or the numbers match, say nothing. Never update anything yourself, and never ask more than once per session. With the setting `false` or missing, do not check.
 
 ## 3c. Weekly batch (optional)
 

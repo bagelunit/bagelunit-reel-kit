@@ -2,7 +2,7 @@
 
 A brand workspace: one folder per brand. The `template` folder in the kit stays generic; each copy you make holds one brand once you set it up.
 
-**The prompts to send, in order:** open Claude Code in your copy, then copy the "Set up this brand" prompt from `docs/prompts.md` (it also starts on its own the first time you send anything). When that is done, copy the "Make a reel" prompt from the same file and fill in the blanks. Claude asks every setup choice and every approval as a question block: click an option, or pick "Other" and type.
+**The commands, in order:** open Claude Code in this folder and type `/brand-setup` (once). Then `/bagelunit-reels` with your topic for each reel, and `/analytics-readout` with your numbers after posting. `docs/prompts.md` has longer versions with every blank explained, if you want them. Claude asks every setup choice and every approval as a question block: click an option, or pick "Other" and type.
 
 **To use it for a brand or project:**
 1. Make one copy of this folder per brand or project. The easy way: open Claude Code in the kit's folder and type `/brand-setup`; it makes the copy and sets up the brand in one go. By hand: copy this whole folder in Finder or File Explorer, or in a terminal from the kit's folder with `node setup/new-brand.mjs ~/Reels/<brand>-reels`.
@@ -76,7 +76,7 @@ Two kit guides live in the kit's own folder, not in this copy: [how to make a st
 
 This copy records the kit version it is on in `.kit-version`. The kit's changes are listed in its `CHANGELOG.md` and announced as GitHub Releases (on the kit's GitHub page: Watch, then Custom, then Releases, to get an email). To have Claude tell you about a newer version at the start of a session, set `updates.check_on_start` to `true` in `brand/brand.json` (it is off by default).
 
-**The normal way:** open Claude Code in this folder and say "update the kit". The `/kit-update` skill downloads the newest public kit (it works even if you first downloaded the kit as a ZIP), shows what changed, previews which files would change, asks you, applies the update, and then offers to update the engine too. It never needs a key and never changes your brand's data or reels.
+**The normal way:** open Claude Code in this folder and type `/kit-update`. The `/kit-update` skill downloads the newest public kit (it works even if you first downloaded the kit as a ZIP), shows what changed, previews which files would change, asks you, applies the update, and then offers to update the engine too. It never needs a key and never changes your brand's data or reels.
 
 **The manual way** (if you have the kit's folder on this computer):
 

@@ -18,7 +18,7 @@ In the Instagram app, open the reel, tap **View insights**. Note these, as shown
 
 Instagram renames things now and then; if a number is missing, leave the cell empty. Meta Business Suite (Insights, then Content, then Export) can also give you a spreadsheet for many posts at once; copy the matching columns over.
 
-Easiest of all: tell Claude "add my numbers", and paste or type them. Claude adds the row for you and reads it back.
+Easiest of all: type `/analytics-readout` and paste or type the numbers. Claude adds the row for you and reads it back.
 
 ## 2. One file for everything
 

@@ -8,10 +8,10 @@ Claude does the work. You answer a few questions, approve three times, and post 
 - Put at least a few true facts about the brand in `brand/facts.md` (or tell Claude, and confirm them). A reel can only state what is in that file.
 - **For a Talking head reel only:** film yourself first. Hold the phone upright, talk at your normal pace and do not worry about pauses; Claude cuts them (it never speeds you up). Any video file from a phone works. Drag the file into the terminal to give Claude its location. Your own voice is used, so it costs no voice credits.
 
-**The prompts to send, in order** (each one is in `docs/prompts.md` with blanks to fill in and a plain-words hint for every blank)
-1. "Set up this brand", once. It also starts on its own the first time you send anything.
-2. "Make a reel", for each reel.
-3. "After posting", a day or more later, with your numbers.
+**The commands, in order** (`docs/prompts.md` has a longer version of each, with blanks to fill in and a plain-words hint for every blank)
+1. `/brand-setup`, once.
+2. `/bagelunit-reels` with your topic, for each reel.
+3. `/analytics-readout` with your numbers, a day or more after posting.
 
 **The steps**
 1. **Ask for a reel**, with a topic: "Make a reel on how to [SOMETHING THE BRAND REALLY KNOWS]."
@@ -23,7 +23,7 @@ Claude does the work. You answer a few questions, approve three times, and post 
 7. **Wait while Claude builds, checks and mixes the real sound.** Then it makes the final, the cover and the caption, fact checks again, and gives a review verdict (meets the bar, close, or not ready). Watch it on your phone.
 8. **Approve the final (Gate C).** The finished video is in `reels/<the reel's name>/out/`.
 9. **Post it yourself.** `/reel-posting` gives you a posting card: the file, the cover, the caption ready to copy and the quality setting. Or schedule it in Instagram.
-10. **A day later, say "add my numbers"** (where to find them: `docs/after-posting.md`).
+10. **A day later, type `/analytics-readout` with your numbers** (where to find them: `docs/after-posting.md`).
 
 **If something looks wrong:** say what to change, in plain words. Claude makes the smallest edit and checks again. The pattern for a script, approvals and caption is in `reels/_example/`.
 

@@ -121,7 +121,7 @@ On Instagram: turn on "Upload at highest quality", upload `cover.jpg` as the cov
 
 ## 14. Review
 
-A day or more after posting, the person says "add my numbers" (where to find each one in Instagram: `template/docs/after-posting.md`). Claude adds one row per posted reel to `brand/insights.csv` (views, reach, average watch time, skip rate, likes, comments, saves, shares, follows) and reads it back. Weekly: each reel's views against your own median, 3-second hold, reach to non-followers, sends and saves. Lessons go back into the swipe file and the next plan.
+A day or more after posting, the person types `/analytics-readout` with the numbers (where to find each one in Instagram: `template/docs/after-posting.md`). Claude adds one row per posted reel to `brand/insights.csv` (views, reach, average watch time, skip rate, likes, comments, saves, shares, follows) and reads it back. Weekly: each reel's views against your own median, 3-second hold, reach to non-followers, sends and saves. Lessons go back into the swipe file and the next plan.
 
 Run `/analytics-readout` on the numbers: judge against the brand's own median, name the one metric that matters for the reel's goal, and locate the break (about 3 s = hook, about 12 s = middle, the end = CTA). Two actions, not twelve, and say what the data cannot show. To test two hooks, use `/ab-hook-tester` (one variable only). Log the goal and angle in `brand/log.md`.
 
@@ -137,7 +137,7 @@ For a week's reels in one sitting: plan up to the brand's `batch.max_reels` topi
 
 ## Updating the kit
 
-In a brand workspace, say "update the kit" (`/kit-update`). It checks for a newer version, shows what changed, previews, updates the workspace without touching the brand's files (replaced files are kept as `.bak-<date>`), and offers to update the engine too. It works even if the kit was downloaded as a ZIP. The manual way is `node setup/sync-template.mjs <workspace>` (dry run), then `--apply`, from the kit's folder.
+In a brand workspace, type `/kit-update`. It checks for a newer version, shows what changed, previews, updates the workspace without touching the brand's files (replaced files are kept as `.bak-<date>`), and offers to update the engine too. It works even if the kit was downloaded as a ZIP. The manual way is `node setup/sync-template.mjs <workspace>` (dry run), then `--apply`, from the kit's folder.
 
 ## Lessons from the first reels
 
