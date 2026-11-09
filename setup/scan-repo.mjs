@@ -11,8 +11,9 @@ import { fileURLToPath } from 'node:url';
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const files = cp.execFileSync('git', ['ls-files', '-z'], { cwd: REPO, encoding: 'utf8' }).split('\0').filter(Boolean);
 
-// Names are built from pieces so this file does not contain them in one piece.
-const BANNED_NAMES = ['b290dG8=', 'amF5YW50Y3JlYXRlcw=='].map((b) => Buffer.from(b, 'base64').toString());
+// Outside sources the kit learned from are never named in it. The names are stored encoded so this file does not name them either.
+const BANNED_NAMES = ['b290dG8=', 'amF5YW50Y3JlYXRlcw==', 'Z2hvc3RsZXNz', 'Z2V0cmlwcGluZw==', 'YWdlbnQtcmVhY2g=', 'YWdlbnQgcmVhY2g=', 'YWdlbnRyZWFjaA=='].map((b) => Buffer.from(b, 'base64').toString());
+const BANNED_WORDS = ['cmlwcGluZw==', 'dmlyYWxpdHkgYnJhaW4=', 'dmlyYWxpdHktYnJhaW4=', 'dmlkZW8tZWRpdGluZyBza2lsbA=='].map((b) => new RegExp(`\\b${Buffer.from(b, 'base64').toString()}\\b`, 'i'));   // whole words only
 const SECRET_PATTERNS = [
   [/\bsk_[A-Za-z0-9]{20,}/, 'looks like a secret key (sk_...)'],
   [/\bsk-[A-Za-z0-9_-]{20,}/, 'looks like an API key (sk-...)'],
@@ -41,6 +42,7 @@ for (const f of files) {
   let text; try { text = fs.readFileSync(path.join(REPO, f), 'utf8'); } catch { continue; }
   const low = text.toLowerCase();
   for (const n of BANNED_NAMES) if (low.includes(n)) add(f, `mentions a name this repo must never mention ("${n.slice(0, 2)}...")`);
+  for (const re of BANNED_WORDS) if (re.test(text)) add(f, `mentions a name this repo must never mention ("${re.source.slice(2, 4)}...")`);
   if (f !== 'setup/scan-repo.mjs') for (const [re, why] of SECRET_PATTERNS) if (re.test(text)) add(f, why);
   const hp = text.match(HOME_PATH);
   if (hp && !HOME_OK.test(hp[0]) && f !== 'setup/scan-repo.mjs') add(f, `has a personal home path (${hp[0]})`);

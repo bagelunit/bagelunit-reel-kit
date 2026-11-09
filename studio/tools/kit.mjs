@@ -175,6 +175,47 @@ function exportReel() {
   console.log('export:', path.relative(process.cwd(), out));
 }
 
+// local addition: link the brand's sticker host into a reel, list every pose in reel.json, and report poses a reel needs
+function host() {
+  if (!target) die('usage: kit host <reel dir> [--dir <poses folder>] [--check]');
+  const dir = path.resolve(target);
+  const cfgPath = path.join(dir, 'reel.json');
+  if (!fs.existsSync(cfgPath)) die(`${dir} has no reel.json. Start the reel first: kit start ${target} --style print`);
+  const home = brandFolderOf(dir);
+  const brand = home ? readJSON(path.join(home, 'brand', 'brand.json'), {}) : {};
+  let posesDir = text('dir') ?? brand.host?.poses_dir ?? '';
+  if (!posesDir) die('no sticker host for this brand yet: brand.json has no host.poses_dir. Make one with /sticker-host.');
+  if (!path.isAbsolute(posesDir)) posesDir = path.resolve(home ?? process.cwd(), posesDir.replace(/^~(?=$|[\\/])/, os.homedir()));
+  if (!fs.existsSync(posesDir)) die(`the pose folder ${posesDir} does not exist. Make the set with /sticker-host.`);
+  const have = fs.readdirSync(posesDir).filter((f) => f.toLowerCase().endsWith('.png')).map((f) => f.slice(0, -4)).sort();
+  if (!have.includes('idle')) die(`${posesDir} has no idle.png. Every sticker host needs its base pose (idle).`);
+  const reel = readJSON(cfgPath, {});
+  const cues = Array.isArray(reel.presenter?.cues) ? reel.presenter.cues : [];
+  const used = [...new Set(cues.map((c) => c[1]).filter(Boolean))];
+  const missing = used.filter((p) => !have.includes(p));
+  console.log(`sticker host: ${have.length} poses in ${posesDir}`);
+  console.log(`cues use: ${used.length ? used.join(', ') : 'no cues yet'}`);
+  if (missing.length) {
+    for (const p of missing) {
+      const at = cues.filter((c) => c[1] === p).map((c) => `"${c[0]}"`).join(', ');
+      console.log(`MISSING: ${p} (cued at ${at}). Make it with /sticker-host add ${p}, or cue an existing pose; until then the host shows idle there.`);
+    }
+  } else if (used.length) console.log('every pose the cues use is in the set');
+  if (flags.check) { process.exitCode = missing.length ? 2 : 0; return; }
+  const link = path.join(dir, 'host');
+  let linked = false;
+  try {
+    const st = fs.lstatSync(link);
+    if (st.isSymbolicLink()) fs.rmSync(link);
+    else die(`${link} is a real folder; move it away (or delete it) so the brand's set can be linked there`);
+  } catch (e) { if (e.code !== 'ENOENT') throw e; }
+  try { fs.symlinkSync(posesDir, link, 'dir'); linked = true; } catch { fs.cpSync(posesDir, link, { recursive: true }); }
+  reel.presenter = { ...(reel.presenter ?? {}), type: 'stickers', dir: 'host', poses: have, cues };
+  fs.writeFileSync(cfgPath, JSON.stringify(reel, null, 2));
+  console.log(`${linked ? 'linked' : 'copied'} the set to ${link}; reel.json lists all ${have.length} poses`);
+  if (missing.length) process.exitCode = 2;
+}
+
 async function live() {
   const reel = reelAt(target);
   const { url } = await serve(reel.dir, reel.cfg.style, num('port', 0));
@@ -198,6 +239,7 @@ const COMMANDS = {
   sound: [sound, '<dir>', 'voice + effects (+ music) → build/mix.wav'],
   export: [exportReel, '<dir> [--remix]', 'picture + sound → out/<name>.mp4, ready for Instagram'],
   live: [live, '<dir> [--port n]', 'serve the reel and print a link to watch it play'],
+  host: [host, '<dir> [--dir <poses folder>] [--check]', 'sticker host: link the brand\'s pose set into the reel, list every pose in reel.json, and name any pose the cues need that the set lacks'],
 };
 
 if (!COMMANDS[verb]) {

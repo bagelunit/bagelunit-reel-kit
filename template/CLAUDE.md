@@ -4,12 +4,12 @@ This folder makes Instagram reels for ONE brand. It is a copy of the `template/`
 
 On Windows, wherever a command says `python3` use `python`; paths written with `~` mean your home folder.
 
-**Point to the command.** When telling the owner a next step that has a command (`/brand-setup`, `/bagelunit-reels`, `/kit-update`, `/analytics-readout`, `/reel-posting` and the rest in the table below), name the command first. A plain-words request also works, but the command is the recommended way.
+**Point to the command.** When telling the owner a next step that has a command (`/brand-setup`, `/sticker-host`, `/bagelunit-reels`, `/kit-update`, `/analytics-readout`, `/reel-posting` and the rest in the table below), name the command first. A plain-words request also works, but the command is the recommended way.
 
 **Rules for this brand only go in `CLAUDE.local.md`** in this folder (create it if it is missing). Claude Code reads it automatically, next to this file, and kit updates never touch it, while this `CLAUDE.md` is replaced by each update. When the owner gives a standing rule for this brand (for example "you pick the style for each reel"), write it in `CLAUDE.local.md`, never here. Where it differs from a default in this file, the owner's rule there wins, except the safety rules in section 3 that say they always stay on.
 
-It uses its own skills (23, in this folder's `.claude/skills/`; the table "Which skill for which step" says when each one runs, and `/brand-setup` runs the first-run questionnaire below) and the installed skills and plugins, as their authors ship them:
-- `/bagelunit-reels`, the reel engine installed at `~/.claude/skills/bagelunit-reels` (script, voice, animated shots, self-check, export, plus the sticker presenter and the real-sound step),
+It uses its own skills (24, in this folder's `.claude/skills/`; the table "Which skill for which step" says when each one runs, and `/brand-setup` runs the first-run questionnaire below) and the installed skills and plugins, as their authors ship them:
+- `/bagelunit-reels`, the reel engine installed at `~/.claude/skills/bagelunit-reels` (script, voice, animated shots, self-check, export, plus the sticker host and the real-sound step),
 - `/ig-*` from the **instagram-agent** plugin (research, hooks, scripts, captions, plans, DMs, audits),
 - `/hyperframes` from the **hyperframes** plugin (HTML scenes rendered to MP4, optional second engine).
 
@@ -27,7 +27,7 @@ Offer first to pre-fill from the brand's website: `python3 ./.claude/skills/bran
 4. **Colours:** the accent colour as a hex code (offer to read it from a logo or brand guide if they give a path), plus background and ink if they have them. Offer the kit's ready themes as choices: studio (warm white + vermilion), harbor (deep blue), ochre (warm gold), ink (black and white), or "my own accent".
 5. **Logo:** the path to the logo file (PNG or SVG). Check the file exists; if it does not, ask again or leave it empty.
 6. **Fonts:** display and body fonts (choices: "use the kit's fonts", "my brand fonts: ...").
-7. **Presenter** (Print style only): a sticker presenter, the kit's drawn presenter, or none. Choices: "Sticker presenter (I have a pose folder)", "Sticker presenter (make one later: https://github.com/bagelunit/bagelunit-reel-kit/blob/main/docs/avatar.md)", "No presenter", "The kit's drawn presenter". For a pose folder, ask for its path and check which of the 19 pose names it holds (idle, point, guns, thumbs, shock, shrug, think, wave, magnifier, open, tshirt, one, two, three, four, five, celebrate, facepalm, raise); list any missing ones.
+7. **Presenter** (Print style only): a sticker host (a cartoon of the owner or a mascot), the kit's drawn presenter, or none. Choices: "Make my sticker host now with /sticker-host", "I already have a pose folder", "The kit's drawn presenter", "No presenter". For "now", run `/sticker-host new` after these questions. For a pose folder, ask for its path (it needs `idle.png`; any other pose names are fine) and say which of the starter 10 it holds (idle, point, raise, thumbs, shock, think, shrug, wave, open, celebrate).
 8. **Voice:** choices: "Pick an ElevenLabs voice together now", "Use the voice already saved in the kit", "My own recorded voice", "Decide later". Also ask for words the generated voice must never say (for example a brand name it mispronounces) and how to spell any tricky name by sound.
 9. **Call to action:** choices: "Save this" (recommended until a DM auto-reply is tested), "Follow for more", "Comment a keyword for a DM" (only listed in `cta.tested_keywords` once the auto-reply has been tested from a second account), "Visit the link in bio".
 10. **Kit updates:** "Tell me when a newer kit version is out (Recommended)" (sets `brand.json` -> `updates.check_on_start` to `true`, one check per session) or "No, I'll check myself" (`false`). See section 3b2.
@@ -73,7 +73,7 @@ Rename, move or create nothing outside this folder. Never ask for, print or stor
 - **Always ask the style first.** Before starting any reel, ask the owner which style to use: Print, 3D, or Talking head (only if there is a video of them). One question block (AskUserQuestion), recommendation first. Never pick a style silently.
 - `/bagelunit-reels` builds reels into `reels/<slug>/` of the folder Claude was started in, and keeps its own settings in `~/.config/bagelunit-reels/`. Follow its `KIT.md`; its approval points come in addition to the gates below.
 - `/hyperframes`: run the CLI with `HYPERFRAMES_NO_TELEMETRY=1`. Local only: never use `hyperframes publish`, cloud rendering, HeyGen sign-in or paid HeyGen models without the owner's explicit OK for that reel.
-- **Sticker presenter (print only):** when `brand.json` → `host.type` is `stickers`, set the reel's `reel.json` `"presenter": {"type": "stickers", "dir": "host", "cues": [[word, pose, nth], ...]}` and link or copy `host.poses_dir` to the reel's `host/` folder. Check each cue's occurrence number against `build/word_index.txt`. With `host.type` `none`, turn the presenter off.
+- **Sticker host (print only):** when `brand.json` → `host.type` is `stickers`, write the reel's cues in `reel.json` `"presenter": {"type": "stickers", "dir": "host", "cues": [[word, pose, nth], ...]}` (check each occurrence number against `build/word_index.txt`), then run `kit host reels/<slug>`: it links the brand's pose set into the reel and lists every pose. The set is not fixed: cue whatever pose the line needs, even one the set does not have yet. **At Gate B**, run `kit host reels/<slug> --check`; for each MISSING pose, tell the owner what it shows and which line needs it, and after their yes make it with `/sticker-host add <pose>`, then run `kit host reels/<slug>` again. Never add a pose without the owner's yes; until it exists the host shows idle there. With `host.type` `none`, turn the presenter off.
 - **Real sound:** after `kit export`, run the kit's real-sound step (`KIT.md` section G step 5) so the effects are real recordings, not synthesised ones. Report its numbers honestly.
 - **Cover:** every reel gets a dedicated cover: a still-only cover scene with a big topic title, a prop that shows the subject, the presenter if any and the handle, kept inside the centre 1080x1440 grid band. Never a frame grabbed from the hook.
 - Before any final render the approver has seen the stills (Gate B). The finished mp4 ends up in `reels/<slug>/out/`.
@@ -85,6 +85,7 @@ When a request matches a row, load that skill with the Skill tool first and foll
 | Step | Skill |
 |---|---|
 | Brand setup | `/brand-setup` |
+| Sticker host: make it, add a pose a reel needs | `/sticker-host` (`new`, `add <pose>`, `check <reel>`) |
 | Research: what the audience asks, reels to model, best reels | `/comment-mining`, `/reel-sources`, `/account-audit`, `/reel-analyzer` (a file the person supplies) |
 | Plan: goal, angle, why a post flopped | `/going-viral`, `/virality` |
 | Hooks before Gate A | `/viral-hook-writer` (from nothing), `/hook-mining` (from a CSV of real hooks) |

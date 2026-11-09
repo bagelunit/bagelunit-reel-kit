@@ -6,6 +6,8 @@ Each person runs the kit on their own computer with their own Claude Code accoun
 
 > **Quick start.** 1) Download this kit. 2) In its folder run **`bash setup/install.sh`** (Windows: `node setup/install.mjs`), or let Claude Code run it with Message 1 below. 3) Open Claude Code there and type **`/brand-setup`** to make your brand's folder. 4) Open that folder and type **`/bagelunit-reels`** with your topic. Step by step: [Start here](#start-here-if-you-have-never-done-this-before).
 
+> **Every command in one place:** [COMMANDS.md](COMMANDS.md), also as a [PDF](docs/commands.pdf) and a [spreadsheet](docs/commands.csv).
+
 > **License.** Free to use, including for paid client work, under the [BagelUnit Reel Kit License](LICENSE). The videos you make are yours. Please do not resell, re-upload or repackage the kit.
 
 ## What you get
@@ -18,7 +20,7 @@ Each person runs the kit on their own computer with their own Claude Code accoun
 | **3D** (`depth`) | "what happens inside" explainers | lit 3D rooms and props, a camera that travels with the story |
 | **Talking head** (`talking`) | your own face video | tightened pauses, cut layouts, word-by-word captions and graphics |
 
-**Sticker presenter (add-on, Print style).** Instead of the kit's drawn presenter, a print reel can show your own character as die-cut stickers: 19 poses (idle, point, thumbs, shock, counting one to five, and more) that pop in on the words you choose. You make the poses once per brand; see [docs/avatar.md](docs/avatar.md).
+**Sticker host (add-on, Print style).** Instead of the kit's drawn presenter, a print reel can show a cartoon of you (or your mascot) as die-cut stickers that react on the words you choose. Type `/sticker-host` in a brand folder: from one photo it makes a base pose for your approval, then a starter pack of 10 poses, and later any new pose a reel needs, so the set grows with your reels. Image tools: ChatGPT, Gemini, the OpenAI or Gemini API, or Higgsfield (ours was made with Higgsfield). See [docs/avatar.md](docs/avatar.md).
 
 **Real-sound step (add-on).** The engine's built-in effects are synthesised and can sound fake. After export, `realsound.py` swaps them for real CC0 recordings, snaps every hit to the frame where the motion lands, mixes to -14 LUFS with the voice on top, and listens to the result with earshot. See [docs/sound.md](docs/sound.md).
 
@@ -126,14 +128,15 @@ The full process, with its three approval gates, is in [docs/process.md](docs/pr
 
 | Path | What it is |
 |---|---|
-| `studio/` | The reel engine, installed as the Claude Code skill `bagelunit-reels` (`/bagelunit-reels`): three styles, the always-ask-the-style rule, the sticker presenter and the real-sound step. Changes are logged in `studio/LOCAL-CHANGES.md`. |
+| `studio/` | The reel engine, installed as the Claude Code skill `bagelunit-reels` (`/bagelunit-reels`): three styles, the always-ask-the-style rule, the sticker host and the real-sound step. Changes are logged in `studio/LOCAL-CHANGES.md`. |
 | `template/` | The generic brand workspace. `/brand-setup` (or `node setup/new-brand.mjs <folder>`) copies it once per brand or project; start Claude Code inside the copy. It is self-contained and carries the licence: `CLAUDE.md` (house rules and first-run setup), `brand/`, `reels/`, `docs/`, and the skills in `.claude/skills/`. |
 | `template/docs/` | `first-reel.md` (your first reel, step by step), `prompts.md` (messages to copy and fill in), `after-posting.md` (your numbers), `auto-reply.md` (comment auto-reply and DMs), `auto-post.md` (posting on a schedule), `hook-and-review-playbook.md`, `craft-playbook.md` (what is on screen) and `style-ideas.md` (style concepts not built yet). |
-| `template/.claude/skills/` | 23 skills that travel with every copy of the template (nothing global, so brands never mix). Setup and updates: `brand-setup`, `kit-update`. Research and planning: `account-audit` (with the 3x outlier script), `reel-sources`, `reel-analyzer`, `comment-mining`, `going-viral`, `virality`. Hooks and script: `viral-hook-writer`, `hook-mining`, `ab-hook-tester`, `reel-scripter`, `reel-builder`, `humanizer`. Checks: `reel-factcheck`, `reel-review`, `reel-predict`. Finishing and posting: `caption-and-hashtags`, `cover-thumbnail-brief`, `reel-posting`. After posting: `analytics-readout`, `comment-responder`, and the opt-in autopilot `content-factory`. |
+| `template/.claude/skills/` | 24 skills that travel with every copy of the template (nothing global, so brands never mix). Setup and updates: `brand-setup`, `sticker-host`, `kit-update`. Research and planning: `account-audit` (with the 3x outlier script), `reel-sources`, `reel-analyzer`, `comment-mining`, `going-viral`, `virality`. Hooks and script: `viral-hook-writer`, `hook-mining`, `ab-hook-tester`, `reel-scripter`, `reel-builder`, `humanizer`. Checks: `reel-factcheck`, `reel-review`, `reel-predict`. Finishing and posting: `caption-and-hashtags`, `cover-thumbnail-brief`, `reel-posting`. After posting: `analytics-readout`, `comment-responder`, and the opt-in autopilot `content-factory`. |
 | `.claude/skills/brand-setup/` | `/brand-setup` in the kit's folder: the first step after installing. Makes a brand folder with `setup/new-brand.mjs` (a copy of `template/`) and asks the brand questions there. |
 | `setup/install.mjs` | The installer (Node, runs on macOS, Windows and Linux). `install.sh` and `install.ps1` are tiny launchers for it. |
 | `setup/sync-template.mjs` | Keeps copies current (runs on Mac, Windows and Linux; `sync-template.sh` is a launcher): with no argument it refreshes your generic copy-from folder; with a brand workspace path it shows (then with `--apply` performs) an update of that workspace's kit files without touching its `brand/` or `reels/`. |
-| `docs/` | `process.md` (the full loop), `avatar.md` (making sticker poses), `sound.md` (the real-sound step), `reference.md` (what we learned from other reel makers). |
+| `docs/` | `process.md` (the full loop), `avatar.md` (the sticker host), `sound.md` (the real-sound step), `reference.md` (the kit's method: what to post, how a reel is made, the rules). |
+| `COMMANDS.md`, `docs/commands.pdf`, `docs/commands.csv` | Every command and what it does, made from one list by `setup/make-commands.mjs`. |
 | `setup/scan-repo.mjs` | A safety scan run on every push: keys, private files, banned names, personal paths, em dashes. |
 | `SETUP.md` | Setup by hand, step by step, and common snags. |
 

@@ -2,6 +2,15 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.9.0 (2026-11-09)
+
+- **The sticker host.** The sticker presenter is now the **sticker host**, and you can make your own: type `/sticker-host` in a brand folder. From one photo it makes a base pose for your approval, then a starter pack of 10 poses (idle, point, raise, thumbs, shock, think, shrug, wave, open, celebrate), each checked on one sheet. Your real logo is printed on the chest, never drawn by the image tool. Backgrounds, the white sticker border and lining every pose up at the same size all run on your computer for free.
+- **Any number of poses.** A set is no longer a fixed 19: it grows with your reels. At the visual-plan approval the kit checks the reel's poses (`kit host reels/<slug> --check`), names any the set does not have, and after your yes makes it from your base pose. `kit host` links the set into a reel and lists every pose, whatever its name.
+- **Pick your image tool.** ChatGPT or the Gemini app (by hand, no key), the OpenAI or Gemini API (automatic, your own key), or Higgsfield (ours was made with Higgsfield). The pose recipe and simple outline diagrams of each starter pose ship with the kit; no one's photo or poses do.
+- **Every command in one place.** `COMMANDS.md` lists every command and what it does, also as a PDF and a spreadsheet you can open in Excel.
+- **The method page** (`docs/reference.md`) now describes the kit's own method only.
+- Existing brand folders: `/kit-update` adds `/sticker-host`. Run `bash setup/install.sh` again so the engine gets `kit host`. A pose folder you already have keeps working.
+
 ## 1.8.4 (2026-11-09)
 
 - **Update notices are on by default.** `/brand-setup` now recommends "Tell me when a newer kit version is out": once per session Claude reads one public file from GitHub and tells you if a newer kit is out, then `/kit-update` updates it. It never updates anything by itself. New brand folders start with it on; existing brand folders keep the choice they made.

@@ -40,7 +40,7 @@ HOW IT LOOKS
 - Background and text colours (optional): [CODES, or skip]
 - Logo file: [PATH TO A PNG OR SVG FILE, or "none yet"]
 - Fonts: [use the kit's fonts, or "display font: NAME, body font: NAME"]
-- On-screen presenter: [my own sticker presenter, poses in FOLDER PATH / make my sticker presenter later / no presenter / the kit's simple drawn presenter]
+- On-screen presenter: [make my sticker host now / my sticker host, poses in FOLDER PATH / no presenter / the kit's simple drawn presenter]
 
 HOW IT SOUNDS
 - Voice: [pick an ElevenLabs voice together now / use the voice already saved / my own recording / decide later]
@@ -63,7 +63,7 @@ Rules: write down only what I confirm. Do not put any number, result, price or c
 - **Website:** Claude only suggests a name, colours and fonts from it. It never takes claims, numbers or prices from it.
 - **Main colour:** a code looks like `#E4572E`. Do not know it? Write the colour's name, or "read it from my logo" and Claude will suggest one.
 - **Logo file:** drag the file into the terminal to get its location. A PNG or SVG works best.
-- **On-screen presenter:** optional, Print style only. A presenter is a character who points and reacts on screen. A sticker presenter is your own character as 19 cut-out poses you make once ([how to make them](https://github.com/bagelunit/bagelunit-reel-kit/blob/main/docs/avatar.md)). Pick "no presenter" if you are unsure; you can add one later.
+- **On-screen presenter:** optional, Print style only. A presenter is a character who points and reacts on screen. A sticker host is a cartoon of you (or your mascot) as cut-out poses: `/sticker-host` makes a base pose from one photo, then a starter 10, then any pose a reel needs ([how it works](https://github.com/bagelunit/bagelunit-reel-kit/blob/main/docs/avatar.md)). Pick "no presenter" if you are unsure; you can add one later.
 - **Voice:** the AI voice that reads the script. "Pick together" lets you listen to a few options. You need an ElevenLabs account for this. Its free plan is for trying the kit only (non-commercial, with credit to ElevenLabs); for a business or a client, use a paid plan.
 - **Words the voice must never say:** for example a brand name it says wrongly. Claude puts those on screen as text instead.
 - **Reels each week:** how many you want to post. Claude plans at most this many at once, and you still approve each reel. Start small; you can change it later.

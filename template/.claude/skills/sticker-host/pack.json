@@ -1,0 +1,35 @@
+{
+  "_note": "The BagelUnit sticker host recipe. 'style' is pasted into every prompt so all poses match. 'starter' is the 10-pack made after the base pose is approved. 'extra' are proven poses to add when a reel needs them; any new pose follows the same pattern. {OUTFIT} and {BG} are filled from brand/host/host.json.",
+  "version": 1,
+  "canvas": { "width": 896, "height": 1120, "_note": "every finished pose is this size, bust bottom on the bottom edge, so switching poses never makes the host jump" },
+  "style": "A die-cut sticker illustration of the person in the reference photo, drawn as a friendly cartoon. Head and upper body only (a bust, cut straight across at the waist), facing the viewer, centred. Bold dark outlines, flat colours with soft cel shading, a slightly large head and expressive eyes. Keep the person's real face shape, skin tone, hair and facial hair so they are clearly recognisable. Wearing {OUTFIT}, plain, with nothing printed on it. A clean white sticker border about 12 px wide all the way around the figure, with a thin dark line outside it. Plain flat {BG} background, nothing else in the picture: no text, no logo, no props unless the pose names one. Same scale and framing as the reference pose: the top of the head about 8 percent below the top edge, the bust cut at the bottom edge. Portrait image.",
+  "base": {
+    "name": "idle",
+    "prompt": "{STYLE} Pose: relaxed and neutral, arms down by the sides, a small friendly closed-mouth smile, looking straight at the viewer.",
+    "use": "the default between moments; every other pose is drawn from this one"
+  },
+  "starter": [
+    { "name": "idle", "use": "default, between moments", "pose": "relaxed and neutral, arms down by the sides, a small friendly closed-mouth smile, looking straight at the viewer" },
+    { "name": "point", "use": "aims at the newest thing on stage", "pose": "pointing up and to the right with the right index finger, arm raised diagonally, head turned slightly toward the finger, open-mouth smile" },
+    { "name": "raise", "use": "\"here's the thing\"", "pose": "one index finger raised beside the face, the other arm down, eyebrows up, a knowing smile" },
+    { "name": "thumbs", "use": "wins, \"save this\"", "pose": "one thumbs-up held in front of the chest, a big confident smile" },
+    { "name": "shock", "use": "surprise, \"wait, what?\"", "pose": "both palms on the cheeks, eyes wide open, mouth in a round O" },
+    { "name": "think", "use": "weighing an idea", "pose": "chin resting on a thumb and bent index finger, eyes looking up and to the side, a slight smile" },
+    { "name": "shrug", "use": "\"who knows\", \"it depends\"", "pose": "both palms turned up at shoulder height, shoulders raised, eyebrows up, a small lopsided smile" },
+    { "name": "wave", "use": "hello, goodbye", "pose": "one open hand raised high in a wave, palm facing the viewer, a warm open-mouth smile" },
+    { "name": "open", "use": "presenting, \"here it is\"", "pose": "one hand held out to the side at waist height, palm up, as if presenting something, a friendly smile" },
+    { "name": "celebrate", "use": "big wins, the payoff", "pose": "both fists raised above the shoulders in celebration, eyes squeezed shut with joy, a wide open-mouth laugh" }
+  ],
+  "extra": [
+    { "name": "guns", "use": "playful, confident", "pose": "both hands making finger guns pointed at the viewer, one eye winking, a cheeky grin" },
+    { "name": "magnifier", "use": "\"look closer\", research", "pose": "holding a round magnifying glass up to one eye, the eye big behind the lens, a curious look" },
+    { "name": "facepalm", "use": "mistakes, \"don't do this\"", "pose": "one palm covering the forehead and eyes, head tilted down, an embarrassed smile" },
+    { "name": "tshirt", "use": "pointing at the logo on the chest", "pose": "both index fingers pointing down at the middle of the chest, a proud smile" },
+    { "name": "one", "use": "counting steps", "pose": "one hand raised beside the shoulder showing one finger (index finger up), a friendly smile" },
+    { "name": "two", "use": "counting steps", "pose": "one hand raised beside the shoulder showing two fingers (a V), a friendly smile" },
+    { "name": "three", "use": "counting steps", "pose": "one hand raised beside the shoulder showing exactly three fingers (index, middle and ring), thumb and little finger folded, a friendly smile" },
+    { "name": "four", "use": "counting steps", "pose": "one hand raised beside the shoulder showing exactly four fingers, thumb folded across the palm, a friendly smile" },
+    { "name": "five", "use": "counting steps", "pose": "one open hand raised beside the shoulder showing all five fingers spread, a friendly smile" }
+  ],
+  "new_pose_rule": "A new pose gets a short lowercase name (one word, or words joined by dashes), one line saying what the body, hands and face do, and one line saying when a reel uses it. It is drawn from the approved base pose with the same style, so the set stays consistent."
+}

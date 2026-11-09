@@ -6,7 +6,7 @@ A mode is one look the kit can produce. This page is the agreement between a mod
 
 | Mode | Drawn with | Frames taken from | The look |
 |---|---|---|---|
-| `print` | Canvas 2D (two layers: ink + a WebGL print compositor) | the canvas | a riso print on warm stock: engraved line shading, one accent ink, paper-white cards with hard shadows, big condensed caps captions with a marker underline on the key word, a sticker presenter in the corner who points at the focus and acts every phrase, blind wipes (`modes/print/GUIDE.md`) |
+| `print` | Canvas 2D (two layers: ink + a WebGL print compositor) | the canvas | a riso print on warm stock: engraved line shading, one accent ink, paper-white cards with hard shadows, big condensed caps captions with a marker underline on the key word, a sticker host in the corner who points at the focus and acts every phrase, blind wipes (`modes/print/GUIDE.md`) |
 | `depth` | three.js (WebGL) | the screen | warm plaster rooms, Bix the boxy host, machines and glowing dashboards, taped titles and big caption tiles, a film finish (`modes/depth/GUIDE.md`) |
 | `talking` | HTML over the user's own video frames | the screen | the user's face take, edited (`modes/talking/GUIDE.md`) |
 

@@ -23,3 +23,10 @@ brand/library/**/*.svg
 brand/library/**/*.mp4
 brand/library/**/*.mov
 brand/library/**/*.webm
+
+# The sticker host's photo and poses are a person's likeness: they stay out of git (host.json stays in)
+brand/host/**/*.png
+brand/host/**/*.jpg
+brand/host/**/*.jpeg
+brand/host/**/*.webp
+brand/host/**/*.heic

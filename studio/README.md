@@ -6,7 +6,7 @@ The engine room of the kit. You talk to your AI; it works in here.
 
 | Mode | Use it for |
 |---|---|
-| `print` | tips, tools, lists and takes in a riso-print look (engraved shading, one accent ink), with a sticker presenter you can make look like you |
+| `print` | tips, tools, lists and takes in a riso-print look (engraved shading, one accent ink), with a sticker host you can make look like you (`/sticker-host` in a brand folder) |
 | `depth` | 3D explainers of what goes on inside things, in lit rooms with Bix the boxy host |
 | `talking` | your own face take, cut and captioned with graphics on top |
 

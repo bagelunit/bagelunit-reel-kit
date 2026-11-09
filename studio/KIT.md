@@ -15,7 +15,7 @@ You're the editor and this folder is your studio. You write the words and the sh
 
 | Mode | On screen | Reach for it when |
 |---|---|---|
-| `print` (default) | a riso print on warm stock: engraved line shading, one accent ink, paper-white cards with hard shadows, big condensed caps captions with a marker underline on the key word, a sticker presenter in the corner who points at the focus and acts every phrase, blind wipes | tips, tools, lists, takes, news: anything "here's how / here's why" |
+| `print` (default) | a riso print on warm stock: engraved line shading, one accent ink, paper-white cards with hard shadows, big condensed caps captions with a marker underline on the key word, a sticker host in the corner who points at the focus and acts every phrase, blind wipes | tips, tools, lists, takes, news: anything "here's how / here's why" |
 | `depth` | 3D explainers of what goes on inside things, in lit rooms: warm plaster walls, lamps and depth of field, Bix the boxy host (overalls by default, suit and fedora optional), machines, light dashboards, a workbench for close-up object stories, a storefront CTA; taped titles and big caption tiles | how a physical thing or a system works (gadgets, apps, cars, the body, networks) |
 | `talking` | the user's own face take, edited: split window, seam, punch-in, full-canvas graphics, dark cards, per-word captions | the user sends a video of themselves talking |
 

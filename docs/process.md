@@ -13,7 +13,7 @@ Every gate is asked as a question block (Approve, Change something, or Stop this
 
 ## 0. Brand setup (once per workspace)
 
-Type `/brand-setup` in the kit's folder: it copies `template/` to a new brand folder and asks the brand questions there. Or copy `template/` yourself and open Claude Code in the copy: with an empty `brand/brand.json` Claude runs the brand questions (or run `/brand-setup`): your name, the brand, handle, colours, logo, fonts, presenter (sticker, drawn or none), voice, call-to-action style, kit update notices, a private local history, and how many reels a week to post (saved as `batch.max_reels`). Every question is a clickable question block: pick an option, or pick "Other" and type. `brand/facts.md` holds the only claims allowed on screen, in the voice or in a caption, and only the user adds or confirms them.
+Type `/brand-setup` in the kit's folder: it copies `template/` to a new brand folder and asks the brand questions there. Or copy `template/` yourself and open Claude Code in the copy: with an empty `brand/brand.json` Claude runs the brand questions (or run `/brand-setup`): your name, the brand, handle, colours, logo, fonts, presenter (sticker host, drawn or none), voice, call-to-action style, kit update notices, a private local history, and how many reels a week to post (saved as `batch.max_reels`). Every question is a clickable question block: pick an option, or pick "Other" and type. `brand/facts.md` holds the only claims allowed on screen, in the voice or in a caption, and only the user adds or confirms them.
 
 ## 1. Research (monthly)
 
@@ -72,7 +72,7 @@ Craft rules for this step are in `template/docs/craft-playbook.md` (one world, a
 
 ## 8. Reel settings
 
-In `reel.json`: the theme or the brand's accent colour, `brand.handle`, and the presenter. For a sticker presenter:
+In `reel.json`: the theme or the brand's accent colour, `brand.handle`, and the presenter. For a sticker host, write the cues, then run `kit host <reel>`: it links the brand's pose set into the reel, lists every pose in `reel.json`, and names any pose the cues need that the set does not have yet (make it with `/sticker-host add <pose>` after the owner's yes):
 
 ```json
 "presenter": { "type": "stickers", "dir": "host", "cues": [["three", "three", 1], ["save", "thumbs"]] }

@@ -1,5 +1,5 @@
 /* LOCAL ADD-ON (added 2026-11-05, see studio LOCAL-CHANGES.md)
-   Picture-sticker presenter for print reels: instead of the code-drawn bust, show pose images (transparent PNGs that already
+   Sticker host for print reels (any number of poses: `kit host <reel>` lists the brand's set in reel.json): instead of the code-drawn bust, show pose images (transparent PNGs that already
    carry their own die-cut sticker border) and switch pose with a pop on cues, phrases and the acting state.
 
    reel.json:

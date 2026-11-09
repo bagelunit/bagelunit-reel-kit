@@ -15,7 +15,7 @@ New here? Read `docs/first-reel.md`, a walk through your first reel. `reels/_exa
 
 The BagelUnit Reel Kit licence (`LICENSE`) travels with every copy; keep it in place. If you share or upload this folder anywhere, leave out keys, `.env` files, photos of people, sticker poses, client data, renders and audio.
 
-Two kit guides live in the kit's own folder, not in this copy: [how to make a sticker presenter](https://github.com/bagelunit/bagelunit-reel-kit/blob/main/docs/avatar.md) and [the full reel process](https://github.com/bagelunit/bagelunit-reel-kit/blob/main/docs/process.md) (a technical reference; you do not need it to make a reel).
+Two kit guides live in the kit's own folder, not in this copy: [the sticker host](https://github.com/bagelunit/bagelunit-reel-kit/blob/main/docs/avatar.md) and [the full reel process](https://github.com/bagelunit/bagelunit-reel-kit/blob/main/docs/process.md) (a technical reference; you do not need it to make a reel).
 
 ## What is in this folder
 
@@ -44,11 +44,12 @@ Two kit guides live in the kit's own folder, not in this copy: [how to make a st
 | `craft-playbook.md` | what goes on screen: one world, a through-line, a picture for each kind of line |
 | `style-ideas.md` | style concepts that are not built yet |
 
-**`.claude/skills/`: 23 skills** (Claude loads the right one for each step; you can also type its name)
+**`.claude/skills/`: 24 skills** (Claude loads the right one for each step; you can also type its name)
 
 | Skill | What it does |
 |---|---|
 | `/brand-setup` | sets up or changes this brand |
+| `/sticker-host` | makes the brand's sticker host (a cartoon of you or a mascot) from one photo, then adds any pose a reel needs |
 | `/kit-update` | updates this workspace to the newest kit |
 | `/account-audit` | finds the reels that beat an account's own median (the 3x rule), from an export or Apify data; `/ig-viral` from the Instagram plugin does the same by hand in the browser |
 | `/reel-sources` | finds what your audience asks and reels to model |
