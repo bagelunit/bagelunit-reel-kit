@@ -2,6 +2,10 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.8.4 (2026-11-09)
+
+- **Update notices are on by default.** `/brand-setup` now recommends "Tell me when a newer kit version is out": once per session Claude reads one public file from GitHub and tells you if a newer kit is out, then `/kit-update` updates it. It never updates anything by itself. New brand folders start with it on; existing brand folders keep the choice they made.
+
 ## 1.8.3 (2026-11-09)
 
 - **Every step names its command.** The guides and Claude's own instructions now lead with the command for each step: `bash setup/install.sh`, `/brand-setup`, `/bagelunit-reels` with your topic, `/analytics-readout` with your numbers, `/kit-update`. The longer prompts in `docs/prompts.md` are still there for anyone who wants every blank explained.
