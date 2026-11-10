@@ -231,7 +231,7 @@ test('setup: writes wrangler.toml once from the template, fills the KV id, print
   assert.equal(writeToml({ slug: 'my-brand', pubDir: pub }).wrote, null);                // never overwritten
   assert.match(fs.readFileSync(r.file, 'utf8'), /PUBLISH_MODE_INSTAGRAM = "live"/);
   const s = steps({ slug: 'my-brand', configDir: '/cfg' });
-  for (const cmd of ['npx wrangler login', 'npx wrangler kv namespace create KV', 'npx wrangler r2 bucket create my-brand-reels', 'node scripts/setup.mjs secrets --dry-run', 'node scripts/setup.mjs secrets', 'npx wrangler deploy', 'node scripts/setup.mjs --url', '/cfg/publisher-my-brand.json', 'node scripts/setup.mjs check']) assert.ok(s.includes(cmd), cmd);
+  for (const cmd of ['npx wrangler login', 'npx wrangler kv namespace create KV', 'npx wrangler r2 bucket create my-brand-reels', 'node scripts/setup.mjs secrets --dry-run', 'node scripts/setup.mjs secrets', 'npx wrangler deploy', 'node scripts/setup.mjs --url', path.join('/cfg', 'publisher-my-brand.json'), 'node scripts/setup.mjs check']) assert.ok(s.includes(cmd), cmd);
   assert.ok(s.indexOf('npx wrangler deploy') < s.indexOf('setup.mjs secrets'), 'the Worker exists before secrets are sent');
   assert.ok(!/\n\s*\n\s*\n/.test(s), 'no stray blank lines');
   assert.ok(!steps({ slug: 'b', kvReady: true }).includes('kv namespace create'));
