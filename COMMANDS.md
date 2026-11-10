@@ -1,6 +1,6 @@
 # BagelUnit Reel Kit commands
 
-Every command in the kit (version 1.9.0) and what it does. Also as a [PDF](docs/commands.pdf) and a [spreadsheet](docs/commands.csv) (opens in Excel).
+Every command in the kit (version 1.10.0) and what it does. Also as a [PDF](docs/commands.pdf) and a [spreadsheet](docs/commands.csv) (opens in Excel).
 
 Most of the time you only need four: `/brand-setup`, `/bagelunit-reels` with your topic, `/analytics-readout` with your numbers, and `/kit-update`.
 
@@ -35,7 +35,7 @@ The main command, plus the steps it uses. Claude picks the right one; you can al
 | `/bagelunit-reels` | Makes a reel: type it with your topic. Script, voice, animated shots, self-checks and the final mp4, with three approvals on the way. |
 | `/viral-hook-writer` | Writes hooks (the first 1 to 3 seconds) for a reel. |
 | `/hook-mining` | Makes new hooks from a file of hooks that already worked, keeping what made them work. |
-| `/ab-hook-tester` | Writes two clearly different hooks for the same reel, to test which one wins. |
+| `/ab-hook-tester` | A/B tests a reel's hook: two clearly different versions, each approved, posted as Instagram trial reels, compared on one number; add record to save the winner. |
 | `/reel-scripter` | Turns an idea or a hook into a full 30 to 45 second script. |
 | `/reel-builder` | Turns an idea into a ready-to-shoot plan (lines, on-screen text, scenes), without rendering. |
 | `/humanizer` | Rewrites a script, caption or reply so it sounds like you, not like AI, and checks the brand's banned words. |
@@ -56,15 +56,17 @@ Run on every reel; Claude runs them at the approvals.
 |---|---|
 | `/caption-and-hashtags` | Writes the caption, hashtags and first comment, using only cleared facts. |
 | `/cover-thumbnail-brief` | Writes the cover text and the brief for a cover that stops the scroll. |
-| `/reel-posting` | Gets an approved reel posted: a posting card for posting by hand, scheduling, or setting up automatic posting. |
+| `/reel-repurpose` | Turns an approved reel into its TikTok and YouTube Shorts versions (captions, titles, a check of where each app's buttons sit), a carousel and a blog post. |
+| `/reel-posting` | Gets an approved reel posted: a posting card for posting by hand, or scheduling it through the kit's publisher on Instagram, your Facebook Page and Threads (dry run first), and setting that up step by step. |
+| `/content-calendar` | Your content calendar and dashboard: every reel from idea to posted, what needs you, the four agents, followers and trends. Add plan to fill the next weeks, days to set your posting days, host to view it on your Wi-Fi or online (Netlify suggested), connect instagram, connect facebook or connect threads for your numbers on each, connect telegram for a phone summary, auto to refresh by itself, all for every brand on one page. Posts nothing. |
 
 ## Research and plan
 
 | Command | What it does |
 |---|---|
 | `/comment-mining` | Reads your comments and DMs for the questions and words your audience uses, and turns them into ideas. |
-| `/reel-sources` | Finds reference material: what people in your niche ask, reels to study, and a reel downloaded for study. |
-| `/account-audit` | Finds the reels that beat an account's own median (yours or a competitor's), by arithmetic. |
+| `/reel-sources` | Finds reference material: what people in your niche ask, reels to study, the top posts for a hashtag (Meta's API), and a reel downloaded for study. |
+| `/account-audit` | Finds the reels that beat an account's own median (yours or a competitor's), by arithmetic. Reads competitors through Meta's official API when Instagram is connected with Unified Login. |
 | `/reel-analyzer` | Breaks down a reel you supply: hook, structure, pacing and visuals. |
 | `/going-viral` | The strategy: pick the goal, the emotion behind it, then the hook and the angle. |
 | `/virality` | Plans or reviews a reel so it gets watched, or explains why a post flopped. |
@@ -74,7 +76,7 @@ Run on every reel; Claude runs them at the approvals.
 | Command | What it does |
 |---|---|
 | `/analytics-readout` | Type it with your numbers a day or more after posting: adds them to brand/insights.csv and says in plain words what to make more of. |
-| `/comment-responder` | Sets up a comment-to-DM reply for a keyword, with a person in the loop. Sends nothing unless you turn it on. |
+| `/comment-responder` | Lists the comments and DMs waiting for you and answers, hides or sends a private reply, one at a time after your yes. Also sets up an automatic keyword reply in your publisher, off until tested. |
 | `/content-factory` | The opt-in autopilot that runs the whole loop, one reel at a time, only as far as your permissions allow. |
 
 ## Engine commands (Claude runs these for you)
@@ -98,7 +100,19 @@ Run on every reel; Claude runs them at the approvals.
 | `kit predict` | Measured facts, plus a watch-time estimate once calibrated. |
 | `kit sound` | Mixes the voice, effects and music. |
 | `kit export` | Joins picture and sound into the finished mp4 for Instagram. |
+| `kit cover` | Renders the reel's cover to out/cover.jpg at Meta's size, plus a sheet showing how it crops in the grid. |
 | `kit live` | Serves the reel so you can watch it play in a browser. |
+
+## Publisher commands (in a brand folder, after you set it up)
+
+`node publisher/scripts/<script>.mjs`
+
+| Command | What it does |
+|---|---|
+| `setup.mjs` | Writes the publisher's settings for this brand and prints the steps in order; secrets sends the tokens from your token files to Cloudflare without showing them (--dry-run first); --url saves its address; check shows each platform and whether it is live. |
+| `schedule.mjs` | Schedules an approved reel on Instagram, the Facebook Page and Threads (--preview checks without uploading); status lists posts and comment replies; cancel <id> stops one. |
+| `pull.mjs` | Brings back what went out: links, errors and automatic replies, for the dashboard and the reel's Posting lines. |
+| `forget.mjs` | Deletes what the publisher kept about one person, when they ask. |
 
 ## From the plugins the installer adds
 

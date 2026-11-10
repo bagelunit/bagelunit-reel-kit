@@ -2,6 +2,8 @@
 
 A day or more after a reel goes out, its numbers tell you what to make next. This page shows where to find them, where to put them, and what the kit does with them.
 
+**Or let the kit read them.** Connect your Instagram numbers once (`docs/dashboard.md`, section 2) and every refresh pulls views, reach, watch time, skip rate, likes, comments, saves and shares for each post, and adds each reel's 7-day row to `brand/insights.csv` for you. Follows per reel are the one number you still add by hand.
+
 ## 1. Find the numbers (2 minutes per reel)
 
 In the Instagram app, open the reel, tap **View insights**. Note these, as shown there:

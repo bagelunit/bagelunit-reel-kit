@@ -1,6 +1,6 @@
 # Auto-reply to comments and send DMs (optional)
 
-A reel that ends on "comment WORD and I'll send it" needs something that answers those comments: a short public reply and a DM with the resource. The kit does **not** include that piece. `/comment-responder` drafts the rule (the keyword, the public reply, the DM); this page explains how to connect it for this brand. It is set up once per brand, per Instagram handle, with the brand owner's own accounts.
+A reel that ends on "comment WORD and I'll send it" needs something that answers those comments: a short public reply and a DM with the resource. The kit's publisher (`publisher/`) can do it once you set it up and test it; `/comment-responder` writes the rule (the keyword, the public reply, the DM) with you. This page lists the ways to connect it for this brand. It is set up once per brand, per Instagram handle, with the brand owner's own accounts.
 
 ## Before anything goes live
 
@@ -16,29 +16,20 @@ These rules from `CLAUDE.md` still apply, whichever way you connect it:
 
 ## Two ways to connect it
 
-### A. A no-code tool (fastest)
+### A. The kit's publisher (recommended)
 
-Tools such as ManyChat connect to an Instagram professional account and run a "comment keyword, reply, then DM" automation on their own servers. You connect the account and paste in the rule from `/comment-responder`. Check the tool's current price and terms first. Turn it on for one reel and test it from a second account.
+The same publisher that posts your reels (`docs/connect.md` step 6) answers keyword comments: one public reply without a link, one private message with the link, each comment once, within Meta's 7 days, at most 30 an hour, never to your own comments. Every automatic message ends with "(This is an automated reply.)" (some places require it by law; you can reword it, not remove it). It answers only rules marked tested, and only while its comment mode is live. Set it up with `docs/connect.md` step 7 and `publisher/README.md`, "Comment replies".
 
-### B. Your own small service (Meta's API)
+Meta's side, and it takes days to weeks: Meta sends comment notifications only to an app that is **Live** with **Advanced Access** to the comments permission, which means passing **App Review** (a description and a screen recording for each permission), and production access needs **Business Verification**. In development mode Meta sends none, so nothing can be tested before that, and the account must be public. Claude does each of these in your browser and asks before sending anything to Meta: `docs/connect.md` step 7 has the order. Plan for it before you promise a keyword in a reel.
 
-Build it yourself if you want to own the whole thing and pay nothing per month. The shape that works:
+### B. A no-code tool
 
-1. **A web address that is always on**, on HTTPS with a valid certificate. A Cloudflare Worker or a serverless function works. Use one deployment per brand, each with its own token, storage and rules, so brands never mix.
-2. **A Meta app** with the Instagram product, "Instagram API with Instagram Login" (Business Login for Instagram), and the permissions `instagram_business_basic`, `instagram_business_manage_comments` and `instagram_business_manage_messages`. The Instagram account must be a public professional account. Meta's webhook setup page says the app must be Live, the `comments` webhook needs Advanced Access, and production access needs business verification, so plan for App Review.
-3. **The webhook:** Meta first sends a GET request with `hub.mode`, `hub.verify_token` and `hub.challenge`; answer with the challenge when the token matches yours. After that every new comment arrives as a POST. Check the `X-Hub-Signature-256` header (a SHA-256 signature made with your app secret) before trusting it, answer 200 at once, and do the work after. Subscribe the app to the `comments` field, then enable it for the account with `POST https://graph.instagram.com/<version>/<account id>/subscribed_apps?subscribed_fields=comments`.
-4. **For a matching comment:**
-   - public reply: `POST https://graph.instagram.com/<version>/<comment id>/replies` with `message`;
-   - DM (a "private reply"): `POST https://graph.instagram.com/<version>/<account id>/messages` with `recipient.comment_id` and `message.text`.
-   Meta allows one private reply per comment, within 7 days of the comment. A follow-up is only possible if the person writes back, within 24 hours.
-5. **Safety in the service itself:** start in a dry-run mode that only logs what it would send; remember every comment it handled (Meta retries, so the same comment can arrive twice); ignore the brand's own comments; cap sends per hour; refuse a public reply that contains a link; keep a list of comments left for a person.
-6. **The token:** use a long-lived Instagram User access token and refresh it before it expires (about 60 days), for example with a weekly scheduled job.
-
-Meta changes these pages often. Read the current ones (private replies, comment moderation, webhooks) before you build, and note the API version you used.
+A no-code comment-to-DM tool connects to an Instagram professional account and run a "comment keyword, reply, then DM" automation on their own servers. You connect the account and paste in the rule from `/comment-responder`. Check the tool's current price and terms first. Turn it on for one reel and test it from a second account.
 
 ## Test, then go live
 
-1. Run it in dry run and comment the keyword from a second account. Check it would send the right reply and DM.
-2. Add the keyword to `cta.tested_keywords`, set `autopilot.dm_replies` to `true` with the date, and switch the service to live.
+0. Meta has approved the app and it is Live (`docs/connect.md` step 7, points 3 to 5). Before that, no comment reaches the publisher.
+1. With the comment mode in dry run, comment the keyword from a second (public) account. Check (`node publisher/scripts/schedule.mjs status`, or the tool's log) it would send the right reply and DM.
+2. Mark the rule tested, add the keyword to `cta.tested_keywords`, set `autopilot.dm_replies` to `true` with the date, and switch the comment mode to live.
 3. Comment again from the second account and confirm the reply and the DM arrive.
 4. Only then post a reel that asks people to comment that word.

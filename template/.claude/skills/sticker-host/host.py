@@ -9,7 +9,8 @@
 Commands (run from the brand folder; the host lives in brand/host/):
   status                      what the set has: the starter 10, extras, custom poses, what is missing
   prompt <pose> [--base]      the full prompt for one pose (paste it into ChatGPT, Gemini or Higgsfield)
-  add <pose> --pose "what the body, hands and face do" --use "when a reel uses it"
+  add <pose> --pose "what the body, hands and face do" --use "when a reel uses it" [--reel <slug>]
+                              --reel records the reel it was first made for (the library grows with your reels)
                               register a new pose (any name); it is then made like the others
   process [<pose> ...]        brand/host/raw/<pose>.png -> brand/host/poses/<pose>.png: remove the plain
                               background, keep or add the white sticker border, fit to the 896x1120 canvas
@@ -365,17 +366,23 @@ def cmd_status(root="."):
     other = sorted(have - set(cat))
     if other:
         print("  in the folder but not in the catalogue: " + ", ".join(other))
+    made = [(n, p) for n, p in (host.get("poses") or {}).items() if isinstance(p, dict) and p.get("first_reel")]
+    if made:
+        print("  made for reels: " + ", ".join(f"{n} ({p['first_reel']})" for n, p in made))
     missing = [n for n, p in cat.items() if p["group"] == "starter" and n not in have]
     print("  starter 10: " + ("complete" if not missing else f"{10 - len(missing)} of 10 done"))
 
 
-def cmd_add(name, pose, use, root="."):
+def cmd_add(name, pose, use, root=".", reel=None):
     if not name or not name.replace("-", "").isalnum() or name.lower() != name:
         die("a pose name is lowercase letters and numbers, words joined by dashes (for example point-down)")
     if not pose or not use:
         die('give both --pose "what the body, hands and face do" and --use "when a reel uses it"')
     host = load_host(root)
-    host.setdefault("poses", {})[name] = {"pose": pose, "use": use, "added": date.today().isoformat()}
+    entry = {"pose": pose, "use": use, "added": date.today().isoformat()}
+    if reel:
+        entry["first_reel"] = reel.replace("\\", "/").rstrip("/").split("/")[-1]   # reels/<slug> or <slug>
+    host.setdefault("poses", {})[name] = entry
     save_host(host, root)
     print(f"added pose {name}. Next: make brand/host/raw/{name}.png from its prompt (host.py prompt {name}), then host.py process {name}")
 
@@ -428,7 +435,7 @@ def main():
     cmd, rest = args[0], args[1:]
     opt = lambda k, d=None: rest[rest.index(k) + 1] if k in rest and rest.index(k) + 1 < len(rest) else d
     flags = {rest[i] for i in range(len(rest)) if rest[i].startswith("--")}
-    plain = [a for i, a in enumerate(rest) if not a.startswith("--") and not (i and rest[i - 1] in ("--pose", "--use", "--logo", "--ink", "--tool", "--model"))]
+    plain = [a for i, a in enumerate(rest) if not a.startswith("--") and not (i and rest[i - 1] in ("--pose", "--use", "--logo", "--ink", "--tool", "--model", "--reel"))]
     hd = host_dir()
     if cmd == "selftest":
         selftest()
@@ -439,7 +446,7 @@ def main():
             die("which pose? e.g. host.py prompt point")
         print(prompt_for(plain[0], load_host(), base="--base" in flags))
     elif cmd == "add":
-        cmd_add(plain[0] if plain else "", opt("--pose"), opt("--use"))
+        cmd_add(plain[0] if plain else "", opt("--pose"), opt("--use"), reel=opt("--reel"))
     elif cmd == "process":
         raw = os.path.join(hd, "raw")
         names = plain or sorted(f[:-4] for f in os.listdir(raw) if f.lower().endswith(".png")) if os.path.isdir(raw) else plain

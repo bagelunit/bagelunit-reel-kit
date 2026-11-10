@@ -176,6 +176,32 @@ function exportReel() {
 }
 
 // local addition: link the brand's sticker host into a reel, list every pose in reel.json, and report poses a reel needs
+// the reel's cover: its cover scene (cover.html, or a moment set in reel.json "cover") as out/cover.jpg, made to Meta's
+// cover rules (JPEG, sRGB, 9:16 at 1080x1920, under 8 MB), plus build/cover-crops.jpg to look at what the profile grid
+// (the middle 3:4) and a feed post (the middle square) will show. Gate C records the cover's fingerprint with the video.
+async function cover() {
+  const reel = reelAt(target);
+  const set = reel.cfg.cover && typeof reel.cfg.cover === 'object' ? reel.cfg.cover : {};
+  const page = text('page') ?? set.page ?? (fs.existsSync(path.join(reel.dir, 'cover.html')) ? 'cover.html' : null);
+  const at = 'at' in flags ? num('at', 0) : set.at ?? (page ? 0 : null);
+  if (page == null && at == null) die('no cover scene yet. Make cover.html (this reel\'s page showing only the cover: a big title, the subject, the host if any, the handle; keep words inside the middle 1080x1440), or set reel.json "cover": {"at": <seconds>} to use a still moment of the reel. Then run kit cover again.');
+  fs.mkdirSync(path.join(reel.dir, 'out'), { recursive: true });
+  fs.mkdirSync(path.join(reel.dir, 'build'), { recursive: true });
+  const raw = path.join(reel.dir, 'build', 'cover-raw.jpg'), file = path.join(reel.dir, 'out', 'cover.jpg'), crops = path.join(reel.dir, 'build', 'cover-crops.jpg');
+  await exclusive(async () => {
+    const view = await openReel(reel, { scale: 1, page: page ?? 'index.html', fail: die });
+    fs.writeFileSync(raw, await view.frameAt(at ?? 0, 0.95));
+    await view.close();
+  });
+  const fit = 'scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:color=white,format=yuvj420p';
+  ffmpeg(['-i', raw, '-vf', fit, '-q:v', '3', file]);
+  if (fs.statSync(file).size > 7.5 * 1024 * 1024) ffmpeg(['-i', raw, '-vf', fit, '-q:v', '8', file]);
+  const shade = 'color=black@0.55:t=fill';
+  ffmpeg(['-i', file, '-vf', `drawbox=x=0:y=0:w=1080:h=240:${shade},drawbox=x=0:y=1680:w=1080:h=240:${shade},drawbox=x=0:y=240:w=1080:h=1440:color=white@0.95:t=5,drawbox=x=0:y=420:w=1080:h=1080:color=yellow@0.95:t=5,scale=540:960`, '-q:v', '3', crops]);
+  console.log(`cover: ${rel(reel, file)} (1080x1920, ${Math.round(fs.statSync(file).size / 1024)} KB, from ${page ? page : `the frame at ${at}s`})`);
+  console.log(`check: ${rel(reel, crops)}  white box = what the profile grid shows (middle 3:4), yellow box = a feed post (middle square). The title must sit inside the white box.`);
+}
+
 function host() {
   if (!target) die('usage: kit host <reel dir> [--dir <poses folder>] [--check]');
   const dir = path.resolve(target);
@@ -239,6 +265,7 @@ const COMMANDS = {
   sound: [sound, '<dir>', 'voice + effects (+ music) → build/mix.wav'],
   export: [exportReel, '<dir> [--remix]', 'picture + sound → out/<name>.mp4, ready for Instagram'],
   live: [live, '<dir> [--port n]', 'serve the reel and print a link to watch it play'],
+  cover: [cover, '<dir> [--page cover.html] [--at <seconds>]', 'the reel cover: out/cover.jpg (1080x1920 JPEG to Meta\'s cover rules) and build/cover-crops.jpg showing what the grid and a feed post crop'],
   host: [host, '<dir> [--dir <poses folder>] [--check]', 'sticker host: link the brand\'s pose set into the reel, list every pose in reel.json, and name any pose the cues need that the set lacks'],
 };
 

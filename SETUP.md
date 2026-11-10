@@ -6,6 +6,16 @@ When Claude runs setup for you (the kit's setup here, or a brand's setup in a wo
 
 Installer options: `--link` (symlink `studio/` instead of copying it, handy if you pull updates with git), `--skip-packages` (also `--skip-brew`), `--yes`, `--dry-run`, `--skip-plugins`, `--skip-sound`, `--earshot-mcp`, `--rebuild-sounds`. Run `bash setup/install.sh --help` for the list.
 
+## 0. The browser tool (so Claude can do the web steps for you)
+
+Every step on a website, here and in each brand's setup (your ElevenLabs key, the sound packs, the Meta app, Cloudflare, Telegram, a host), is done by Claude in your own browser with the browser tool, Claude in Chrome. You watch; you only log in, copy a key into the file Claude opens for you, and click the last Delete when something is removed. Turn it on once, before the steps below:
+
+1. Use Google Chrome, Microsoft Edge, Brave, Arc, Vivaldi or Opera (not Safari or Firefox, and not Windows inside WSL).
+2. Install the Claude extension: https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn and sign in with your Claude account.
+3. In Claude Code, type `/chrome` and turn it on, with "Enable by default" (in a terminal, `claude --chrome` also works). It needs a Pro, Max, Ultra, Team or Enterprise plan, signed in with `/login`.
+
+The installer checks for it near the end. The full rules (who clicks what) are in `template/docs/browser.md`. Without the browser tool every step below is still written out for you to do by hand.
+
 ## 1. Programs
 
 Pick your system (the installer does exactly this and asks first; this is for doing it by hand):
@@ -37,7 +47,9 @@ If a copy not installed by this repo is already at `~/.claude/skills/bagelunit-r
 
 **Only if you used the kit before it was renamed BagelUnit Reel Kit** (new users skip this): the installer copies your old settings folder (keys, saved voice, handle, theme) to `~/.config/bagelunit-reels/` once and keeps the old folder. It does not touch an old skill folder under its previous name; it prints a note instead. Remove that old skill folder yourself once the new one works, because two installed copies would both answer reel requests.
 
-## 3. Your ElevenLabs key (you do this yourself)
+## 3. Your ElevenLabs key
+
+**With the browser tool:** Claude makes the key file (step 2 below, empty), opens it in your editor, and opens elevenlabs.io. You sign up or log in; Claude picks the plan you choose (it asks before a paid one), opens the API keys page, names a new key and ticks the permissions below, and stops at **Create**. You click it, copy the key into the open file, save, and say "done". Claude never sees the key. Then it closes that tab. **By hand:**
 
 1. Make an account at https://elevenlabs.io and create an API key at https://elevenlabs.io/app/settings/api-keys. Allow **Text to Speech** and **Voices** ("User: read" is optional; it lets the checkup show your credits). Add **Speech to Text** if you want talking-head edits without installing Whisper. The free plan is fine for trying the kit, but ElevenLabs allows only non-commercial use on it, with credit to ElevenLabs; for a business's or a client's reels use a paid plan (Starter or higher).
 2. Save it, alone on one line, in `~/.config/bagelunit-reels/elevenlabs.key` (on Windows that is `C:\Users\<you>\.config\bagelunit-reels\elevenlabs.key`):
@@ -92,7 +104,7 @@ git clone https://github.com/Bodila51/opus-sound-layer ~/dev/sound/opus-sound-la
 
 **The 7 Kenney sound packs (free, CC0): download these in your browser.** Kenney only lets a browser download its zips. A script that tries gets a web page back instead. That is what the build's `skip pack ...: File is not a zip file` message means.
 
-The installer does this part with you. Run it in a terminal and it opens the 7 pages, waits while you download, and takes the zips from your Downloads folder. It also deletes any fake web-page "zips" left from an earlier run. By hand, on each page:
+**With the browser tool**, Claude opens each page, clicks **Download** and **Continue without donating...**, and the zips land in your Downloads folder; then it runs `bash setup/install.sh` again, which takes them from there. Without it, the installer does this part with you: run it in a terminal and it opens the 7 pages, waits while you download, and takes the zips from your Downloads folder. It also deletes any fake web-page "zips" left from an earlier run. By hand, on each page:
 
 1. Click **Download**.
 2. A "Consider a donation" box opens. Click **Continue without donating...** (donating is optional).
@@ -172,4 +184,8 @@ Keep brand folders out of iCloud-synced folders (Desktop, Documents) if you can:
 
 ## Optional: Apify (outlier scan)
 
-Only if a brand owner wants `/account-audit` to fetch posts instead of using an export. Make a token at https://console.apify.com/settings/integrations, save it yourself to `~/.config/bagelunit-reels/apify.key` (`chmod 600`), and set `autopilot.scrape` to `true` in that brand's `brand/brand.json`. It is paid per result (about $2.70 per 1,000 posts on the free plan); the script prints the estimate first and stops above `--max-cost`. Claude never asks for or prints the token.
+Only if a brand owner wants `/account-audit` to fetch posts instead of using an export. With the browser tool, Claude makes `~/.config/bagelunit-reels/apify.key` (empty, readable by you only) and opens it, then opens Apify: you sign up or log in, and Claude goes to https://console.apify.com/settings/integrations and stops at the token's copy button; you copy it into the file and save. By hand: make a token there and save it yourself to `~/.config/bagelunit-reels/apify.key` (`chmod 600`). Then set `autopilot.scrape` to `true` in that brand's `brand/brand.json`. It is paid per result (about $2.70 per 1,000 posts on the free plan); the script prints the estimate first and stops above `--max-cost`. Claude never asks for or prints the token.
+
+## Optional: Runway (paid video clips)
+
+Only if a brand owner turns on `autopilot.paid_renders` for Seedance clips (`/reel-builder`, about $6 to $12 per reel). With the browser tool, Claude opens the Runway developer portal (https://dev.runwayml.com): you sign up or log in and add credits (payment details are yours; Claude asks before any purchase), and Claude goes to API keys, names a new key and stops at **Create**. You copy the key. Runway's SDK reads it from the `RUNWAYML_API_SECRET` environment variable: Claude opens your shell's settings file (`~/.zshrc` on a Mac, `~/.bashrc` on Linux; on Windows, Settings, System, About, Advanced system settings, Environment Variables) at a new line `export RUNWAYML_API_SECRET="PASTE-HERE"`, and you paste it in and save. Open a new terminal afterwards. Claude never asks for or prints the key.

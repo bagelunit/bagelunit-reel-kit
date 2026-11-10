@@ -1,0 +1,10 @@
+{
+  "name": "bagelunit-publisher",
+  "private": true,
+  "type": "module",
+  "description": "This brand's publisher: scheduled posting on Instagram, the Facebook Page and Threads, and comment auto-replies, on one Cloudflare Worker",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
+}

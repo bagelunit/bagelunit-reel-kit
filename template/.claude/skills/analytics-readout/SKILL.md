@@ -20,7 +20,7 @@ jargon.
 
 ## Where the numbers live
 
-This brand keeps one row per posted reel in `brand/insights.csv` (columns: reel, date, views, reach, avg_watch_time_s, skip_rate, likes, comments, saves, shares, follows). When the owner gives new numbers, add the row (never overwrite old rows), read it back, then read the whole file so the comparison uses this brand's own median. Where to find each number: `docs/after-posting.md`.
+If the brand connected Instagram (`brand.json` -> `dashboard.instagram`, see `docs/dashboard.md`), run `node .claude/skills/content-calendar/refresh.mjs --no-telegram` first: it pulls the latest numbers and adds each reel's 7-day row to `brand/insights.csv` by itself, so ask the owner only for what the API does not give (follows per reel). This brand keeps one row per posted reel in `brand/insights.csv` (columns: reel, date, views, reach, avg_watch_time_s, skip_rate, likes, comments, saves, shares, follows). When the owner gives new numbers, add the row (never overwrite old rows), read it back, then read the whole file so the comparison uses this brand's own median. Where to find each number: `docs/after-posting.md`.
 
 ## When to use
 You're looking at insights and can't tell what to do differently.

@@ -8,10 +8,10 @@
   record, gate C   hashes (SHA-256) the newest out/*.mp4, reads build/qa.json (if any) and the latest "Review:" line in
                    approvals.md (if any), and appends a dated block under a "## Gate C" heading (created if missing).
                    Earlier text is never rewritten. The block holds the file name, the first 12 hex characters of the hash,
-                   the QA result and the verdict line.
+                   the QA result and the verdict line, and the cover (out/cover.jpg) with its hash when there is one.
   record, gate A or B   appends one dated line (with the note) under "## Gate A" / "## Gate B". No hash.
-  check, gate C    hashes the newest out/*.mp4 again and compares it with the latest recorded hash:
-                   MATCH, or CHANGED SINCE APPROVAL (exit code 1). Nothing is written.
+  check, gate C    hashes the approved mp4 (and the cover, if one was approved) again and compares them with the latest
+                   record: MATCH, or CHANGED SINCE APPROVAL (exit code 1). Nothing is written.
   gate A / gate C  also need a current PASS from the fact check (tools/facts.py, scope script for A, scope final for C): the
                    script, the caption and facts.md must be unchanged since it was recorded. Otherwise the record is refused.
                    --skip-facts "reason" records anyway and writes "FACTS NOT RE-CHECKED: reason" into the entry.
@@ -70,11 +70,21 @@ def main():
             print(f'CHANGED SINCE APPROVAL: {name} (recorded {recorded}) is no longer in out/')
             sys.exit(1)
         now = sha256(video)[:12]
-        if now == recorded:
-            print(f'MATCH: {name} sha256 {now} is the file that was approved')
+        if now != recorded:
+            print(f'CHANGED SINCE APPROVAL: {name} recorded {recorded}, now {now}')
+            sys.exit(1)
+        covers = re.findall(r'^- Cover: (.+?) \| sha256: ([0-9a-f]{12})', text, re.M)
+        block_start = text.rfind('- File: ')
+        cover = next((c for c in reversed(covers) if text.rfind(f'- Cover: {c[0]} | sha256: {c[1]}') > block_start), None)
+        if cover:
+            cfile = project / 'out' / cover[0]
+            cnow = sha256(cfile)[:12] if cfile.exists() else None
+            if cnow != cover[1]:
+                print(f'CHANGED SINCE APPROVAL: the cover {cover[0]} ' + (f'recorded {cover[1]}, now {cnow}' if cnow else 'is no longer in out/'))
+                sys.exit(1)
+            print(f'MATCH: {name} sha256 {now} and cover {cover[0]} sha256 {cover[1]} are the files that were approved')
             return
-        print(f'CHANGED SINCE APPROVAL: {name} recorded {recorded}, now {now}')
-        sys.exit(1)
+        print(f'MATCH: {name} sha256 {now} is the file that was approved')
 
     facts_line = ''
     if gate in ('A', 'C'):
@@ -102,7 +112,11 @@ def main():
         qa_text = f'{qa.get("result", "?")} ({qa.get("video", "?")})' if isinstance(qa, dict) else 'not run'
         reviews = re.findall(r'^\s*(?:[-*]\s*)?(Review:.*)$', text, re.M)
         verdict = reviews[-1].strip() if reviews else 'none recorded'
-        lines = [f'### {stamp}', f'- File: {video.name} | sha256: {digest}', f'- QA: {qa_text}', f'- {verdict}', f'- {facts_line}']
+        lines = [f'### {stamp}', f'- File: {video.name} | sha256: {digest}']
+        cover = project / 'out' / 'cover.jpg'
+        if cover.exists():
+            lines.append(f'- Cover: {cover.name} | sha256: {sha256(cover)[:12]}')
+        lines += [f'- QA: {qa_text}', f'- {verdict}', f'- {facts_line}']
         if note:
             lines.append(f'- Note: {note}')
         entry = '\n'.join(lines)

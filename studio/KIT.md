@@ -198,7 +198,7 @@ Their own face take drives everything, with no TTS. Read `modes/talking/GUIDE.md
 Give them:
 - the path to `out/<name>.mp4`;
 - a caption (2–3 lines of context, the CTA keyword, 3–5 hashtags);
-- a reminder that "Comment KEYWORD" needs a DM auto-reply (ManyChat, ReplyRush, or Instagram's automations) carrying what they promised (`playbook/posting.md`).
+- a reminder that "Comment KEYWORD" needs a DM auto-reply (the brand's publisher, a no-code comment-to-DM tool, or Instagram's own automations) carrying what they promised (`playbook/posting.md`).
 
 Offer one round of changes: faster hook, different voice, swap a shot, different theme.
 

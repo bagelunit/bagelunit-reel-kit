@@ -1,14 +1,15 @@
 ---
 name: reel-posting
 description: >
-  Get an approved reel posted: a posting card for posting by hand, scheduling it, or setting up automatic
-  posting for this brand step by step. Use when the user says "post this", "how do I post it", "schedule
-  this reel", "post it on Tuesday", "set up auto-posting", "post automatically", or after Gate C is approved.
+  Get an approved reel posted: a posting card for posting by hand, scheduling it through the kit's publisher
+  on Instagram, the Facebook Page and Threads, or setting up automatic posting for this brand step by step.
+  Use when the user says "post this", "how do I post it", "schedule this reel", "post it on Tuesday", "post it
+  on Facebook / Threads too", "set up auto-posting", "post automatically", or after Gate C is approved.
 user-invokable: true
 argument-hint: "[reel folder, e.g. reels/<slug>] [when]"
 metadata:
   author: BagelUnit
-  version: "1.0.0"
+  version: "2.0.0"
   category: content
 ---
 
@@ -29,43 +30,95 @@ connected a publisher and said yes to that reel's time (CLAUDE.md rule 11).
 Give the owner a **posting card** and nothing else to think about:
 
 - **File:** the full path of `out/<name>.mp4` (and how to get it to the phone: AirDrop, Google Drive, a cable).
-- **Cover:** `out/cover.jpg`. In Instagram: Edit cover, then Add from camera roll.
+- **Cover:** `out/cover.jpg` (made by `kit cover`, approved at Gate C). Send it to the phone together with the video (AirDrop both, or one Drive folder). In Instagram: Edit cover, then Add from camera roll. In a scheduling app: upload it as the cover in the post editor. A connected publisher sets it by itself on Instagram and on the Facebook Reel, so nothing to do there.
 - **Caption:** the text of `out/caption.txt`, ready to copy.
 - **Settings:** Settings and privacy, Media quality, turn on "Upload at highest quality".
-- **When:** suggest a time from the brand's own `brand/log.md` (when its best reels went out), or say there is
-  no data yet. Instagram's own scheduler (Advanced settings, Schedule this post) can hold it until then.
+- **When:** the reel's date in `brand/plan.md` if it has one, else the next open slot from `/content-calendar`
+  (`brand.json` -> `posting.days` and `posting.time`), else a time from the brand's own `brand/log.md` (when
+  its best reels went out), or say there is no data yet. Instagram's own scheduler (Advanced settings, Schedule this post) can hold it until then.
 - **After posting:** ask (question block) "Posted" or "Scheduled in Instagram for <time>", then add the line
-  to `approvals.md` under `## Posting` and the reel's row to `brand/log.md` (date, hook formula, first line,
-  goal, angle, review verdict).
+  to `approvals.md` under `## Posting` and, once it is live, the reel's row to `brand/log.md` (date, hook
+  formula, first line, goal, angle, review verdict). Then run `/content-calendar` so the calendar shows it.
+  Write the `## Posting` line in one of these shapes, so the calendar can read it (time in the brand's timezone):
+  - `- 2026-11-09 21:05 Posted by hand on @handle: https://www.instagram.com/reel/...` (ask for the post's link,
+    "Copy link" in Instagram; it lets the dashboard match the post to this reel. Without it, leave the link out)
+  - `- 2026-11-10 09:00 Scheduled in Instagram for 2026-11-12 18:00`
+  - `- 2026-11-11 08:00 Cancelled post <id>` (when a scheduled post is cancelled)
 
 ## Route 2: setting up automatic posting (once per brand)
 
 Only when the owner asks. Walk it one step at a time and keep a short checklist in the reply.
 
-1. **Pick the route** (question block): "Instagram's own scheduler (Recommended, free, a person uploads)",
-   "A scheduling tool such as Buffer or Later", "My own publisher on Meta's API (for developers)", "Not now".
-   Read `docs/auto-post.md` for the chosen route.
-2. **Scheduler or tool:** give the exact steps in plain words; the owner connects the account and logs in.
+1. **Pick the route** (question block): "The kit's publisher (Recommended: posts by itself on Instagram, your
+   Facebook Page and Threads, free on Cloudflare)", "Instagram's own scheduler (free, a person uploads)",
+   "A scheduling app", "Not now". Read `docs/auto-post.md` for the chosen route.
+2. **Scheduler or app:** give the exact steps in plain words; the owner connects the account and logs in.
    Record `posting.method` in `brand.json` ("instagram-scheduler", "tool: <name>").
-3. **Own publisher:** follow `docs/auto-post.md` section C with them. Any code goes in a folder outside this
-   workspace; tokens and keys are typed by the owner into the service's own settings, never into chat. It
-   must refuse a file whose fingerprint does not match Gate C, and start in dry run. Record
-   `posting.method` = "own publisher".
-4. **Test once** with one approved reel (question block: "It posted correctly", "Something went wrong").
+3. **The kit's publisher** (`publisher/` in this folder): walk `docs/connect.md` step 6 with the owner, one step
+   at a time, and run each step yourself after the owner's yes. With the browser tool (rule 15 in `CLAUDE.md`, `docs/browser.md`), do the web pages yourself; the owner logs in, copies each secret into the file you opened, and clicks the last Delete. Run
+   `node publisher/scripts/setup.mjs` (add `--api-setup unified` when `instagram-<slug>.json` says
+   `"login": "unified"`), then the commands it prints, in order: `npx wrangler login` (it opens Cloudflare in the
+   browser: the owner logs in, you click Allow), the KV and R2 storage, `npx wrangler deploy`, `setup.mjs --url
+   <address>`, `setup.mjs secrets --dry-run`, then `setup.mjs secrets` (it moves every token from the owner's files to
+   Cloudflare without showing it; never use `wrangler secret put` with a value yourself, and never ask for a token).
+   Then `node publisher/scripts/setup.mjs check`. Record `posting.method` = "publisher".
+4. **Test once in dry run** with one approved reel (route 3), before `autopilot.post` is on: with every platform it
+   goes to in dry run, `schedule.mjs` allows it without `autopilot.post` (a dry run posts nothing). At its time the
+   publisher records what it would send and posts nothing; `node publisher/scripts/schedule.mjs status` and the
+   dashboard show it. Question block: "It would have sent the right thing", "Something is wrong".
 5. **Turn it on:** only after the owner picks "Turn on automatic posting" in a final question block, set
    `autopilot.post` to `true` and write the date in the `_note`.
+6. **Going live**, one platform at a time (`publisher/README.md`, "Dry run and going live", and `docs/connect.md`
+   step 6, point 10): only after the owner's yes for that platform in this conversation, you set
+   `PUBLISH_MODE_INSTAGRAM` (or `_FACEBOOK`, `_THREADS`) to `"live"` in `publisher/wrangler.toml` and run
+   `npx wrangler deploy` in the `publisher` folder, then `node publisher/scripts/setup.mjs check` to show it LIVE. If
+   the platform was in dry run for more than about 50 days, first run `setup.mjs secrets --only IG_TOKEN` (or
+   `THREADS_TOKEN`): the publisher does not renew tokens in dry run. Tell the owner the dry-run test stays a dry run
+   and schedule a new post to post live.
+
+## Trial reels (A/B tests)
+
+If the reel's folder, or its version A's folder, has a `test.json` (see `/ab-hook-tester`), it is one version of an
+A/B test and goes out as a **trial reel**: Instagram shows it to non-followers first.
+- On the posting card, add: "Post this as a trial reel: turn on the trial option when you share it, and choose to share
+  it to your followers yourself later." Post every version of the test within the same hour.
+- The posting line says so: `- 2026-11-10 18:02 Posted as a trial reel on @handle: <link>`. The link matters most here:
+  it is how the dashboard tells the versions' numbers apart.
+- With the kit's publisher, add `--trial`: it sends `trial_params` with `graduation_strategy` `MANUAL`.
+- Once the dashboard calls a winner, `/ab-hook-tester record` takes over (sharing the winner to followers happens in the
+  Instagram app; Meta's API cannot do that step).
 
 ## Route 3: scheduling one reel (after route 2 is set up)
 
 1. Run the Gate above. Then ask the time (question block with 2 or 3 suggested slots plus Other) and the
    timezone if `brand.json` has none.
-2. Show the posting card (file, fingerprint, caption first line, time) and ask "Schedule it?" (question
-   block: "Schedule (Recommended)", "Change something", "Not now").
-3. Schedule it the brand's way, record the line under `## Posting` in `approvals.md`, and later add the
-   `brand/log.md` row once it is live.
+2. **With the kit's publisher**, also ask (one question block, multi-select) where it goes: "Instagram" (always
+   offered first), "Facebook Page", "Threads" (only the platforms `setup.mjs check` shows as connected). For
+   Threads ask "The video" or "A short text with the reel's link". If `/reel-repurpose` has not written
+   `out/platforms/facebook.txt` or `threads.txt`, say the caption is used (Threads allows 500 characters; a longer
+   caption needs its own `threads.txt`, written and humanized first).
+3. Run the checks without sending anything:
+   `node publisher/scripts/schedule.mjs reels/<slug> --at <ISO time with offset> --platforms <list> [--threads text] [--trial] --preview`.
+   Show its summary (it says DRY RUN or LIVE: this really posts) with the posting card, and ask "Schedule it?"
+   (question block: "Schedule (Recommended)", "Change something", "Not now"). If the preview refuses (Gate C, a
+   changed file or cover, a caption too long, a video too long for a platform, mixed modes, or a live publisher
+   while `autopilot.post` is off), say why in plain words and stop. In dry run, say that this post stays a dry run
+   even if the publisher goes live before its time. A video too long only for Facebook (over 90 seconds) or a story (over 60) can still go to the other
+   platforms: offer that as a choice, never drop a platform without the owner's yes.
+4. After the owner's yes, run the same command with `--yes` in place of `--preview`. It uploads the approved video
+   and cover, schedules them and writes the "Scheduled" line under `## Posting` itself. Without the publisher,
+   schedule it the brand's way and write the line yourself (shapes above).
+5. Run `/content-calendar` so the calendar shows it. After its time, the refresh (or
+   `node publisher/scripts/pull.mjs`) brings back what went out and writes the "Posted on" lines with links; then
+   add the `brand/log.md` row.
+6. **Cancel** on the owner's word only: `node publisher/scripts/schedule.mjs status`, then `cancel <post id>`. If it
+   answers "too late to cancel", the publisher is posting it or already sent it to Meta: say so, check `status` a
+   few minutes later, and if it went out the owner deletes it in the app.
 
 ## Never
 
 - Never post or schedule a reel that did not pass Gate C, or a file that changed after it.
-- Never log in, never ask for or print a password, token or key.
+- Never type a password, never ask for or print a token or key, and never pass a secret to a command yourself: `setup.mjs secrets` moves them. `wrangler login`, the storage commands and `wrangler deploy` run only during setup or a change the owner said yes to. `npx wrangler delete` is shown to the owner to run, never run by you.
+- Never use `--yes` without the owner's yes to that reel, its time and its platforms in this conversation.
+- Never switch a platform from dry run to live without the owner's yes for that platform in this conversation.
 - Never change the caption at posting time; a changed caption goes back through `/humanizer` and the owner.

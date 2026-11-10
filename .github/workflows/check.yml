@@ -97,6 +97,81 @@ jobs:
           test "$code" = 2 && grep -q "MISSING: magnifier" "$RUNNER_TEMP/host.txt" && ! grep -q "MISSING: my-own-pose" "$RUNNER_TEMP/host.txt"
           if node studio/tools/kit.mjs start "$RUNNER_TEMP/loose/reels/r" --style print; then echo "kit start must refuse outside a brand folder"; exit 1; fi
 
+      - name: Content calendar (dashboard, plan, summary, scheduler status, research and Facebook/Threads refusals; no network)
+        shell: bash
+        run: |
+          B="$RUNNER_TEMP/cal"
+          node setup/new-brand.mjs "$B" | grep -q "cal-reels"
+          B="$B-reels"
+          for f in template/.claude/skills/content-calendar/*.mjs; do node --check "$f"; done
+          node "$B/.claude/skills/content-calendar/calendar.mjs" "$B" >/dev/null && grep -q 'id="setup"' "$B/brand/dashboard.html" && grep -q "/brand-setup" "$B/brand/dashboard.html"
+          if grep -q 'class="agent live"' "$B/brand/dashboard.html"; then echo "a new brand folder should show no agent as having made something today"; exit 1; fi
+          python - "$B" <<'PY'
+          import json, sys, os
+          b = sys.argv[1]; p = os.path.join(b, 'brand', 'brand.json'); d = json.load(open(p))
+          d['name'] = 'Cal'; d['slug'] = 'cal'; d['posting'].update({'timezone': 'America/Toronto', 'days': ['tue', 'thu'], 'time': '18:00'})
+          json.dump(d, open(p, 'w'), indent=2)
+          with open(os.path.join(b, 'brand', 'plan.md'), 'a') as f: f.write('| 2030-01-08 | A planned topic | save | contrarian |  |  |\n')
+          os.makedirs(os.path.join(b, 'reels', 'one'))
+          open(os.path.join(b, 'reels', 'one', 'script.txt'), 'w').write('A hook line\n')
+          PY
+          node "$B/.claude/skills/content-calendar/calendar.mjs" "$B" --today 2030-01-06 | tee "$RUNNER_TEMP/cal.txt"
+          grep -q "1 in progress, 1 ideas" "$RUNNER_TEMP/cal.txt"
+          test -s "$B/brand/dashboard.html" && grep -q "A planned topic" "$B/brand/calendar.md" && grep -q "Hook &amp; Script" "$B/brand/dashboard.html"
+          node "$B/.claude/skills/content-calendar/telegram.mjs" "$B" show | grep -q "Cal"
+          node "$B/.claude/skills/content-calendar/schedule.mjs" "$B" status | grep -q "Off"
+          if node "$B/.claude/skills/content-calendar/instagram.mjs" "$B" --check; then echo "should refuse without a token file"; exit 1; fi
+          grep -q "@font-face" "$B/brand/dashboard.html" && grep -q "Your content team" "$B/brand/dashboard.html"
+          grep -q 'id="dash-data"' "$B/brand/dashboard.html" && grep -q 'data-open="one"' "$B/brand/dashboard.html" && grep -q 'data-view="week"' "$B/brand/dashboard.html"
+          node "$B/.claude/skills/content-calendar/host.mjs" "$B" folder | grep -q "The site is in"
+          test -f "$B/.claude/settings.json" && node -e "JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'))" "$B/.claude/settings.json"
+          rm -f "$B/brand/dashboard.html"; CLAUDE_PROJECT_DIR="$B" node "$B/.claude/skills/content-calendar/sync.mjs"; test -s "$B/brand/dashboard.html"
+          grep -q 'id="f-q"' "$B/brand/dashboard.html" && grep -q 'data-stage-pick="posted"' "$B/brand/dashboard.html"
+          if grep -q 'id="setup"' "$B/brand/dashboard.html"; then echo "the Get started panel should be gone once days, a plan and a reel exist"; exit 1; fi
+          echo "| 2020-01-07 | An overdue idea | save | contrarian |  |  |  |" >> "$B/brand/plan.md"
+          CLAUDE_PROJECT_DIR="$B" node "$B/.claude/skills/content-calendar/notice.mjs" | grep -q "An overdue idea"
+          HOME="$RUNNER_TEMP/ovhome" USERPROFILE="$RUNNER_TEMP/ovhome" node "$B/.claude/skills/content-calendar/overview.mjs" --scan "$RUNNER_TEMP" | grep -q "All brands"
+          node -e "import('./template/.claude/skills/content-calendar/page.mjs').then(({palette})=>{const p=palette('#F7D02C');if(p.text==='#f7d02c')process.exit(1)})"
+          test -f "$B/.cache/site/index.html" && grep -q "Disallow: /" "$B/.cache/site/robots.txt" && grep -q "noindex" "$B/.cache/site/_headers"
+          H="$RUNNER_TEMP/mhome"; mkdir -p "$H/.config/bagelunit-reels"
+          HOME="$H" USERPROFILE="$H" node "$B/.claude/skills/content-calendar/platforms.mjs" "$B" | grep -q "Neither Facebook nor Threads"
+          echo '{"access_token": "not-a-real-token"}' > "$H/.config/bagelunit-reels/instagram-cal.json"
+          if HOME="$H" USERPROFILE="$H" node "$B/.claude/skills/content-calendar/research.mjs" --brand "$B" competitor someone 2> "$RUNNER_TEMP/research.txt"; then echo "research should refuse on Instagram Login"; exit 1; fi
+          grep -q "Unified" "$RUNNER_TEMP/research.txt"
+          echo '{"pulled_at": "2030-01-05T12:00:00Z", "page": {"id": "1", "name": "Cal", "followers": 12}, "d28": {"views": 300}, "posts": [{"id": "9", "caption": "A hook line", "timestamp": "2030-01-04T12:00:00+0000", "permalink": "https://www.facebook.com/reel/9", "nums": {"plays": 40, "likes": 3}}]}' > "$B/brand/facebook.json"
+          echo '{"pulled_at": "2030-01-05T12:00:00Z", "account": {"username": "cal", "followers": 7}, "d7": {"views": 20}, "posts": []}' > "$B/brand/threads.json"
+          node "$B/.claude/skills/content-calendar/calendar.mjs" "$B" >/dev/null && grep -q 'id="elsewhere"' "$B/brand/dashboard.html" && grep -q "Facebook and Threads" "$B/brand/dashboard.html"
+          echo '{"media": [{"id": "1", "caption": "z", "timestamp": "2030-01-04T12:00:00+0000", "permalink": "javascript:alert(1)"}], "comments": [null, {"id": "c", "username": "u", "text": "hi", "permalink": "javascript:x"}], "stories": {"bad": 1}}' > "$B/brand/instagram.json"
+          echo null > "$B/reels/one/reel.json"
+          node "$B/.claude/skills/content-calendar/calendar.mjs" "$B" >/dev/null && grep -q 'data-open="one"' "$B/brand/dashboard.html"
+          if grep -q 'javascript:' "$B/brand/dashboard.html"; then echo "only https links belong on the dashboard"; exit 1; fi
+          if node "$B/.claude/skills/content-calendar/calendar.mjs" "$B" --today 2030-02-30 2>/dev/null; then echo "--today should refuse a date that does not exist"; exit 1; fi
+          rm -f "$B/brand/instagram.json" "$B/reels/one/reel.json"
+
+      - name: Daily refresh on Windows (Task Scheduler, a folder name with spaces and a percent sign)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          node setup/new-brand.mjs "$RUNNER_TEMP/My Brand 100%" | grep -q "reels"
+          B="$RUNNER_TEMP/My Brand 100%-reels"
+          node -e "const f=process.argv[1]+'/brand/brand.json',fs=require('fs'),d=JSON.parse(fs.readFileSync(f,'utf8'));d.name='Win';d.slug='win';fs.writeFileSync(f,JSON.stringify(d,null,2))" "$B"
+          S="$B/.claude/skills/content-calendar/schedule.mjs"
+          node "$S" "$B" install --daily 03:17
+          node "$S" "$B" status | tee "$RUNNER_TEMP/sch.txt"; grep -q "^On" "$RUNNER_TEMP/sch.txt"
+          schtasks //Query //TN BagelUnitReels-win //V //FO LIST | grep -i "refresh-task.cmd"
+          node "$S" "$B" run-now
+          for i in $(seq 1 45); do test -s "$B/.cache/refresh.out.log" && grep -q "." "$B/brand/dashboard.html" 2>/dev/null && break; sleep 2; done
+          cat "$B/.cache/refresh.out.log"
+          test -s "$B/.cache/refresh.out.log"
+          if grep -qiE "not recognized|cannot find|syntax is incorrect|Error:" "$B/.cache/refresh.out.log"; then echo "the scheduled job failed"; exit 1; fi
+          node "$S" "$B" remove
+          node "$S" "$B" status | grep -q "^Off"
+
+      - name: Publisher (each platform's calls, dry run, fingerprints, limits, webhooks, setup and schedule scripts; no network)
+        shell: bash
+        run: |
+          cd template/publisher && npm test
+
       - name: Update script works (dry run, apply, brand data untouched)
         shell: bash
         run: |

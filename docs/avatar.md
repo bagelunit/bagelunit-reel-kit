@@ -20,13 +20,13 @@ Only the drawing needs an outside image tool. Everything else (removing the back
 
 | Tool | How | Cost |
 |---|---|---|
-| **ChatGPT** | by hand: the kit gives you each prompt, you paste it into ChatGPT with the reference image attached and save the result into the brand folder | your ChatGPT plan |
-| **Gemini app** | by hand, the same way | your Gemini plan |
+| **ChatGPT** | the kit writes each prompt; with the browser tool Claude puts it into ChatGPT with the reference image and saves the result into the brand folder (without it, you do) | your ChatGPT plan |
+| **Gemini app** | the same way, in the Gemini app | your Gemini plan |
 | **OpenAI API** | automatic, with your own key saved in `~/.config/bagelunit-reels/openai.key` | paid per image |
 | **Gemini API** | automatic, with your own key saved in `~/.config/bagelunit-reels/gemini.key` | paid per image |
-| **Higgsfield** | through the Higgsfield connector in Claude | your Higgsfield credits |
+| **Higgsfield** | through the Higgsfield connector in Claude: if it is not connected, Claude connects it with you at claude.ai/customize/connectors in your browser (you log in to Higgsfield) | your Higgsfield credits |
 
-BagelUnit's own sticker host was made with **Higgsfield**. A new host takes 11 images (the base and 10 poses), plus any you redo. You save keys yourself; the kit never asks for a key in chat and never prints one. Image models change often: if one is retired, `host.py generate` takes `--model <newer name>`.
+BagelUnit's own sticker host was made with **Higgsfield**. A new host takes 11 images (the base and 10 poses), plus any you redo. With the browser tool (`template/docs/browser.md`), Claude makes an OpenAI or Gemini key with you: it opens the key file and the key page, and you copy the key in. The kit never asks for a key in chat and never prints one. Image models change often: if one is retired, `host.py generate` takes `--model <newer name>`.
 
 ## What the engine expects
 

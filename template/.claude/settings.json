@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "ask": [
+      "Bash(*comments.mjs*--yes*)",
+      "Bash(*dms.mjs*--yes*)",
+      "PowerShell(*comments.mjs*--yes*)",
+      "PowerShell(*dms.mjs*--yes*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/skills/content-calendar/notice.mjs\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/skills/content-calendar/sync.mjs\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

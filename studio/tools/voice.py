@@ -22,7 +22,7 @@ Every mode reads what this writes:
 
 Which voice and which defaults: tools/voicebank.py (saved in ~/.config/bagelunit-reels/config.json); reel.json "voice" overrides per reel.
 """
-import base64, io, json, re, shutil, subprocess, urllib.error, urllib.request
+import base64, io, json, re, shutil, subprocess, time, urllib.error, urllib.request
 from pathlib import Path
 
 from kitcore import (Flags, CJK_CHAR, api_key, fail, ffmpeg, media_length, tidy_word, voice_settings, whisper_words, write_words)
@@ -187,7 +187,19 @@ def record(project, flags, opts, provider, take, saved):
     words = marks.paid('voice', h, lambda: speak(text, opts, take), 'voice')
     saved.write_text(json.dumps(words))
     marks.done('voice', h, outputs)
+    log_spend(project, provider, opts, text)
     return words
+
+
+def log_spend(project, provider, opts, text):
+    """One line per paid voice call in build/voice-log.jsonl, so the brand's dashboard can show what each reel cost."""
+    try:
+        entry = {'at': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'provider': provider, 'chars': len(text),
+                 'model': opts.get('model') if provider == 'elevenlabs' else opts.get('openai_model')}
+        with open(project / 'build' / 'voice-log.jsonl', 'a', encoding='utf-8') as f:
+            f.write(json.dumps(entry) + '\n')
+    except OSError:
+        pass                                                   # a missing log never stops the voice step
 
 
 def main():

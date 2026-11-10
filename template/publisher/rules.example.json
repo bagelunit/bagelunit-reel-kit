@@ -1,0 +1,13 @@
+{
+  "_note": "Comment auto-reply rules for this brand. Copy to rules.json, edit, then upload with: npx wrangler kv key put rules --path rules.json --binding KV --remote. A rule sends only when tested is true (you tried the keyword from a second account) and MODE is live. The public reply never has a link; the link goes in the dm. disclosure is added to the end of every automatic DM.",
+  "disclosure": "(This is an automated reply.)",
+  "rules": [
+    {
+      "name": "guide",
+      "match_text": ["GUIDE"],
+      "reply": "Sent! Check your DMs.",
+      "dm": "Here is the guide: https://example.com/guide",
+      "tested": false
+    }
+  ]
+}

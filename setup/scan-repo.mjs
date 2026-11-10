@@ -2,14 +2,15 @@
 // Safety scan for the public repo. Fails (exit 1) if a tracked file looks like it holds a secret, a private file type,
 // a personal home path, or a name this repo must never mention; also checks the "no em dashes" rule in our own docs.
 // Runs on every push in CI and any time:  node setup/scan-repo.mjs
-// Only looks at files git tracks, so it never reads your keys or ignored files.
+// Looks at files git tracks plus new files not added yet (so a file is checked before its first commit), never at
+// files .gitignore leaves out, so it never reads your keys.
 import cp from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const files = cp.execFileSync('git', ['ls-files', '-z'], { cwd: REPO, encoding: 'utf8' }).split('\0').filter(Boolean);
+const files = [...new Set(cp.execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], { cwd: REPO, encoding: 'utf8' }).split('\0').filter(Boolean))].filter((f) => fs.existsSync(path.join(REPO, f)));
 
 // Outside sources the kit learned from are never named in it. The names are stored encoded so this file does not name them either.
 const BANNED_NAMES = ['b290dG8=', 'amF5YW50Y3JlYXRlcw==', 'Z2hvc3RsZXNz', 'Z2V0cmlwcGluZw==', 'YWdlbnQtcmVhY2g=', 'YWdlbnQgcmVhY2g=', 'YWdlbnRyZWFjaA=='].map((b) => Buffer.from(b, 'base64').toString());
@@ -49,4 +50,4 @@ for (const f of files) {
   if (EM_CHECKED(f) && !EM_EXEMPT.has(f) && text.includes(EM)) add(f, 'has an em dash (the kit writes none)');
 }
 if (problems.length) { console.error(`Scan found ${problems.length} problem(s):\n  ` + problems.join('\n  ')); process.exit(1); }
-console.log(`Scan clean: ${files.length} tracked files checked.`);
+console.log(`Scan clean: ${files.length} files checked (tracked and new).`);

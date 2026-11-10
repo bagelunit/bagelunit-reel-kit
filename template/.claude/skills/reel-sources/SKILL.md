@@ -27,7 +27,14 @@ Reddit pages are blocked to the crawler (robots.txt, login). Use the owner's own
 
 ## 2. Trending reels to model
 Search for reels in the niche (web search, or the owner's own browser). List 5 with the hook, length and why it is
-getting traction. Models only: shape, never the video. Web search can cost money, so say so before using a paid one. A SearXNG search is not running by default.
+getting traction.
+
+**Hashtag search (Meta's official API).** With the brand's Instagram connected through Unified or Facebook Login and
+Meta's "Instagram Public Content Access" feature approved for the app (`docs/connect.md`),
+`node .claude/skills/content-calendar/research.mjs hashtag <tag>` (add `--recent` for the newest instead of the top
+posts) writes `brand/research/hashtag-<tag>.csv` with each post's link, date, likes, comments and caption. Meta allows
+30 different hashtags per account in 7 days, so pick them with the owner first; the script says plainly when the
+feature is not approved. Models only: shape, never the video. Web search can cost money, so say so before using a paid one. A SearXNG search is not running by default.
 
 ## 3. Fetch one reel for a teardown
 `python3 ./.claude/skills/reel-sources/reel_fetch.py <URL or file> --out <folder>`

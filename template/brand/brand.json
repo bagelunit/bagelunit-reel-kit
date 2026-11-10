@@ -57,9 +57,25 @@
   },
   "work_dir": "~/dev/reel-work/<slug>",
   "posting": {
-    "_note": "How this brand's reels get posted: \"by hand\" (default), \"instagram-scheduler\", \"tool: <name>\" or \"own publisher\". Set with /reel-posting. Timezone for scheduling, e.g. America/Toronto.",
+    "_note": "How this brand's reels get posted: \"by hand\" (default), \"instagram-scheduler\", \"tool: <name>\" or \"own publisher\". Set with /reel-posting. Timezone for scheduling, e.g. America/Toronto. days and time: the brand's usual posting days (e.g. [\"tue\", \"thu\"]) and time (\"18:00\"), set with /content-calendar days; the calendar marks empty ones as open slots.",
     "method": "by hand",
-    "timezone": ""
+    "timezone": "",
+    "days": [],
+    "time": ""
+  },
+  "dashboard": {
+    "_note": "The content dashboard (/content-calendar, docs/dashboard.md). OFF until the brand owner turns each part on: instagram, facebook, threads = read this brand's own numbers on each through Meta's APIs (docs/connect.md); telegram = send the summary to the owner's phone; refresh = off, daily or weekly, set by /content-calendar auto (time on this computer's clock). host = where the page is viewed: local (default), wifi, netlify (suggested), cloudflare or folder (any other host), set by /content-calendar host; site = the Netlify site id or Cloudflare Pages project; url = its address, for the Telegram link. publish_every = with a host set, the online copy follows your changes at most every this many minutes (0 = only on the scheduled refresh). Tokens live in ~/.config/bagelunit-reels/, written by the owner.",
+    "instagram": false,
+    "facebook": false,
+    "threads": false,
+    "telegram": false,
+    "refresh": "off",
+    "time": "",
+    "day": "",
+    "host": "local",
+    "site": "",
+    "url": "",
+    "publish_every": 15
   },
   "batch": {
     "_note": "Weekly batch: the most reels Claude plans in one sitting for this brand. Each reel is still approved on its own. Goals may repeat; angles may not.",

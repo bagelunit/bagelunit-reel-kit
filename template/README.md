@@ -26,7 +26,11 @@ Two kit guides live in the kit's own folder, not in this copy: [the sticker host
 | `brand.json` | name, handle, people, colours, fonts, presenter, voice, call to action, posting plan (`batch.max_reels`), posting method, autopilot permissions (all off to start), update notices |
 | `voice.md` | who the brand talks to and how it sounds |
 | `facts.md` | the only claims, numbers and results a reel may state (the owner confirms each one) |
+| `plan.md` | the planned reels, one row each with a date (`/content-calendar plan` fills it after your yes) |
+| `calendar.md`, `dashboard.html` | your content calendar and dashboard, remade each time you type `/content-calendar` |
+| `followers.csv`, `instagram.json` | once you connect Instagram: one follower count a day (your growth history) and every post's latest numbers |
 | `log.md` | one row per posted reel: hook, first line, goal, angle, review verdict |
+| `tests.md` | one row per finished A/B test: what won and the lesson |
 | `swipe.md` | reels worth studying (the 3x rule) and teardowns, formulas only |
 | `insights.csv` | one row of Instagram numbers per posted reel (see `docs/after-posting.md`) |
 | `library/` | the brand's own B-roll, product images, components and screens, listed in `INDEX.md` |
@@ -40,11 +44,13 @@ Two kit guides live in the kit's own folder, not in this copy: [the sticker host
 | `after-posting.md` | where to find your numbers in Instagram and what the kit does with them |
 | `auto-reply.md` | how to connect a comment auto-reply and DM for this brand (optional) |
 | `auto-post.md` | how to post approved reels on a schedule for this brand (optional) |
+| `connect.md` | how to connect everything, step by step: Instagram, your Facebook Page, Threads, the publisher and keyword replies (optional) |
+| `dashboard.md` | your content dashboard, a Telegram summary, where to view it and a daily refresh (optional) |
 | `hook-and-review-playbook.md` | the first-frame hook checklist and the review after posting |
 | `craft-playbook.md` | what goes on screen: one world, a through-line, a picture for each kind of line |
 | `style-ideas.md` | style concepts that are not built yet |
 
-**`.claude/skills/`: 24 skills** (Claude loads the right one for each step; you can also type its name)
+**`.claude/skills/`: 26 skills** (Claude loads the right one for each step; you can also type its name)
 
 | Skill | What it does |
 |---|---|
@@ -59,7 +65,8 @@ Two kit guides live in the kit's own folder, not in this copy: [the sticker host
 | `/virality` | plans a reel so it gets watched, or explains why one flopped |
 | `/viral-hook-writer` | writes hook options |
 | `/hook-mining` | makes new hooks from a CSV of real top hooks |
-| `/ab-hook-tester` | two different hooks for the same reel, to test |
+| `/ab-hook-tester` | an A/B test of a reel's hook: two versions, each approved, posted as trial reels, compared on one number, the winner remembered in `brand/tests.md` |
+| `/reel-repurpose` | the same approved reel for TikTok and YouTube Shorts (captions, titles, a check of where each app's buttons sit), plus a carousel and a blog post |
 | `/reel-scripter` | writes the script |
 | `/reel-builder` | turns an idea into a shoot plan without rendering |
 | `/humanizer` | makes text sound like you, not like AI (after the Instagram plugin's `/ig-human` detector flags it) |
@@ -69,6 +76,7 @@ Two kit guides live in the kit's own folder, not in this copy: [the sticker host
 | `/caption-and-hashtags` | caption, hashtags and first comment |
 | `/cover-thumbnail-brief` | the cover text and look |
 | `/reel-posting` | a posting card, scheduling, or setting up automatic posting step by step |
+| `/content-calendar` | your content calendar and dashboard: every reel from idea to posted, what needs you, the four agents, followers and trends; `plan` fills the next weeks after your yes, `days` sets your posting days, `host` lets you view it on your Wi-Fi or online (Netlify suggested), `connect instagram` and `connect telegram` add your numbers and a phone summary, `auto` refreshes it by itself (Mac, Windows, Linux) |
 | `/analytics-readout` | explains your numbers in plain words |
 | `/comment-responder` | sets up a comment auto-reply and DM step by step (off until tested) |
 | `/content-factory` | the opt-in autopilot that runs the whole loop (off by default) |

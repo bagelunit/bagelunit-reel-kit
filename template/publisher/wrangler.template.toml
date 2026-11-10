@@ -1,0 +1,43 @@
+# This brand's publisher (a Cloudflare Worker). scripts/setup.mjs fills in the brand's names and writes wrangler.toml.
+# Secrets never go in this file: node scripts/setup.mjs secrets sends each one to Cloudflare from the token files in
+# ~/.config/bagelunit-reels/, without showing it (see README.md). Nobody types a secret in by hand.
+#
+# Going live is done here, one switch at a time, after the owner's yes for that platform (Claude edits the line and
+# deploys, docs/connect.md step 6):
+#   MODE                    comment auto-replies: "dry_run" logs what it would send, "live" sends
+#   PUBLISH_MODE_INSTAGRAM  posting on Instagram: "dry_run" or "live"
+#   PUBLISH_MODE_FACEBOOK   posting on the Facebook Page: "dry_run" or "live"
+#   PUBLISH_MODE_THREADS    posting on Threads: "dry_run" or "live"
+# After a change, run  npx wrangler deploy  again. A post keeps the mode it was scheduled in: a dry-run post stays a
+# dry run after going live (schedule a new one), and setting a switch back to "dry_run" stops posts scheduled live.
+
+name = "{{WORKER}}"
+main = "src/worker.js"
+compatibility_date = "2026-11-01"
+workers_dev = true
+
+# One trigger, every 5 minutes: due posts, then the token refresh when one is due (about weekly).
+# The free plan allows 5 cron triggers per Cloudflare account, so one per brand leaves room for 5 brands.
+[triggers]
+crons = ["*/5 * * * *"]
+
+[vars]
+BRAND = "{{SLUG}}"
+API_SETUP = "{{API_SETUP}}"          # "instagram" (Instagram Login) or "unified" (Unified Login, system user token)
+GRAPH_VERSION = "v27.0"
+MODE = "dry_run"
+PUBLISH_MODE = "dry_run"
+PUBLISH_MODE_INSTAGRAM = "dry_run"
+PUBLISH_MODE_FACEBOOK = "dry_run"
+PUBLISH_MODE_THREADS = "dry_run"
+MAX_PER_RUN = "5"                    # posts handled per run
+MAX_PER_HOUR = "30"                  # automatic comment replies per hour
+DM_DISCLOSURE = "(This is an automated reply.)"   # added to every automatic DM; cannot be turned off
+
+[[kv_namespaces]]
+binding = "KV"
+id = "{{KV_ID}}"
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "{{BUCKET}}"

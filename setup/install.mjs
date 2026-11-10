@@ -437,6 +437,27 @@ else {
   } else info(`not registered. To add it later: claude mcp add --scope user earshot -- ${VENV_BIN('earshot')} mcp`);
 }
 
+// ---------------------------------------------------------------- 5b. the browser tool
+// Every setup step on the web (the ElevenLabs key, the Kenney packs, the Meta app, Cloudflare, Telegram, a host) is
+// done by Claude in the person's browser through Claude in Chrome (template/docs/browser.md). A project cannot turn it
+// on (Claude Code refuses that), so this only checks and tells. Claude Code writes a connection file for the browser
+// the first time the browser tool is turned on; finding one means it has been set up on this computer before.
+step('Browser tool (Claude in Chrome), for the setup steps on the web');
+{
+  const MAC = path.join(HOME, 'Library', 'Application Support');
+  const dirs = IS_MAC ? [['Google', 'Chrome'], ['Microsoft Edge'], ['BraveSoftware', 'Brave-Browser'], ['Chromium']].map((d) => path.join(MAC, ...d))
+    : IS_WIN ? [] : ['google-chrome', 'microsoft-edge', 'BraveSoftware/Brave-Browser', 'chromium'].map((d) => path.join(HOME, '.config', d));
+  const host = dirs.map((d) => path.join(d, 'NativeMessagingHosts', 'com.anthropic.claude_code_browser_extension.json')).find(exists);
+  if (host) ok(`set up before on this computer (${path.basename(path.dirname(path.dirname(host)))}). In Claude Code, /chrome shows whether it is on now.`);
+  else {
+    warn('not set up yet (or not checkable on Windows). Claude does the web steps in your browser while you watch; you only log in, copy a key into the file Claude opens, and click the last Delete when something is removed.');
+    info('1. Use Google Chrome, Microsoft Edge, Brave, Arc, Vivaldi or Opera (not Safari or Firefox; not inside WSL).');
+    info('2. Install the Claude extension: https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn');
+    info('3. In Claude Code, type /chrome and turn it on (or start with: claude --chrome). It needs a Claude Pro, Max, Ultra, Team or Enterprise plan, signed in with /login.');
+    info('Without it, every guide has the same steps written out for you to do by hand. Details: template/docs/browser.md');
+  }
+}
+
 // ---------------------------------------------------------------- 6. checkup
 step('Kit checkup (node tools/checkup.mjs)');
 if (sh('node', ['tools/checkup.mjs'], { cwd: exists(TARGET) ? TARGET : STUDIO }).status !== 0) warn('the checkup lists items to fix above; SETUP.md explains each one');

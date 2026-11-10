@@ -30,3 +30,14 @@ brand/host/**/*.jpg
 brand/host/**/*.jpeg
 brand/host/**/*.webp
 brand/host/**/*.heic
+
+# Made by /content-calendar from the files above; it remakes them each run
+brand/calendar.md
+brand/dashboard.html
+brand/instagram.json
+brand/facebook.json
+brand/threads.json
+brand/publisher.json
+publisher/node_modules/
+publisher/.wrangler/
+publisher/.dev.vars

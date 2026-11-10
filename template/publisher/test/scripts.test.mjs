@@ -1,0 +1,367 @@
+import { test, after } from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { checkReel, scheduleReel, postingLine, cancel, status } from '../scripts/schedule.mjs';
+import { pull } from '../scripts/pull.mjs';
+import { writeToml, steps, check, names, sendSecrets, saveUrl, secretPlan } from '../scripts/setup.mjs';
+import { lastGateC, appendUnder, parseArgs, sha256File, connection, Plain, isMain } from '../scripts/lib.mjs';
+import { forget } from '../scripts/forget.mjs';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { runDue } from '../src/publish.js';
+import { env, meta, workerFetch, kv, mp4 } from './helpers.mjs';
+
+const TMP = fs.existsSync('/private/tmp') ? '/private/tmp' : (await import('node:os')).tmpdir();
+const ROOT = fs.mkdtempSync(path.join(TMP, 'bagelunit-publisher-test-'));      // everything the tests write, removed at the end
+after(() => fs.rmSync(ROOT, { recursive: true, force: true }));
+const tmp = (p) => fs.mkdtempSync(path.join(ROOT, p));
+const future = () => new Date(Date.now() + 3600e3).toISOString().replace('Z', '+00:00');
+const KEY = 'admin-key-for-tests';
+
+// A brand folder with one approved reel.
+function workspace({ post = true, approve = true, tamper = false, coverTamper = false, cover = true, caption = 'Save this for later. #reels', threads = null, handle = 'testbrand', seconds = 30 } = {}) {
+  const ws = tmp('brand-');
+  fs.mkdirSync(path.join(ws, 'brand')); fs.mkdirSync(path.join(ws, 'reels', 'r', 'out', 'platforms'), { recursive: true });
+  fs.writeFileSync(path.join(ws, 'brand', 'brand.json'), JSON.stringify({ name: 'Test Brand', slug: 'testbrand', handle, autopilot: { post }, posting: { timezone: 'America/Toronto' } }));
+  const out = path.join(ws, 'reels', 'r', 'out');
+  fs.writeFileSync(path.join(out, 'r.mp4'), mp4(seconds));
+  if (cover) fs.writeFileSync(path.join(out, 'cover.jpg'), 'cover bytes');
+  const v = sha256File(path.join(out, 'r.mp4')).slice(0, 12);
+  const c = cover ? sha256File(path.join(out, 'cover.jpg')).slice(0, 12) : null;
+  fs.writeFileSync(path.join(ws, 'reels', 'r', 'approvals.md'), approve
+    ? `# Approvals\n\n## Gate A\n\n- 2026-11-01 10:00 Gate A (script) approved\n\n## Gate C\n\n### 2026-11-08 10:00\n- File: r.mp4 | sha256: ${v}\n${c ? `- Cover: cover.jpg | sha256: ${c}\n` : ''}- QA: PASS\n`
+    : '# Approvals\n');
+  if (caption !== null) fs.writeFileSync(path.join(out, 'caption.txt'), caption);
+  if (threads) fs.writeFileSync(path.join(out, 'platforms', 'threads.txt'), threads);
+  if (tamper) fs.writeFileSync(path.join(out, 'r.mp4'), mp4(seconds, { body: 'edited after approval' }));
+  if (coverTamper) fs.writeFileSync(path.join(out, 'cover.jpg'), 'a different cover');
+  const cfg = tmp('cfg-');
+  fs.writeFileSync(path.join(cfg, 'publisher-testbrand.json'), JSON.stringify({ url: 'https://pub.example', admin_key: KEY }));
+  return { ws, reel: path.join(ws, 'reels', 'r'), cfg };
+}
+const quiet = () => {};
+
+// ---------- the offline checks ----------
+test('a good reel passes, with its cover', () => {
+  const { reel } = workspace();
+  const c = checkReel(reel, { at: future() });
+  assert.deepEqual(c.problems, []);
+  assert.ok(c.cover.endsWith('cover.jpg')); assert.equal(c.handle, '@testbrand');
+});
+test('refusals: no Gate C, video changed, cover changed (autopilot.post is checked against the mode, below)', () => {
+  assert.equal(checkReel(workspace({ post: false }).reel, { at: future() }).postAllowed, false);
+  assert.match(checkReel(workspace({ approve: false }).reel, { at: future() }).problems.join(), /no Gate C/);
+  assert.match(checkReel(workspace({ tamper: true }).reel, { at: future() }).problems.join(), /r\.mp4 changed since Gate C/);
+  assert.match(checkReel(workspace({ coverTamper: true }).reel, { at: future() }).problems.join(), /cover\.jpg changed since Gate C/);
+});
+test('a cover that was not approved is not used', () => {
+  const { reel } = workspace({ cover: false });
+  fs.writeFileSync(path.join(reel, 'out', 'cover.jpg'), 'made after Gate C');
+  const c = checkReel(reel, { at: future() });
+  assert.deepEqual(c.problems, []); assert.equal(c.cover, null);
+});
+test('captions per platform, time, options', () => {
+  assert.match(checkReel(workspace({ caption: null }).reel, { at: future() }).problems.join(), /caption\.txt/);
+  assert.match(checkReel(workspace({ caption: 'x'.repeat(2201) }).reel, { at: future() }).problems.join(), /2,200/);
+  assert.match(checkReel(workspace({ caption: 'x'.repeat(600) }).reel, { at: future(), platforms: 'instagram,threads' }).problems.join(), /Threads allows 500.*platforms\/threads\.txt/);
+  assert.deepEqual(checkReel(workspace({ caption: 'x'.repeat(600), threads: 'Short one' }).reel, { at: future(), platforms: 'instagram,threads' }).problems, []);
+  assert.match(checkReel(workspace().reel, { at: '2026-11-10 09:00' }).problems.join(), /timezone/);
+  assert.match(checkReel(workspace().reel, { at: '2020-01-01T09:00:00-05:00' }).problems.join(), /past/);
+  assert.match(checkReel(workspace().reel, { at: future(), platforms: 'threads', threads: 'text' }).problems.join(), /links to the Instagram post/);
+  assert.match(checkReel(workspace().reel, { at: future(), collaborators: 'a,b,c,d' }).problems.join(), /up to 3/);
+  assert.match(checkReel(workspace().reel, { at: future(), platforms: 'tiktok' }).problems.join(), /unknown platform/);
+});
+
+test('the video length is checked for every place it goes', () => {
+  const at = future();
+  const long = workspace({ seconds: 120 }).reel;
+  assert.deepEqual(checkReel(long, { at }).problems, []);                                            // Instagram takes 2 minutes
+  assert.match(checkReel(long, { at, platforms: 'instagram,facebook' }).problems.join(), /out\/r\.mp4 is 120 seconds; a Facebook Reel must be 3 to 90 seconds \(leave facebook out/);
+  assert.match(checkReel(long, { at, story: true }).problems.join(), /an Instagram story must be 3 to 60 seconds/);
+  assert.deepEqual(checkReel(long, { at, platforms: 'instagram,threads', threads: 'text' }).problems, []);
+  assert.match(checkReel(workspace({ seconds: 2 }).reel, { at }).problems.join(), /an Instagram reel must be 3 seconds to 15 minutes/);
+  const c = checkReel(workspace({ seconds: 42.5 }).reel, { at, platforms: 'instagram,facebook' });
+  assert.deepEqual(c.problems, []); assert.equal(c.seconds, 42.5);
+});
+test('Gate C parsing: the latest record and its own cover', () => {
+  const t = '## Gate C\n\n### 1\n- File: a.mp4 | sha256: aaaaaaaaaaaa\n- Cover: cover.jpg | sha256: cccccccccccc\n\n### 2\n- File: b.mp4 | sha256: bbbbbbbbbbbb\n- QA: PASS\n';
+  assert.deepEqual(lastGateC(t), { file: 'b.mp4', sha12: 'bbbbbbbbbbbb', cover: null });
+  assert.deepEqual(lastGateC(t + '- Cover: cover.jpg | sha256: dddddddddddd\n').cover, { file: 'cover.jpg', sha12: 'dddddddddddd' });
+});
+test('appendUnder adds to the end of the section, before the next one', () => {
+  const f = path.join(tmp('ap-'), 'approvals.md');
+  fs.writeFileSync(f, '# A\n\n## Gate C\n\n- x\n');
+  appendUnder(f, 'Posting', '- one'); appendUnder(f, 'Posting', '- two');
+  fs.appendFileSync(f, '\n## Notes\n\n- n\n');
+  appendUnder(f, 'Posting', '- three');
+  assert.equal(fs.readFileSync(f, 'utf8'), '# A\n\n## Gate C\n\n- x\n\n## Posting\n\n- one\n- two\n- three\n\n## Notes\n\n- n\n');
+});
+test('args and the connection file', () => {
+  assert.deepEqual(parseArgs(['reels/x', '--at', 'T', '--trial', '--threads=text']), { _: ['reels/x'], at: 'T', trial: true, threads: 'text' });
+  assert.throws(() => connection('nobody', tmp('none-')), Plain);
+});
+
+// ---------- the whole flow against the real Worker code ----------
+test('schedule: summary, handle typed, video and cover uploaded with SHA-256, Posting line written in the exact shape', async () => {
+  const { reel, cfg } = workspace();
+  const e = env({ PUBLISH_MODE: 'dry_run' });
+  const out = [];
+  const r = await scheduleReel(reel, { at: future(), platforms: 'instagram,threads', threads: 'text' }, { fetchImpl: workerFetch(e), configDir: cfg, confirm: async () => '@testbrand', log: (s) => out.push(s) });
+  assert.equal(r.mode, 'dry_run');
+  assert.match(out.join('\n'), /About to schedule on @testbrand/);
+  assert.ok(!out.join('\n').includes(KEY));
+  assert.equal(e.MEDIA.m.size, 2);                                                       // video and cover
+  const text = fs.readFileSync(path.join(reel, 'approvals.md'), 'utf8');
+  const line = text.split('\n').find((l) => l.includes('Scheduled on'));
+  assert.match(line, /^- \d{4}-\d\d-\d\d \d\d:\d\d Scheduled on @testbrand for \S+: post [0-9a-f]{12}, file r\.mp4 sha256 [0-9a-f]{12}, platforms instagram,threads, publisher in dry_run mode$/);
+  assert.match(text, /\n## Posting\n\n- /);
+  const post = JSON.parse(await e.KV.get(`post:${r.id}`));
+  assert.equal(post.media.find((m) => m.role === 'cover').type, 'image');
+  assert.equal(post.options.threads_mode, 'text');
+});
+test('schedule: the wrong handle or a changed file uploads nothing', async () => {
+  const { reel, cfg } = workspace();
+  const e = env();
+  await assert.rejects(scheduleReel(reel, { at: future() }, { fetchImpl: workerFetch(e), configDir: cfg, confirm: async () => '@other', log: quiet }), /Not confirmed/);
+  assert.equal(e.MEDIA.m.size, 0);
+  const w2 = workspace({ tamper: true });
+  await assert.rejects(scheduleReel(w2.reel, { at: future(), yes: true }, { fetchImpl: workerFetch(e), configDir: w2.cfg, log: quiet }), /changed since Gate C/);
+  assert.equal(e.MEDIA.m.size, 0);
+});
+test('schedule --preview: checks and summary, nothing uploaded, no Posting line', async () => {
+  const { reel, cfg } = workspace();
+  const e = env();
+  const calls = [];
+  const f = async (url, init) => { calls.push(`${init?.method || 'GET'} ${new URL(url).pathname}`); return workerFetch(e)(url, init); };
+  const out = [];
+  const r = await scheduleReel(reel, { at: future(), preview: true }, { fetchImpl: f, configDir: cfg, confirm: async () => { throw new Error('must not ask'); }, log: (s) => out.push(s) });
+  assert.equal(r.preview, true);
+  assert.equal(e.MEDIA.m.size, 0);
+  assert.ok(calls.every((c) => c.startsWith('GET ')), calls.join(', '));
+  assert.match(out.join('\n'), /Preview only/);
+  assert.doesNotMatch(fs.readFileSync(path.join(reel, 'approvals.md'), 'utf8'), /Scheduled on/);
+});
+
+test('schedule: refuses mixed modes and unconnected platforms before uploading', async () => {
+  const { reel, cfg } = workspace();
+  const mixed = env({ PUBLISH_MODE: 'dry_run', PUBLISH_MODE_INSTAGRAM: 'live' });
+  await assert.rejects(scheduleReel(reel, { at: future(), platforms: 'instagram,facebook', yes: true }, { fetchImpl: workerFetch(mixed), configDir: cfg, log: quiet }), /different modes/);
+  const noTh = env({ THREADS_TOKEN: undefined });
+  await assert.rejects(scheduleReel(reel, { at: future(), platforms: 'threads', yes: true }, { fetchImpl: workerFetch(noTh), configDir: cfg, log: quiet }), /threads is not connected/);
+  const ig = env();
+  await assert.rejects(scheduleReel(reel, { at: future(), collaborators: 'pal', yes: true }, { fetchImpl: workerFetch(ig), configDir: cfg, log: quiet }), /Unified Login/);
+  assert.equal(mixed.MEDIA.m.size + noTh.MEDIA.m.size + ig.MEDIA.m.size, 0);
+});
+test('a trial reel line has the word trial; live mode is recorded', async () => {
+  const { reel, cfg } = workspace();
+  const e = env();
+  const r = await scheduleReel(reel, { at: future(), trial: true, yes: true }, { fetchImpl: workerFetch(e), configDir: cfg, log: quiet });
+  assert.match(r.line, /publisher in live mode, trial$/);
+  assert.match(postingLine({ platforms: ['instagram'], options: { story: true }, handle: '@b', atStr: 'T', gate: { file: 'f.mp4' }, sha: 'a'.repeat(64) }, 'id', 'dry_run'), /platforms instagram,instagram story, publisher in dry_run mode$/);
+});
+
+// ---------- pull ----------
+test('pull: brand/publisher.json, Posted on lines once per link, automatic replies in inbox-log.md once', async () => {
+  const { ws, reel, cfg } = workspace();
+  const e = env();
+  const { id } = await scheduleReel(reel, { at: future(), platforms: 'instagram,facebook,threads', yes: true }, { fetchImpl: workerFetch(e), configDir: cfg, log: quiet });
+  const g = meta(); const t = Date.now() + 2 * 3600e3;
+  await runDue(e, g, t); await runDue(e, g, t + 60000); await runDue(e, g, t + 120000);
+  await e.KV.put('lead:c77', JSON.stringify({ kind: 'lead', comment_id: 'c77', username: 'fan', at: '2026-11-09T15:30:00.000Z', rule: 'guide', reply: 'sent', dm: 'sent' }));
+  await e.KV.put('dry:c78', JSON.stringify({ kind: 'dry', comment_id: 'c78', username: 'x', at: '2026-11-09T15:31:00.000Z', rule: 'guide' }));
+  await e.KV.put('mention:mc1', JSON.stringify({ kind: 'mention', comment_id: 'mc1', media_id: 'mm1', at: '2026-11-09T15:00:00.000Z' }));
+  const r1 = await pull({ root: ws, fetchImpl: workerFetch(e), configDir: cfg, log: quiet });
+  assert.equal(r1.added, 3); assert.equal(r1.logged, 1);
+  const pj = JSON.parse(fs.readFileSync(path.join(ws, 'brand', 'publisher.json'), 'utf8'));
+  const p = pj.posts.find((x) => x.id === id);
+  assert.equal(p.status, 'published');
+  assert.equal(p.targets.instagram.permalink, 'https://www.instagram.com/reel/ABC123/');
+  assert.equal(p.targets.facebook.media_id, 'V1');
+  assert.equal(pj.inbox.mentions[0].comment_id, 'mc1');
+  assert.ok(!JSON.stringify(pj).includes(KEY) && !JSON.stringify(pj).includes('/media/'));
+  const ap = fs.readFileSync(path.join(reel, 'approvals.md'), 'utf8');
+  assert.match(ap, /\n- \d{4}-\d\d-\d\d \d\d:\d\d Posted on @testbrand: https:\/\/www\.instagram\.com\/reel\/ABC123\/\n/);
+  assert.match(ap, /Posted on Facebook: https:\/\/www\.facebook\.com\/reel\/V1/);
+  assert.match(ap, /Posted on Threads: https:\/\/www\.threads\.com\/@testbrand\/post\/xyz/);
+  const log = fs.readFileSync(path.join(ws, 'brand', 'inbox-log.md'), 'utf8');
+  assert.match(log, /\n- \d{4}-\d\d-\d\d \d\d:\d\d Automatic reply to @fan on comment c77 \(rule guide\): public reply and DM sent by the publisher\n/);
+  const r2 = await pull({ root: ws, fetchImpl: workerFetch(e), configDir: cfg, log: quiet });
+  assert.equal(r2.added, 0); assert.equal(r2.logged, 0);
+  assert.equal(fs.readFileSync(path.join(reel, 'approvals.md'), 'utf8'), ap);
+});
+
+test('status shows the comment rules and what a dry run would have sent', async () => {
+  const { ws: root, cfg } = workspace();
+  const e = env();
+  await e.KV.put('rules', fs.readFileSync(new URL('../rules.example.json', import.meta.url), 'utf8'));
+  await e.KV.put('dry:c1', JSON.stringify({ kind: 'dry', comment_id: 'c1', username: 'fan', text: 'GUIDE please', at: new Date().toISOString(), why: 'dry run', rule: 'guide', would_reply: 'Sent! Check your DMs.', would_dm: 'Here is the guide' }));
+  const out = [];
+  await status({ root, fetchImpl: workerFetch(e), configDir: cfg, log: (x) => out.push(x) });
+  const text = out.join('\n');
+  assert.match(text, /Comment rules: guide \(guide\), not tested yet/i);
+  assert.match(text, /@fan: "GUIDE please"  would have sent \(rule guide\), dry run: reply "Sent! Check your DMs\.", DM "Here is the guide"/);
+  assert.doesNotMatch(text, /admin-key-for-tests/);
+});
+
+test('cancel writes a Cancelled line the dashboard reads', async () => {
+  const { ws, reel, cfg } = workspace();
+  const e = env();
+  const { id } = await scheduleReel(reel, { at: future(), yes: true }, { fetchImpl: workerFetch(e), configDir: cfg, log: quiet });
+  await cancel(id, { root: ws, fetchImpl: workerFetch(e), configDir: cfg, log: quiet });
+  assert.match(fs.readFileSync(path.join(reel, 'approvals.md'), 'utf8'), new RegExp(`Cancelled post ${id} on the publisher`));
+});
+
+// ---------- setup ----------
+test('setup: writes wrangler.toml once from the template, fills the KV id, prints the owner\'s steps', () => {
+  const pub = tmp('pub-');
+  fs.copyFileSync(new URL('../wrangler.template.toml', import.meta.url), path.join(pub, 'wrangler.template.toml'));
+  const r = writeToml({ slug: 'my-brand', pubDir: pub, apiSetup: 'unified' });
+  assert.equal(r.wrote, 'wrangler.toml');
+  let toml = fs.readFileSync(r.file, 'utf8');
+  assert.match(toml, /^name = "my-brand-publisher"$/m); assert.match(toml, /bucket_name = "my-brand-reels"/);
+  assert.match(toml, /API_SETUP = "unified"/); assert.match(toml, /PUBLISH_MODE_INSTAGRAM = "dry_run"/); assert.match(toml, /MODE = "dry_run"/);
+  assert.match(toml, /crons = \["\*\/5 \* \* \* \*"\]/);
+  assert.ok(!toml.includes('{{'));
+  assert.throws(() => writeToml({ slug: 'my-brand', pubDir: pub, kvId: 'nope' }), /32-character/);
+  assert.equal(writeToml({ slug: 'my-brand', pubDir: pub, kvId: 'a'.repeat(32) }).wrote, 'kv id');
+  toml = fs.readFileSync(r.file, 'utf8');
+  assert.match(toml, /id = "a{32}"/);
+  fs.writeFileSync(r.file, toml.replace('PUBLISH_MODE_INSTAGRAM = "dry_run"', 'PUBLISH_MODE_INSTAGRAM = "live"'));
+  assert.equal(writeToml({ slug: 'my-brand', pubDir: pub }).wrote, null);                // never overwritten
+  assert.match(fs.readFileSync(r.file, 'utf8'), /PUBLISH_MODE_INSTAGRAM = "live"/);
+  const s = steps({ slug: 'my-brand', configDir: '/cfg' });
+  for (const cmd of ['npx wrangler login', 'npx wrangler kv namespace create KV', 'npx wrangler r2 bucket create my-brand-reels', 'node scripts/setup.mjs secrets --dry-run', 'node scripts/setup.mjs secrets', 'npx wrangler deploy', 'node scripts/setup.mjs --url', '/cfg/publisher-my-brand.json', 'node scripts/setup.mjs check']) assert.ok(s.includes(cmd), cmd);
+  assert.ok(s.indexOf('npx wrangler deploy') < s.indexOf('setup.mjs secrets'), 'the Worker exists before secrets are sent');
+  assert.ok(!/\n\s*\n\s*\n/.test(s), 'no stray blank lines');
+  assert.ok(!steps({ slug: 'b', kvReady: true }).includes('kv namespace create'));
+  assert.equal(names('x').worker, 'x-publisher');
+  assert.ok(!/\u2014/.test(s));
+});
+test('setup check: asks GET /admin with the key and prints no secret', async () => {
+  const { ws, cfg } = workspace();
+  const out = [];
+  const e = env({ KV: kv() });
+  const a = await check({ root: ws, fetchImpl: workerFetch(e), configDir: cfg, log: (s) => out.push(s) });
+  assert.equal(a.brand, 'testbrand');
+  assert.match(out.join('\n'), /instagram\s+connected, LIVE/);
+  assert.ok(!out.join('\n').includes(KEY));
+  const bad = tmp('cfg-');
+  fs.writeFileSync(path.join(bad, 'publisher-testbrand.json'), JSON.stringify({ url: 'https://pub.example', admin_key: 'wrong' }));
+  await assert.rejects(check({ root: ws, fetchImpl: workerFetch(e), configDir: bad, log: quiet }), /refused the admin key/);
+});
+
+test('setup secrets: read from the token files, sent on stdin, never printed, app secret removed after', () => {
+  const cfg = tmp('cfg-');
+  const w = (n, d) => fs.writeFileSync(path.join(cfg, `${n}-sb.json`), JSON.stringify(d));
+  w('instagram', { access_token: 'IGSECRETTOKEN1', ig_user_id: '1784' });
+  w('facebook', { page_id: '55', user_token: 'SHORTLIVED', app_id: '1', app_secret: 'x' });    // check not run yet
+  w('threads', { access_token: 'THSECRETTOKEN1', user_id: '77' });
+  w('publisher', { url: 'https://sb-publisher.me.workers.dev', app_secret: 'APPSECRET123' });
+  const out = []; const calls = [];
+  const run = (name, value, cwd) => { calls.push({ name, value, cwd }); return { status: 0, stdout: `Success! Uploaded secret ${name} (${value})`, stderr: '' }; };
+  // a dry run sends nothing and makes nothing
+  const dry = sendSecrets({ slug: 'sb', configDir: cfg, dryRun: true, run, log: (l) => out.push(l), pubDir: '/pub' });
+  assert.equal(calls.length, 0); assert.equal(dry.sent.length, 0);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(cfg, 'publisher-sb.json'), 'utf8')).admin_key, undefined);
+  const r = sendSecrets({ slug: 'sb', configDir: cfg, run, log: (l) => out.push(l), pubDir: '/pub' });
+  assert.deepEqual(r.sent, ['ADMIN_KEY', 'VERIFY_TOKEN', 'APP_SECRET', 'IG_USER_ID', 'IG_TOKEN', 'THREADS_USER_ID', 'THREADS_TOKEN']);
+  assert.deepEqual(r.skipped, ['FB_PAGE_ID', 'FB_PAGE_TOKEN']);                                // the Facebook check has not swapped the token yet
+  assert.equal(calls.find((c) => c.name === 'IG_TOKEN').value, 'IGSECRETTOKEN1'); assert.equal(calls[0].cwd, '/pub');
+  const pub = JSON.parse(fs.readFileSync(path.join(cfg, 'publisher-sb.json'), 'utf8'));
+  assert.match(pub.admin_key, /^[0-9a-f]{64}$/); assert.match(pub.verify_token, /^[0-9a-f]{64}$/);
+  assert.equal(pub.app_secret, undefined); assert.equal(pub.url, 'https://sb-publisher.me.workers.dev');
+  if (process.platform !== 'win32') assert.equal(fs.statSync(path.join(cfg, 'publisher-sb.json')).mode & 0o777, 0o600);
+  const text = out.join('\n');
+  for (const secret of ['IGSECRETTOKEN1', 'THSECRETTOKEN1', 'APPSECRET123', pub.admin_key, pub.verify_token]) assert.ok(!text.includes(secret), 'a value was printed');
+  // the same keys are kept on a second run; --only sends just those
+  calls.length = 0;
+  sendSecrets({ slug: 'sb', configDir: cfg, run, only: ['ADMIN_KEY'], log: quiet, pubDir: '/pub' });
+  assert.deepEqual(calls.map((c) => c.name), ['ADMIN_KEY']); assert.equal(calls[0].value, pub.admin_key);
+  // a wrangler failure is reported without the value
+  const bad = []; sendSecrets({ slug: 'sb', configDir: cfg, only: ['IG_TOKEN'], run: (n, v) => ({ status: 1, stdout: '', stderr: `not logged in, value ${v}` }), log: (l) => bad.push(l), pubDir: '/pub' });
+  assert.match(bad.join(), /IG_TOKEN\s+NOT sent: not logged in, value \*\*\*/);
+  assert.equal(secretPlan({ slug: 'sb', configDir: cfg, make: false }).rows.length, 9);
+});
+
+test('setup --url saves the address next to the admin key', () => {
+  const cfg = tmp('cfg-');
+  fs.writeFileSync(path.join(cfg, 'publisher-u.json'), JSON.stringify({ admin_key: 'k' }));
+  saveUrl({ slug: 'u', url: 'https://u-publisher.me.workers.dev/', configDir: cfg });
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(cfg, 'publisher-u.json'), 'utf8')), { admin_key: 'k', url: 'https://u-publisher.me.workers.dev' });
+  assert.throws(() => saveUrl({ slug: 'u', url: 'not a url', configDir: cfg }), /--url takes/);
+  assert.deepEqual(connection('u', cfg), { file: path.join(cfg, 'publisher-u.json'), url: 'https://u-publisher.me.workers.dev', key: 'k' });
+});
+
+// ---------- audit fixes ----------
+test('dry run first: a reel can be scheduled in dry run before autopilot.post is on; live still needs it', async () => {
+  const w = workspace({ post: false });
+  const dry = env({ PUBLISH_MODE: 'dry_run' });
+  const out = [];
+  const r = await scheduleReel(w.reel, { at: future(), yes: true }, { fetchImpl: workerFetch(dry), configDir: w.cfg, log: (l) => out.push(l) });
+  assert.equal(r.mode, 'dry_run');
+  assert.match(out.join('\n'), /stays a dry run, even if the publisher goes live/);
+  const live = env();
+  await assert.rejects(scheduleReel(workspace({ post: false }).reel, { at: future(), yes: true }, { fetchImpl: workerFetch(live), configDir: w.cfg, log: quiet }), /autopilot\.post is not true.*a dry run can be scheduled without it/);
+  await assert.rejects(scheduleReel(workspace({ post: false }).reel, { at: future(), preview: true }, { fetchImpl: workerFetch(live), configDir: w.cfg, log: quiet }), /autopilot\.post/);
+  assert.equal(live.MEDIA.m.size, 0);
+});
+
+test('schedule: when the publisher refuses the post, the files just uploaded are deleted again', async () => {
+  const { reel, cfg } = workspace();
+  const e = env();
+  const wf = workerFetch(e);
+  const f = async (url, init = {}) => (new URL(url).pathname === '/admin/schedule' ? new Response(JSON.stringify({ error: 'refused for the test' }), { status: 400 }) : wf(url, init));
+  await assert.rejects(scheduleReel(reel, { at: future(), yes: true }, { fetchImpl: f, configDir: cfg, log: quiet }), /Not scheduled \(the uploaded files were deleted again\): POST \/admin\/schedule: 400 refused for the test/);
+  assert.equal(e.MEDIA.m.size, 0);
+  assert.equal([...e.KV.m.keys()].filter((k) => k.startsWith('upload:')).length, 0);
+  assert.doesNotMatch(fs.readFileSync(path.join(reel, 'approvals.md'), 'utf8'), /Scheduled on/);
+});
+
+test('forget.mjs: asks until done, then removes the person from inbox-log.md and publisher.json', async () => {
+  const { ws, cfg } = workspace();
+  const e = env();
+  await e.KV.put('lead:c1', JSON.stringify({ kind: 'lead', username: 'fan', from_id: '123', at: '2026-11-09T15:30:00.000Z' }));
+  await e.KV.put('message:m1', JSON.stringify({ kind: 'message', from_id: '123', to_id: '999', at: '2026-11-09T15:31:00.000Z' }));
+  fs.writeFileSync(path.join(ws, 'brand', 'inbox-log.md'), '# inbox-log.md\n\n- 2026-11-09 15:30 Automatic reply to @fan on comment c1 (rule guide): public reply and DM sent by the publisher\n- 2026-11-09 15:40 Replied to @fanatic: "hi" (reply 1)\n- 2026-11-09 15:41 DM to @123: "hi"\n');
+  fs.writeFileSync(path.join(ws, 'brand', 'publisher.json'), JSON.stringify({ inbox: { messages: [{ from_id: '123' }, { from_id: '5' }], replies: { sent: [{ username: 'fan' }], errors: [] } } }));
+  const out = [];
+  const r = await forget('@fan', { root: ws, fetchImpl: workerFetch(e), configDir: cfg, log: (l) => out.push(l) });
+  assert.equal(r.removed, 2); assert.deepEqual(r.ids, ['123']); assert.equal(r.lines, 2); assert.equal(r.entries, 2);
+  const log = fs.readFileSync(path.join(ws, 'brand', 'inbox-log.md'), 'utf8');
+  assert.doesNotMatch(log, /@fan /); assert.doesNotMatch(log, /@123/); assert.match(log, /@fanatic/);
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(ws, 'brand', 'publisher.json'), 'utf8')).inbox.messages, [{ from_id: '5' }]);
+  assert.match(out.join('\n'), /Removed 2 line\(s\) about them from brand\/inbox-log\.md/);
+});
+
+test('the scripts run when reached through a symlink', () => {
+  const dir = tmp('link-');
+  const scripts = path.dirname(fileURLToPath(new URL('../scripts/forget.mjs', import.meta.url)));
+  fs.symlinkSync(scripts, path.join(dir, 'scripts'), 'dir');
+  const linked = path.join(dir, 'scripts', 'forget.mjs');
+  assert.equal(isMain(new URL('../scripts/forget.mjs', import.meta.url).href, linked), true);
+  assert.equal(isMain(new URL('../scripts/pull.mjs', import.meta.url).href, linked), false);
+  const r = spawnSync(process.execPath, [linked], { cwd: dir, encoding: 'utf8' });          // no brand folder here: main() ran
+  assert.match(r.stderr, /Run this inside the brand folder/);
+});
+
+test('setup secrets: a shared token file is used, its ids are not; the brand\'s ids file is', () => {
+  const cfg = tmp('cfg-');
+  fs.writeFileSync(path.join(cfg, 'instagram.json'), JSON.stringify({ access_token: 'SHAREDIG', ig_user_id: 'OTHER_BRANDS_ID' }));
+  fs.writeFileSync(path.join(cfg, 'threads.json'), JSON.stringify({ access_token: 'SHAREDTH', user_id: 'OTHER_TH' }));
+  fs.writeFileSync(path.join(cfg, 'facebook.json'), JSON.stringify({ access_token: 'SHAREDFB', page_id: 'OTHER_PAGE' }));
+  const plan = () => Object.fromEntries(secretPlan({ slug: 'sb', configDir: cfg, make: false }).rows.map((r) => [r.name, r]));
+  let p = plan();
+  assert.equal(p.IG_TOKEN.value, 'SHAREDIG'); assert.equal(p.IG_USER_ID.value, '');           // never the shared file's id
+  assert.equal(p.IG_USER_ID.from, path.join(cfg, 'instagram-sb.ids.json'));
+  assert.match(p.IG_USER_ID.why, /instagram-sb\.ids\.json/);
+  assert.equal(p.THREADS_TOKEN.value, 'SHAREDTH'); assert.equal(p.THREADS_USER_ID.value, '');
+  assert.equal(p.FB_PAGE_TOKEN.value, ''); assert.equal(p.FB_PAGE_ID.value, '');              // a Page token is per brand only
+  fs.writeFileSync(path.join(cfg, 'instagram-sb.ids.json'), JSON.stringify({ ig_user_id: '1784' }));
+  fs.writeFileSync(path.join(cfg, 'threads-sb.ids.json'), JSON.stringify({ user_id: '77' }));
+  p = plan();
+  assert.equal(p.IG_USER_ID.value, '1784'); assert.equal(p.THREADS_USER_ID.value, '77');
+  fs.writeFileSync(path.join(cfg, 'instagram-sb.json'), JSON.stringify({ access_token: 'OWNIG', ig_user_id: '42' }));   // the brand's own file wins
+  p = plan();
+  assert.equal(p.IG_TOKEN.value, 'OWNIG'); assert.equal(p.IG_USER_ID.value, '42'); assert.equal(p.IG_USER_ID.from, path.join(cfg, 'instagram-sb.json'));
+});
