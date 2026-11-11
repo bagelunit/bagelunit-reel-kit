@@ -2,6 +2,44 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.13.0 (2026-11-10)
+
+Two fresh reviews walked the kit as a stranger would, from the GitHub page to the first reel and through every connection, and checked each outside step against Meta's, Cloudflare's, Netlify's, Telegram's and Anthropic's current official pages. This release fixes what they found.
+
+**Getting started**
+- **The README walks a new person through every prerequisite.** Homebrew on a Mac (with the "Next steps" lines it prints), Git on Windows, Node.js on Linux, which ZIP folder to open, a terminal on Linux, and the browser tool as a "before you begin" step. There is also a table of what goes where on your computer, and the install time (20 to 40 minutes, mostly downloads).
+- **Message 1 and the browser tool now agree.** With the browser tool on, Claude does the website steps (the key page, the sound packs). It makes the empty key file and opens it for you, and it hands you any command that needs your password instead of failing at it.
+- **The installer is friendlier.**
+  - It finds a Homebrew that is installed but not yet on your path and tells you the two lines to fix it.
+  - On Linux it gives you any `sudo` command to run in your own terminal instead of failing without one.
+  - It makes the empty ElevenLabs key file and says exactly how to open it on your system (no hidden `.txt`).
+  - It now detects the browser tool on Windows too.
+- **The checkup no longer counts missing sound packs as a problem.** Reels work without them, so they show as optional, with the right command for Windows.
+- **The first reel no longer asks again** for the handle, theme, voice and presenter `/brand-setup` already saved.
+- **Brand files stay in the brand folder.** `/brand-setup` in the kit folder leaves the sticker host and other brand files for the brand's own folder. The kit refuses to start a reel in its own `template/`, and ignores a stray `brand/` or `reels/` folder at its top level.
+- **The dashboard's hooks work on Windows without Git Bash.** The hook path is now filled in by Claude Code itself, and the hooks also run after PowerShell commands.
+- **The template sync no longer creates a folder you did not ask for.** Run with no arguments, it refreshes a copy-from folder only when you keep one (`REEL_TEMPLATE_HOME`).
+- SETUP.md has the Windows and Linux lines for the steps that were Mac only, and says when Whisper is needed. The posting question reads the same everywhere. The costs list every optional paid part.
+
+**Connecting your accounts**
+- **The publisher can be finished.** Cloudflare asks for a card before R2 storage works, even within its free limits. The guide and `setup.mjs` now include that step: Claude stops at the payment form and you enter the card. The storage space is named per brand (`<slug>-kv`), so several brands fit on one Cloudflare account.
+- **Keyword replies can actually arrive.** NEW `node publisher/scripts/setup.mjs subscribe` asks Meta to send your account's comments and messages to your publisher, the step Meta requires after the webhook (`--dry-run` first; the token is never shown).
+- **The publisher reads the login type from your Instagram file** and says plainly that it needs Instagram Login or Unified Login; a Facebook Login setup is refused instead of failing later. `secrets` skips any value you have not pasted yet.
+- **Unified Login tokens.** Pick "Never" when Meta offers it; if it does not, the end date goes in the file and the dashboard warns a week ahead.
+- **Dashboard hosting:**
+  - Netlify's free Private visibility is the default, and the site is created without prompts or linking.
+  - Cloudflare Pages is created with the right production branch. The guide says Cloudflare asks for a card for Zero Trust, and shows how to protect the real address, not only previews.
+- **Telegram:** the steps now include confirming your own chat (`link --yes=<id>`) before `test`, that a bot's username cannot change, and `/token` for a new token.
+- **Meta details brought up to date:**
+  - Hashtag search needs two approvals.
+  - Mentions arrive with comments on Instagram Login.
+  - The Threads app secret is under App settings, Basic.
+  - Meta allows one Instagram setup per app.
+  - What to record for App Review.
+  - Nine new rows of troubleshooting.
+- The dashboard's refresh now runs when only Facebook or Threads is connected. The Instagram check no longer asks for a field that exists only with Instagram Login, which broke the first check for Unified Login.
+- **Engine changes** (`/kit-update` updates the engine too, or run the installer again): the checkup, the first-run questions, and `kit start` refusing the kit's own template.
+
 ## 1.12.0 (2026-11-10)
 
 - **How often should you post? Ask the kit.** Type `/content-calendar how-often` in a brand folder. It suggests how many reels a week to post from real numbers, not a rule of thumb about your niche:

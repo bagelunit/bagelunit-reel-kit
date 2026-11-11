@@ -24,9 +24,11 @@ Pick your system (the installer does exactly this and asks first; this is for do
 |---|---|
 | macOS (Homebrew) | `brew install ffmpeg node python git uv whisper-cpp` |
 | Windows (PowerShell) | `winget install OpenJS.NodeJS.LTS Gyan.FFmpeg Python.Python.3.12 Git.Git astral-sh.uv`, then `pip install faster-whisper` |
-| Linux (Debian, Ubuntu) | Node.js 22 or newer from https://nodejs.org (the `nodejs` package from apt is too old on most versions), then `sudo apt install ffmpeg python3 python3-venv python3-pip git`, uv from https://docs.astral.sh/uv/ and `pip install --user faster-whisper` |
+| Linux (Debian, Ubuntu) | Node.js 22 or newer from https://nodejs.org (the `nodejs` package from apt is too old on most versions), then `sudo apt install ffmpeg python3 python3-venv python3-pip git`, uv from https://docs.astral.sh/uv/, and optionally Whisper with `pipx install faster-whisper` (newer Debian and Ubuntu refuse `pip install --user`) |
 
-On Windows and Linux, Whisper (the tool that times every spoken word) comes from `faster-whisper` instead of `whisper-cpp`; the kit uses whichever it finds. On Windows, where this kit says `python3` use `python`.
+On Windows and Linux, Whisper (the tool that times every spoken word) comes from `faster-whisper` instead of `whisper-cpp`; the kit uses whichever it finds. Whisper is optional: ElevenLabs voices come with their own word timings, so it is needed only for your own recordings, talking-head takes without ElevenLabs speech-to-text, and OpenAI voices (the checkup marks it optional). On Windows, where this kit says `python3` use `python`.
+
+**Mac: Homebrew first.** If `brew` is not found, open Terminal, paste the one-line command from https://brew.sh (it asks for your Mac password, which shows nothing as you type), then paste the "Next steps" lines it prints and open a new Terminal window. **Linux:** commands that start with `sudo` ask for your password, so run them yourself in your own terminal, not through Claude.
 
 Open a new terminal afterwards so the new commands are found.
 
@@ -88,8 +90,10 @@ Turn off HyperFrames telemetry:
 
 ```bash
 npx hyperframes telemetry disable
-echo 'export HYPERFRAMES_NO_TELEMETRY=1' >> ~/.zshrc
+echo 'export HYPERFRAMES_NO_TELEMETRY=1' >> ~/.zshrc     # Mac; on Linux use ~/.bashrc
 ```
+
+On Windows (PowerShell): `npx hyperframes telemetry disable`, then `setx HYPERFRAMES_NO_TELEMETRY 1` and open a new window.
 
 ## 5. Sound tools (for the real-sound step)
 
@@ -120,7 +124,7 @@ git clone https://github.com/Bodila51/opus-sound-layer ~/dev/sound/opus-sound-la
 | https://kenney.nl/assets/casino-audio | `kenney_casino-audio.zip` | 27 |
 | https://kenney.nl/assets/rpg-audio | `kenney_rpg-audio.zip` | 10 |
 
-A real pack is between 0.4 and 6 MB. A file of about 18 KB is a web page, not the pack: delete it and download it again in the browser. To test one: `unzip -tq kenney_<pack>.zip` says "No errors detected".
+A real pack is between 0.4 and 6 MB. A file of about 18 KB is a web page, not the pack: delete it and download it again in the browser. To test one: `unzip -tq kenney_<pack>.zip` says "No errors detected" (Mac, Linux; on Windows, a real pack opens in File Explorer and shows folders of .ogg files).
 
 Then build the library (it also downloads about 600 Freesound recordings, which a script can fetch, and takes a few minutes):
 
@@ -143,6 +147,21 @@ uv pip install --python .venv/bin/python -e ".[mcp]"
 rsync -a skills/earshot/ ~/.claude/skills/earshot/
 rsync -a skills/real-sound/ ~/.claude/skills/real-sound/
 ```
+
+On Windows (PowerShell), the same steps with Windows paths:
+
+```powershell
+git clone https://github.com/Leonxlnx/earshot $HOME\dev\sound\earshot
+cd $HOME\dev\sound\earshot
+uv venv --python 3.12 .venv
+uv pip install --python .venv\Scripts\python.exe torch --index-url https://download.pytorch.org/whl/cpu
+uv pip install --python .venv\Scripts\python.exe -e ".[mcp]"
+.venv\Scripts\earshot.exe doctor --fetch
+robocopy skills\earshot $HOME\.claude\skills\earshot /E
+robocopy skills\real-sound $HOME\.claude\skills\real-sound /E
+```
+
+`node setup/install.mjs` does all of this for you on every system.
 
 Optional, so Claude can call earshot as a tool:
 

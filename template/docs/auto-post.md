@@ -16,9 +16,9 @@ These rules from `CLAUDE.md` still apply, whichever way you connect it:
 
 ### A. The kit's publisher (recommended)
 
-A small program in `publisher/` that runs on Cloudflare's free plan and posts at the time you approved, even when your computer is off: the reel on Instagram (with the approved cover, as a trial reel when it is an A/B test), the same reel as a Facebook Reel on your Page, and a Threads post (the video, or a short text with the reel's link). It refuses a file or cover that changed after Gate C, starts in dry run on every platform, checks Meta's daily limits, deletes each file once it is posted, and reports back to the dashboard with each post's link.
+A small program in `publisher/` that runs on Cloudflare's free plan (R2, its file storage, needs a card on file even when free) and posts at the time you approved, even when your computer is off: the reel on Instagram (with the approved cover, as a trial reel when it is an A/B test), the same reel as a Facebook Reel on your Page, and a Threads post (the video, or a short text with the reel's link). It refuses a file or cover that changed after Gate C, starts in dry run on every platform, checks Meta's daily limits, deletes each file once it is posted, and reports back to the dashboard with each post's link.
 
-Set it up with `docs/connect.md` (steps 2 to 4 for the tokens, step 6 for the publisher), or type `/reel-posting` and pick "The kit's publisher". Every command and setting is in `publisher/README.md`.
+Set it up with `docs/connect.md` (steps 2A or 2B and 3 to 4 for the tokens, step 6 for the publisher; the older Facebook Page setup is not supported), or type `/reel-posting` and pick "The kit's publisher". Every command and setting is in `publisher/README.md`.
 
 ### B. Instagram's own scheduler (free, a person uploads)
 

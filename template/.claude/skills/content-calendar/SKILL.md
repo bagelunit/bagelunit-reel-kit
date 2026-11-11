@@ -86,8 +86,9 @@ one, `overview.mjs --scan <folder>`; to drop one, `--forget <folder>`. It stays 
 
 ## /content-calendar (no argument): refresh and report
 
-1. If `dashboard.instagram` is true, run `node .claude/skills/content-calendar/refresh.mjs --no-telegram` (pulls
-   the numbers, then draws the page); otherwise `node .claude/skills/content-calendar/calendar.mjs`. Then open
+1. If any of `dashboard.instagram`, `dashboard.facebook` or `dashboard.threads` is true, run
+   `node .claude/skills/content-calendar/refresh.mjs --no-telegram` (pulls the numbers, then draws the page);
+   otherwise `node .claude/skills/content-calendar/calendar.mjs`. Then open
    `brand/dashboard.html` (`calendar.mjs --open` does it).
 2. In chat, a short report: the "Needs you" items first, each with its command (`/bagelunit-reels`,
    `/reel-posting`, `/analytics-readout`), then the next 7 days, then open slots. A few lines; the page has the rest.
@@ -158,12 +159,21 @@ Say first that the page holds the brand's plans and numbers, so an online copy b
   Say plainly that it is plain HTTP on every network this computer is on (Wi-Fi and any VPN), so it is for a trusted
   network only.
 - **Netlify:** run `npx netlify-cli login` (it opens Netlify in the browser: the owner logs in, then you or the owner
-  click Authorize) and `npx netlify-cli sites:create`, and read the site id and address it prints (not a token). Write `dashboard.host` = `netlify`, `dashboard.site`, `dashboard.url`, then run
-  `node .claude/skills/content-calendar/host.mjs`. Tell the owner plainly: Netlify's password protection is on its
-  paid plans; on the free plan the page is only as private as its address (it is never listed in search).
-- **Cloudflare Pages:** run `npx wrangler login` (the owner logs in), create the Pages project, and turn on Cloudflare
-  Access for it in the Cloudflare dashboard with the browser tool (free, a code by email). Write `dashboard.host` = `cloudflare`, `dashboard.site` (project name),
-  `dashboard.url`, then run `host.mjs`.
+  click Authorize). Read the team's short name from `npx netlify-cli status` (not a secret), then run
+  `npx netlify-cli sites:create --name <slug>-dashboard --account-slug <team> --disable-linking --json` (no
+  questions, nothing written in this folder) and read the site id and address it prints (not a token). Write
+  `dashboard.host` = `netlify`, `dashboard.site`, `dashboard.url`, then run `node .claude/skills/content-calendar/host.mjs`
+  (it deploys with `--no-build`). Then, after the owner's yes, make the site Private with the browser tool (the site,
+  Project configuration, General, Visitor access, Project visibility, Edit visibility, Private, production and
+  previews, Save): free, and the page then opens only for the owner, logged in to Netlify. Say so plainly. If the team's
+  plan has no Project visibility (older plans), say the page is only as private as its address (never listed in search).
+- **Cloudflare Pages:** run `npx wrangler login` (the owner logs in) and
+  `npx wrangler pages project create <slug>-dashboard --production-branch main` (host.mjs uploads to `main`, so the
+  page lands on `https://<slug>-dashboard.pages.dev`). Write `dashboard.host` = `cloudflare`, `dashboard.site` (project
+  name), `dashboard.url`, then run `host.mjs`. For a login, Cloudflare Access: say first that opening Zero Trust asks
+  for a card even on its free plan, ask, and stop at the payment form for the owner. The project's "Enable access
+  policy" covers only preview copies, so then protect the `pages.dev` address too (`docs/dashboard.md` section 4 has
+  Cloudflare's steps: Manage the policy, Configure, delete the `*` from Subdomain, Save).
 - **Another host:** `host.mjs folder` writes `.cache/site/` (the page, `robots.txt`, `_headers`); the owner uploads it.
 
 The page goes online at `<dashboard.url>/<dashboard.path_key>/` (the key is made once by `host.mjs` run by hand and saved in brand.json; the site's front page is empty), so give the owner that full address and say to keep it private. With a host set, every refresh (`refresh.mjs`, the scheduled job) uploads the new page, and between refreshes the
@@ -185,7 +195,10 @@ no research).
    Before the token step, write `~/.config/bagelunit-reels/instagram-<slug>.json` with
    `{"access_token": "PASTE-YOUR-TOKEN-HERE"}` (Instagram Login) or `{"access_token": "PASTE-YOUR-TOKEN-HERE",
    "login": "unified"}`, make it readable by the owner only (`chmod 600`), and open it in their editor; stop at
-   Generate token. Never ask for the token, never read the file once the owner has pasted into it, never print
+   Generate token. With Unified Login, pick **Never** for the token's end date in the configuration preview. If Meta
+   offers no Never, ask the owner for the end date the preview shows and add it to the file you write as
+   `"expires_at": "YYYY-MM-DD"` (a date, not a secret), so the dashboard warns a week ahead; that token does not
+   renew itself. Never ask for the token, never read the file once the owner has pasted into it, never print
    it. `<slug>` is `brand.json` -> `slug`. Without the browser tool, give the written steps one at a time.
 3. Run `node .claude/skills/content-calendar/instagram.mjs --check`. It prints the handle and follower count
    (and saves the account's id in the owner's file, which the publisher's `setup.mjs secrets` uses). Ask the owner to
@@ -219,8 +232,11 @@ bot only reports; nothing sent to it does anything. Walk `docs/dashboard.md` sec
    `~/.config/bagelunit-reels/telegram-<slug>.json` (or `telegram.json` for every brand) with
    `{"token": "PASTE-YOUR-TOKEN-HERE"}`, `chmod 600`, and open it; type the bot's username in BotFather but let the
    owner press Enter, because the reply holds the token. Never ask for, read or print the token.
-3. Open the bot and press Start (or the owner does). Run `telegram.mjs link`, then `telegram.mjs test`. Ask (question
-   block) "It arrived", "Nothing came".
+   BotFather's username cannot be changed later: confirm it with the owner before they press Enter.
+3. Open the bot and press Start (or the owner does). Run `telegram.mjs link`: it lists who has messaged the bot and
+   saves nothing. Ask the owner (question block, one option per chat it listed, plus "None of these is me") which one
+   is them; never pick for them. Then run `telegram.mjs link --yes=<that chat id>`, then `telegram.mjs test`. Ask
+   (question block) "It arrived", "Nothing came".
 4. Run `telegram.mjs show` to show the summary here, set `dashboard.telegram` to `true`, then `telegram.mjs send`.
 
 ## /content-calendar auto: refresh by itself

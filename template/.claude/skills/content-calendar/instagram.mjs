@@ -11,6 +11,8 @@
 //     the first --check finds the Instagram account's id and saves it as "ig_user_id": in instagram-<slug>.json, or, for
 //     a token shared by several brands (instagram.json), in instagram-<slug>.ids.json (lib.mjs brandId)
 //     optional: "api_version": "v27.0", "online_hours_tz": "America/Los_Angeles"
+//     Unified Login only, when Meta's configuration preview offered no "Never": "expires_at": "2027-01-09", the end
+//     date shown there (not a secret; Claude writes it when it makes the file), so the dashboard warns a week ahead
 // What it reads: the account (followers, posts), every post's numbers, account insights for the last 7 and 28 days
 // (reach for followers and non-followers, views, accounts engaged, interactions, follows and unfollows, profile taps),
 // follower and engaged-audience demographics, the hours followers are online, stories with their numbers, posts the
@@ -187,7 +189,7 @@ export async function pull(root, { check = false, log = console.log, budgetMs = 
   const { cfg, file } = api;
   if (!check && api.login === 'instagram') await renew(api, log);
 
-  const account = await api.get(api.me, { fields: `id,${api.login === 'instagram' ? 'user_id,' : ''}username,name,account_type,followers_count,follows_count,media_count` });
+  const account = await api.get(api.me, { fields: `id,${api.login === 'instagram' ? 'user_id,' : ''}username,name,${api.login === 'instagram' ? 'account_type,' : ''}followers_count,follows_count,media_count` });   // account_type exists only with Instagram Login
   // keep the account id for this brand (Unified Login saves it when it finds it; Instagram Login reads it here), so the
   // publisher's secrets step (publisher/scripts/setup.mjs secrets) never needs it copied by hand. With Instagram Login,
   // /me "id" is an app-scoped id; the professional account id (the one publishing and webhooks use) is "user_id".
@@ -271,7 +273,7 @@ export async function pull(root, { check = false, log = console.log, budgetMs = 
   }
 
   const data = {
-    pulled_at: new Date().toISOString(), login: api.login, account, token_expires_at: cfg.expires_at || null, api: cfg.api_version || API_VERSION,
+    pulled_at: new Date().toISOString(), login: api.login, account, token_expires_at: (cfg.expires_at && !Number.isNaN(new Date(cfg.expires_at).getTime())) ? new Date(cfg.expires_at).toISOString() : null, api: cfg.api_version || API_VERSION,
     media, account_insights: insights, stories: [...stories.values()].sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp))).slice(0, 60),
     tags, comments,
   };

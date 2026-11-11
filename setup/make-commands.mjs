@@ -81,7 +81,7 @@ const GROUPS = [
     ['kit live', 'Serves the reel so you can watch it play in a browser.', 'engine'],
   ]],
   ['Publisher commands (in a brand folder, after you set it up)', 'node publisher/scripts/<script>.mjs', [
-    ['setup.mjs', 'Writes the publisher\'s settings for this brand and prints the steps in order; secrets sends the tokens from your token files to Cloudflare without showing them (--dry-run first); --url saves its address; check shows each platform and whether it is live.', 'publisher'],
+    ['setup.mjs', 'Writes the publisher\'s settings for this brand and prints the steps in order; secrets sends the tokens from your token files to Cloudflare without showing them (--dry-run first); subscribe asks Meta to send this account\'s comments and messages to the publisher, for keyword replies (--dry-run first); --url saves its address; check shows each platform and whether it is live.', 'publisher'],
     ['schedule.mjs', 'Schedules an approved reel on Instagram, the Facebook Page and Threads (--preview checks without uploading); status lists posts and comment replies; cancel <id> stops one.', 'publisher'],
     ['pull.mjs', 'Brings back what went out: links, errors and automatic replies, for the dashboard and the reel\'s Posting lines.', 'publisher'],
     ['forget.mjs', 'Deletes what the publisher kept about one person, when they ask.', 'publisher'],

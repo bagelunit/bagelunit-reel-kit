@@ -56,9 +56,12 @@ Only when the owner asks. Walk it one step at a time and keep a short checklist 
    Record `posting.method` in `brand.json` ("instagram-scheduler", "tool: <name>").
 3. **The kit's publisher** (`publisher/` in this folder): walk `docs/connect.md` step 6 with the owner, one step
    at a time, and run each step yourself after the owner's yes. With the browser tool (rule 15 in `CLAUDE.md`, `docs/browser.md`), do the web pages yourself; the owner logs in, copies each secret into the file you opened, and clicks the last Delete. Run
-   `node publisher/scripts/setup.mjs` (add `--api-setup unified` when `instagram-<slug>.json` says
-   `"login": "unified"`), then the commands it prints, in order: `npx wrangler login` (it opens Cloudflare in the
-   browser: the owner logs in, you click Allow), the KV and R2 storage, `npx wrangler deploy`, `setup.mjs --url
+   `node publisher/scripts/setup.mjs` (it reads Instagram Login or Unified Login from `instagram-<slug>.json`; with
+   `"login": "facebook"` it stops: the publisher needs `docs/connect.md` step 2A or 2B, so say so and connect that
+   first), then the commands it prints, in order: `npx wrangler login` (it opens Cloudflare in the
+   browser: the owner logs in, you click Allow), the KV storage (`npx wrangler kv namespace create <slug>-kv`), turning
+   on R2 (it needs a checkout with a card even on the free plan: say so, ask, and stop at the payment form for the
+   owner; "Not now" ends the publisher setup here), the R2 bucket, `npx wrangler deploy`, `setup.mjs --url
    <address>`, `setup.mjs secrets --dry-run`, then `setup.mjs secrets` (it moves every token from the owner's files to
    Cloudflare without showing it; never use `wrangler secret put` with a value yourself, and never ask for a token).
    Then `node publisher/scripts/setup.mjs check`. Record `posting.method` = "publisher".

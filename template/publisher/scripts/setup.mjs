@@ -8,6 +8,8 @@
 //   node publisher/scripts/setup.mjs secrets [--dry-run] [--only A,B]   send the secrets to Cloudflare (see below)
 //   node publisher/scripts/setup.mjs --url <https://...workers.dev>     save the publisher's address for the kit
 //   node publisher/scripts/setup.mjs check                              ask the deployed publisher if it is working
+//   node publisher/scripts/setup.mjs subscribe [--dry-run]              turn on Meta's comment and message notifications
+//                                                                       for this brand's Instagram account (keyword replies)
 //
 // secrets: every value comes from a file in ~/.config/bagelunit-reels/ that the connection checks wrote, or that the
 // owner pasted into, so no token is ever copied by hand into a terminal:
@@ -23,7 +25,10 @@
 //   FB_PAGE_ID, FB_PAGE_TOKEN facebook-<slug>.json "page_id", "access_token" (after the Facebook check). Only the
 //                             brand's own file: a Page token posts to one Page, so a shared facebook.json is not used.
 // Each value goes to `npx wrangler secret put <NAME>` on its standard input; wrangler's output is shown with the
-// value blanked out.
+// value blanked out. A value that is still the PASTE-... placeholder of docs/connect.md is skipped, never sent.
+//
+// The publisher needs Instagram Login (docs/connect.md 2A) or Unified Login (2B). An instagram-<slug>.json with
+// "login": "facebook" (the older Page-linked setup) is refused: its 60-day Facebook user token is never renewed.
 import { spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import fs from 'node:fs';
@@ -37,13 +42,27 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PUB = path.resolve(HERE, '..');
 const PLACEHOLDER = 'REPLACE_WITH_KV_ID';
 
-export const names = (slug) => ({ worker: `${slug}-publisher`.slice(0, 63), bucket: `${slug}-reels`.slice(0, 63) });
+// The KV namespace is named per brand (<slug>-kv), so several brands fit in one Cloudflare account. The binding in
+// wrangler.toml stays "KV", so a publisher set up earlier with a namespace called KV keeps working unchanged.
+export const names = (slug) => ({ worker: `${slug}-publisher`.slice(0, 63), bucket: `${slug}-reels`.slice(0, 63), kv: `${slug}-kv`.slice(0, 63) });
+
+// The Instagram token file the dashboard and the publisher share: the brand's own first, then the shared one.
+const igFile = (slug, configDir) => [path.join(configDir, `instagram-${slug}.json`), path.join(configDir, 'instagram.json')].find((x) => fs.existsSync(x)) || null;
+// Which Instagram setup the token file says, so the publisher is set up to match it
+export function loginOf(slug, configDir = CONFIG_DIR) {
+  const f = igFile(slug, configDir);
+  const login = f ? String((readJSON(f, {}) || {}).login || 'instagram') : null;
+  return { file: f, login: ['unified', 'facebook'].includes(login) ? login : (f ? 'instagram' : null) };
+}
+const FB_REFUSED = 'the publisher needs Instagram Login (docs/connect.md step 2A) or Unified Login (step 2B). This brand\'s Instagram file says "login": "facebook" (the older Page-linked setup): its token is a 60-day Facebook user token that nothing renews, so the publisher would stop without warning. Connect with 2A or 2B, then run this again';
+export const isPlaceholder = (v) => /^PASTE-/i.test(String(v || '').trim());
 
 // Fill the template. An existing wrangler.toml is never overwritten (it may hold your live switches); only the KV id
 // placeholder is replaced when you pass --kv-id.
 export function writeToml({ slug, pubDir = PUB, apiSetup = 'instagram', kvId = null }) {
   const file = path.join(pubDir, 'wrangler.toml');
   if (kvId && !/^[0-9a-f]{32}$/.test(kvId)) throw new Plain('--kv-id is the 32-character id wrangler printed when it made the namespace');
+  if (apiSetup === 'facebook') throw new Plain(FB_REFUSED);
   if (!['instagram', 'unified'].includes(apiSetup)) throw new Plain('--api-setup is instagram or unified');
   if (fs.existsSync(file)) {
     const text = fs.readFileSync(file, 'utf8');
@@ -65,7 +84,8 @@ export function steps({ slug, apiSetup = 'instagram', kvReady = false, configDir
   const step = (title, ...cmds) => s.push(`${s.length + 1}. ${title}${cmds.map((c) => `\n     ${c}`).join('')}`);
   step('Every command below runs in the publisher folder:', 'cd publisher');
   step('Log in to Cloudflare (a free account is enough). It opens the browser: the owner logs in, Claude (with the browser tool) or the owner clicks Allow:', 'npx wrangler login');
-  if (!kvReady) step('Make the storage for posts and replies, then put the id it prints into wrangler.toml:', 'npx wrangler kv namespace create KV', 'node scripts/setup.mjs --kv-id <the id it printed>');
+  if (!kvReady) step('Make the storage for posts and replies, then put the id it prints into wrangler.toml:', `npx wrangler kv namespace create ${n.kv}`, 'node scripts/setup.mjs --kv-id <the id it printed>');
+  step('Turn on R2, the file storage, once per Cloudflare account (free up to 10 GB a month, but Cloudflare asks for a card and bills use above the free amount). In the Cloudflare dashboard: Storage & databases, R2, Overview. Claude (with the browser tool) opens it and stops at the payment form; the owner enters the card and confirms, or stops here.');
   step('Make the storage for the video files:', `npx wrangler r2 bucket create ${n.bucket}`);
   step('Put the publisher online (it needs to exist before it can hold secrets). It prints its address (https://...workers.dev):', 'npx wrangler deploy');
   step(`Save that address for the kit (it goes into ${file} next to the admin key):`, 'node scripts/setup.mjs --url <the address deploy printed>');
@@ -74,7 +94,8 @@ export function steps({ slug, apiSetup = 'instagram', kvReady = false, configDir
     'node scripts/setup.mjs secrets --dry-run', 'node scripts/setup.mjs secrets',
     `(it runs npx wrangler secret put ADMIN_KEY, VERIFY_TOKEN, APP_SECRET, IG_USER_ID, IG_TOKEN (${apiSetup === 'unified' ? 'the never-expiring Unified Login token' : 'the Instagram Login token'}), and FB_PAGE_ID, FB_PAGE_TOKEN, THREADS_USER_ID, THREADS_TOKEN when those are connected)`);
   step('Check it works (it shows each platform and its mode, never the key):', 'node scripts/setup.mjs check');
-  step('Optional, keyword replies: the webhook in the Meta app (docs/connect.md step 7) and the rules:',
+  step('Optional, keyword replies: the webhook in the Meta app (docs/connect.md step 7), turning on the notifications for this brand\'s Instagram account, and the rules:',
+    'node scripts/setup.mjs subscribe --dry-run', 'node scripts/setup.mjs subscribe',
     'cp rules.example.json rules.json      (then /comment-responder fills it)', 'npx wrangler kv key put rules --path rules.json --binding KV --remote');
   return `Setting up the publisher for ${slug} (worker ${n.worker}, files in ${n.bucket}). Everything starts in dry run.\n\n${s.join('\n\n')}\n\nGoing live is a separate step for each platform: see "Going live" in publisher/README.md.`;
 }
@@ -103,7 +124,10 @@ export function secretPlan({ slug, configDir = CONFIG_DIR, make = true }) {
   };
   const ig = account('instagram', 'ig_user_id'); const th = account('threads', 'user_id');
   const fb = readJSON(f('facebook'), {}) || {};
-  const row = (name, value, from, why) => ({ name, value: value ? String(value) : '', from, why });
+  // a value still holding the PASTE-... placeholder is not a token: it is skipped and named, never sent
+  const row = (name, value, from, why) => (isPlaceholder(value)
+    ? { name, value: '', from, why: `it still holds the PASTE-... placeholder: paste the real value in ${from} first` }
+    : { name, value: value ? String(value) : '', from, why });
   return {
     made, pubFile,
     rows: [
@@ -145,6 +169,45 @@ export function sendSecrets({ slug, configDir = CONFIG_DIR, pubDir = PUB, only =
   return { sent, skipped, failed };
 }
 
+// ---------- subscribe: Meta's notifications for this brand's Instagram account ----------
+// The webhook in the Meta app (callback address and verify token, docs/connect.md step 7) is only half of it: Meta
+// also needs each Instagram account subscribed to the app, with a POST to the account's /subscribed_apps edge
+// (Meta's "Set up Instagram Webhooks" guide). Unified Login: graph.facebook.com, fields comments, mentions, messages.
+// Instagram Login: graph.instagram.com, fields comments and messages (mentions arrive inside comments there). The
+// token comes from the token file, goes in the Authorization header only, and is blanked from any error.
+export const SUBSCRIBE_FIELDS = { unified: ['comments', 'mentions', 'messages'], instagram: ['comments', 'messages'] };
+export async function subscribe({ slug, configDir = CONFIG_DIR, fetchImpl = fetch, dryRun = false, log = console.log, apiVersion = 'v27.0' }) {
+  const { file, login } = loginOf(slug, configDir);
+  if (!file) throw new Plain(`no Instagram connection for this brand yet: docs/connect.md step 2A or 2B makes ${path.join(configDir, `instagram-${slug}.json`)}`);
+  if (login === 'facebook') throw new Plain(FB_REFUSED);
+  const cfg = readJSON(file, {}) || {};
+  const token = String(cfg.access_token || '');
+  if (!token || isPlaceholder(token)) throw new Plain(`${file} has no token yet (paste it over PASTE-..., docs/connect.md step 2)`);
+  const shared = path.basename(file) === 'instagram.json';
+  const idFile = shared ? path.join(configDir, `instagram-${slug}.ids.json`) : file;
+  const igId = String((shared ? (readJSON(idFile, {}) || {}).ig_user_id : cfg.ig_user_id) || '');
+  if (!/^\d+$/.test(igId)) throw new Plain(`the Instagram account id is not saved yet (in ${idFile}): run /content-calendar connect instagram first (its check saves it)`);
+  const host = login === 'unified' ? 'https://graph.facebook.com' : 'https://graph.instagram.com';
+  const fields = SUBSCRIBE_FIELDS[login === 'unified' ? 'unified' : 'instagram'];
+  const where = `${host}/${cfg.api_version || apiVersion}/${igId}/subscribed_apps`;
+  if (dryRun) { log(`Would ask Meta (${login === 'unified' ? 'Unified Login' : 'Instagram Login'}) to send ${fields.join(', ')} notifications for account ${igId} to this app: POST ${where}. Nothing was sent.`); return { dryRun: true, fields, url: where }; }
+  const hide = (s) => String(s).split(token).join('***');
+  let res, body;
+  try {
+    res = await fetchImpl(where, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ subscribed_fields: fields.join(',') }).toString(), signal: AbortSignal.timeout(30000) });
+    body = await res.json().catch(() => ({}));
+  } catch (e) { throw new Plain(`could not reach Meta (${hide(e?.cause?.code || e?.message || 'network error')})`); }
+  if (!res.ok || body.error || body.success !== true) {
+    const e = body.error || {};
+    const why = e.code === 190 ? 'the token is not valid any more: make a new one (docs/connect.md step 2A or 2B)'
+      : e.code === 10 || e.code === 200 ? `the token is missing a permission for this (${hide(e.message || 'permission')}): the comments and messages permissions must be on the token`
+      : hide(e.message || `HTTP ${res.status}`);
+    throw new Plain(`Meta did not turn the notifications on: ${why}`);
+  }
+  log(`Meta will now send ${fields.join(', ')} notifications for account ${igId} to this app's webhook. They only arrive once the app is Live with Advanced Access (docs/connect.md step 7).`);
+  return { ok: true, fields, url: where };
+}
+
 export function saveUrl({ slug, url, configDir = CONFIG_DIR }) {
   if (!/^https:\/\/[^\s/]+\.[^\s/]+\/?$/.test(String(url || ''))) throw new Plain('--url takes the address wrangler deploy printed, e.g. https://brand-publisher.you.workers.dev');
   const file = path.join(configDir, `publisher-${slug}.json`);
@@ -169,6 +232,7 @@ async function main() {
   if (!root) throw new Plain('Run this inside the brand folder (where brand/brand.json is).');
   const slug = brandSlug(root, readJSON(path.join(root, 'brand', 'brand.json'), {}));
   if (args._[0] === 'check') return check({ root });
+  if (args._[0] === 'subscribe') { await subscribe({ slug, dryRun: args['dry-run'] === true }); return; }
   if (args._[0] === 'secrets') {
     const only = typeof args.only === 'string' ? args.only.split(',').map((x) => x.trim().toUpperCase()).filter(Boolean) : null;
     const r = sendSecrets({ slug, only, dryRun: args['dry-run'] === true });
@@ -177,7 +241,12 @@ async function main() {
     return;
   }
   if (typeof args.url === 'string') { console.log(`Saved the publisher's address in ${saveUrl({ slug, url: args.url })}.`); return; }
-  const r = writeToml({ slug, apiSetup: args['api-setup'] === 'unified' ? 'unified' : (args['api-setup'] && args['api-setup'] !== true ? args['api-setup'] : 'instagram'), kvId: typeof args['kv-id'] === 'string' ? args['kv-id'] : null });
+  // the Instagram setup: --api-setup when given, else what the brand's token file says (Unified or Instagram Login)
+  const fromFile = loginOf(slug).login;
+  if (fromFile === 'facebook') throw new Plain(FB_REFUSED);
+  const asked = typeof args['api-setup'] === 'string' ? args['api-setup'] : null;
+  if (asked && fromFile && asked !== fromFile && ['instagram', 'unified'].includes(asked)) throw new Plain(`--api-setup ${asked} does not match the brand's Instagram file, which says ${fromFile === 'unified' ? '"login": "unified"' : 'Instagram Login'}: use --api-setup ${fromFile}, or leave it out`);
+  const r = writeToml({ slug, apiSetup: asked || fromFile || 'instagram', kvId: typeof args['kv-id'] === 'string' ? args['kv-id'] : null });
   if (r.wrote) console.log(`Wrote ${r.wrote === 'kv id' ? 'the KV id into ' : ''}${r.file}`);
   const toml = fs.readFileSync(r.file, 'utf8');
   if (args['kv-id']) return;

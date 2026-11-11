@@ -79,6 +79,7 @@ function start() {
   if (!flags.anywhere) {
     const home = brandFolderOf(dir);
     if (!home) die(`${dir} is not inside a brand folder. Reels are made only in a brand's <brand>-reels folder (the one holding brand/ and .kit-version), so each brand's reels, facts and voice stay together. Open Claude Code in that folder and start the reel there. No brand folder yet? Type /brand-setup in the kit's folder. (--anywhere skips this check, for tests only.)`);
+    if (fs.existsSync(path.join(path.dirname(home), 'studio', 'KIT.md'))) die(`${home} is the kit's own template, which every new brand is copied from. Make a brand folder with /brand-setup in the kit folder, open Claude Code there, and start the reel in that folder.`);
     if (!readJSON(path.join(home, 'brand', 'brand.json'), {}).name) die(`the brand in ${home} is not set up yet (brand.json has no name). Run /brand-setup in that folder first.`);
     if (!/-reels$/i.test(path.basename(home))) console.log(`note: brand folders are named <brand>-reels; this one is ${path.basename(home)}.`);
   }

@@ -36,6 +36,7 @@ You're the editor and this folder is your studio. You write the words and the sh
 - **Plan:** ask once which AI plan they're on. You can't detect it. Save it with `checkup.mjs --set-plan <max|pro|api|team|codex|cursor|other>`. It picks crew or solo build (section F).
 - **Brand:** ask once for their handle and theme (show the four), and save them with `checkup.mjs --set-brand @handle --set-theme <studio|harbor|ochre|ink>` (either flag works alone). `kit start` copies them into each project.
 - **Host look** (print only): offer to build their host from a photo (`playbook/host.md`), or no host. It's saved in their config.
+- **Ask only what is still missing** (local addition). In a brand folder, `/brand-setup` already answered most of this: take the handle from `brand/brand.json` > `handle`, the theme from `colors.theme`, the voice from `voice.voice_id` and the presenter from `host`, and save them with the flags above without asking again. Skip the plan question when the checkup already shows a saved plan.
 
 Run the checkup again whenever a tool fails with a setup-looking error.
 
@@ -76,7 +77,7 @@ node "$KIT_DIR/tools/kit.mjs" start <REELS>/<slug> --style <print|depth|talking>
 python3 "$KIT_DIR/tools/voice.py" <REELS>/<slug>
 ```
 - `<REELS>` is the brand folder's `reels/` folder. `<slug>` is a short kebab-case topic.
-- **Reels are made only in a brand folder** (local addition): the brand's `<brand>-reels` folder, which holds `brand/brand.json` and `.kit-version`. If Claude Code was started anywhere else (the brand's project folder, the kit's folder, a home folder), do not start the reel there: ask which brand, look for its `*-reels` folder (for example under `~/Reels/` or a project's `*.nosync/Reels/`), and tell the person to open Claude Code in that folder. If the brand has none, point them to `/brand-setup` in the kit's folder. `kit start` refuses a folder outside a set-up brand folder for the same reason (`--anywhere` is for tests only).
+- **Reels are made only in a brand folder** (local addition): the brand's `<brand>-reels` folder, which holds `brand/brand.json` and `.kit-version`. If Claude Code was started anywhere else (the brand's project folder, the kit's folder, a home folder), do not start the reel there: ask which brand, look for its `*-reels` folder (for example under `~/Reels/`, or wherever `/brand-setup` put it), and tell the person to open Claude Code in that folder. If the brand has none, point them to `/brand-setup` in the kit's folder. `kit start` refuses a folder outside a set-up brand folder for the same reason (`--anywhere` is for tests only).
 - `voice.py` writes:
   - `audio/vo.mp3`: pauses over 0.45 s cut to 0.28 s, ×1.15, −14 LUFS;
   - `build/words.json` and `build/word_index.txt`: every word with its time.

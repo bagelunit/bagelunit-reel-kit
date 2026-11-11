@@ -2,8 +2,9 @@
 // BagelUnit Reel Kit: keep the template copies up to date. Runs on macOS, Windows and Linux.
 //
 //   node setup/sync-template.mjs
-//       Refresh the generic folder you copy from (~/Documents/Claude/Reel Template, or $REEL_TEMPLATE_HOME)
-//       from this repo's template/. It is a plain mirror: it holds no brand, so nothing is lost.
+//       Refresh a generic folder you copy from, if you keep one: the folder in $REEL_TEMPLATE_HOME, or an existing
+//       ~/Documents/Claude/Reel Template. Without either it does nothing (/brand-setup copies template/ directly,
+//       so most people need no generic folder). It is a plain mirror: it holds no brand, so nothing is lost.
 //
 //   node setup/sync-template.mjs <brand-workspace>            shows what would change, changes nothing
 //   node setup/sync-template.mjs <brand-workspace> --apply    does it
@@ -26,7 +27,9 @@ import { fileURLToPath } from 'node:url';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(REPO, 'template');
-const GENERIC = process.env.REEL_TEMPLATE_HOME || path.join(os.homedir(), 'Documents', 'Claude', 'Reel Template');
+// a generic copy-from folder only when one is wanted: never create one in a synced Documents folder by default
+const LEGACY = path.join(os.homedir(), 'Documents', 'Claude', 'Reel Template');
+const GENERIC = process.env.REEL_TEMPLATE_HOME || (fs.existsSync(path.join(LEGACY, 'CLAUDE.md')) ? LEGACY : null);
 const PATHS = ['CLAUDE.md', 'README.md', 'LICENSE', '.gitignore', 'docs', '.claude/skills', '.claude/settings.json', 'reels/_example', 'publisher'];   // kit-owned; brand/ and the brand's own reels/ are absent on purpose
 const stamp = () => new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
 const bytes = (f) => fs.readFileSync(f);
@@ -60,6 +63,11 @@ function mirror(src, dst) {                      // make dst match src exactly (
 }
 
 if (!target) {
+  if (!GENERIC) {
+    console.log('No generic copy-from folder to refresh (set REEL_TEMPLATE_HOME to keep one). Nothing changed.');
+    console.log('To update a brand folder:  node setup/sync-template.mjs <workspace>  (dry run), then add --apply. /kit-update in the brand folder does this for you.');
+    process.exit(0);
+  }
   mirror(SRC, GENERIC);
   console.log(`Refreshed the generic folder: ${GENERIC}`);
   console.log('Brand copies already made are NOT changed. Update each with:  node setup/sync-template.mjs <workspace> --apply');

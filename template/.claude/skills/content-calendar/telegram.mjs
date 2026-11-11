@@ -117,7 +117,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
         console.log(`Linked to ${label(c)}. Now run: telegram.mjs test`);
       }
     } else if (verb === 'test') {
-      if (!cfg.chat_id) throw new Plain('no chat yet: message your bot once, then run  telegram.mjs link');
+      if (!cfg.chat_id) throw new Plain('no chat yet: message your bot once, run  telegram.mjs link  to see who wrote, and once you confirmed which one is you,  telegram.mjs link --yes=<your chat id>');
       await call(cfg, 'sendMessage', { chat_id: cfg.chat_id, text: `Test from the BagelUnit Reel Kit: summaries for ${load(root).name} will come here.` });
       console.log('Sent a test message. Check your phone.');
     } else {

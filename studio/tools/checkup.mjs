@@ -143,7 +143,7 @@ function look() {
 // Kenney only serves its zips to a browser, so a library built by a script alone is missing them.
 function soundLibrary() {
   const catalog = path.join(os.homedir(), 'dev', 'sound', 'opus-sound-layer', 'audio', 'kit', 'catalog.json');
-  const rerun = 'run the installer again from your bagelunit-reel-kit folder: bash setup/install.sh\n           (it opens the Kenney pages; on each click Download, then "Continue without donating...", and it takes the zips from Downloads)';
+  const rerun = `run the installer again from your bagelunit-reel-kit folder: ${process.platform === 'win32' ? 'node setup/install.mjs' : 'bash setup/install.sh'}\n           (it opens the Kenney pages; on each click Download, then "Continue without donating...", and it takes the zips from Downloads; with the browser tool on, Claude does the clicking)`;
   let sounds;
   try { sounds = JSON.parse(fs.readFileSync(catalog, 'utf8')).sounds || []; }
   catch { return maybe('sound library (optional: the real-sound step)', rerun); }
@@ -151,7 +151,7 @@ function soundLibrary() {
   const missing = packs.filter((p) => !sounds.some((s) => String(s.id).includes(`/kenney-${p}-`)));
   const kenney = sounds.filter((s) => String(s.id).includes('/kenney-')).length;
   if (!missing.length) ok('sound library', `${sounds.length} sounds, ${kenney} from Kenney (all 7 packs)`);
-  else bad(`sound library is missing ${missing.length} of 7 Kenney packs (${sounds.length} sounds; complete is about 1,140)`, rerun);
+  else maybe(`sound library (optional) is missing ${missing.length} of 7 Kenney packs (${sounds.length} sounds; complete is about 1,140). Reels work without them`, rerun);
 }
 
 const hasPython = tools();

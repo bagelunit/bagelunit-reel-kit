@@ -196,7 +196,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
   const root = brandRoot(args.find((a) => !a.startsWith('--') && !['facebook', 'threads'].includes(a)));
   const only = args.find((a) => ['facebook', 'threads'].includes(a));
   const which = only ? [only] : Object.entries(connected(root)).filter(([, on]) => on).map(([k]) => k);
-  if (!which.length) { console.log('Neither Facebook nor Threads is connected for this brand (docs/connect.md, sections 4 and 5).'); process.exit(0); }
+  if (!which.length) { console.log('Neither Facebook nor Threads is connected for this brand (docs/connect.md, steps 3 and 4).'); process.exit(0); }
   let bad = 0;
   for (const p of which) {
     try {

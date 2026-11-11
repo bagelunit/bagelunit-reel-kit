@@ -166,7 +166,9 @@ else {
     const cmds = []; const manual = [];
     const want = (n) => need.includes(n);
     if (IS_MAC) {
-      if (!have('brew')) manual.push('Homebrew is not installed. Install it from https://brew.sh, open a new terminal, then run this again.');
+      const brewAt = ['/opt/homebrew/bin/brew', '/usr/local/bin/brew'].find(exists);
+      if (!have('brew') && brewAt) manual.push(`Homebrew is installed but this terminal cannot find it yet. Run these two lines in your own Terminal, open a new Terminal window, then run this again:\n      echo 'eval "$(${brewAt} shellenv)"' >> ~/.zprofile\n      eval "$(${brewAt} shellenv)"`);
+      else if (!have('brew')) manual.push('Homebrew is not installed. In your own Terminal (it asks for your Mac password, which shows nothing as you type), paste the one-line command from https://brew.sh, then the "Next steps" lines it prints, open a new Terminal window, and run this again.');
       else {
         const map = { ffmpeg: 'ffmpeg', python: 'python', git: 'git', uv: 'uv', whisper: 'whisper-cpp', ytdlp: 'yt-dlp' };
         cmds.push(['brew', 'install', ...need.map((n) => map[n])]);
@@ -194,6 +196,12 @@ else {
     if (want('ytdlp') && !IS_MAC && !IS_WIN) manual.push('__ytdlp__');
 
     for (const c of cmds) {
+      // sudo asks for a password, which needs a real terminal: from Claude Code (no terminal) the person runs it
+      if (c[0] === 'sudo' && !process.stdin.isTTY && cp.spawnSync('sudo', ['-n', 'true'], { stdio: 'ignore' }).status !== 0) {
+        warn('this needs your password, so run it yourself in your own terminal, then run this installer again:');
+        info(`  ${c.join(' ')}`);
+        continue;
+      }
       info(`needs: ${c.join(' ')}`);
       if (await confirm('Run this command now?')) {
         const r = sh(c[0], c.slice(1));
@@ -298,10 +306,13 @@ if (!F.dryRun) fs.mkdirSync(CONFIG, { recursive: true, mode: 0o700 });
 const keyFile = path.join(CONFIG, 'elevenlabs.key');
 if (exists(keyFile) && fs.statSync(keyFile).size > 0) ok('an ElevenLabs key file exists (not read by this script)');
 else {
+  // make the empty file (readable by this user only), so the person only pastes the key: no hidden .txt, no RTF
+  if (!F.dryRun && !exists(keyFile)) { try { fs.writeFileSync(keyFile, '', { mode: 0o600 }); } catch {} }
   warn('no ElevenLabs key yet. Make a key at https://elevenlabs.io/app/settings/api-keys');
-  info('(allow Text to Speech and Voices), then put it on ONE line in this file:');
+  info('(allow Text to Speech and Voices), then paste it on ONE line into this empty file and save:');
   info(`  ${keyFile}`);
-  info('Create the file in any text editor (Notepad on Windows). Never paste the key into a Claude chat.');
+  info(`Open it with:  ${IS_MAC ? `open -e "${keyFile}"` : IS_WIN ? `notepad "${keyFile}"` : `nano "${keyFile}"  (save with Ctrl+O, Enter, then Ctrl+X)`}`);
+  info('Never paste the key into a Claude chat. With the browser tool on, Claude opens the key page and this file for you.');
 }
 
 // ---------------------------------------------------------------- 4. plugins + telemetry
@@ -447,10 +458,15 @@ step('Browser tool (Claude in Chrome), for the setup steps on the web');
   const MAC = path.join(HOME, 'Library', 'Application Support');
   const dirs = IS_MAC ? [['Google', 'Chrome'], ['Microsoft Edge'], ['BraveSoftware', 'Brave-Browser'], ['Chromium']].map((d) => path.join(MAC, ...d))
     : IS_WIN ? [] : ['google-chrome', 'microsoft-edge', 'BraveSoftware/Brave-Browser', 'chromium'].map((d) => path.join(HOME, '.config', d));
-  const host = dirs.map((d) => path.join(d, 'NativeMessagingHosts', 'com.anthropic.claude_code_browser_extension.json')).find(exists);
-  if (host) ok(`set up before on this computer (${path.basename(path.dirname(path.dirname(host)))}). In Claude Code, /chrome shows whether it is on now.`);
+  const file = dirs.map((d) => path.join(d, 'NativeMessagingHosts', 'com.anthropic.claude_code_browser_extension.json')).find(exists);
+  let where = file ? path.basename(path.dirname(path.dirname(file))) : null;
+  if (!where && IS_WIN) {                       // on Windows the connection is a registry key per browser
+    const keys = [['Google\\Chrome', 'Chrome'], ['Microsoft\\Edge', 'Edge'], ['BraveSoftware\\Brave-Browser', 'Brave']];
+    where = (keys.find(([k]) => cp.spawnSync('reg', ['query', `HKCU\\Software\\${k}\\NativeMessagingHosts\\com.anthropic.claude_code_browser_extension`], { stdio: 'ignore' }).status === 0) || [])[1] || null;
+  }
+  if (where) ok(`set up before on this computer (${where}). In Claude Code, /chrome shows whether it is on now.`);
   else {
-    warn('not set up yet (or not checkable on Windows). Claude does the web steps in your browser while you watch; you only log in, copy a key into the file Claude opens, and click the last Delete when something is removed.');
+    warn('not set up yet. Claude does the web steps in your browser while you watch; you only log in, copy a key into the file Claude opens, and click the last Delete when something is removed.');
     info('1. Use Google Chrome, Microsoft Edge, Brave, Arc, Vivaldi or Opera (not Safari or Firefox; not inside WSL).');
     info('2. Install the Claude extension: https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn');
     info('3. In Claude Code, type /chrome and turn it on (or start with: claude --chrome). It needs a Claude Pro, Max, Ultra, Team or Enterprise plan, signed in with /login.');

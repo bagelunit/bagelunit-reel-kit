@@ -19,7 +19,7 @@ The prompt for the kit's own folder (installing the kit) is in the main README. 
 
 ## 1. Set up this brand (once per brand)
 
-The quickest way is to type `/brand-setup` in the kit's folder: it makes this brand's folder and asks the same questions. Or send this in a fresh copy of this template. It teaches Claude who the brand is. It takes about five minutes.
+Already in this brand's folder? Type `/brand-setup` here: it asks these questions one at a time. Starting from the kit's folder instead, `/brand-setup` there makes the brand folder first. Or send this message in a fresh copy of the template. It teaches Claude who the brand is. It takes about five minutes.
 
 ```
 Set up this brand. Follow the first-run brand setup in CLAUDE.md. Use my answers below where I filled them in, and ask me the rest as multiple-choice questions (a few at a time, recommended option first).
@@ -66,7 +66,7 @@ Rules: write down only what I confirm. Do not put any number, result, price or c
 - **On-screen presenter:** optional, Print style only. A presenter is a character who points and reacts on screen. A sticker host is a cartoon of you (or your mascot) as cut-out poses: `/sticker-host` makes a base pose from one photo, then a starter 10, then any pose a reel needs ([how it works](https://github.com/bagelunit/bagelunit-reel-kit/blob/main/docs/avatar.md)). Pick "no presenter" if you are unsure; you can add one later.
 - **Voice:** the AI voice that reads the script. "Pick together" lets you listen to a few options. You need an ElevenLabs account for this. Its free plan is for trying the kit only (non-commercial, with credit to ElevenLabs); for a business or a client, use a paid plan.
 - **Words the voice must never say:** for example a brand name it says wrongly. Claude puts those on screen as text instead.
-- **Reels each week:** how many you want to post. Claude plans at most this many at once, and you still approve each reel. Start small; you can change it later.
+- **How often:** a few a week, one a day, or several a day (say how many and at what times). Not sure? Pick "suggest a number for me" and Claude works one out from accounts like yours, what you can keep up and your own results (`/content-calendar how-often`). Claude plans at most this many at once, and you still approve each reel. Start small; you can change it later.
 - **The one thing viewers are asked to do:** keep it to one. "Comment a keyword" is not offered until you have tested the auto-reply yourself.
 
 ---
@@ -147,5 +147,5 @@ Add my numbers for [THE REEL: its folder name inside reels/, or its topic in a f
 ## 4. Plan a week of reels (optional)
 
 ```
-Plan this week's reels for [BRAND NAME]: [HOW MANY: up to the number of reels a week you chose in the brand setup] reels. Give each one goal (goals may repeat) and a different angle, write all the scripts, and bring them to the first checkpoint together. I will approve each one separately. Topics I have in mind: [TOPICS, or "suggest some"].
+Plan this week's reels for [BRAND NAME]: [HOW MANY: up to the number you chose in the brand setup, `batch.max_reels`] reels. Give each one goal (goals may repeat) and a different angle, write all the scripts, and bring them to the first checkpoint together. I will approve each one separately. Topics I have in mind: [TOPICS, or "suggest some"].
 ```

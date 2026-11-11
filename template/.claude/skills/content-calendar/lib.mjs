@@ -559,7 +559,11 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
   for (const k of Object.keys(status)) if (status[k] && status[k].error) status[k].error = noPaths(status[k].error);
   if (status.instagram && !status.instagram.ok) need(1, { ...sys, title: 'Instagram numbers' }, `the last pull failed: ${status.instagram.error}. See docs/connect.md`);
   for (const [k, t] of [['facebook', 'Facebook Page numbers'], ['threads', 'Threads numbers'], ['publisher', 'Publisher']]) if (status[k] && !status[k].ok) need(1, { ...sys, title: t }, `the last pull failed: ${status[k].error}. See docs/connect.md`);
-  if (ig?.token_expires_at && new Date(ig.token_expires_at) - now < 7 * 864e5) need(1, { ...sys, title: 'Instagram numbers' }, 'the Instagram token runs out within a week: run the refresh once (it renews the token), or make a new one (docs/connect.md)');
+  // Instagram Login tokens renew themselves on the refresh; a Unified Login token with an end date (the expires_at the
+  // owner read off Meta's configuration preview) does not, so it needs a new token before that day
+  if (ig?.token_expires_at && new Date(ig.token_expires_at) - now < 7 * 864e5) need(1, { ...sys, title: 'Instagram numbers' }, ig.login === 'instagram'
+    ? 'the Instagram token runs out within a week: run the refresh once (it renews the token), or make a new one (docs/connect.md step 2A)'
+    : `the Instagram token runs out on ${String(ig.token_expires_at).slice(0, 10)} and does not renew itself: make a new one before then (docs/connect.md step 2B), and send it to the publisher with  node publisher/scripts/setup.mjs secrets --only IG_TOKEN`);
   if (status.telegram && !status.telegram.ok) need(2, { ...sys, title: 'Telegram summary' }, `the last send failed: ${status.telegram.error}`);
   if (status.host && !status.host.ok) need(2, { ...sys, title: 'Online dashboard' }, `the last upload failed: ${status.host.error}`);
   attention.sort((a, b) => a.p - b.p);

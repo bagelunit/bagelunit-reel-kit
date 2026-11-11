@@ -33,6 +33,7 @@ Read `<folder>/.claude/skills/brand-setup/SKILL.md` and follow it from "Before a
 - "This folder" and "this workspace" mean the new brand folder, not the kit folder. Run every command from inside it (for example `cd "<folder>" && python3 ./.claude/skills/brand-setup/prefill.py <url>`), and write only to files inside it.
 - The brand name from step 2 is already known: offer it as the recommended answer to the brand question instead of asking from scratch.
 - On Windows use `python` where it says `python3`.
+- Steps that make files the brand keeps (the sticker host's photo and poses from `/sticker-host new`, picking and saving a voice, reading other accounts for "Suggest a number for me") belong to the brand folder: never write a `brand/` folder, a photo or a pose in this kit folder. If the person chose to make the sticker host now, or "Suggest a number for me" needs accounts read, say it is the first thing to do in the brand folder (`/sticker-host new`, `/content-calendar how-often`) and put it at the top of the hand-over.
 
 ## 4. Hand over
 
@@ -41,7 +42,7 @@ Finish with:
 - how to open the brand folder for making reels, in plain words:
   - **VS Code:** File, then Open Folder, then pick `<folder>`. Open Claude Code there.
   - **Terminal:** `cd "<folder>"` then `claude`.
-- the first command there: `/bagelunit-reels` followed by the topic (for example `/bagelunit-reels a reel about our new menu`). The "Make a reel" prompt in `<folder>/docs/prompts.md` is the longer form with every blank. In that folder, `/brand-setup` changes the brand's answers later, and "update the kit" updates it.
+- the first command there: `/bagelunit-reels` followed by the topic (for example `/bagelunit-reels a reel about our new menu`). The "Make a reel" prompt in `<folder>/docs/prompts.md` is the longer form with every blank. In that folder, `/brand-setup` changes the brand's answers later, and `/kit-update` updates it to a newer kit.
 
 ## Limits
 

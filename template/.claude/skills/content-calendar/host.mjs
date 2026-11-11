@@ -125,15 +125,18 @@ function publishNow(root, where) {
   const where2 = privateUrl(root) || `<your site's address>/${key}/`;
   if (host === 'folder') return { host, done: true, note: `The site is in ${out}. Upload that folder to your host; the dashboard will be at ${where2}. Keep that address private.` };
   if (host === 'netlify') {
-    const args = ['deploy', '--prod', '--dir', out, '--message', 'content dashboard'];
+    // --no-build: the folder is already the finished site, so the Netlify CLI must not look for a build to run
+    const args = ['deploy', '--prod', '--no-build', '--dir', out, '--message', 'content dashboard'];
     if (dash.site) args.push('--site', dash.site);
     const ok = run(cli('netlify', 'netlify-cli'), args);
     return { host, done: ok, note: ok ? `Published to Netlify. Your dashboard: ${where2}` : 'Netlify did not publish. Log in first with  npx netlify-cli login  and check dashboard.site (docs/dashboard.md).' };
   }
   if (host === 'cloudflare') {
-    if (!dash.site) return { host, done: false, note: 'Set brand.json -> dashboard.site to your Cloudflare Pages project name first (docs/dashboard.md).' };
+    if (!dash.site) return { host, done: false, note: 'Set brand.json -> dashboard.site to your Cloudflare Pages project name first; make the project with  npx wrangler pages project create <name> --production-branch main  (docs/dashboard.md).' };
+    // --branch main is the production branch the project was made with (pages project create --production-branch main),
+    // so the upload lands on <project>.pages.dev, the address the Access application protects (docs/dashboard.md)
     const ok = run(cli('wrangler', 'wrangler'), ['pages', 'deploy', out, '--project-name', dash.site, '--branch', 'main', '--commit-dirty=true']);
-    return { host, done: ok, note: ok ? `Published to Cloudflare Pages. Your dashboard: ${where2}` : 'Cloudflare did not publish. Log in first with  npx wrangler login  (docs/dashboard.md).' };
+    return { host, done: ok, note: ok ? `Published to Cloudflare Pages. Your dashboard: ${where2}` : 'Cloudflare did not publish. Log in first with  npx wrangler login, and check the project was made with  npx wrangler pages project create <name> --production-branch main  (docs/dashboard.md).' };
   }
   return { host, done: false, note: `Unknown host "${host}": use local, wifi, netlify, cloudflare or folder.` };
 }

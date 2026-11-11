@@ -3,7 +3,7 @@
 Claude does the work. You answer a few questions, approve three times, and post it yourself. A first reel takes Claude roughly 30 to 80 minutes in the background. Every choice and every approval comes as a question block: click an option, or pick "Other" and type.
 
 **Before you start (once)**
-- The kit is installed on this computer (`bash setup/install.sh` on Mac and Linux, `node setup/install.mjs` on Windows) and your ElevenLabs key is saved.
+- The kit is installed on this computer (in the kit's folder: `bash setup/install.sh` on Mac and Linux, `node setup/install.mjs` on Windows) and your ElevenLabs key is saved in `~/.config/bagelunit-reels/elevenlabs.key` (on Windows `$HOME\.config\bagelunit-reels\elevenlabs.key`).
 - You opened Claude Code inside this brand's folder, and the brand setup is done. If not, type `/brand-setup`.
 - Put at least a few true facts about the brand in `brand/facts.md` (or tell Claude, and confirm them). A reel can only state what is in that file.
 - **For a Talking head reel only:** film yourself first. Hold the phone upright, talk at your normal pace and do not worry about pauses; Claude cuts them (it never speeds you up). Any video file from a phone works. Drag the file into the terminal to give Claude its location. Your own voice is used, so it costs no voice credits.

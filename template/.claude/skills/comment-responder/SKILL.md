@@ -86,7 +86,8 @@ finish later; next time, read `brand.json` -> `cta.dm_tool` and `cta.tested_keyw
 5. **Connect it, with the owner doing every login.** With the browser tool (rule 15 in `CLAUDE.md`, `docs/browser.md`), do the web pages yourself; the owner logs in, copies each secret into the file you opened, and clicks the last Delete.
    - the kit's publisher: write `publisher/rules.json` from the approved texts (`rules.example.json` shows the
      shape, `"tested": false`), then follow `docs/connect.md` step 7 in order: upload the rule, the app secret and
-     the webhook, the App Review request, Business Verification, then Live. Ask the owner before sending anything
+     the webhook, turning the account's notifications on (`node publisher/scripts/setup.mjs subscribe --dry-run`, then
+     `node publisher/scripts/setup.mjs subscribe`), the App Review request, Business Verification, then Live. Ask the owner before sending anything
      to Meta and before switching the app to Live;
    - no-code tool: do the clicks in the tool (connect the Instagram professional account, new "comment keyword"
      automation, paste the keyword, the public reply and the DM, limit it to one reel), or give them in plain words.

@@ -1,6 +1,6 @@
 ---
 name: brand-setup
-description: Sets up (or redoes) this reel workspace's brand. Asks the user's name, the company or client name, Instagram handle, accent colour and theme, logo path, fonts, presenter (sticker host, drawn or none), voice, call-to-action style, kit update notices, private history and how many reels a week to post (12 questions, each as a clickable question block), then fills brand/brand.json, brand/voice.md and brand/facts.md. Use on /brand-setup, when brand/brand.json has an empty "name", or when the user wants to change the brand's identity, presenter, voice or CTA.
+description: Sets up (or redoes) this reel workspace's brand. Asks the user's name, the company or client name, Instagram handle, accent colour and theme, logo path, fonts, presenter (sticker host, drawn or none), voice, call-to-action style, kit update notices, private history and how often to post (12 questions, each as a clickable question block), then fills brand/brand.json, brand/voice.md and brand/facts.md. Use on /brand-setup, when brand/brand.json has an empty "name", or when the user wants to change the brand's identity, presenter, voice or CTA.
 ---
 
 # Brand setup for this reel workspace
@@ -12,7 +12,7 @@ Run this in the workspace root (the folder holding `brand/` and `reels/`). It is
 Never fill in the kit's own copy-from folders. Stop and make a brand folder first if this folder is:
 - the kit's own folder (it holds `studio/KIT.md` and `template/`): follow that folder's `.claude/skills/brand-setup/SKILL.md` instead, which makes the brand folder and then comes back here;
 - the kit's `template/` folder (its parent folder holds `studio/KIT.md`): run `node ../setup/new-brand.mjs "<folder>"` from here, or `/brand-setup` in the kit's folder, which does the whole thing;
-- the generic copy-from folder `Reel Template` (in `~/Documents/Claude/`, or wherever `REEL_TEMPLATE_HOME` points): the kit refreshes it, so brand answers here would be lost. Copy it to a new folder (for example `~/Reels/<brand>-reels`) first.
+- a generic copy-from folder the kit refreshes (the one `REEL_TEMPLATE_HOME` points to, if you keep one): brand answers there would be lost on the next refresh. Copy it to a new folder (for example `~/Reels/<brand>-reels`) first.
 
 Then do the setup in the new folder. If the kit's `/brand-setup` sent you here, "this folder" means the new brand folder: run every command from inside it.
 

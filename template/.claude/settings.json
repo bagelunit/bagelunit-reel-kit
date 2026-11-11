@@ -13,7 +13,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/skills/content-calendar/notice.mjs\"",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/skills/content-calendar/notice.mjs\"",
             "timeout": 30
           }
         ]
@@ -21,11 +21,11 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash|PowerShell",
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/skills/content-calendar/sync.mjs\"",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/skills/content-calendar/sync.mjs\"",
             "timeout": 30
           }
         ]

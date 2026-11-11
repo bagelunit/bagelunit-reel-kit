@@ -17,7 +17,7 @@ Nothing is posted until you say yes to that reel and its time, it starts in **dr
 
 ## What it costs
 
-Nothing, on Cloudflare's free plan, for a normal brand:
+Nothing for a normal brand, within Cloudflare's free amounts. One catch: Cloudflare turns R2 (the file storage) on only through a checkout with a card, even on the free plan, and bills any use above the free amount to it. Claude stops at that payment form for you (`docs/connect.md` step 6, point 4).
 
 - Workers free plan: 100,000 requests a day. The publisher wakes up every 5 minutes (288 times a day) plus Meta's visits.
 - Storage (KV) free: 100,000 reads and 1,000 writes a day. A reel uses a few dozen.
@@ -33,9 +33,11 @@ You make one Meta app (developers.facebook.com) and give it these permissions. E
 | Platform | Permissions | Secrets (sent by `setup.mjs secrets`) |
 | --- | --- | --- |
 | Instagram (Instagram Login) | instagram_business_basic, instagram_business_content_publish, plus for comment replies and messages instagram_business_manage_comments and instagram_business_manage_messages, and for numbers instagram_business_manage_insights | IG_USER_ID, IG_TOKEN (a long-lived Instagram user token; the publisher renews it about once a week) |
-| Instagram (Unified Login) | the same, given to a system user in your business portfolio | IG_USER_ID, IG_TOKEN (a system user token set to never expire), and `API_SETUP = "unified"` in wrangler.toml |
+| Instagram (Unified Login) | the same with Unified Login's names: instagram_basic, instagram_content_publish, instagram_manage_comments, instagram_manage_messages, instagram_manage_insights | IG_USER_ID, IG_TOKEN (the token from `docs/connect.md` step 2B, which Meta calls a system-user access token; pick "Never" for its end date there, because the publisher never renews it), and `API_SETUP = "unified"` in wrangler.toml |
 | Facebook Page | pages_manage_posts and pages_read_engagement (and pages_show_list), from someone who can create content on the Page | FB_PAGE_ID, FB_PAGE_TOKEN |
 | Threads | threads_basic and threads_content_publish | THREADS_USER_ID, THREADS_TOKEN (long-lived; renewed about once a week) |
+
+The older Facebook Page setup (`"login": "facebook"` in the Instagram file) is not supported: its 60-day Facebook token is never renewed, so `setup.mjs` stops and asks for Instagram Login or Unified Login.
 
 For every brand: ADMIN_KEY (a long random string only you and the kit know), and for comment replies APP_SECRET (from the Meta app) and VERIFY_TOKEN (another random string).
 
@@ -56,14 +58,16 @@ Claude runs these from your brand folder (`/reel-posting`, "The kit's publisher"
 node publisher/scripts/setup.mjs
 ```
 
-It writes `publisher/wrangler.toml` and prints the steps, in order: log in to Cloudflare (`npx wrangler login`), make the storage (`npx wrangler kv namespace create KV`, then `node scripts/setup.mjs --kv-id <id>`, and `npx wrangler r2 bucket create <brand>-reels`), put it online (`npx wrangler deploy`), save its address (`node scripts/setup.mjs --url <address>`), then send the secrets:
+It reads from your Instagram file whether this brand uses Instagram Login or Unified Login (or take `--api-setup instagram|unified`, which must match the file), writes `publisher/wrangler.toml` and prints the steps, in order: log in to Cloudflare (`npx wrangler login`), make the storage (`npx wrangler kv namespace create <brand>-kv`, then `node scripts/setup.mjs --kv-id <id>`; turn on R2 in the dashboard, Storage & databases, R2, Overview, the checkout with a card; then `npx wrangler r2 bucket create <brand>-reels`), put it online (`npx wrangler deploy`), save its address (`node scripts/setup.mjs --url <address>`), then send the secrets:
 
 ```
 node publisher/scripts/setup.mjs secrets --dry-run     (lists what it would send and from which file, no values)
 node publisher/scripts/setup.mjs secrets
 ```
 
-`secrets` takes each value from the token files the connection checks wrote in `~/.config/bagelunit-reels/` (the brand's own `instagram-<brand slug>.json` and `threads-<brand slug>.json`, or a shared `instagram.json` / `threads.json`; with a shared file the account id comes from `instagram-<brand slug>.ids.json` or `threads-<brand slug>.ids.json`, never from the shared file, which may hold another brand's id; the Facebook Page token only from `facebook-<brand slug>.json`), makes `ADMIN_KEY` and `VERIFY_TOKEN` once (kept in `publisher-<brand slug>.json`, which the kit uses to reach the publisher), and hands each one to `npx wrangler secret put` without showing it. The Meta app secret (only for comment replies) is the one value you paste: into `publisher-<brand slug>.json` as `"app_secret"`; the script removes it from there once Cloudflare has it. Use `--only IG_TOKEN,THREADS_TOKEN` to send just some.
+`secrets` takes each value from the token files the connection checks wrote in `~/.config/bagelunit-reels/` (the brand's own `instagram-<brand slug>.json` and `threads-<brand slug>.json`, or a shared `instagram.json` / `threads.json`; with a shared file the account id comes from `instagram-<brand slug>.ids.json` or `threads-<brand slug>.ids.json`, never from the shared file, which may hold another brand's id; the Facebook Page token only from `facebook-<brand slug>.json`), makes `ADMIN_KEY` and `VERIFY_TOKEN` once (kept in `publisher-<brand slug>.json`, which the kit uses to reach the publisher), and hands each one to `npx wrangler secret put` without showing it. The Meta app secret (only for comment replies) is the one value you paste: into `publisher-<brand slug>.json` as `"app_secret"`; the script removes it from there once Cloudflare has it. Use `--only IG_TOKEN,THREADS_TOKEN` to send just some. A value that still reads `PASTE-...` is skipped and named, never sent.
+
+The KV namespace is named per brand (`<brand>-kv`) so several brands fit in one Cloudflare account. The binding in `wrangler.toml` stays `KV`, so a publisher set up earlier with a namespace called `KV` keeps working unchanged.
 
 Then check it:
 
@@ -162,9 +166,17 @@ Meta sends comment notifications only to an app that is Live with Advanced Acces
 
 1. Copy `rules.example.json` to `rules.json` and write your keyword, the public reply (no link) and the private message (with the link) (`/comment-responder` does this with you).
 2. Upload it: `npx wrangler kv key put rules --path rules.json --binding KV --remote` (in the publisher folder).
-3. Send the app secret (`setup.mjs secrets --only APP_SECRET`), then in the Meta app set the webhook address to `<your publisher address>/webhook` with the `"verify_token"` from `publisher-<brand slug>.json`, and subscribe to comments, mentions and messages.
-4. App Review for Advanced Access to the comments and messages permissions, Business Verification, then switch the app to Live.
-5. Comment the keyword from a second, public account while `MODE` is `"dry_run"`, check `status` and `/admin` show what it would send, then set `"tested": true` for that rule and `MODE = "live"`.
+3. Send the app secret (`setup.mjs secrets --only APP_SECRET`), then in the Meta app set the webhook address to `<your publisher address>/webhook` with the `"verify_token"` from `publisher-<brand slug>.json`, and pick the fields `comments` and `messages` (plus `mentions` with Unified Login; with Instagram Login mentions come inside `comments`).
+4. Turn the notifications on for the brand's Instagram account, which Meta needs on top of the webhook:
+
+   ```
+   node publisher/scripts/setup.mjs subscribe --dry-run     (shows what it would ask Meta, sends nothing)
+   node publisher/scripts/setup.mjs subscribe
+   ```
+
+   It sends `POST /<account id>/subscribed_apps` with those fields (graph.facebook.com for Unified Login, graph.instagram.com for Instagram Login), using the token in your Instagram file, in the Authorization header only, and never prints it.
+5. App Review for Advanced Access to the comments and messages permissions, Business Verification, then switch the app to Live.
+6. Comment the keyword from a second, public account while `MODE` is `"dry_run"`, check `status` and `/admin` show what it would send, then set `"tested": true` for that rule and `MODE = "live"`.
 
 Safety rules that always apply: a rule sends only when it is tested and `MODE` is live; one public reply and one private message per comment; only within 7 days of the comment (Meta's rule); at most 30 an hour (`MAX_PER_HOUR`); never a reply to your own comments; never a link in a public reply.
 

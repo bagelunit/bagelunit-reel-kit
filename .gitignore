@@ -25,3 +25,7 @@ template/brand/library/**/*.svg
 template/brand/library/**/*.mp4
 template/brand/library/**/*.mov
 template/brand/library/**/*.webm
+
+# a brand folder or reel made in the kit folder by mistake (brands live in their own <brand>-reels folder)
+/brand/
+/reels/

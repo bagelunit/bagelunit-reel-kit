@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { checkReel, scheduleReel, postingLine, cancel, status } from '../scripts/schedule.mjs';
 import { pull } from '../scripts/pull.mjs';
-import { writeToml, steps, check, names, sendSecrets, saveUrl, secretPlan } from '../scripts/setup.mjs';
+import { writeToml, steps, check, names, sendSecrets, saveUrl, secretPlan, subscribe, loginOf } from '../scripts/setup.mjs';
 import { lastGateC, appendUnder, parseArgs, sha256File, connection, Plain, isMain } from '../scripts/lib.mjs';
 import { forget } from '../scripts/forget.mjs';
 import { spawnSync } from 'node:child_process';
@@ -231,11 +231,14 @@ test('setup: writes wrangler.toml once from the template, fills the KV id, print
   assert.equal(writeToml({ slug: 'my-brand', pubDir: pub }).wrote, null);                // never overwritten
   assert.match(fs.readFileSync(r.file, 'utf8'), /PUBLISH_MODE_INSTAGRAM = "live"/);
   const s = steps({ slug: 'my-brand', configDir: '/cfg' });
-  for (const cmd of ['npx wrangler login', 'npx wrangler kv namespace create KV', 'npx wrangler r2 bucket create my-brand-reels', 'node scripts/setup.mjs secrets --dry-run', 'node scripts/setup.mjs secrets', 'npx wrangler deploy', 'node scripts/setup.mjs --url', path.join('/cfg', 'publisher-my-brand.json'), 'node scripts/setup.mjs check']) assert.ok(s.includes(cmd), cmd);
+  for (const cmd of ['npx wrangler login', 'npx wrangler kv namespace create my-brand-kv', 'Storage & databases, R2, Overview', 'npx wrangler r2 bucket create my-brand-reels', 'node scripts/setup.mjs subscribe', 'node scripts/setup.mjs secrets --dry-run', 'node scripts/setup.mjs secrets', 'npx wrangler deploy', 'node scripts/setup.mjs --url', path.join('/cfg', 'publisher-my-brand.json'), 'node scripts/setup.mjs check']) assert.ok(s.includes(cmd), cmd);
   assert.ok(s.indexOf('npx wrangler deploy') < s.indexOf('setup.mjs secrets'), 'the Worker exists before secrets are sent');
   assert.ok(!/\n\s*\n\s*\n/.test(s), 'no stray blank lines');
   assert.ok(!steps({ slug: 'b', kvReady: true }).includes('kv namespace create'));
-  assert.equal(names('x').worker, 'x-publisher');
+  assert.equal(names('x').worker, 'x-publisher'); assert.equal(names('x').kv, 'x-kv');
+  assert.ok(s.indexOf('R2, Overview') < s.indexOf('r2 bucket create'), 'R2 is turned on before the bucket is made');
+  assert.match(fs.readFileSync(r.file, 'utf8'), /binding = "KV"/);                        // the binding stays KV for older setups
+  assert.throws(() => writeToml({ slug: 'fb', pubDir: tmp('pub-'), apiSetup: 'facebook' }), /needs Instagram Login .* or Unified Login/);
   assert.ok(!/\u2014/.test(s));
 });
 test('setup check: asks GET /admin with the key and prints no secret', async () => {
@@ -364,4 +367,53 @@ test('setup secrets: a shared token file is used, its ids are not; the brand\'s 
   fs.writeFileSync(path.join(cfg, 'instagram-sb.json'), JSON.stringify({ access_token: 'OWNIG', ig_user_id: '42' }));   // the brand's own file wins
   p = plan();
   assert.equal(p.IG_TOKEN.value, 'OWNIG'); assert.equal(p.IG_USER_ID.value, '42'); assert.equal(p.IG_USER_ID.from, path.join(cfg, 'instagram-sb.json'));
+});
+
+test('setup secrets: a PASTE- placeholder is skipped and named, never sent', () => {
+  const cfg = tmp('cfg-');
+  fs.writeFileSync(path.join(cfg, 'instagram-ph.json'), JSON.stringify({ access_token: 'PASTE-YOUR-TOKEN-HERE', ig_user_id: '1784' }));
+  fs.writeFileSync(path.join(cfg, 'publisher-ph.json'), JSON.stringify({ app_secret: 'PASTE-THE-APP-SECRET' }));
+  const calls = []; const out = [];
+  const r = sendSecrets({ slug: 'ph', configDir: cfg, run: (n, v) => { calls.push(n); return { status: 0, stdout: '', stderr: '' }; }, log: (l) => out.push(l), pubDir: '/pub' });
+  assert.ok(r.skipped.includes('IG_TOKEN') && r.skipped.includes('APP_SECRET'));
+  assert.ok(!calls.includes('IG_TOKEN') && !calls.includes('APP_SECRET'));
+  assert.match(out.join('\n'), /IG_TOKEN\s+skipped: .*PASTE-\.\.\. placeholder/);
+});
+
+test('setup subscribe: turns on the account\'s notifications on the right host, token only in the header', async () => {
+  const cfg = tmp('cfg-');
+  const calls = [];
+  const ok = async (url, init) => { calls.push({ url, init }); return { ok: true, status: 200, json: async () => ({ success: true }) }; };
+  // Instagram Login: graph.instagram.com, comments and messages
+  fs.writeFileSync(path.join(cfg, 'instagram-ig.json'), JSON.stringify({ access_token: 'IGTOKENSECRET', ig_user_id: '1784' }));
+  const out = [];
+  const a = await subscribe({ slug: 'ig', configDir: cfg, fetchImpl: ok, log: (l) => out.push(l) });
+  assert.equal(calls[0].url, 'https://graph.instagram.com/v27.0/1784/subscribed_apps');
+  assert.equal(calls[0].init.method, 'POST');
+  assert.equal(calls[0].init.headers.Authorization, 'Bearer IGTOKENSECRET');
+  assert.equal(new URLSearchParams(calls[0].init.body).get('subscribed_fields'), 'comments,messages');
+  assert.ok(!calls[0].url.includes('IGTOKENSECRET') && !calls[0].init.body.includes('IGTOKENSECRET'));
+  assert.deepEqual(a.fields, ['comments', 'messages']);
+  assert.ok(!out.join('\n').includes('IGTOKENSECRET'));
+  // Unified Login, shared token file: graph.facebook.com, the brand's own id, mentions too
+  fs.writeFileSync(path.join(cfg, 'instagram.json'), JSON.stringify({ access_token: 'SUATSECRET', login: 'unified', ig_user_id: '999' }));
+  fs.writeFileSync(path.join(cfg, 'instagram-un.ids.json'), JSON.stringify({ ig_user_id: '1785' }));
+  await subscribe({ slug: 'un', configDir: cfg, fetchImpl: ok, log: quiet });
+  assert.equal(calls[1].url, 'https://graph.facebook.com/v27.0/1785/subscribed_apps');
+  assert.equal(new URLSearchParams(calls[1].init.body).get('subscribed_fields'), 'comments,mentions,messages');
+  // a dry run sends nothing
+  const before = calls.length;
+  const d = await subscribe({ slug: 'un', configDir: cfg, fetchImpl: ok, dryRun: true, log: quiet });
+  assert.equal(calls.length, before); assert.equal(d.dryRun, true);
+  // Meta's refusal is shown without the token
+  const bad = async () => ({ ok: false, status: 400, json: async () => ({ error: { code: 100, message: 'Invalid token IGTOKENSECRET here' } }) });
+  await assert.rejects(subscribe({ slug: 'ig', configDir: cfg, fetchImpl: bad, log: quiet }), (e) => e instanceof Plain && !e.message.includes('IGTOKENSECRET') && /did not turn the notifications on/.test(e.message));
+  // the older Facebook Login setup, a placeholder, or no account id yet: refused plainly
+  fs.writeFileSync(path.join(cfg, 'instagram-fb.json'), JSON.stringify({ access_token: 'X', login: 'facebook', ig_user_id: '1' }));
+  await assert.rejects(subscribe({ slug: 'fb', configDir: cfg, fetchImpl: ok, log: quiet }), /needs Instagram Login .* or Unified Login/);
+  assert.equal(loginOf('fb', cfg).login, 'facebook');
+  fs.writeFileSync(path.join(cfg, 'instagram-ph.json'), JSON.stringify({ access_token: 'PASTE-YOUR-TOKEN-HERE', ig_user_id: '1' }));
+  await assert.rejects(subscribe({ slug: 'ph', configDir: cfg, fetchImpl: ok, log: quiet }), /has no token yet/);
+  fs.writeFileSync(path.join(cfg, 'instagram-noid.json'), JSON.stringify({ access_token: 'T' }));
+  await assert.rejects(subscribe({ slug: 'noid', configDir: cfg, fetchImpl: ok, log: quiet }), /account id is not saved yet/);
 });

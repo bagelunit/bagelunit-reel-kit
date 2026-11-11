@@ -1,6 +1,6 @@
 # BagelUnit Reel Kit commands
 
-Every command in the kit (version 1.12.0) and what it does. Also as a [PDF](docs/commands.pdf) and a [spreadsheet](docs/commands.csv) (opens in Excel).
+Every command in the kit (version 1.13.0) and what it does. Also as a [PDF](docs/commands.pdf) and a [spreadsheet](docs/commands.csv) (opens in Excel).
 
 Most of the time you only need four: `/brand-setup`, `/bagelunit-reels` with your topic, `/analytics-readout` with your numbers, and `/kit-update`.
 
@@ -109,7 +109,7 @@ Run on every reel; Claude runs them at the approvals.
 
 | Command | What it does |
 |---|---|
-| `setup.mjs` | Writes the publisher's settings for this brand and prints the steps in order; secrets sends the tokens from your token files to Cloudflare without showing them (--dry-run first); --url saves its address; check shows each platform and whether it is live. |
+| `setup.mjs` | Writes the publisher's settings for this brand and prints the steps in order; secrets sends the tokens from your token files to Cloudflare without showing them (--dry-run first); subscribe asks Meta to send this account's comments and messages to the publisher, for keyword replies (--dry-run first); --url saves its address; check shows each platform and whether it is live. |
 | `schedule.mjs` | Schedules an approved reel on Instagram, the Facebook Page and Threads (--preview checks without uploading); status lists posts and comment replies; cancel <id> stops one. |
 | `pull.mjs` | Brings back what went out: links, errors and automatic replies, for the dashboard and the reel's Posting lines. |
 | `forget.mjs` | Deletes what the publisher kept about one person, when they ask. |
