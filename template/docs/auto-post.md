@@ -20,6 +20,8 @@ A small program in `publisher/` that runs on Cloudflare's free plan (R2, its fil
 
 Set it up with `docs/connect.md` (steps 2A or 2B and 3 to 4 for the tokens, step 6 for the publisher; the older Facebook Page setup is not supported), or type `/reel-posting` and pick "The kit's publisher". Every command and setting is in `publisher/README.md`.
 
+**Already have a publisher?** If the brand already posts through another scheduler or a Worker of its own, set the kit's publisher up next to it (its own Worker, storage and files on the same Cloudflare account are fine) and test it in dry run. Only one of them may schedule a given reel, or it posts twice: from the day the kit's publisher is set up, schedule every reel through it alone. Meta sends comment webhooks to one address per app, so point the webhook (`docs/connect.md` step 7) at the publisher that answers keyword replies. Retire the old one after the kit's publisher has posted live once.
+
 ### B. Instagram's own scheduler (free, a person uploads)
 
 In the Instagram app or Meta Business Suite, upload the approved mp4 from `reels/<slug>/out/`, paste `out/caption.txt`, set the cover from `out/cover.jpg` and pick a time. A person still uploads, but not at the posting moment.

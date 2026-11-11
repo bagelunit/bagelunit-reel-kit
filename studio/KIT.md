@@ -59,7 +59,7 @@ From the prompt, settle five things: **topic/angle**, **their script or yours**,
 ## C · Words (skip when they gave a script)
 
 Follow `playbook/writing.md`:
-- the hook lands in 1.5 s;
+- the hook lands in 1.5 s and is a triple hook (local addition; in a brand folder, `docs/hook-and-review-playbook.md` section 0): the first line sets the context at once (said, shown and on screen), then a lean (proof from `brand/facts.md`, a pain or benefit, or something unexpected), then a contrarian snapback that the reel pays off;
 - line 2 opens a loop;
 - the stakes are concrete;
 - the answer comes only after the problem is felt;

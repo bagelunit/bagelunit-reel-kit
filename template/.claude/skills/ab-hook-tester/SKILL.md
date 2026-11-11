@@ -27,6 +27,8 @@ Write two hooks that use DIFFERENT mechanisms, not one hook reworded:
 - **Hook A:** the mechanism (for example result first), the exact on-screen text and the spoken line.
 - **Hook B:** a different mechanism (for example objection first), the same.
 
+Both are triple hooks (`docs/hook-and-review-playbook.md` section 0). A good first test for a brand: the same context and lean, one with the contrarian snapback and one without it. That changes one thing only, and the brand's own skip rate shows what the snapback adds.
+
 Then: the hypothesis (what we learn if A wins, and if B wins), what stays the same, the deciding number, and the views
 each version needs. Deciding number, in this order of preference: **skip rate** (people who left in the first 3 seconds,
 lower is better; it measures the hook), then **average watch time**, then views. Views needed: half the brand's median

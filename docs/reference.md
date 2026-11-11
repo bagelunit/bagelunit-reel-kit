@@ -8,6 +8,7 @@ How the BagelUnit Reel Kit decides what to make, how it makes it, and the rules 
 - **The 3x rule:** rank reels by views divided by that account's median views (last 12 reels). Under 1.5x ignore, 1.5x to 3x note, 3x and up is a formula worth studying. Copy the shape (hook, structure, length), never the video.
 - **Account mix:** 4 direct (your niche, a bit ahead), 4 adjacent (same audience, other topic), 2 to 4 big ones for format ideas. Stay within about 10x of your follower count.
 - **Look, don't scrape:** read reels in the browser at human speed. Scraping services stay off unless the brand owner turns them on.
+- **The triple hook:** every hook is built in three beats, in order. Context: the first line says what the video is about, at once, in the voice, the picture and the text. Lean: proof or a number, a specific pain or benefit, or something unexpected makes the viewer curious in one direction. Contrarian snapback: a true turn pulls them onto another path, which the reel then pays off. Read the first one or two sentences alone: context, lean and snapback, or rewrite.
 - **Hook scoring:** 3 hooks per idea, scored, keep 75 or more. Flags: a hook over 3 s, a beat long enough to leave, lines with nothing concrete, no loop back.
 - **Weekly loop:** monthly research, Monday plan, each reel scored, caption check (first 125 characters), Sunday review.
 

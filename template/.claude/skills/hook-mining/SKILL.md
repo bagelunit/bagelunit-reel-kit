@@ -54,6 +54,8 @@ For each hook worth reusing, produce 3–5 alternatives under one rule:
 
 > **Keep the psychology. Swap the power words.**
 
+Label each mined hook by the triple hook beats it has (context, lean, contrarian snapback; `docs/hook-and-review-playbook.md` section 0), and when a variant is missing a beat, add it rather than dropping it.
+
 Hold **fixed**: the pattern, the clause order, the specificity (a number stays a number), the rhythm
 and syllable shape, the tension and where it resolves, the point of view.
 

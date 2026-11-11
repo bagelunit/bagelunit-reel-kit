@@ -93,7 +93,7 @@ WHAT IS TRUE AND OK TO SAY
 IF I ALREADY HAVE A SCRIPT
 - [PASTE IT HERE and use it word for word, or delete this whole part]
 
-Follow the house rules in CLAUDE.md. Check the first-frame hook checklist before writing the script. Fact check the script against its sources before I see it, and tell me about any claim you could not back up. Run the voice credit check and tell me the number before I approve the script. Stop at each of the three checkpoints (script, visual plan, final video), ask me with a clickable approval, and wait for my yes. Do not post, schedule or send anything; I will post it myself.
+Follow the house rules in CLAUDE.md. Write the hook as a triple hook (context at once, then a lean, then a contrarian snapback; docs/hook-and-review-playbook.md section 0) and check the first-frame hook checklist before writing the script. Fact check the script against its sources before I see it, and tell me about any claim you could not back up. Run the voice credit check and tell me the number before I approve the script. Stop at each of the three checkpoints (script, visual plan, final video), ask me with a clickable approval, and wait for my yes. Do not post, schedule or send anything; I will post it myself.
 ```
 
 **What goes in each blank**
@@ -124,7 +124,7 @@ WHAT IS TRUE AND OK TO SAY
 IF I ALREADY HAVE A SCRIPT
 - (none, so write it)
 
-Follow the house rules in CLAUDE.md. Check the first-frame hook checklist before writing the script. Fact check the script against its sources before I see it, and tell me about any claim you could not back up. Run the voice credit check and tell me the number before I approve the script. Stop at each of the three checkpoints (script, visual plan, final video), ask me with a clickable approval, and wait for my yes. Do not post, schedule or send anything; I will post it myself.
+Follow the house rules in CLAUDE.md. Write the hook as a triple hook (context at once, then a lean, then a contrarian snapback; docs/hook-and-review-playbook.md section 0) and check the first-frame hook checklist before writing the script. Fact check the script against its sources before I see it, and tell me about any claim you could not back up. Run the voice credit check and tell me the number before I approve the script. Stop at each of the three checkpoints (script, visual plan, final video), ask me with a clickable approval, and wait for my yes. Do not post, schedule or send anything; I will post it myself.
 ```
 
 ---

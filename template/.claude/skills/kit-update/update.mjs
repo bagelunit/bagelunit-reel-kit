@@ -29,9 +29,21 @@ const have = () => { try { return fs.readFileSync(path.join(WS, '.kit-version'),
 
 function fail(msg) { console.error(msg); process.exit(1); }
 
+// GitHub sometimes drops a single read: up to 3 tries, each with a time limit, a short pause between
+async function fetchRetry(url, tries = 3, ms = 20000) {
+  let res = null;
+  for (let i = 0; i < tries; i++) {
+    res = await fetch(url, { signal: AbortSignal.timeout(ms) }).catch(() => null);
+    if (res && res.ok) return res;
+    if (res && res.status === 404) return res;                       // a missing file or tag will not appear on a retry
+    if (i < tries - 1) await new Promise((r) => setTimeout(r, 1500 * (i + 1)));
+  }
+  return res;
+}
+
 async function latest() {
   if (opt('version')) return opt('version');
-  const res = await fetch(`https://raw.githubusercontent.com/${REPO}/main/VERSION`).catch(() => null);
+  const res = await fetchRetry(`https://raw.githubusercontent.com/${REPO}/main/VERSION`);
   if (!res || !res.ok) fail('Could not read the newest version from GitHub (offline?). Try again later, or use --from <kit folder>.');
   return (await res.text()).trim();
 }
@@ -49,7 +61,7 @@ async function getKit(version) {
   fs.mkdirSync(HOME_KIT, { recursive: true });
   const ref = opt('version') ? `refs/tags/v${version}` : 'refs/heads/main';
   const url = `https://codeload.github.com/${REPO}/tar.gz/${ref}`;
-  const res = await fetch(url).catch(() => null);
+  const res = await fetchRetry(url, 3, 120000);
   if (!res || !res.ok) fail(`Download failed (${res ? res.status : 'offline'}): ${url}`);
   const tgz = path.join(HOME_KIT, `kit-${version}.tar.gz`);
   fs.writeFileSync(tgz, Buffer.from(await res.arrayBuffer()));

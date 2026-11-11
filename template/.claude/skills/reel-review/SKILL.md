@@ -41,7 +41,7 @@ Each is pass or fail. A fail is named in the verdict with the second it happens.
    No current PASS, or a FAIL, fails this check.
 2. **Words match.** The spoken words and on-screen text are the approved script (typos aside). The
    brand's `voice.never_say` words are not spoken.
-3. **Frame 0 and the hook.** The eight-point checklist in `docs/hook-and-review-playbook.md`.
+3. **Frame 0 and the hook.** The triple hook (section 0 of `docs/hook-and-review-playbook.md`): the context lands at once in the voice, the first frame and the on-screen text; a lean follows; then a contrarian snapback that the rest of the reel pays off. Then the eight-point frame-0 checklist (section 1) on the real frames.
 4. **Safe zones and size.** Nothing important in the bottom 300 px or right 120 px. Text about 40 px or
    more. Nothing clipped, overlapping or placeholder.
 5. **Handle and payoffs.** The handle is visible. Typed lines finish and hold before the cut. A payoff
@@ -59,7 +59,7 @@ Score whole numbers. 5 is the best work the brand has shipped, 3 is acceptable, 
 | Picture says the words | Each shot shows exactly what is being said at that moment, concretely |
 | Movement on the words | Beats land on their spoken words; nothing sits still for more than about a second |
 | Pace and variety | Shot lengths and layouts vary; something new arrives every 2 to 4 s |
-| Hook strength | A stranger would stop for it, and it still works on mute |
+| Hook strength | A full triple hook (context at once, lean, snapback); a stranger would stop for it, and it still works on mute |
 | Payoff | The promise is delivered, specific and usable straight away |
 | Ending | Ends on a clean line or loops back; no drag, no "thanks for watching" |
 | Brand fit | Sounds, looks and reads like this brand, not a generic template |

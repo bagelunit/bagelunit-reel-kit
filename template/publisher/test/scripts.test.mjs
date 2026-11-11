@@ -241,6 +241,19 @@ test('setup: writes wrangler.toml once from the template, fills the KV id, print
   assert.throws(() => writeToml({ slug: 'fb', pubDir: tmp('pub-'), apiSetup: 'facebook' }), /needs Instagram Login .* or Unified Login/);
   assert.ok(!/\u2014/.test(s));
 });
+test('setup check: asks again once when Cloudflare has not picked up a new secret yet', async () => {
+  const { ws, cfg } = workspace();
+  const answers = [{ brand: 'testbrand', platforms: { threads: { configured: false, mode: 'dry_run' } } }, { brand: 'testbrand', platforms: { threads: { configured: true, mode: 'dry_run' } } }];
+  let calls = 0;
+  const fetchImpl = async () => new Response(JSON.stringify(answers[Math.min(calls++, 1)]), { status: 200, headers: { 'content-type': 'application/json' } });
+  const out = [];
+  await check({ root: ws, fetchImpl, configDir: cfg, log: (l) => out.push(l), settle: 5 });
+  assert.equal(calls, 2);
+  assert.match(out.join('\n'), /can take a few seconds to pick up new secrets/);
+  assert.match(out.join('\n'), /threads\s+connected, dry run/);
+  calls = 0; await check({ root: ws, fetchImpl, configDir: cfg, log: quiet });                // without settle (tests, scripts) it asks once
+  assert.equal(calls, 1);
+});
 test('setup check: asks GET /admin with the key and prints no secret', async () => {
   const { ws, cfg } = workspace();
   const out = [];
@@ -267,6 +280,8 @@ test('setup secrets: read from the token files, sent on stdin, never printed, ap
   const dry = sendSecrets({ slug: 'sb', configDir: cfg, dryRun: true, run, log: (l) => out.push(l), pubDir: '/pub' });
   assert.equal(calls.length, 0); assert.equal(dry.sent.length, 0);
   assert.equal(JSON.parse(fs.readFileSync(path.join(cfg, 'publisher-sb.json'), 'utf8')).admin_key, undefined);
+  assert.match(out.join('\n'), /ADMIN_KEY\s+would be made now .* and sent/);                 // not "skipped": the real run makes and sends it
+  assert.deepEqual(dry.skipped.filter((n) => ['ADMIN_KEY', 'VERIFY_TOKEN'].includes(n)), []);
   const r = sendSecrets({ slug: 'sb', configDir: cfg, run, log: (l) => out.push(l), pubDir: '/pub' });
   assert.deepEqual(r.sent, ['ADMIN_KEY', 'VERIFY_TOKEN', 'APP_SECRET', 'IG_USER_ID', 'IG_TOKEN', 'THREADS_USER_ID', 'THREADS_TOKEN']);
   assert.deepEqual(r.skipped, ['FB_PAGE_ID', 'FB_PAGE_TOKEN']);                                // the Facebook check has not swapped the token yet

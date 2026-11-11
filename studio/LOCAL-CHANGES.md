@@ -44,3 +44,4 @@
 25. 2026-11-10 · `tools/checkup.mjs`: missing Kenney packs are now an optional line (○), not a problem to fix (reels work without them, as the README and installer say), and the fix line names `node setup/install.mjs` on Windows.
 26. 2026-11-10 · `KIT.md` section A: in a brand folder, the first checkup takes the handle, theme, voice and presenter from `brand/brand.json` (answered by `/brand-setup`) and asks only what is still missing; the plan question is skipped when one is saved.
 27. 2026-11-10 · `tools/kit.mjs start`: refuses the kit's own `template/` (its parent folder holds `studio/KIT.md`), with a pointer to `/brand-setup`.
+28. 2026-11-10 · `KIT.md` section C: the hook is a triple hook (the owner's method, in a brand folder `docs/hook-and-review-playbook.md` section 0): context at once, a lean, then a contrarian snapback the reel pays off.

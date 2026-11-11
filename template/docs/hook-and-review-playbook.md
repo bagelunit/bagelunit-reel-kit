@@ -2,7 +2,41 @@
 
 Added November 2026, with the reel skills in this folder's `.claude/skills/`. These are ideas and checklists that sharpen steps 1, 2, 5, 7, 12 and 14 of the kit's [reel process](https://github.com/bagelunit/bagelunit-reel-kit/blob/main/docs/process.md) (in the kit's own folder, not in this copy). The skills' numbers come from one account in one niche, so treat every number below as a hypothesis to test against the brand's own median, not as a law.
 
+## 0. The triple hook: how every hook is written (step 5)
+
+The hook is the first one or two sentences of a reel. BagelUnit's triple hook builds them in three beats, always in this order: the viewer buys into the topic at once, leans in out of curiosity, and is then snapped back in another direction. Do all three and the hook is very hard to scroll past. Every hook the kit writes (`/viral-hook-writer`, `/reel-scripter`, the engine's script step) uses it, and `/reel-review` checks it.
+
+**1. Context: say what the video is about, immediately.** This is the basic step, and many people still get it wrong. Viewers only watch content they have a stake in, so the first line must make clear what the video is about. Set the context in all three places if you can: say it in the voice, show it in the picture, and write it on screen or in the caption. It must land at once: in our data, even moving the context to the back half of the first sentence raises the skip rate sharply. Priority number one is immediate context.
+
+**2. The lean: make them curious in one direction.** This is where most people go wrong. The goal is to make the viewer lean in on the context and actively want more, instead of opting out. Ways to do it:
+
+- **Proof or a number** that backs the claim that is coming (only from `brand/facts.md`; `{{needs cleared fact}}` until it is there).
+- **A specific pain** the viewer has, or a **benefit** they want.
+- **Something interesting, shocking or unexpected.**
+
+Whichever you pick, the viewer must lean in, not opt out. Context plus lean is the **context lean**: it opens the curiosity loop.
+
+**3. The contrarian snapback: pull them another way.** This is where the hook really earns, and very few people do it. To catch a fish you get the hook in its mouth while it swims one way, then pull the line the other way. Storytelling works the same. Once the viewer leans in one direction, say something that pulls them away from it and snaps them onto another path. The snapback must be true, and the rest of the reel pays it off.
+
+**The read-back test.** Read the first one or two sentences on their own and ask:
+
+1. Is the context clear immediately (said, shown and written)?
+2. Is there something that makes the viewer lean in for more?
+3. Does it then snap them back in a direction they did not expect?
+
+Three yeses, or rewrite it.
+
+**Example** (a meal-prep account):
+
+- Context: "Meal prep for the whole week in 20 minutes." Said in the voice, the first frame shows a week of filled containers, and the screen reads "WEEK OF MEALS: 20 MIN".
+- Lean (a benefit they want): "No more losing your Sunday to the kitchen."
+- Contrarian snapback: "And the trick isn't cooking faster. It's cooking less."
+
+**Test it on your own numbers.** `/ab-hook-tester` can run the same context and lean with and without the snapback, so the brand's own skip rate shows what the snapback adds for this audience.
+
 ## 1. Frame-0 hook checklist (step 5 and step 7)
+
+The triple hook (section 0) is checked on the script; this checklist then checks the hook on the draft's real frames.
 
 A hook passes only if all eight are true. Check it on the draft's real frames at 0 s, 0.5 s, 1 s, 2 s and 3 s, never on the script alone.
 

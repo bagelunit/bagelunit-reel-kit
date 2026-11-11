@@ -6,6 +6,8 @@ Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. T
 
 Two fresh reviews walked the kit as a stranger would, from the GitHub page to the first reel and through every connection, and checked each outside step against Meta's, Cloudflare's, Netlify's, Telegram's and Anthropic's current official pages. This release fixes what they found.
 
+**The triple hook, built into every hook the kit writes.** BagelUnit's own method for the first one or two sentences, written out in full in `docs/hook-and-review-playbook.md` (section 0): **context** at once (said, shown and written on screen), then the **lean** (proof from your facts, a specific pain or benefit, or something unexpected), then the **contrarian snapback** that pulls the viewer onto another path. `/viral-hook-writer` labels every hook's three beats and drops any that fail the read-back test, `/reel-scripter` opens every script with one, `/reel-review` checks it on the draft, `/hook-mining` labels mined hooks by their beats, the engine's script step and the house rules use it, and `/ab-hook-tester` suggests testing the same hook with and without the snapback.
+
 **Switch between platforms on the dashboard.** Once Facebook or Threads is connected, a switch in the filter bar (All, Instagram, Facebook, Threads) shows each platform's own followers, views (plays on Facebook), engagement, posts, follower chart, views by week and top posts; All adds them up, and the page remembers your choice. Sections only Instagram has (audience, best time to post, comments, hook tests) say so on the other platforms.
 
 **Getting started**
@@ -40,6 +42,11 @@ Two fresh reviews walked the kit as a stranger would, from the GitHub page to th
   - What to record for App Review.
   - Nine new rows of troubleshooting.
 - The dashboard's refresh now runs when only Facebook or Threads is connected. The Instagram check no longer asks for a field that exists only with Instagram Login, which broke the first check for Unified Login.
+- **From a real brand's setup (all three platforms and the publisher):**
+  - `setup.mjs check` waits and asks again once when Cloudflare has not picked up new secrets yet.
+  - The secrets dry run says the admin key "would be made now and sent" instead of "skipped".
+  - `/kit-update` tries GitHub up to three times, with a time limit, before giving up.
+  - The guide now covers: adding the insights permission to an app that already exists (a new configuration, without the ad permissions), what to do when `pages_read_engagement` is not offered, where the Page id really is, choosing "current only" when Facebook offers every Page and business, that the Explorer shows the old token until Generate, Threads in the same app with no permission picker, that accepting the Threads tester invite needs your yes, and running a second publisher next to an old one.
 - **Engine changes** (`/kit-update` updates the engine too, or run the installer again): the checkup, the first-run questions, and `kit start` refusing the kit's own template.
 
 ## 1.12.0 (2026-11-10)

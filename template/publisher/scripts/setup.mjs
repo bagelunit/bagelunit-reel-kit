@@ -154,6 +154,7 @@ export function sendSecrets({ slug, configDir = CONFIG_DIR, pubDir = PUB, only =
   const sent = [], skipped = [], failed = [];
   for (const r of plan.rows) {
     if (want && !want.has(r.name)) continue;
+    if (!r.value && dryRun && /^made by this script/.test(r.why)) { log(`  ${r.name.padEnd(16)} would be made now (kept in ${r.from}) and sent`); continue; }
     if (!r.value) { skipped.push(r.name); log(`  ${r.name.padEnd(16)} skipped: nothing in ${r.from} yet (${r.why})`); continue; }
     if (dryRun) { log(`  ${r.name.padEnd(16)} would be sent, from ${r.from}`); continue; }
     const res = run(r.name, r.value, pubDir);
@@ -217,9 +218,15 @@ export function saveUrl({ slug, url, configDir = CONFIG_DIR }) {
   return file;
 }
 
-export async function check({ root, fetchImpl = fetch, configDir = CONFIG_DIR, log = console.log }) {
+export async function check({ root, fetchImpl = fetch, configDir = CONFIG_DIR, log = console.log, settle = 0 }) {
   const conn = connection(brandSlug(root), configDir);
-  const a = await admin(conn, 'GET', '/admin', { fetchImpl });
+  let a = await admin(conn, 'GET', '/admin', { fetchImpl });
+  // Cloudflare takes a few seconds to give a running Worker the secrets just sent: ask once more before saying so
+  if (settle && Object.values(a.platforms || {}).some((v) => !v.configured)) {
+    log(`A platform shows as not connected yet. Cloudflare can take a few seconds to pick up new secrets: asking again in ${Math.round(settle / 1000)} seconds.`);
+    await new Promise((r) => setTimeout(r, settle));
+    a = await admin(conn, 'GET', '/admin', { fetchImpl });
+  }
   log(`The publisher at ${conn.url} answers. Brand ${a.brand || '(not set)'}, ${a.api_setup} login, Graph ${a.graph_version}.`);
   for (const [p, v] of Object.entries(a.platforms || {})) log(`  ${p.padEnd(10)} ${v.configured ? 'connected' : 'not connected (its id or token secret is missing)'}, ${v.mode === 'live' ? 'LIVE' : 'dry run'}`);
   log(`  comments   auto-replies ${a.mode === 'live' ? 'LIVE' : 'dry run'}, ${a.rules?.length || 0} rule(s)${a.rules_error ? `, rules problem: ${a.rules_error}` : ''}`);
@@ -231,7 +238,7 @@ async function main() {
   const root = findBrand(process.cwd());
   if (!root) throw new Plain('Run this inside the brand folder (where brand/brand.json is).');
   const slug = brandSlug(root, readJSON(path.join(root, 'brand', 'brand.json'), {}));
-  if (args._[0] === 'check') return check({ root });
+  if (args._[0] === 'check') return check({ root, settle: 15000 });
   if (args._[0] === 'subscribe') { await subscribe({ slug, dryRun: args['dry-run'] === true }); return; }
   if (args._[0] === 'secrets') {
     const only = typeof args.only === 'string' ? args.only.split(',').map((x) => x.trim().toUpperCase()).filter(Boolean) : null;
