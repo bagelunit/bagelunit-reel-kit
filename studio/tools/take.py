@@ -30,6 +30,7 @@ import json, os, re, shutil, subprocess, sys, urllib.error, urllib.request, uuid
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from kitcore import resolve_reel
 from markers import Markers, MaybeBilled, digest, source_fingerprint
 
 FPS = 30
@@ -103,7 +104,7 @@ def ff_graph(inp, graph, outs, work):
 
 def main():
     if len(sys.argv) < 2 or sys.argv[1].startswith('--'): print(__doc__); sys.exit(1)
-    proj = Path(sys.argv[1]).resolve()
+    proj = resolve_reel(sys.argv[1])
     if not (proj / 'reel.json').exists(): die(f'{proj} is not a reel project (no reel.json). Make one: node tools/kit.mjs start <dir> --style talking')
     vid = arg('video')
     if not vid or vid is True: die('give the face take: --video take.mov')

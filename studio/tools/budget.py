@@ -95,7 +95,9 @@ def main():
         return
     if not a:
         sys.exit(__doc__)
-    text = Path(a[0]).expanduser().read_text(encoding='utf-8')
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from kitcore import resolve_in_reel          # reels/<slug>/script.txt works for a reel filed by date, or just <slug>/script.txt
+    text = resolve_in_reel(a[0]).read_text(encoding='utf-8')
     one = count_chars(text)
     need = one * takes
     print(f'script: {one:,} characters; for {takes} take(s) about {need:,}')

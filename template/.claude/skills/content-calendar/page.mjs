@@ -20,7 +20,7 @@ const safeUrl = (u) => { const s = String(u ?? '').trim(); return /^https:\/\/[^
 const agentHref = (h) => (/^[a-z][a-z0-9+.-]*:/i.test(String(h ?? '')) ? safeUrl(h) : String(h ?? ''));   // a file next to the page, or an https link
 const font = (w) => { try { return `data:font/woff2;base64,${fs.readFileSync(path.join(HERE, 'fonts', `poppins-${w}.woff2`)).toString('base64')}`; } catch { return null; } };
 const LABEL = { posted: 'Posted', scheduled: 'Scheduled', planned: 'Planned', late: 'Date passed' };
-const ref = (it) => (it.system ? 'dashboard' : it.slug && !it.fromPlan ? `reels/${it.rel || it.slug}` : 'brand/plan.md');
+const ref = (it) => (it.system ? 'dashboard' : it.slug && !it.fromPlan ? `reels/${it.slug}` : 'brand/plan.md');
 const withCommands = (s) => esc(s).replace(/(\/[a-z][a-z-]+(?: (?:plan|days|connect instagram|connect telegram|auto))?)/g, '<code>$1</code>');
 
 /* ── icons: one line style, 24 px grid, drawn here so the page needs nothing from the web ───────────────────── */
@@ -238,8 +238,8 @@ ${GATE[k] ? `<span class="gate-mark" title="${esc(GATE[k])}: you approve here">$
   // everything the calendar views and the reel cards need, as data inside the page
   const keyOf = (d) => (d ? M.dayKey(d) : null);
   const CMD = (it) => it.stage === 'idea' ? `/bagelunit-reels ${it.topic || it.title}`
-    : ['script', 'a', 'b'].includes(it.stage) ? `/bagelunit-reels carry on with reels/${it.rel || it.slug}`
-    : ['c', 'scheduled'].includes(it.stage) ? `/reel-posting reels/${it.rel || it.slug}`
+    : ['script', 'a', 'b'].includes(it.stage) ? `/bagelunit-reels carry on with reels/${it.slug}`
+    : ['c', 'scheduled'].includes(it.stage) ? `/reel-posting reels/${it.slug}`
     : it.nums ? '/analytics-readout' : `/analytics-readout ${it.slug}`;
   const NEXT_FULL = {
     idea: 'Start this reel. Claude asks the style, writes hooks and the script, fact checks it, then stops for your yes.',

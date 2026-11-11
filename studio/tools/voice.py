@@ -25,7 +25,7 @@ Which voice and which defaults: tools/voicebank.py (saved in ~/.config/bagelunit
 import base64, io, json, re, shutil, subprocess, time, urllib.error, urllib.request
 from pathlib import Path
 
-from kitcore import (Flags, CJK_CHAR, api_key, fail, ffmpeg, media_length, tidy_word, voice_settings, whisper_words, write_words)
+from kitcore import (resolve_reel, Flags, CJK_CHAR, api_key, fail, ffmpeg, media_length, tidy_word, voice_settings, whisper_words, write_words)
 from markers import Markers, MaybeBilled, digest
 
 TOOL = 'voice'
@@ -208,7 +208,7 @@ def main():
     if not names:
         print(__doc__)
         raise SystemExit(1)
-    project = Path(names[0]).resolve()
+    project = resolve_reel(names[0])
     opts = voice_settings(project)
     if flags.get('voice'):
         opts['voice_id'] = flags.get('voice')

@@ -20,7 +20,7 @@ import json, re, subprocess, sys, tempfile
 from pathlib import Path
 import numpy as np
 
-from kitcore import Flags, fail, grey_frames, load_words, media_length
+from kitcore import resolve_reel, Flags, fail, grey_frames, load_words, media_length
 from pace import HIT_LEVEL, newest_render, runs_below
 
 TOOL = 'measure'
@@ -192,7 +192,7 @@ def say(f):
 
 
 def run(project, given=None):
-    project = Path(project).resolve()
+    project = resolve_reel(project)
     video = newest_render(project, given)
     if not video or not video.exists():
         fail(TOOL, 'nothing rendered yet: run  kit render <project>  first (or pass a video file)')

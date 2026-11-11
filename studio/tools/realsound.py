@@ -140,7 +140,9 @@ def main():
     ap.add_argument("--hits", choices=["louder", "softer"], default="louder",
                     help="louder (default, owner 2026-11-05): hits mixed as hero so they cut through the voice; softer: support weights")
     a = ap.parse_args()
-    reel = os.path.abspath(a.reel)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from kitcore import resolve_reel
+    reel = str(resolve_reel(a.reel))                # a folder, reels/<slug> or the slug; dated folders too
     video = in_reel(reel, a.video) if a.video else pick_video(reel)
     out = in_reel(reel, a.out, must_exist=False) if a.out else video[:-4] + "-real.mp4"
     if not a.out and os.path.basename(os.path.dirname(video)) == "pre-real":     # redoing it: the result goes back to out/

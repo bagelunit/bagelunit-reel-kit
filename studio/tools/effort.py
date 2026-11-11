@@ -14,7 +14,7 @@ Motion helpers (springs, easing, typing, counters ...) are tools, not props: use
 from pathlib import Path
 import re, sys
 
-from kitcore import KIT_ROOT, Flags, fail, load_words, reel_settings
+from kitcore import resolve_reel, KIT_ROOT, Flags, fail, load_words, reel_settings
 
 TOOL = 'effort'
 # mode: (lines per second, makers per second) at least
@@ -59,7 +59,7 @@ def main():
     if not args:
         print(__doc__)
         raise SystemExit(1)
-    project = Path(args[0]).resolve()
+    project = resolve_reel(args[0])
     reel = reel_settings(project)
     mode = reel.get('style', 'print')
     words = load_words(project)

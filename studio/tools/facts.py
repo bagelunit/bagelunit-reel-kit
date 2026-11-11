@@ -28,7 +28,7 @@ import hashlib, json, re, sys
 from datetime import date, datetime
 from pathlib import Path
 
-from kitcore import Flags, fail
+from kitcore import resolve_reel, Flags, fail
 
 TOOL = 'facts'
 STALE_DAYS = 30
@@ -227,7 +227,7 @@ def main():
     if not args:
         print(__doc__)
         raise SystemExit(1)
-    project = Path(args[0]).resolve()
+    project = resolve_reel(args[0])
     action = args[1] if len(args) > 1 else 'check'
     if action not in ('check', 'record'):
         fail(TOOL, 'second argument must be check or record')

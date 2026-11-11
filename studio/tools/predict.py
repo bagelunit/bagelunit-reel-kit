@@ -12,7 +12,7 @@ import json, sys
 from pathlib import Path
 import numpy as np
 
-from kitcore import Flags, HOME_CFG, fail, read_json
+from kitcore import resolve_reel, Flags, HOME_CFG, fail, read_json
 import measure
 
 TOOL = 'predict'
@@ -42,7 +42,7 @@ def main():
     if not args:
         print(__doc__)
         raise SystemExit(1)
-    project = Path(args[0]).resolve()
+    project = resolve_reel(args[0])
     mfile = project / 'build' / 'measure.json'
     if not mfile.is_file():
         measure.run(project, args[1] if len(args) > 1 else None)

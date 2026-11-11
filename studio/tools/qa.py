@@ -19,7 +19,7 @@ The same facts are written to build/qa.json so a reviewer can read them.
 import json, re, subprocess, sys
 from pathlib import Path
 
-from kitcore import Flags, fail, load_words, media_length, pcm, read_json
+from kitcore import resolve_reel, Flags, fail, load_words, media_length, pcm, read_json
 
 TOOL = 'qa'
 SAFE = dict(top=250, bottom=450, side=60)        # px kept clear of text on a 1080x1920 canvas (platform buttons and caption bar)
@@ -84,7 +84,7 @@ def main():
     if not args:
         print(__doc__)
         raise SystemExit(1)
-    project = Path(args[0]).resolve()
+    project = resolve_reel(args[0])
     video = newest_video(project, args[1] if len(args) > 1 else None)
     if not video or not video.exists():
         fail(TOOL, 'nothing rendered yet: run  kit render <project>  and  kit export <project>  first')

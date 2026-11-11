@@ -85,6 +85,30 @@ const c = sch.checkReel('reels/dated-one', {}, Date.parse('2026-11-12T12:00:00Z'
 assert.ok(!c.problems.some((p) => /no brand\/brand\.json/.test(p)), 'schedule finds a reel by reels/<slug> after it moved');
 assert.equal(fs.realpathSync(c.reel ?? T.findReel(root, 'dated-one')), fs.realpathSync(T.findReel(root, 'dated-one')));
 
+// 5b. the engine's commands find a dated reel by its slug or reels/<slug>, from the brand folder and from inside another folder
+W('reels/2026/11 November/November 12/dated-one/reel.json', JSON.stringify({ style: 'print', name: 'dated-one' }));
+const notFound = /has no reel\.json|isn't a reel|not a reel project|no such file/i;
+for (const arg of ['dated-one', 'reels/dated-one']) {
+  for (const cmd of ['gate', 'facts', 'qa', 'host', 'pace', 'measure']) {
+    const o = run(cmd, arg, ...(cmd === 'gate' ? ['check'] : []));
+    assert.ok(!notFound.test(o.stdout + o.stderr), `kit ${cmd} ${arg}: ${o.stdout}${o.stderr}`);
+  }
+}
+const gate = run('gate', 'dated-one', 'check');
+assert.match(gate.stdout + gate.stderr, /Gate C|approv|MATCH|file/i, 'gate reads the dated reel\'s approvals.md');
+const sub = path.join(root, 'brand'); // run from another folder inside the brand
+const fromBrand = spawnSync('node', [KIT, 'gate', 'dated-one', 'check'], { cwd: sub, encoding: 'utf8' });
+assert.ok(!notFound.test(fromBrand.stdout + fromBrand.stderr), 'found from brand/ too');
+const tools = path.join(kit, 'studio', 'tools');
+const bud = spawnSync('python3', [path.join(tools, 'budget.py'), 'reels/dated-one/script.txt'], { cwd: root, encoding: 'utf8' });
+assert.match(bud.stdout, /script: \d+ characters/, `budget.py reads reels/<slug>/script.txt of a dated reel: ${bud.stdout}${bud.stderr}`);
+const rs = spawnSync('python3', [path.join(tools, 'realsound.py'), 'dated-one'], { cwd: root, encoding: 'utf8' });
+assert.ok(!/No such file|FileNotFound/.test(rs.stderr.split('\n').filter((l) => /dated-one/.test(l) && /reels\/dated-one\b(?!\/)/.test(l)).join('')), 'realsound resolved the slug');
+for (const t of ['voice', 'sound', 'lint', 'effort', 'predict', 'take']) {
+  const o = spawnSync('python3', [path.join(tools, `${t}.py`), 'dated-one'], { cwd: root, encoding: 'utf8' });
+  assert.ok(!/reels\/dated-one is not|no such file or directory: 'dated-one'/i.test(o.stdout + o.stderr) && !/\/test-reels\/dated-one\b/.test(o.stderr.replace(/November 12\/dated-one/g, '')), `${t}.py resolves the slug: ${o.stderr.slice(0, 200)}`);
+}
+
 // 6. kit start puts a new reel under its planned day; a reel already filed is carried on there
 W('brand/plan.md', '| Date | Topic | Goal | Angle | Reel (folder) | Notes |\n|---|---|---|---|---|---|\n| 2026-12-03 09:00 | t | save | x | `reels/new-one` | |\n');
 let st = run('start', 'reels/new-one', '--style', 'print');

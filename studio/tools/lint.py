@@ -35,7 +35,7 @@ If no shot data is found: "lint: no shot data for mode <x>, nothing checked" and
 import json, re, subprocess, sys
 from pathlib import Path
 
-from kitcore import Flags, KIT_ROOT, load_words, read_json, reel_settings
+from kitcore import resolve_reel, Flags, KIT_ROOT, load_words, read_json, reel_settings
 
 TOOL = 'lint'
 FPS = 30
@@ -230,7 +230,7 @@ def main():
     if not args:
         print(__doc__)
         raise SystemExit(1)
-    project = Path(args[0]).resolve()
+    project = resolve_reel(args[0])
     if not (project / 'reel.json').is_file():
         sys.exit(f'{TOOL}: {project} has no reel.json, so it is not a reel')
     mode = reel_settings(project).get('style', 'print')

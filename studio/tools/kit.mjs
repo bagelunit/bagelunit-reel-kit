@@ -43,7 +43,7 @@ function runPython(tool, args, required = false) {
 // the reel in <dir>: its folder, its reel.json and its name; stops with a plain-words reason when it isn't one
 function reelAt(dir) {
   if (!dir) die('which reel? give its folder');
-  const full = path.resolve(dir), cfg = readJSON(path.join(full, 'reel.json'));
+  const full = folders.resolveReelArg(dir), cfg = readJSON(path.join(full, 'reel.json'));   // a folder, reels/<slug> or the slug, flat or dated
   if (!cfg) die(`${full} has no reel.json, so it isn't a reel yet. Start one: node tools/kit.mjs start ${dir} --style print`);
   if (!MODES.includes(cfg.style)) die(`reel.json asks for style "${cfg.style}", but the kit has: ${MODES.join(', ')}`);
   return { dir: full, cfg, name: cfg.name || path.basename(full) };
@@ -223,7 +223,7 @@ async function cover() {
 
 function host() {
   if (!target) die('usage: kit host <reel dir> [--dir <poses folder>] [--check]');
-  const dir = path.resolve(target);
+  const dir = folders.resolveReelArg(target);
   const cfgPath = path.join(dir, 'reel.json');
   if (!fs.existsSync(cfgPath)) die(`${dir} has no reel.json. Start the reel first: kit start ${target} --style print`);
   const home = brandFolderOf(dir);

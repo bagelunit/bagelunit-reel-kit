@@ -15,7 +15,7 @@ from pathlib import Path
 import subprocess
 import numpy as np
 
-from kitcore import Flags, fail, load_words, media_length, pcm, read_json, reel_settings
+from kitcore import resolve_reel, Flags, fail, load_words, media_length, pcm, read_json, reel_settings
 
 TOOL = 'sound'
 RATE = 48000
@@ -149,7 +149,7 @@ def main():
     if not args:
         print(__doc__)
         raise SystemExit(1)
-    project = Path(args[0]).resolve()
+    project = resolve_reel(args[0])
     vo_file = project / 'audio' / 'vo.mp3'
     if not vo_file.exists():
         fail(TOOL, 'no audio/vo.mp3 yet (voice the script with tools/voice.py first)')

@@ -227,3 +227,27 @@ def find_reel(brand, slug):
         return flat
     hits = [p for n, p in list_reels(brand) if n == s]
     return hits[-1] if hits else None
+
+
+def resolve_reel(arg, cwd=None):
+    """What a person typed for a reel (a folder, reels/<slug>, or just the slug) -> its folder. A path that exists is used as
+    it is; otherwise the slug is looked up in the nearest brand folder above the current folder, in reels/<slug> or in the
+    dated folders. Falls back to the path as typed, so the tool's own "not a reel" message still shows what was typed."""
+    base = Path(cwd) if cwd else Path.cwd()
+    typed = (base / str(arg)).expanduser().resolve()
+    if typed.is_dir():
+        return typed
+    for d in [base.resolve(), *base.resolve().parents]:
+        if (d / 'brand' / 'brand.json').is_file():
+            return (find_reel(d, arg) or typed).resolve()
+    return typed
+
+
+def resolve_in_reel(arg, cwd=None):
+    """Like resolve_reel, for a file inside a reel (reels/<slug>/script.txt): the reel part is looked up when the path as typed
+    does not exist."""
+    base = Path(cwd) if cwd else Path.cwd()
+    typed = (base / str(arg)).expanduser()
+    if typed.exists():
+        return typed
+    return resolve_reel(typed.parent, cwd) / typed.name if str(typed.parent) not in ('', '.') else typed

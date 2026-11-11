@@ -2,6 +2,16 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.17.1 (2026-11-11)
+
+**Every engine command finds a reel filed by date.** Feedback from the brand that moved six reels with `kit organize`: `kit gate`, `facts`, `host`, `qa` and the rest said "has no reel.json, so it isn't a reel yet" for a reel filed under `reels/2026/11 November/November 12/<slug>`, and only the full dated path worked.
+
+- **`reels/<slug>` and the bare slug work everywhere.** `kit.mjs` (every command that takes a reel) and the Python tools used on their own (`voice`, `sound`, `lint`, `effort`, `pace`, `qa`, `facts`, `gate`, `predict`, `measure`, `take`, `realsound`, and `budget.py reels/<slug>/script.txt`) use the same lookup as `kit tidy` and the dashboard: a folder that exists is used as typed, otherwise the slug is looked up in the brand folder, flat or dated.
+- **The docs say so.** `template/CLAUDE.md` and `studio/KIT.md` tell Claude to write `reels/<slug>` in commands for both layouts, and the dashboard's "next step" lines do too.
+- Test: `setup/test-reel-folders.mjs` now runs the engine commands against a dated reel.
+
+To update: `/kit-update`, then `bash setup/install.sh` for the engine.
+
 ## 1.17.0 (2026-11-11)
 
 **Reel folders can be filed by date.** Feedback from a brand posting three reels a day: they wanted `reels/2026/11 November/November 12/<slug>/` but held off, because the dashboard, `pull.mjs`, `schedule.mjs`, `best-times.mjs` and `kit calibrate` only looked in `reels/<slug>`, and moving a reel would have stopped its "Posted" lines being recorded.

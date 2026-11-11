@@ -55,6 +55,15 @@ export function findReel(root, slug) {
   return hits.length ? hits[hits.length - 1].dir : null;
 }
 
+// what a person typed for a reel (a folder, reels/<slug> or the slug) -> its folder; a path that exists is used as it is, else the
+// slug is looked up in the nearest brand folder above `cwd`; falls back to the path as typed
+export function resolveReelArg(arg, cwd = process.cwd()) {
+  const typed = path.resolve(cwd, String(arg ?? ''));
+  if (isDir(typed)) return typed;
+  const root = findBrand(cwd);
+  return (root && findReel(root, arg)) || typed;
+}
+
 export const layoutOf = (root) => (readJSON(path.join(root, 'brand', 'brand.json')).reels?.layout === 'dated' ? 'dated' : 'flat');
 
 // where a new reel goes: reels/<slug>, or under its post date's folders in the dated layout

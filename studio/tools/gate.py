@@ -21,7 +21,7 @@ import hashlib, re, sys
 from datetime import datetime
 from pathlib import Path
 
-from kitcore import Flags, fail, read_json
+from kitcore import resolve_reel, Flags, fail, read_json
 import facts as factlib
 
 TOOL = 'gate'
@@ -47,7 +47,7 @@ def main():
     if len(args) < 2 or args[1] not in ('record', 'check'):
         print(__doc__)
         raise SystemExit(1)
-    project, action = Path(args[0]).resolve(), args[1]
+    project, action = resolve_reel(args[0]), args[1]
     gate = str(flags.get('gate', 'C')).upper()
     if gate not in NAMES:
         fail(TOOL, '--gate must be A, B or C')

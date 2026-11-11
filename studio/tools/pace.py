@@ -15,7 +15,7 @@ from pathlib import Path
 import sys
 import numpy as np
 
-from kitcore import Flags, fail, grey_frames, load_words, read_json, reel_settings, spoken_between
+from kitcore import resolve_reel, Flags, fail, grey_frames, load_words, read_json, reel_settings, spoken_between
 
 TOOL = 'pace'
 
@@ -190,7 +190,7 @@ def main():
     if not args:
         print(__doc__)
         raise SystemExit(1)
-    project = Path(args[0]).resolve()
+    project = resolve_reel(args[0])
     reel = reel_settings(project)
     mode = reel.get('style', 'print')
     video = newest_render(project, args[1] if len(args) > 1 else None)
