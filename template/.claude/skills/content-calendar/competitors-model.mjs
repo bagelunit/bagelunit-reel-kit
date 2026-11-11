@@ -11,6 +11,8 @@ export const TAGS = { niche: 'In your niche', adjacent: 'Adjacent', big: 'Big (f
 export const MIN_POSTS = 5;                       // fewer than this and an account has no trustworthy median
 export const WINDOW = 12;
 export const WINDOW_DAYS = 7;                     // "what is working for them" looks at this many recent days (brand.json -> dashboard.competitors_days)
+export const MIN_VIEWS = 5000;                    // a winner must also clear this many views, so one hit on a tiny base does not top the list (dashboard.competitors_min_views)
+export const PER_ACCOUNT = 2;                     // at most this many rows from one account in the shown list
 export const PATTERN_DAYS = 90;                   // the shape and day patterns need more posts, so they look further back, and say so                         // posts used for the median
 const DAY = 864e5;
 const STALE_DAYS = 14;
@@ -75,7 +77,7 @@ export function configOf(root) {
   return { list, cfg, removed };
 }
 
-export function loadCompetitors(root, { now = Date.now(), own = {}, windowDays = WINDOW_DAYS, patternDays = PATTERN_DAYS, dayName = (t) => new Date(t).toUTCString().slice(0, 3) } = {}) {
+export function loadCompetitors(root, { now = Date.now(), own = {}, windowDays = WINDOW_DAYS, minViews = MIN_VIEWS, patternDays = PATTERN_DAYS, dayName = (t) => new Date(t).toUTCString().slice(0, 3) } = {}) {
   const { list, removed } = configOf(root);
   const dir = path.join(root, 'brand', 'research');
   const meta = readJSON(path.join(dir, 'accounts.json'), {});
@@ -111,8 +113,11 @@ export function loadCompetitors(root, { now = Date.now(), own = {}, windowDays =
 
   // the posts that beat their own account's median, inside the window (recent posts only: an old post is judged against
   // today's median, so it is not a fair "what is working now"); study first, then by ratio
-  const all = accounts.flatMap((a) => a.posts.filter((p) => p.tier === 'STUDY' || p.tier === 'NOTE').map((p) => ({ ...p, handle: a.handle, tag: a.tag })));
-  const outliers = all.filter((p) => p.at > now - windowDays * DAY).sort((a, b) => (b.tier === 'STUDY') - (a.tier === 'STUDY') || b.ratio - a.ratio);
+  const all = accounts.flatMap((a) => a.posts.filter((p) => p.tier === 'STUDY' || p.tier === 'NOTE').map((p) => ({ ...p, handle: a.handle, tag: a.tag, base: a.median })));
+  const recent = all.filter((p) => p.at > now - windowDays * DAY);
+  const outliers = recent.filter((p) => (p.views ?? 0) >= minViews).sort((a, b) => (b.tier === 'STUDY') - (a.tier === 'STUDY') || b.ratio - a.ratio);
+  const perAcct = {};                                                    // the shown list: best first, at most PER_ACCOUNT from one account
+  const top = outliers.filter((o) => (perAcct[o.handle] = (perAcct[o.handle] || 0) + 1) <= PER_ACCOUNT);
 
   // what the winners have in common: for each hook shape, how many of the ranked posts beat their median (a longer window,
   // because a week holds too few posts to compare shapes)
@@ -140,6 +145,6 @@ export function loadCompetitors(root, { now = Date.now(), own = {}, windowDays =
     goal: key(r, 'goal'), angle: key(r, 'angle'), status: (key(r, 'status') || 'suggested').toLowerCase(),
   })).filter((i) => i.idea);
 
-  const out = { accounts, outliers, windowDays, olderWinners: all.length - outliers.length, patterns, feed, own: ownRow, ideas, configured: list.length, any: accounts.length > 0, withData: accounts.filter((a) => a.readPosts).length };
+  const out = { accounts, outliers, top, windowDays, minViews, olderWinners: all.length - recent.length, belowFloor: recent.length - outliers.length, patterns, feed, own: ownRow, ideas, configured: list.length, any: accounts.length > 0, withData: accounts.filter((a) => a.readPosts).length };
   return out;
 }

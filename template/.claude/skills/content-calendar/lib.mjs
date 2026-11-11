@@ -775,6 +775,7 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
     .filter((x) => x.at && x.v != null).sort((a, b) => b.at - a.at);
   const competitors = loadCompetitors(root, {
     now: now.getTime(), windowDays: Math.min(90, Math.max(1, Math.round(Number(brand.dashboard?.competitors_days) || 7))),
+    minViews: (() => { const v = brand.dashboard?.competitors_min_views; return v === undefined || v === null || !Number.isFinite(Number(v)) ? 5000 : Math.max(0, Math.round(Number(v))); })(),
     dayName: (t) => pretty(dayKey(new Date(t)), { weekday: 'short' }),
     own: { followers: followersNow, median: median(ownViews.slice(0, 12).map((x) => x.v)), perWeek: ownViews.length >= 3 ? Math.round((ownViews.filter((x) => now - x.at <= 28 * 864e5).length / 4) * 10) / 10 : null },
   });

@@ -68,8 +68,25 @@ assert.ok(W.outliers.every((o) => o.at > now - 7 * day), 'only posts from the la
 assert.ok(W.outliers.some((o) => o.handle === 'rival_one' && o.ratio > 5) && !W.outliers.some((o) => Math.abs(o.ratio - 3.1) < 0.01), 'the 14-day-old 3.1x post is left out');
 assert.ok(W.olderWinners >= 1);
 const bj = path.join(root, 'brand', 'brand.json');
-fs.writeFileSync(bj, JSON.stringify({ ...JSON.parse(fs.readFileSync(bj, 'utf8')), dashboard: { competitors_days: 30 } }));
+fs.writeFileSync(bj, JSON.stringify({ ...JSON.parse(fs.readFileSync(bj, 'utf8')), dashboard: { competitors_days: 30, competitors_min_views: 0 } }));
 assert.ok(lib.load(root).competitors.outliers.some((o) => Math.abs(o.ratio - 3.1) < 0.01), 'competitors_days widens the window');
+// the floor: rival_one's 3.1x post has 3,100 views, under the 5,000 default; a 0 floor lets it in
+fs.writeFileSync(bj, JSON.stringify({ ...JSON.parse(fs.readFileSync(bj, 'utf8')), dashboard: { competitors_days: 30 } }));
+const F = lib.load(root).competitors;
+assert.equal(F.minViews, 5000);
+assert.ok(!F.outliers.some((o) => o.views < 5000), 'no winner under the views floor');
+assert.ok(F.belowFloor >= 1 && F.top.every((o) => o.base != null));
+fs.writeFileSync(bj, JSON.stringify({ ...JSON.parse(fs.readFileSync(bj, 'utf8')), dashboard: { competitors_days: 30, competitors_min_views: 0 } }));
+assert.ok(lib.load(root).competitors.outliers.some((o) => o.views === 3100), 'a floor of 0 lists it');
+// at most 2 rows from one account in the shown list
+const capCsv = ['url,timestamp,views,likes,comments,caption,type'];
+[40000, 41000, 42000, 43000].forEach((v, i) => capCsv.push(`u${i},${new Date(now - (i + 1) * day).toISOString()},${v},1,1,hook ${i},REELS`));
+[10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000].forEach((v, i) => capCsv.push(`b${i},${new Date(now - (i + 20) * day).toISOString()},${v},1,1,base ${i},REELS`));
+fs.writeFileSync(path.join(root, 'brand', 'research', 'capper.csv'), capCsv.join('\n') + '\n');
+const CAP = lib.load(root).competitors;
+assert.equal(CAP.top.filter((o) => o.handle === 'capper').length, 2, 'two rows from one account at most');
+assert.ok(CAP.outliers.filter((o) => o.handle === 'capper').length >= 3);
+fs.rmSync(path.join(root, 'brand', 'research', 'capper.csv'));
 // patterns look back further than the winners list, and say so
 assert.equal(W.patterns.windowDays, 90);
 // a removed account stays removed, even with its saved file still in brand/research

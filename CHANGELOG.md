@@ -2,6 +2,13 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.14.2 (2026-11-11)
+
+- **A winner now needs real views too.** "What is working for them" ranked by ratio to each account's own median, so one hit on a small account (179 times a median of 3,000) outranked steadier signals at scale. A post must now also have at least 5,000 views (`dashboard.competitors_min_views` in `brand/brand.json`, 0 turns it off), and the panel says how many recent winners the floor left out.
+- **The base is visible.** Each row shows the account's median beside the ratio ("179x of 3.0K").
+- **No account fills the list.** At most 2 rows from one account are shown.
+- `/content-calendar ideas` uses the same floor and cap.
+
 ## 1.14.1 (2026-11-10)
 
 Fixes from a first real run of the competitor dashboard.
