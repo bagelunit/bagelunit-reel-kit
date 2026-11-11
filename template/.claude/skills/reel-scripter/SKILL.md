@@ -20,6 +20,9 @@ Turn one idea (or hook) into a tight, postable 30-45s reel script.
 ## When to use
 You have a hook or topic and need the whole script - what to say, in what order, with the on-screen text and a CTA that earns the follow.
 
+## About posting
+If the script talks about how the brand posts, describe the brand's real setup, not the questions a skill asks: the platforms are fixed per brand (`brand.json` -> `posting.platforms`) and the times are planned ahead in `brand/plan.md`, then adjusted by the numbers. Never write "I pick the time and tick the platforms", and say nothing about posting that the owner has not cleared in `brand/facts.md`.
+
 ## What you'll need
 The idea or hook, the platform (Reels / TikTok / Shorts), the audience, and the goal (follows / saves / DMs / link clicks). Optional: your brand voice.
 

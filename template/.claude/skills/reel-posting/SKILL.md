@@ -64,7 +64,9 @@ Only when the owner asks. Walk it one step at a time and keep a short checklist 
    owner; "Not now" ends the publisher setup here), the R2 bucket, `npx wrangler deploy`, `setup.mjs --url
    <address>`, `setup.mjs secrets --dry-run`, then `setup.mjs secrets` (it moves every token from the owner's files to
    Cloudflare without showing it; never use `wrangler secret put` with a value yourself, and never ask for a token).
-   Then `node publisher/scripts/setup.mjs check`. Record `posting.method` = "publisher".
+   Then `node publisher/scripts/setup.mjs check`. Record `posting.method` = "publisher". Then ask **once** where every reel
+   goes (one question block, multi-select: Instagram first, then the other connected platforms) and save the answer in
+   `brand.json` -> `posting.platforms`; route 3 uses it for every reel without asking again.
 4. **Test once in dry run** with one approved reel (route 3), before `autopilot.post` is on: with every platform it
    goes to in dry run, `schedule.mjs` allows it without `autopilot.post` (a dry run posts nothing). At its time the
    publisher records what it would send and posts nothing; `node publisher/scripts/schedule.mjs status` and the
@@ -93,21 +95,36 @@ A/B test and goes out as a **trial reel**: Instagram shows it to non-followers f
 
 ## Route 3: scheduling one reel (after route 2 is set up)
 
-1. Run the Gate above. Then ask the time (question block with 2 or 3 suggested slots plus Other) and the
-   timezone if `brand.json` has none.
-2. **With the kit's publisher**, also ask (one question block, multi-select) where it goes: "Instagram" (always
-   offered first), "Facebook Page", "Threads" (only the platforms `setup.mjs check` shows as connected). For
-   Threads ask "The video" or "A short text with the reel's link". If `/reel-repurpose` has not written
-   `out/platforms/facebook.txt` or `threads.txt`, say the caption is used (Threads allows 500 characters; a longer
-   caption needs its own `threads.txt`, written and humanized first).
+**Where it goes and when are the brand's standing choices, not a question for every reel.** Platforms: `brand.json` ->
+`posting.platforms` (for example Instagram, Facebook and Threads). Time: the reel's row in `brand/plan.md`
+(the month is planned ahead, and `/content-calendar best-times` moves the times toward what works). Ask for them
+**once**, when route 2 is set up, and save them: the platforms with the owner's yes (only platforms `setup.mjs check`
+shows as connected, Instagram first), the times through `/content-calendar plan` or `days`. Never describe the
+posting flow as "I pick the time and tick the platforms" in a script or a caption: the brand's real setup is fixed
+platforms and planned times.
+
+1. Run the Gate above. Then look for the standing choices:
+   - **Both set** (`posting.platforms` is filled in, and the reel has a row in `brand/plan.md` with a date and a
+     time): go to step 3 with `--from-plan`, no question yet.
+   - **Platforms missing:** ask once (one question block, multi-select: "Instagram" first, "Facebook Page",
+     "Threads", only the connected ones), then save the answer in `brand.json` -> `posting.platforms`. For Threads
+     the default is the video; "a short text with the reel's link" is a per-reel choice (`--threads text`).
+   - **No plan row, or the row has no time:** ask the time (question block with 2 or 3 suggested slots from
+     `posting.times`, plus Other; the timezone if `brand.json` has none), then offer to add the row to `plan.md`.
+2. If `/reel-repurpose` has not written `out/platforms/facebook.txt` or `threads.txt`, say the caption is used
+   (Threads allows 500 characters; a longer caption needs its own `threads.txt`, written and humanized first).
 3. Run the checks without sending anything:
-   `node publisher/scripts/schedule.mjs reels/<slug> --at <ISO time with offset> --platforms <list> [--threads text] [--trial] --preview`.
-   Show its summary (it says DRY RUN or LIVE: this really posts) with the posting card, and ask "Schedule it?"
-   (question block: "Schedule (Recommended)", "Change something", "Not now"). If the preview refuses (Gate C, a
-   changed file or cover, a caption too long, a video too long for a platform, mixed modes, or a live publisher
-   while `autopilot.post` is off), say why in plain words and stop. In dry run, say that this post stays a dry run
-   even if the publisher goes live before its time. A video too long only for Facebook (over 90 seconds) or a story (over 60) can still go to the other
-   platforms: offer that as a choice, never drop a platform without the owner's yes.
+   `node publisher/scripts/schedule.mjs reels/<slug> --from-plan [--platforms <list>] [--threads text] [--trial] --preview`
+   (or `--at <ISO time with offset>` when there is no plan row; `--platforms` only overrides the brand's list for
+   this one reel). Show its summary (it says DRY RUN or LIVE: this really posts, where the time and platforms came
+   from, and the posting card), then ask **one question**: "Schedule it at <the summary's time> on <its platforms>?"
+   (question block: "Schedule (Recommended)", "Change something", "Not now"). That one yes is the owner's yes to this
+   reel, its time and its platforms (house rule 11). If the preview refuses (Gate C, a changed file or cover, a
+   caption too long, a video too long for a platform, mixed modes, a plan row with no time or a time that has passed, or a
+   live publisher while `autopilot.post` is off), say why in plain words and stop. In dry run, say that this post
+   stays a dry run even if the publisher goes live before its time. A video too long only for Facebook (over 90
+   seconds) or a story (over 60) can still go to the other platforms: offer that as a choice, never drop a platform
+   without the owner's yes.
 4. After the owner's yes, run the same command with `--yes` in place of `--preview`. It uploads the approved video
    and cover, schedules them and writes the "Scheduled" line under `## Posting` itself. Without the publisher,
    schedule it the brand's way and write the line yourself (shapes above).
@@ -122,6 +139,6 @@ A/B test and goes out as a **trial reel**: Instagram shows it to non-followers f
 
 - Never post or schedule a reel that did not pass Gate C, or a file that changed after it.
 - Never type a password, never ask for or print a token or key, and never pass a secret to a command yourself: `setup.mjs secrets` moves them. `wrangler login`, the storage commands and `wrangler deploy` run only during setup or a change the owner said yes to. `npx wrangler delete` is shown to the owner to run, never run by you.
-- Never use `--yes` without the owner's yes to that reel, its time and its platforms in this conversation.
+- Never use `--yes` without the owner's yes to that reel, its time and its platforms in this conversation (the one question in step 3 is that yes, because it shows the time and the platforms).
 - Never switch a platform from dry run to live without the owner's yes for that platform in this conversation.
 - Never change the caption at posting time; a changed caption goes back through `/humanizer` and the owner.

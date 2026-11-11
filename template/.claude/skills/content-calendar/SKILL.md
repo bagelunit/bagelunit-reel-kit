@@ -11,7 +11,7 @@ description: >
   reels a week", "posting frequency", "track my competitors", "what are my competitors posting", "competitor
   dashboard", "what's working for them" or "post ideas from my competitors".
 user-invokable: true
-argument-hint: "[plan | days | how-often | competitors | ideas | host | connect instagram | connect facebook | connect threads | connect telegram | auto | all | off]"
+argument-hint: "[plan | days | how-often | best-times | competitors | ideas | host | connect instagram | connect facebook | connect threads | connect telegram | auto | all | off]"
 metadata:
   author: BagelUnit
   version: "2.0.0"
@@ -43,6 +43,7 @@ Ask every choice with a question block (AskUserQuestion), the recommended option
 | `brand/research/history.csv` | one line a day per competitor from `competitors.mjs sync` (date, handle, followers, posts read, median views, source): the only record of their growth |
 | `brand/ideas.md` | post ideas drafted from the competitors' winners: Date, Idea, Hook, Based on, Goal, Angle, Status (`suggested`, `planned`, `rejected`); written by `/content-calendar ideas` |
 | `brand/how-often.json` | written by `how-often.mjs`: the suggested posting pace and why; the Planner panel shows it |
+| `brand/best-times.json` | written by `best-times.mjs`: the suggested posting times and why (the brand's own hours, the audience's online hours, optionally the competitors' winners); the Planner panel shows it |
 | `brand/calendar.md`, `brand/dashboard.html` | written by `calendar.mjs` each run (the page itself is drawn by `page.mjs`; fonts in `fonts/`) |
 | `brand/brand.json` | `posting.timezone`, `posting.days`, `posting.times` (or the older single `posting.time`), `batch.max_reels`, and `dashboard`: `instagram`, `facebook`, `threads`, `telegram`, `competitors` (each on only after the owner's yes; `competitors_every` is the days between reads, default 7; `competitors_days` is how many recent days "What is working for them" covers, default 7; `competitors_min_views` is the views a winner must also have, default 5000, so one hit on a tiny account does not top the list), `refresh` (with `time` and `day`, written by `schedule.mjs`), `host` (`local`, `wifi`, `netlify`, `cloudflare` or `folder`), `site` (the Netlify site id or Cloudflare Pages project), `url` (the site's https address), `path_key` (the private path, made by `host.mjs` run by hand) and `publish_every` (minutes between background uploads, default 15, 0 for the scheduled refresh only) |
 
@@ -141,6 +142,28 @@ and the suggestion with its reasons. Say plainly that it is a starting point: ho
 that posting that often is why they do well. Then ask "Use <N> a week (Recommended)", "Keep <current>", "Pick my
 own". On a number, run the days step below with it (days and times that add up to it, and `batch.max_reels`).
 Run it again about once a month; the Planner panel shows the latest suggestion and its date.
+
+## /content-calendar best-times: when to post
+
+The plan is made ahead (`brand/plan.md`, times from `posting.times`); this moves those times toward what works for this
+account, from numbers on this computer, never a rule of thumb ("post at 7 pm" is guesswork, and house rule 1 bans numbers the kit cannot back).
+Three sources, each used only when there is enough of it:
+1. **The brand's own posts** (`instagram.json`, `facebook.json`, `threads.json`): each settled post (48 hours or older)
+   as a multiple of its platform's median views, grouped by the hour it went out in `posting.timezone`. It needs 15
+   posts with numbers over 3 weeks, and 3 posts at an hour before that hour is judged. Before that it says "not
+   enough data yet" and leaves the times alone.
+2. **The audience's online hours** that the dashboard already reads from Instagram (Audience panel).
+3. **The competitors' winners** (`/content-calendar competitors`), a weak source with a small weight, labelled so.
+
+Run `node .claude/skills/content-calendar/best-times.mjs` (it also runs in the refresh). It keeps every time that already
+works and swaps one only for an hour that scores clearly better (at least 0.1 on a 0 to 1 scale) and sits 3 or more hours from the
+others, between 06:00 and 22:59. Show what it prints, with its reasons, and say plainly that it is a suggestion: Instagram's
+numbers are lifetime views, not the first 24 hours, so a recent post can look worse than it is, and weekdays are shown for information only.
+If it suggests a change, ask (question block: "Move the times (Recommended)", "Not now"). On yes, run
+`node .claude/skills/content-calendar/best-times.mjs apply` first (it only shows the change), show the plan rows it would move,
+then `apply --yes`: it sets `posting.times` and moves the plan rows that are still in the future and have no scheduled or
+posted reel. A reel that is already scheduled is never moved by it; to move one, cancel it and schedule it again, on the owner's word.
+`autopilot.retime` (off by default, set by the owner) lets the refresh do this itself at most once a week and say what changed in its summary.
 
 ## /content-calendar competitors: who the brand watches
 

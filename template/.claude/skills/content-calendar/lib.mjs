@@ -726,6 +726,14 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
     text: `Suggested: ${pace.suggestion.perWeek} a week${pace.suggestion.start ? `, starting at ${pace.suggestion.start}` : ''}${perWeek && perWeek !== pace.suggestion.perWeek ? ` (your plan: ${perWeek})` : ''}`,
     note: `from ${[pace.niche ? 'accounts like yours' : '', pace.own?.signal && !['not enough', 'same every week'].includes(pace.own.signal) ? 'your own numbers' : ''].filter(Boolean).join(' and ') || 'your numbers'}, ${pretty(dayKey(paceAt))}${now - paceAt > 45 * 864e5 ? ': run /content-calendar how-often again' : ''}`,
     href: 'how-often.json' }] : [];
+  // the posting times suggested by best-times.mjs (/content-calendar best-times), shown in the Planner panel
+  const bt = asObj(readJSON(path.join(root, 'brand', 'best-times.json'), null));
+  const btAt = bt && !isNaN(new Date(bt.at)) ? new Date(bt.at) : null;
+  const timesOut = bt && btAt && bt.status === 'suggested' && bt.moves?.length ? [{
+    text: `Suggested posting times: ${bt.suggested.join(', ')} (now ${bt.current.join(', ')})`,
+    note: `${bt.moves[0].reasons[0] || 'from your numbers'}${bt.moves.length > 1 ? ` and ${bt.moves.length - 1} more` : ''} · say yes and /content-calendar best-times moves the plan rows not yet scheduled`,
+    href: 'best-times.json' }]
+    : bt && btAt && bt.status === 'not_enough_data' ? [{ text: `Best posting times: not enough data yet (${bt.evidence?.own?.posts ?? 0} of 15 posts)`, note: 'it starts suggesting once there are 15 posts with numbers over 3 weeks', href: 'best-times.json' }] : [];
   const agents = [
     { key: 'ideator', name: 'Ideator', job: 'finds ideas in your comments, your best posts and reels worth studying',
       lastRun: madeAt('ideator'),
@@ -740,7 +748,7 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
     { key: 'planner', name: 'Planner', job: 'puts reels on your posting days and keeps the angles different',
       lastRun: madeAt('planner'),
       metrics: [[planned14.length, 'planned in the next 14 days'], [openSlots.filter((x) => x.key <= addDays(today, 13)).length, 'open slots in 14 days'], ...(perWeek ? [[`${thisWeek}/${perWeek}`, 'this week vs your target']] : [])],
-      output: [...paceOut, ...(mix.count >= 3 && (mix.repeat || mix.heavy || mix.unusedAngles.length) ? [{ text: mix.repeat ? `Change the angle: the last 3 were ${mix.repeat}` : mix.unusedAngles.length ? `Try an angle you have not used lately: ${mix.unusedAngles.slice(0, 2).join(', ')}` : `Mix in other angles than ${mix.heavy}`, note: 'from your last ' + mix.count + ' posts', href: null }] : []), ...planned14.slice(0, 6).map((x) => ({ id: x.id, text: x.title, note: `${pretty(dayKey(x.plannedAt))} · ${stageName(x.stage).toLowerCase()}`, href: x.fromPlan ? 'plan.md' : `../reels/${x.slug}/approvals.md` }))],
+      output: [...paceOut, ...timesOut, ...(mix.count >= 3 && (mix.repeat || mix.heavy || mix.unusedAngles.length) ? [{ text: mix.repeat ? `Change the angle: the last 3 were ${mix.repeat}` : mix.unusedAngles.length ? `Try an angle you have not used lately: ${mix.unusedAngles.slice(0, 2).join(', ')}` : `Mix in other angles than ${mix.heavy}`, note: 'from your last ' + mix.count + ' posts', href: null }] : []), ...planned14.slice(0, 6).map((x) => ({ id: x.id, text: x.title, note: `${pretty(dayKey(x.plannedAt))} · ${stageName(x.stage).toLowerCase()}`, href: x.fromPlan ? 'plan.md' : `../reels/${x.slug}/approvals.md` }))],
       next: postDays.length ? '/content-calendar plan' : '/content-calendar days, then plan', skills: '/content-calendar plan, /reel-posting' },
     { key: 'analyst', name: 'Analyst', job: 'reads your real numbers and says what to make more of',
       lastRun: madeAt('analyst'),

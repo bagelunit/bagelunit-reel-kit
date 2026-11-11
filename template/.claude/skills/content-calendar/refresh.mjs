@@ -6,6 +6,8 @@
 //   node .claude/skills/content-calendar/refresh.mjs [brand folder] [--no-instagram] [--no-telegram]
 //
 // Each part runs only when the brand owner turned it on in brand/brand.json -> dashboard (instagram, telegram, competitors).
+// The posting-times suggestion (best-times.mjs) is worked out on every refresh from files already on this computer; it
+// changes posting.times and the plan only when autopilot.retime is true.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -16,6 +18,7 @@ import { send, Plain as TgError } from './telegram.mjs';
 import { publishLocked } from './host.mjs';
 import { connected, pullFacebook, pullThreads } from './platforms.mjs';
 import { due as competitorsDue, syncAll as syncCompetitors } from './competitors.mjs';
+import { retimeStep } from './best-times.mjs';
 
 export async function refresh(root, { instagram = true, telegram = true } = {}) {
   const dash = readJSON(path.join(root, 'brand', 'brand.json')).dashboard || {};
@@ -63,6 +66,8 @@ export async function refresh(root, { instagram = true, telegram = true } = {}) 
       }
     } catch (e) { const msg = e instanceof IgError ? e.message : 'unexpected error (details hidden so no token can show)'; writeStatus(root, 'competitors', { ok: false, error: msg }); say(`Competitors: ${msg}`); }
   }
+  try { retimeStep(root, readJSON(path.join(root, 'brand', 'brand.json')), say); }     // best times: a suggestion, or (autopilot.retime) the change
+  catch { say('Best times: could not be worked out this time.'); }
   if (['netlify', 'cloudflare', 'folder'].includes(dash.host)) {   // put the fresh page online before the summary links to it
     build(root);
     // the same lock as the background waiter, so two uploads never run at once

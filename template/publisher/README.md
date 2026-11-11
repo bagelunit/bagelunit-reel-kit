@@ -83,11 +83,14 @@ The reel needs Gate C first. A live post also needs `"autopilot": {"post": true}
 
 ```
 node publisher/scripts/schedule.mjs reels/<slug> --at 2026-11-10T09:00:00-05:00
+node publisher/scripts/schedule.mjs reels/<slug> --from-plan
 ```
+
+`--from-plan` takes the date and time from the reel's row in `brand/plan.md` (the row whose "Reel (folder)" column names the reel; the time is read in `brand.json` -> `posting.timezone`). It refuses when there is no row, the row has no time, or the time has passed. Use `--at` or `--from-plan`, not both.
 
 Options:
 
-- `--platforms instagram,facebook,threads` (default: instagram)
+- `--platforms instagram,facebook,threads` (default: the list in `brand.json` -> `posting.platforms`, and Instagram alone when that is empty; the flag overrides it for one reel)
 - `--threads text` or `--threads video` (default video). Text posts the Threads text with the link to the Instagram reel, once Instagram has it.
 - `--trial` a trial reel on Instagram
 - `--story` also share the reel to your Instagram story

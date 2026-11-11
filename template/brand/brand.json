@@ -57,12 +57,13 @@
   },
   "work_dir": "~/dev/reel-work/<slug>",
   "posting": {
-    "_note": "How this brand's reels get posted: \"by hand\" (default), \"instagram-scheduler\", \"tool: <name>\" or \"own publisher\". Set with /reel-posting. Timezone for scheduling, e.g. America/Toronto. days and times: the brand's posting days (e.g. [\"tue\", \"thu\"]) and times on each of them, any number a day (one: [\"18:00\"]; several: [\"09:00\", \"13:00\", \"19:00\"]), set with /content-calendar days; every time on a posting day is one slot, and the calendar marks empty ones as open. time is the older single time, still read when times is empty.",
+    "_note": "How this brand's reels get posted: \"by hand\" (default), \"instagram-scheduler\", \"tool: <name>\" or \"own publisher\". Set with /reel-posting. Timezone for scheduling, e.g. America/Toronto. days and times: the brand's posting days (e.g. [\"tue\", \"thu\"]) and times on each of them, any number a day (one: [\"18:00\"]; several: [\"09:00\", \"13:00\", \"19:00\"]), set with /content-calendar days; every time on a posting day is one slot, and the calendar marks empty ones as open. time is the older single time, still read when times is empty. platforms = where every reel goes with the kit's publisher, e.g. [\"instagram\", \"facebook\", \"threads\"]; empty = Instagram only; schedule.mjs uses it when --platforms is not given, and /reel-posting asks about it once, not per reel. A reel's time comes from its row in brand/plan.md (schedule.mjs --from-plan).",
     "method": "by hand",
     "timezone": "",
     "days": [],
     "times": [],
-    "time": ""
+    "time": "",
+    "platforms": []
   },
   "dashboard": {
     "_note": "The content dashboard (/content-calendar, docs/dashboard.md). OFF until the brand owner turns each part on: instagram, facebook, threads = read this brand's own numbers on each through Meta's APIs (docs/connect.md); telegram = send the summary to the owner's phone; refresh = off, daily or weekly, set by /content-calendar auto (time on this computer's clock). host = where the page is viewed: local (default), wifi, netlify (suggested), cloudflare or folder (any other host), set by /content-calendar host; site = the Netlify site id or Cloudflare Pages project; url = its address, for the Telegram link. publish_every = with a host set, the online copy follows your changes at most every this many minutes (0 = only on the scheduled refresh). Tokens live in ~/.config/bagelunit-reels/, written by the owner.",
@@ -83,11 +84,12 @@
     "max_reels": 3
   },
   "autopilot": {
-    "_note": "OFF by default. The brand owner turns a permission on, see template CLAUDE.md section 3b",
+    "_note": "OFF by default. The brand owner turns a permission on, see template CLAUDE.md section 3b. retime = the daily refresh may move posting.times, and the plan rows not yet scheduled, to the hours the brand's own numbers favour (best-times.mjs; at most once a week, never a reel that is already scheduled).",
     "post": false,
     "dm_replies": false,
     "scrape": false,
-    "paid_renders": false
+    "paid_renders": false,
+    "retime": false
   },
   "updates": {
     "_note": "ON by default. true = at the start of a session, Claude checks once whether a newer kit version is out and tells you. It reads one public file from GitHub and never updates anything by itself.",

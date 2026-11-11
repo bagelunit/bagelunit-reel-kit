@@ -3,6 +3,7 @@
 // folder. Node 22, no packages.
 //
 //   node publisher/scripts/schedule.mjs <reel folder> --at 2026-11-10T09:00:00-05:00
+//        (or --from-plan: the date and time come from the reel's row in brand/plan.md, in brand.json -> posting.timezone)
 //        [--platforms instagram,facebook,threads] [--trial] [--threads text|video] [--collaborators a,b]
 //        [--location <id>] [--story] [--thumb-offset <ms>] [--no-feed] [--preview | --yes]
 //        --preview runs every check and shows the summary, then stops: nothing is uploaded or scheduled.
@@ -19,7 +20,8 @@
 //     90 s, Threads video up to 5 min) and the cover is a JPEG of 8 MB at most;
 //   - the caption is there and fits each platform (out/caption.txt; out/platforms/facebook.txt and threads.txt are
 //     used for those platforms when they exist);
-//   - the time has a timezone and is in the future;
+//   - the time has a timezone and is in the future (with --from-plan: the plan row has a date and a time);
+//   - the platforms are --platforms, else brand.json -> posting.platforms (the brand's fixed list), else Instagram only;
 //   - the publisher has each platform connected, and they are all in the same mode (all dry run or all live).
 // Then it shows a summary and needs the brand's handle typed (or --yes) before it uploads the video and cover (with
 // their SHA-256, which the publisher checks byte for byte) and schedules. If the publisher refuses the post, the
@@ -28,7 +30,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createInterface } from 'node:readline/promises';
-import { parseArgs, readJSON, read, sha256File, findBrand, brandSlug, atHandle, stamp, lastGateC, appendUnder, connection, admin, Plain, isMain, CONFIG_DIR } from './lib.mjs';
+import { parseArgs, readJSON, read, sha256File, findBrand, brandSlug, atHandle, stamp, lastGateC, appendUnder, connection, admin, Plain, isMain, CONFIG_DIR, planSlot, zonedIso } from './lib.mjs';
 import { checkText, checkLength, videoTargets, LIMITS } from '../src/limits.js';
 import { fileSeconds } from '../src/mp4.js';
 
@@ -73,8 +75,10 @@ export function checkReel(reelDir, args = {}, now = Date.now()) {
   }
 
   // where and how
-  const platforms = list(args.platforms).length ? list(args.platforms) : ['instagram'];
-  for (const p of platforms) if (!PLATFORMS.includes(p)) problems.push(`unknown platform "${p}" (use instagram, facebook, threads)`);
+  const given = list(args.platforms), brandList = Array.isArray(brand?.posting?.platforms) ? brand.posting.platforms.map((x) => String(x).trim().toLowerCase()).filter(Boolean) : [];
+  const platformsFrom = given.length ? 'flag' : brandList.length ? 'brand' : 'default';
+  const platforms = given.length ? given : brandList.length ? [...new Set(brandList)] : ['instagram'];
+  for (const p of platforms) if (!PLATFORMS.includes(p)) problems.push(`unknown platform "${p}"${platformsFrom === 'brand' ? ' in brand.json -> posting.platforms' : ''} (use instagram, facebook, threads)`);
   const threadsMode = args.threads === 'text' ? 'text' : 'video';
   if (args.threads && !['text', 'video'].includes(args.threads)) problems.push('--threads takes text or video');
   if (platforms.includes('threads') && threadsMode === 'text' && !platforms.includes('instagram')) problems.push('a Threads text post links to the Instagram post: add instagram to --platforms or use --threads video');
@@ -104,14 +108,30 @@ export function checkReel(reelDir, args = {}, now = Date.now()) {
   }
 
   // the time
-  const atStr = typeof args.at === 'string' ? args.at.trim() : '';
+  let atStr = typeof args.at === 'string' ? args.at.trim() : '';
+  let fromPlan = null;
+  if (args['from-plan']) {
+    const tz = brand?.posting?.timezone;
+    if (atStr) problems.push('give --at or --from-plan, not both');
+    else if (!tz) problems.push('brand.json -> posting.timezone is not set (for example America/Toronto): --from-plan needs it');
+    else {
+      const slot = planSlot(root, reel);
+      if (slot.problem) problems.push(slot.problem);
+      else {
+        const iso = zonedIso(slot.date, slot.time, tz);
+        if (!iso) problems.push(`posting.timezone "${tz}" or the plan time ${slot.date} ${slot.time} could not be read`);
+        else { atStr = iso; fromPlan = { date: slot.date, time: slot.time, tz }; }
+      }
+    }
+  }
   const at = new Date(atStr);
-  if (!atStr || Number.isNaN(at.getTime()) || !/(Z|[+-]\d\d:?\d\d)$/.test(atStr)) problems.push('--at needs a date, time and timezone, e.g. 2026-11-10T09:00:00-05:00');
-  else if (at.getTime() <= now) problems.push('--at is in the past');
+  const badAt = !atStr || Number.isNaN(at.getTime()) || !/(Z|[+-]\d\d:?\d\d)$/.test(atStr);
+  if (badAt) { if (!args['from-plan']) problems.push('--at needs a date, time and timezone, e.g. 2026-11-10T09:00:00-05:00 (or --from-plan to use the reel\'s row in brand/plan.md)'); }   // with --from-plan the reason is already listed
+  else if (at.getTime() <= now) problems.push(fromPlan ? `the plan time ${fromPlan.date} ${fromPlan.time} has already passed: move the row in brand/plan.md, or give --at` : '--at is in the past');
 
   return {
     problems: [...new Set(problems)], reel, root, brand, slug: brandSlug(root, brand), handle, postAllowed, gate, video, sha, cover, coverSha, seconds,
-    text, platforms, at, atStr,
+    text, platforms, platformsFrom, fromPlan, at, atStr,
     options: {
       trial: args.trial === true, story: args.story === true, share_to_feed: args['no-feed'] !== true, threads_mode: threadsMode,
       ...(collaborators.length ? { collaborators } : {}), ...(args.location ? { location_id: String(args.location) } : {}),
@@ -142,8 +162,8 @@ export function summary(c, info, mode) {
     `  reel        ${path.basename(c.reel)}`,
     `  video       out/${c.gate.file}  sha256 ${c.sha.slice(0, 12)} (matches Gate C)${c.seconds != null ? `, ${Math.round(c.seconds * 10) / 10} seconds` : ''}`,
     `  cover       ${c.cover ? `out/${c.gate.cover.file}  sha256 ${c.coverSha.slice(0, 12)} (matches Gate C)${c.platforms.includes('facebook') ? ', also set as the Facebook cover' : ''}` : `none approved: Instagram uses the frame at ${c.options.thumb_offset || 0} ms${c.platforms.includes('facebook') ? ', Facebook picks its own' : ''}`}`,
-    `  time        ${local}  (${c.at.toISOString()})`,
-    `  platforms   ${c.platforms.join(', ')}${c.options.story ? ', and the reel as an Instagram story' : ''}`,
+    `  time        ${local}  (${c.at.toISOString()})${c.fromPlan ? `  [from brand/plan.md: ${c.fromPlan.date} ${c.fromPlan.time}]` : ''}`,
+    `  platforms   ${c.platforms.join(', ')}${c.platformsFrom === 'brand' ? '  [from brand.json -> posting.platforms]' : ''}${c.options.story ? ', and the reel as an Instagram story' : ''}`,
     `  mode        ${mode === 'live' ? 'LIVE: this really posts' : 'dry run: nothing is posted, the publisher records what it would send (it stays a dry run even if the publisher goes live before then)'}`,
   ];
   if (c.options.trial) lines.push('  trial       yes: Instagram shows it to non-followers first; you share it to followers in the app');

@@ -2,6 +2,23 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.16.0 (2026-11-11)
+
+**Posting follows your plan, and the times follow your numbers.** Feedback from a brand posting three reels a day to Instagram, its Facebook Page and Threads: platforms and times are decided once, ahead of time, so the kit should not ask for them on every reel.
+
+- **Platforms are a brand setting.** `brand.json` -> `posting.platforms` (for example `["instagram", "facebook", "threads"]`) is where every reel goes. `schedule.mjs` uses it when `--platforms` is not given (the flag still overrides it for one reel; with nothing set it is Instagram only, as before). `/reel-posting` asks about it once, when the publisher is set up.
+- **The time comes from the plan.** `schedule.mjs <reel> --from-plan` reads the date and time from the reel's row in `brand/plan.md` and reads them in `posting.timezone`, daylight saving included. It refuses when the reel has no row, the row has no time, or the time has passed. `--at` still works; use one or the other.
+- **One question after Gate C.** When both are set, `/reel-posting` asks only "Schedule it at (time) on (platforms)?". That one yes still counts as the owner's yes to this reel, its time and its platforms (house rule 11), because the question shows both.
+- **Best times.** New `/content-calendar best-times` (`best-times.mjs`, also run by the daily refresh). It suggests new `posting.times` from three sources: your own posts (views against each platform's median, by the hour they went out; it waits for 15 posts over 3 weeks and says "not enough data yet" before that), when your audience is online (the Audience panel's data), and, as weak evidence, the hours the tracked competitors' winners went out. It keeps every time that already works, swaps one only for an hour that scores clearly better, keeps posts 3 hours apart and stays between 06:00 and 22:59. The Planner panel shows the suggestion with its reasons. On your yes, `best-times.mjs apply --yes` sets `posting.times` and moves the plan rows that are still in the future and have no scheduled or posted reel. A reel that is already scheduled is never moved. Honest limit: Instagram gives lifetime views, not the first 24 hours, so a recent post can look weaker than it will be.
+- **Optional autopilot.** `brand.json` -> `autopilot.retime` (off by default). When you turn it on, the refresh applies the suggestion by itself, at most once a week, never touching a scheduled reel, and says what it changed in its summary.
+- **Scripts about posting.** `/reel-scripter` now says to describe the brand's real setup (fixed platforms, planned times), not the questions the posting skill asks.
+
+**Two engine fixes** (also in `studio/LOCAL-CHANGES.md`):
+- `kit export` no longer reuses a stale `build/mix.wav`. If the voice take, the word timings or the sound cues are newer than the mix, it mixes again and says so. Before, a new voice take could ship the old voice, the wrong length and no end hold unless you added `--remix`.
+- `realsound.py` looks up a relative `--video` or `--out` in the reel folder first, so it works from the brand folder as well as from inside the reel folder.
+
+**What to do.** After updating: `node setup/sync-template.mjs <workspace>` (dry run), then `--apply`; re-run `bash setup/install.sh` (Windows `node setup/install.mjs`) for the engine fixes. To use the new posting flow, set `posting.platforms` in `brand/brand.json` and give each plan row a date and time. **Not tried on a live account yet:** the best-times suggestion is tested on made-up data and has not seen a real brand's numbers; read its reasons before you say yes.
+
 ## 1.15.0 (2026-11-11)
 
 **Send the link only to people who follow you.** A comment-to-DM rule can now ask for a follow first. In the rule (`publisher/rules.json`) add `"require_follow": true`:

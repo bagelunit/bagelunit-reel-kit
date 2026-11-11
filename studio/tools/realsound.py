@@ -11,6 +11,7 @@ Real-recording sound step for a reel, replacing the kit's synthesised effects:
 
 Usage (run with earshot's Python, which has numpy/soundfile):
   ~/dev/sound/earshot/.venv/bin/python realsound.py <reel> [--video out/<name>.mp4|build/draft.mp4] [--out FILE.mp4]
+Relative --video and --out paths are looked up in the reel folder first, so it works from any folder (then in the folder you ran it from).
         [--lufs -14] [--no-snap] [--no-listen]
 Default video: the newest of out/*.mp4, build/final.mp4, build/draft.mp4. Default output: the same file with -real before .mp4.
 """
@@ -45,6 +46,16 @@ MIN_GAP = 0.45              # s between kept cues (pro reels run ~1.25 hits/s; t
 
 def sh(cmd, **kw):
     return subprocess.run(cmd, check=True, capture_output=True, **kw)
+
+
+def in_reel(reel, path, must_exist=True):
+    """A relative --video or --out is looked up in the reel folder first (out/name.mp4 means <reel>/out/name.mp4, from any
+    folder you run this in), then in the folder you ran it from. An absolute path is used as it is."""
+    if os.path.isabs(path): return path
+    inside = os.path.join(reel, path)
+    here = os.path.abspath(path)
+    if must_exist: return inside if os.path.exists(inside) or not os.path.exists(here) else here
+    return inside if os.path.isdir(os.path.dirname(inside)) or not os.path.isdir(os.path.dirname(here)) else here
 
 
 def pick_video(reel):
@@ -129,8 +140,8 @@ def main():
                     help="louder (default, owner 2026-11-05): hits mixed as hero so they cut through the voice; softer: support weights")
     a = ap.parse_args()
     reel = os.path.abspath(a.reel)
-    video = os.path.abspath(a.video) if a.video else pick_video(reel)
-    out = a.out or video[:-4] + "-real.mp4"
+    video = in_reel(reel, a.video) if a.video else pick_video(reel)
+    out = in_reel(reel, a.out, must_exist=False) if a.out else video[:-4] + "-real.mp4"
     work = os.path.join(reel, "build", "realsound")
     os.makedirs(work, exist_ok=True)
     if not os.path.exists(os.path.join(KIT, "catalog.json")):

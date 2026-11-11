@@ -5,7 +5,7 @@ import path from 'node:path';
 import { checkReel, scheduleReel, postingLine, cancel, status } from '../scripts/schedule.mjs';
 import { pull } from '../scripts/pull.mjs';
 import { followCheck, writeToml, steps, check, names, sendSecrets, saveUrl, secretPlan, subscribe, loginOf } from '../scripts/setup.mjs';
-import { lastGateC, appendUnder, parseArgs, sha256File, connection, Plain, isMain } from '../scripts/lib.mjs';
+import { lastGateC, appendUnder, parseArgs, sha256File, connection, Plain, isMain, zonedIso, planRows, planSlot } from '../scripts/lib.mjs';
 import { forget } from '../scripts/forget.mjs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -451,4 +451,84 @@ test('setup subscribe: turns on the account\'s notifications on the right host, 
   await assert.rejects(subscribe({ slug: 'ph', configDir: cfg, fetchImpl: ok, log: quiet }), /has no token yet/);
   fs.writeFileSync(path.join(cfg, 'instagram-noid.json'), JSON.stringify({ access_token: 'T' }));
   await assert.rejects(subscribe({ slug: 'noid', configDir: cfg, fetchImpl: ok, log: quiet }), /account id is not saved yet/);
+});
+
+// ---------- the brand's fixed platforms and the plan's time (1.16.0) ----------
+function withBrand(ws, patch) {
+  const f = path.join(ws, 'brand', 'brand.json');
+  const b = JSON.parse(fs.readFileSync(f, 'utf8'));
+  fs.writeFileSync(f, JSON.stringify({ ...b, ...patch, posting: { ...b.posting, ...(patch.posting || {}) } }));
+}
+const planMd = (rows) => `# plan.md\n\n## Week of 2026-11-30\n\n| Date | Topic | Goal | Angle | Reel (folder) | Notes |\n|---|---|---|---|---|---|\n${rows.join('\n')}\n\n## Week of 2026-12-07\n\n| Date | Topic | Reel (folder) |\n|---|---|---|\n| 2026-12-07 08:00 | later | other |\n`;
+
+test('zonedIso gives the offset of that zone on that day, daylight saving included', () => {
+  assert.equal(zonedIso('2026-11-12', '13:00', 'America/Toronto'), '2026-11-12T13:00:00-05:00');
+  assert.equal(zonedIso('2026-07-12', '08:30', 'America/Toronto'), '2026-07-12T08:30:00-04:00');
+  assert.equal(zonedIso('2026-03-08', '08:00', 'America/Toronto'), '2026-03-08T08:00:00-04:00');     // the morning clocks went forward
+  assert.equal(zonedIso('2026-11-12', '9:05', 'UTC'), '2026-11-12T09:05:00+00:00');
+  assert.equal(zonedIso('2026-11-12', '25:00', 'UTC'), null);
+  assert.equal(zonedIso('2026-11-12', '09:00', 'Not/AZone'), null);
+});
+
+test('plan rows are read across weekly tables, and a reel finds its own row', () => {
+  const { ws, reel } = workspace();
+  const day = new Date(Date.now() + 5 * 864e5).toISOString().slice(0, 10);
+  fs.writeFileSync(path.join(ws, 'brand', 'plan.md'), planMd([`| ${day} 13:00 | topic | save | x | r | note |`, `| ${day} 16:00 | other topic | save | x | \`reels/zz\` | |`]));
+  assert.equal(planRows(fs.readFileSync(path.join(ws, 'brand', 'plan.md'), 'utf8')).length, 3);
+  const slot = planSlot(ws, reel);
+  assert.equal(slot.date, day); assert.equal(slot.time, '13:00');
+  assert.match(planSlot(ws, path.join(ws, 'reels', 'nope')).problem, /no row for nope/);
+});
+
+test('posting.platforms is the default, --platforms overrides it, and a bad name is named', () => {
+  const { ws, reel } = workspace();
+  assert.deepEqual(checkReel(reel, { at: future() }).platforms, ['instagram']);                       // no setting: Instagram only, as before
+  withBrand(ws, { posting: { platforms: ['instagram', 'facebook', 'threads'] } });
+  const c = checkReel(reel, { at: future() });
+  assert.deepEqual(c.platforms, ['instagram', 'facebook', 'threads']); assert.equal(c.platformsFrom, 'brand');
+  assert.deepEqual(checkReel(reel, { at: future(), platforms: 'instagram' }).platforms, ['instagram']);
+  assert.equal(checkReel(reel, { at: future(), platforms: 'instagram' }).platformsFrom, 'flag');
+  withBrand(ws, { posting: { platforms: ['instagram', 'tiktok'] } });
+  assert.match(checkReel(reel, { at: future() }).problems.join(), /unknown platform "tiktok" in brand.json -> posting.platforms/);
+});
+
+test('--from-plan takes the time from the reel\'s plan row, and refuses without one', () => {
+  const { ws, reel } = workspace();
+  const day = new Date(Date.now() + 5 * 864e5).toISOString().slice(0, 10);
+  fs.writeFileSync(path.join(ws, 'brand', 'plan.md'), planMd([`| ${day} 13:00 | topic | save | x | r | |`]));
+  const c = checkReel(reel, { 'from-plan': true });
+  assert.deepEqual(c.problems, []);
+  assert.match(c.atStr, new RegExp(`^${day}T13:00:00-0[45]:00$`)); assert.equal(c.fromPlan.time, '13:00');
+  assert.match(checkReel(reel, { 'from-plan': true, at: future() }).problems.join(), /--at or --from-plan, not both/);
+  fs.writeFileSync(path.join(ws, 'brand', 'plan.md'), planMd([`| ${day} | topic | save | x | r | |`]));
+  assert.match(checkReel(reel, { 'from-plan': true }).problems.join(), /date \(.*\) but no time/);
+  fs.writeFileSync(path.join(ws, 'brand', 'plan.md'), planMd(['| 2020-01-02 09:00 | topic | save | x | r | |']));
+  assert.match(checkReel(reel, { 'from-plan': true }).problems.join(), /already passed/);
+  fs.writeFileSync(path.join(ws, 'brand', 'plan.md'), planMd([`| ${day} 13:00 | topic | save | x | someone-else | |`]));
+  assert.match(checkReel(reel, { 'from-plan': true }).problems.join(), /no row for r/);
+  withBrand(ws, { posting: { timezone: '' } });
+  assert.match(checkReel(reel, { 'from-plan': true }).problems.join(), /posting.timezone is not set/);
+  assert.match(checkReel(reel, {}).problems.join(), /--at needs a date.*--from-plan/);                  // neither flag
+});
+
+test('scheduling with --from-plan and the brand platforms posts them, and the preview says where they came from', async () => {
+  const { ws, reel, cfg } = workspace();
+  const day = new Date(Date.now() + 5 * 864e5).toISOString().slice(0, 10);
+  fs.writeFileSync(path.join(ws, 'brand', 'plan.md'), planMd([`| ${day} 16:00 | topic | save | x | r | |`]));
+  withBrand(ws, { posting: { platforms: ['instagram', 'facebook', 'threads'] } });
+  const sent = [], logs = [];
+  const fetchImpl = async (url, o = {}) => {
+    const u = new URL(url);
+    if (u.pathname === '/admin') return Response.json({ platforms: { instagram: { configured: true, mode: 'dry_run' }, facebook: { configured: true, mode: 'dry_run' }, threads: { configured: true, mode: 'dry_run' } }, api_setup: 'unified' });
+    if (u.pathname === '/admin/upload') return Response.json({ key: `k${sent.length}` });
+    if (u.pathname === '/admin/schedule') { sent.push(JSON.parse(o.body)); return Response.json({ id: 'abcdef012345', mode: 'dry_run' }); }
+    return Response.json({});
+  };
+  const r = await scheduleReel(reel, { 'from-plan': true, preview: true }, { fetchImpl, configDir: cfg, log: (x) => logs.push(x) });
+  assert.equal(r.preview, true);
+  const text = logs.join('\n');
+  assert.match(text, /\[from brand\/plan.md: .* 16:00\]/); assert.match(text, /instagram, facebook, threads {2}\[from brand.json -> posting.platforms\]/);
+  await scheduleReel(reel, { 'from-plan': true, yes: true }, { fetchImpl, configDir: cfg, log: quiet });
+  assert.deepEqual(sent[0].platforms, ['instagram', 'facebook', 'threads']);
+  assert.match(sent[0].at, new RegExp(`^${day}T16:00:00-0[45]:00$`));
 });

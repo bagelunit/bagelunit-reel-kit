@@ -168,7 +168,10 @@ function exportReel() {
   const picture = ['build/video.mp4', 'build/draft.mp4'].map((f) => path.join(reel.dir, f)).find((f) => fs.existsSync(f));
   if (!picture) die('nothing rendered yet: run  kit render <dir> --final');
   const mix = path.join(reel.dir, 'build', 'mix.wav');
-  if (flags.remix || !fs.existsSync(mix)) sound();
+  // a mix older than the voice take, the word timings or the sound cues is stale (a new take changes the length): mix again, never reuse it
+  const newer = fs.existsSync(mix) ? ['audio/vo.mp3', 'build/words.json', 'build/sfx.json'].find((f) => { const p = path.join(reel.dir, f); return fs.existsSync(p) && fs.statSync(p).mtimeMs > fs.statSync(mix).mtimeMs + 1000; }) : null;
+  if (newer) console.log(`build/mix.wav is older than ${newer}: mixing the sound again (a new voice take changes the length)`);
+  if (flags.remix || !fs.existsSync(mix) || newer) sound();
   const out = path.join(reel.dir, 'out', `${reel.name}.mp4`);
   fs.mkdirSync(path.dirname(out), { recursive: true });
   ffmpeg(['-i', picture, '-i', mix, '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-maxrate', '12M', '-bufsize', '24M',

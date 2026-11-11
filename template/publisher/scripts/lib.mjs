@@ -111,3 +111,53 @@ export async function admin(conn, method, p, { body, headers = {}, fetchImpl = f
   if (!res.ok) throw new Plain(`${method} ${p.split('?')[0]}: ${res.status} ${hide(data.error || '')}`.trim());
   return data;
 }
+
+// ---- the plan: brand/plan.md rows, and a local date and time turned into an ISO time with the timezone's offset ----
+// "2026-11-12", "13:00", "America/Toronto" -> "2026-11-12T13:00:00-05:00" (null for a bad date, time or zone).
+export function zonedIso(date, time, tz) {
+  const d = String(date).match(/^(\d{4})-(\d{2})-(\d{2})$/), t = String(time).match(/^(\d{1,2}):(\d{2})$/);
+  if (!d || !t || +t[1] > 23 || +t[2] > 59) return null;
+  const want = Date.UTC(+d[1], +d[2] - 1, +d[3], +t[1], +t[2]);
+  const offsetAt = (ms) => {
+    const f = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+    const q = Object.fromEntries(f.formatToParts(new Date(ms)).map((x) => [x.type, x.value]));
+    return Date.UTC(+q.year, +q.month - 1, +q.day, +q.hour, +q.minute) - ms;
+  };
+  try {
+    let utc = want - offsetAt(want);
+    utc = want - offsetAt(utc);                                   // once more: the offset can change on the day (daylight saving)
+    const off = offsetAt(utc) / 60000, a = Math.abs(off), p2 = (n) => String(n).padStart(2, '0');
+    return `${date}T${p2(+t[1])}:${t[2]}:00${off < 0 ? '-' : '+'}${p2(Math.floor(a / 60))}:${p2(a % 60)}`;
+  } catch { return null; }
+}
+
+// The rows of every table in plan.md: [{ cells: {header: value}, line }], where line is the 0-based line in the file.
+// A header row is one followed by a |---| row; each weekly section may have its own.
+export function planRows(text) {
+  const lines = String(text || '').split('\n'), rows = [];
+  const cells = (l) => l.trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
+  let head = null;
+  for (let i = 0; i < lines.length; i++) {
+    if (!lines[i].trim().startsWith('|')) { head = null; continue; }
+    if (lines[i + 1] && /^\s*\|?\s*:?-{2,}/.test(lines[i + 1]) && !/^\s*\|?\s*:?-{2,}/.test(lines[i])) { head = cells(lines[i]).map((h) => h.toLowerCase()); i++; continue; }
+    if (!head) continue;
+    const c = cells(lines[i]), o = {};
+    head.forEach((h, k) => { o[h] = c[k] ?? ''; });
+    rows.push({ cells: o, line: i });
+  }
+  return rows;
+}
+const firstKey = (o, names) => Object.keys(o).find((k) => names.some((n) => k === n || k.startsWith(n)));
+export const planDate = (cells) => cells[firstKey(cells, ['date', 'when', 'day'])] || '';
+export const planFolder = (cells) => (cells[firstKey(cells, ['reel', 'folder', 'slug'])] || '').replace(/[`]/g, '').replace(/^reels\//, '').replace(/\/+$/, '').trim();
+
+// The date and time the plan gives one reel: { row, date, time } or { problem }.
+export function planSlot(root, reelDir) {
+  const name = path.basename(path.resolve(reelDir));
+  const hit = planRows(read(path.join(root, 'brand', 'plan.md'))).find((r) => planFolder(r.cells) === name);
+  if (!hit) return { problem: `brand/plan.md has no row for ${name} (its "Reel (folder)" column must say ${name}): add the row, or give --at` };
+  const m = planDate(hit.cells).match(/(\d{4}-\d{2}-\d{2})(?:[ T]+(\d{1,2}:\d{2}))?/);
+  if (!m) return { problem: `the plan row for ${name} has no date: add one to brand/plan.md, or give --at` };
+  if (!m[2]) return { problem: `the plan row for ${name} has a date (${m[1]}) but no time: add one (for example ${m[1]} 13:00), or give --at` };
+  return { row: hit, date: m[1], time: m[2].padStart(5, '0') };
+}
