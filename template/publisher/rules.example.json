@@ -1,12 +1,29 @@
 {
-  "_note": "Comment auto-reply rules for this brand. Copy to rules.json, edit, then upload with: npx wrangler kv key put rules --path rules.json --binding KV --remote. A rule sends only when tested is true (you tried the keyword from a second account) and MODE is live. The public reply never has a link; the link goes in the dm. disclosure is added to the end of every automatic DM.",
+  "_note": "Comment auto-reply rules for this brand. Copy to rules.json, edit, then upload with: npx wrangler kv key put rules --path rules.json --binding KV --remote. A rule sends only when tested is true (you tried the keyword from a second account) and MODE is live. The public reply never has a link; the link goes in the dm. disclosure is added to the end of every automatic DM. A rule with require_follow: true sends the link only to people who follow the account: the first private message (ask) has a button, the person taps or replies, the publisher reads whether they follow, then sends dm (the link) or a short reminder (follow_nudge, up to max_nudges times). ask and follow_nudge may not contain a link.",
   "disclosure": "(This is an automated reply.)",
   "rules": [
     {
       "name": "guide",
-      "match_text": ["GUIDE"],
+      "match_text": [
+        "GUIDE"
+      ],
       "reply": "Sent! Check your DMs.",
       "dm": "Here is the guide: https://example.com/guide",
+      "tested": false
+    },
+    {
+      "name": "kit-follow",
+      "match_text": [
+        "KIT"
+      ],
+      "reply": "Sent! Check your DMs.",
+      "require_follow": true,
+      "ask": "Thanks for commenting! Tap the button and I will send the kit.",
+      "button": "Send me the link",
+      "follow_nudge": "I can't see that you follow us yet. Follow the account, then tap the button again.",
+      "follow_button": "I'm following",
+      "max_nudges": 3,
+      "dm": "Here is the kit: https://example.com/kit",
       "tested": false
     }
   ]

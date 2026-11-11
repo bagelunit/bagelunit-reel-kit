@@ -10,9 +10,13 @@ These rules from `CLAUDE.md` still apply, whichever way you connect it:
 - The keyword is listed in `brand.json` -> `cta.tested_keywords`, which means it was tested by commenting from a second account (rule 4).
 - The public reply never contains a link. The link goes in the DM only (rule 12).
 - Replies and DMs only state what is in `brand/facts.md` (rule 1). A comment about price or a comparison with no cleared fact is left for a person.
-- DMs go only to people who commented. No cold DMs (rule 6).
+- DMs go only to people who commented, or who write back to the private message that answered their comment. No cold DMs (rule 6).
 - A comment that matches no keyword is left for a person, never guessed at.
 - Claude never logs in, never handles a token or password, and never starts a scheduled job by itself.
+
+## Link only for followers (optional)
+
+Some brands give the link only to people who follow. The publisher can do it (`"require_follow": true` in the rule, `publisher/README.md`): the comment gets a public reply and a private message with a button, the person taps it or writes back, the publisher reads whether they follow through Meta, and then sends the link, or a short reminder to follow (a few times at most). It is two steps because Meta allows one private message in answer to a comment and only lets the follow status be read once the person has messaged you. If Meta does not say, no link is sent. Test it with `node publisher/scripts/setup.mjs follow-check` before turning it on. Expect some people to comment and never tap: that is the cost of the gate. The no-code tools in B below offer the same gate in their own way.
 
 ## Two ways to connect it
 

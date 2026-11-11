@@ -9,6 +9,8 @@
 //   node publisher/scripts/setup.mjs --url <https://...workers.dev>     save the publisher's address for the kit
 //   node publisher/scripts/setup.mjs check                              ask the deployed publisher if it is working
 //   node publisher/scripts/setup.mjs subscribe [--dry-run]              turn on Meta's comment and message notifications
+//   node publisher/scripts/setup.mjs follow-check [<id>]                 ask Meta whether a person who messaged the account follows it
+//                                                                        (no id: the newest person who messaged); the test before a require_follow rule goes live
 //                                                                       for this brand's Instagram account (keyword replies)
 //
 // secrets: every value comes from a file in ~/.config/bagelunit-reels/ that the connection checks wrote, or that the
@@ -233,12 +235,31 @@ export async function check({ root, fetchImpl = fetch, configDir = CONFIG_DIR, l
   return a;
 }
 
+// Meta's follow field for one person who has messaged the account (the field only answers after they have). With no id,
+// the newest received message in the publisher's inbox supplies one. Prints the answer; sends nothing to the person.
+export async function followCheck({ root, id = null, fetchImpl = fetch, configDir = CONFIG_DIR, log = console.log }) {
+  const conn = connection(brandSlug(root), configDir);
+  let who = id ? String(id) : null;
+  if (!who) {
+    const box = await admin(conn, 'GET', '/admin/inbox', { fetchImpl });
+    const last = (box.messages || []).find((m) => m.direction === 'received' && m.from_id);
+    if (!last) throw new Plain('nobody has messaged the account yet: send it a message from a second account (it must be public or follow-able), then run this again');
+    who = last.from_id;
+    log(`Checking the newest person who messaged (id ending ${who.slice(-4)}).`);
+  }
+  const r = await admin(conn, 'GET', `/admin/follow-check?id=${encodeURIComponent(who)}`, { fetchImpl });
+  if (r.error && r.follows == null) { log(`Meta did not answer the follow check: ${r.error}`); log('A follow gate cannot work until this answers. Likely causes: the account is on the Facebook Page login (use Instagram or Unified Login), the messages permission is missing, or the person has not messaged the account.'); return r; }
+  log(r.follows ? 'Meta says this person follows the account: the follow gate would send the link.' : 'Meta says this person does NOT follow the account: the follow gate would send a reminder. Follow the account from that second account, message again, and run this once more: it should now say they follow.');
+  return r;
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const root = findBrand(process.cwd());
   if (!root) throw new Plain('Run this inside the brand folder (where brand/brand.json is).');
   const slug = brandSlug(root, readJSON(path.join(root, 'brand', 'brand.json'), {}));
   if (args._[0] === 'check') return check({ root, settle: 15000 });
+  if (args._[0] === 'follow-check') { await followCheck({ root, id: args._[1] || null }); return; }
   if (args._[0] === 'subscribe') { await subscribe({ slug, dryRun: args['dry-run'] === true }); return; }
   if (args._[0] === 'secrets') {
     const only = typeof args.only === 'string' ? args.only.split(',').map((x) => x.trim().toUpperCase()).filter(Boolean) : null;

@@ -6,7 +6,8 @@
 //   2. Comment auto-replies (this file): Meta sends each new comment on the brand's posts to POST /webhook. A comment
 //      that matches a rule's keyword gets one link-free public reply and one private reply (a DM) with the resource.
 //      Comments that match no rule are left for a person. Mentions and messages are stored so the kit's dashboard
-//      can show them (GET /admin/inbox); the Worker never answers a message by itself.
+//      can show them (GET /admin/inbox). The Worker answers a message only from someone a require_follow rule asked
+//      (see below); any other message is only stored.
 //
 // Safety for auto-replies, in order:
 //   MODE        "dry_run" (default) logs what it would send and sends nothing. Only "live" sends.
@@ -20,6 +21,14 @@
 //   rate cap    at most MAX_PER_HOUR sends an hour; the rest are left for a person.
 //   no links    a public reply containing a link is refused when the rules load (links go in the DM only).
 //
+// A rule with "require_follow": true sends the link only to people who follow the account, in two steps (Meta allows
+// one private reply to a comment, and the person's own message is what lets the Worker read whether they follow):
+//   1. comment -> one link-free public reply, and a private message with a button ("Send me the link"); the person is
+//      remembered in KV (pending:<id>) for 7 days.
+//   2. the person replies or taps the button -> the Worker reads is_user_follow_business (Meta's User Profile API).
+//      Follows: the link is sent. Does not follow: a short nudge with an "I'm following" button, at most
+//      max_nudges times. The check failing or answering nothing never sends the link.
+//
 // Bindings (wrangler.toml and secrets): KV, MEDIA (R2), APP_SECRET, VERIFY_TOKEN, ADMIN_KEY, IG_USER_ID, IG_TOKEN,
 // FB_PAGE_ID, FB_PAGE_TOKEN, THREADS_USER_ID, THREADS_TOKEN, and the vars BRAND, API_SETUP, MODE, PUBLISH_MODE,
 // PUBLISH_MODE_INSTAGRAM, PUBLISH_MODE_FACEBOOK, PUBLISH_MODE_THREADS, MAX_PER_HOUR, MAX_PER_RUN, GRAPH_VERSION,
@@ -32,6 +41,11 @@ const DAY = 24 * 3600 * 1000;
 const KEEP = 90 * 24 * 3600;                 // comment, mention and message records are kept 90 days
 const LINK = /(https?:\/\/|www\.|\b[a-z0-9-]+\.(com|ca|io|ai|co|net|org|dev|app|link|ly)\b)/i;
 export const DEFAULT_DISCLOSURE = '(This is an automated reply.)';
+const ASK_DEFAULT = 'Thanks for commenting! Tap the button and I will send it over.';
+const NUDGE_DEFAULT = 'I cannot see that you follow us yet. Follow the account, then tap the button again and I will send it.';
+const BUTTON_DEFAULT = 'Send me the link';
+const NUDGE_BUTTON_DEFAULT = "I'm following";
+const PENDING_TTL = 7 * 24 * 3600;           // a person who was asked has this long to answer (Meta's private-reply window)
 
 // ---------- rules ----------
 // The disclosure line always goes on: an empty or missing setting means the default words.
@@ -52,8 +66,17 @@ export function loadRules(raw, env = {}) {
     if (!Array.isArray(r.match_text) || !r.match_text.length) throw new Error(`${name}: match_text must list at least one keyword`);
     if (!r.reply || !r.dm) throw new Error(`${name}: needs both reply (public, no link) and dm`);
     if (LINK.test(r.reply)) throw new Error(`${name}: the public reply contains a link; links go in the dm only`);
+    const follow = r.require_follow === true;
+    if (follow) for (const k of ['ask', 'follow_nudge']) if (r[k] && LINK.test(r[k])) throw new Error(`${name}: ${k} contains a link; the link goes only in dm, after the follow check`);
+    const nudges = Math.round(Number(r.max_nudges));
     return {
       name,
+      requireFollow: follow,
+      ask: withDisclosure(String(r.ask || ASK_DEFAULT), line),
+      button: String(r.button || BUTTON_DEFAULT).slice(0, 20),
+      nudge: withDisclosure(String(r.follow_nudge || NUDGE_DEFAULT), line),
+      nudgeButton: String(r.follow_button || NUDGE_BUTTON_DEFAULT).slice(0, 20),
+      maxNudges: Number.isFinite(nudges) ? Math.min(5, Math.max(1, nudges)) : 3,
       words: r.match_text.map((w) => String(w).trim().toLowerCase()).filter(Boolean),
       media: Array.isArray(r.match_media_id) ? r.match_media_id.map(String) : null,
       reply: r.reply,
@@ -119,6 +142,11 @@ export function extractEvents(payload) {
       }
     }
     for (const m of entry.messaging || []) {
+      if (m?.postback?.mid) {                                                    // a button tapped: handled like a short reply
+        messages.push({ account: String(entry.id || ''), mid: String(m.postback.mid), from_id: String(m.sender?.id || ''), to_id: String(m.recipient?.id || ''),
+          text: m.postback.title || '', echo: false, deleted: false, attachments: [], time: ms(m.timestamp || entry.time) });
+        continue;
+      }
       if (!m?.message?.mid) continue;
       messages.push({
         account: String(entry.id || ''), mid: String(m.message.mid), from_id: String(m.sender?.id || ''), to_id: String(m.recipient?.id || ''),
@@ -186,12 +214,79 @@ export async function handleComment(env, c, rules, fetchImpl = fetch) {
 
   const api = instagramApi(env, fetchImpl);
   const result = { rule: rule.name };
+  if (rule.requireFollow && !c.fromId) return { action: 'defer', rec: await log(env, 'defer', c, { why: 'no commenter id for the follow check', rule: rule.name }) };
   try { await api.post(`${c.id}/replies`, { message: rule.reply }); result.reply = 'sent'; }
   catch (e) { result.reply = `failed: ${e.message}`; }
-  try { await api.post(`${env.IG_USER_ID || c.account}/messages`, { recipient: { comment_id: c.id }, message: { text: rule.dm } }); result.dm = 'sent'; }
-  catch (e) { result.dm = `failed: ${e.message}`; }
+  try {
+    const to = { comment_id: c.id };
+    await sendDm(api, env.IG_USER_ID || c.account, to, rule.requireFollow ? rule.ask : rule.dm, rule.requireFollow ? rule.button : null);
+    result.dm = 'sent';
+    if (rule.requireFollow) { result.step = 'asked'; await env.KV.put(`pending:${c.fromId}`, JSON.stringify({ rule: rule.name, comment_id: c.id, username: c.username, at: new Date().toISOString(), nudges: 0 }), { expirationTtl: PENDING_TTL }); }
+  } catch (e) { result.dm = `failed: ${e.message}`; }
   const kind = result.dm === 'sent' ? 'lead' : 'error';
   return { action: kind, rec: await log(env, kind, c, result) };
+}
+
+// One private message. With a button label it carries a quick-reply button; if Meta refuses the button, the same text
+// goes without it (the person can still just reply).
+async function sendDm(api, from, recipient, text, button) {
+  const path = `${from}/messages`;
+  if (button) {
+    try { return await api.post(path, { recipient, message: { text, quick_replies: [{ content_type: 'text', title: button, payload: 'FOLLOW_CHECK' }] } }); }
+    catch { /* try without the button */ }
+  }
+  return api.post(path, { recipient, message: { text } });
+}
+
+// The second step of a require_follow rule: a person who was asked has answered (a reply or the button). Read whether
+// they follow, then send the link, or a short nudge up to max_nudges times. Every send goes through the same safety
+// checks as a comment: live mode, a tested rule, the hourly cap, one claim per message. Failing closed: if Meta does
+// not say whether the person follows, nothing is sent and the record says why.
+export async function handleReply(env, m, rules, fetchImpl = fetch) {
+  const own = env.IG_USER_ID || m.account;
+  if (m.echo || m.deleted || !m.from_id || m.from_id === own || m.from_id === m.account) return { action: 'skip', why: 'not from a person' };
+  const raw = await env.KV.get(`pending:${m.from_id}`);
+  if (!raw) return { action: 'skip', why: 'nobody was asked' };
+  if (await env.KV.get(`done:msg:${m.mid}`)) return { action: 'skip', why: 'already handled' };
+  await env.KV.put(`done:msg:${m.mid}`, '1', { expirationTtl: 30 * 24 * 3600 });
+  let pend; try { pend = JSON.parse(raw); } catch { await env.KV.delete(`pending:${m.from_id}`); return { action: 'skip', why: 'unreadable state' }; }
+  const c = { id: pend.comment_id, username: pend.username || '', fromId: m.from_id, mediaId: '', text: m.text || '' };
+  const rule = rules.find((r) => r.name === pend.rule && r.requireFollow);
+  if (!rule) { await env.KV.delete(`pending:${m.from_id}`); return { action: 'defer', rec: await log(env, 'defer', { ...c, id: `${c.id}:rule` }, { why: 'the rule is gone or no longer asks for a follow', rule: pend.rule }) }; }
+  if (!(env.MODE === 'live' && rule.tested)) return { action: 'dry', rec: await log(env, 'dry', { ...c, id: `${c.id}:reply` }, { why: env.MODE !== 'live' ? 'dry run' : 'rule not tested', rule: rule.name, would_check: 'is_user_follow_business' }) };
+  if (!(await underRateCap(env))) return { action: 'defer', rec: await log(env, 'defer', { ...c, id: `${c.id}:cap` }, { why: 'hourly cap reached', rule: rule.name }) };
+
+  const api = instagramApi(env, fetchImpl);
+  let follows;
+  try { follows = (await api.get(`${m.from_id}?fields=is_user_follow_business`)).is_user_follow_business; }
+  catch (e) { return { action: 'error', rec: await log(env, 'error', { ...c, id: `${c.id}:check` }, { why: `follow check failed: ${e.message}`, rule: rule.name }) }; }
+  if (typeof follows !== 'boolean') return { action: 'error', rec: await log(env, 'error', { ...c, id: `${c.id}:check` }, { why: 'Meta did not say whether this person follows, so no link was sent', rule: rule.name }) };
+
+  const from = env.IG_USER_ID || m.account;
+  if (follows) {
+    try { await sendDm(api, from, { id: m.from_id }, rule.dm, null); }
+    catch (e) { return { action: 'error', rec: await log(env, 'error', { ...c, id: `${c.id}:link` }, { why: `the link message failed: ${e.message}`, rule: rule.name, follows: true }) }; }
+    await env.KV.delete(`pending:${m.from_id}`);
+    return { action: 'lead', rec: await log(env, 'lead', { ...c, id: `${c.id}:link` }, { rule: rule.name, step: 'link', follows: true }) };
+  }
+  const nudges = (pend.nudges || 0) + 1;
+  if (nudges > rule.maxNudges) {
+    await env.KV.delete(`pending:${m.from_id}`);
+    return { action: 'defer', rec: await log(env, 'defer', { ...c, id: `${c.id}:gaveup` }, { why: `still not following after ${rule.maxNudges} reminder${rule.maxNudges === 1 ? '' : 's'}`, rule: rule.name }) };
+  }
+  try { await sendDm(api, from, { id: m.from_id }, rule.nudge, rule.nudgeButton); }
+  catch (e) { return { action: 'error', rec: await log(env, 'error', { ...c, id: `${c.id}:nudge` }, { why: `the reminder failed: ${e.message}`, rule: rule.name }) }; }
+  await env.KV.put(`pending:${m.from_id}`, JSON.stringify({ ...pend, nudges }), { expirationTtl: PENDING_TTL });
+  return { action: 'lead', rec: await log(env, 'lead', { ...c, id: `${c.id}:nudge${nudges}` }, { rule: rule.name, step: 'nudge', follows: false, nudges }) };
+}
+
+// Admin check of Meta's follow field for one Instagram-scoped id (the id of someone who has messaged the account).
+export async function followCheck(env, id, fetchImpl = fetch) {
+  if (!/^\d{5,25}$/.test(String(id || ''))) return { error: 'send the id of someone who has messaged the account (digits only)' };
+  try {
+    const r = await instagramApi(env, fetchImpl).get(`${id}?fields=is_user_follow_business`);
+    return typeof r.is_user_follow_business === 'boolean' ? { follows: r.is_user_follow_business } : { follows: null, error: 'Meta answered without the follow field' };
+  } catch (e) { return { follows: null, error: e.message }; }
 }
 
 // Mentions and messages are only stored, for the dashboard. A deleted message removes our copy too.
@@ -299,6 +394,7 @@ export async function forgetUser(env, who, next = null, ops = opsBudget()) {
     } while (true);
   }
   ids.delete(own);
+  for (const id of ids) { ops.left--; await env.KV.delete(`pending:${id}`); }     // anyone still waiting for a follow check
   return { removed, done: true, ids: [...ids] };
 }
 
@@ -320,11 +416,11 @@ export default {
       let payload;
       try { payload = JSON.parse(raw); } catch { return new Response('ok', { status: 200 }); }
       const ev = extractEvents(payload);
-      const rules = ev.comments.length ? await rulesFromKV(env).catch((e) => { console.log('rules error', e.message); return []; }) : [];
+      const rules = ev.comments.length || ev.messages.some((m) => !m.echo && !m.deleted) ? await rulesFromKV(env).catch((e) => { console.log('rules error', e.message); return []; }) : [];
       const work = [
         ...ev.comments.map((c) => handleComment(env, c, rules).catch((e) => console.log('comment error', c.id, e.message))),
         ...ev.mentions.map((m) => storeMention(env, m).catch((e) => console.log('mention error', e.message))),
-        ...ev.messages.map((m) => storeMessage(env, m).catch((e) => console.log('message error', e.message))),
+        ...ev.messages.map((m) => storeMessage(env, m).then(() => handleReply(env, m, rules)).catch((e) => console.log('message error', e.message))),
       ];
       ctx.waitUntil(Promise.all(work));      // answer Meta at once; do the work after
       return new Response('ok', { status: 200 });
@@ -348,6 +444,7 @@ export default {
     const cancel = url.pathname.match(/^\/admin\/cancel\/([0-9a-f]{12})$/);
     if (cancel && request.method === 'POST') { const r = await cancelPost(env, cancel[1]); return json(r.body, r.status); }
     if (url.pathname === '/admin/inbox' && request.method === 'GET') return json(await inbox(env));
+    if (url.pathname === '/admin/follow-check' && request.method === 'GET') return json(await followCheck(env, url.searchParams.get('id')));
     if (url.pathname === '/admin' && request.method === 'GET') {
       let rules = [], rulesError = null;
       try { rules = await rulesFromKV(env); } catch (e) { rulesError = e.message; }
@@ -357,7 +454,7 @@ export default {
         graph_version: env.GRAPH_VERSION || 'v27.0',
         mode: env.MODE === 'live' ? 'live' : 'dry_run',
         rules_error: rulesError,
-        rules: rules.map((r) => ({ name: r.name, keywords: r.words, tested: r.tested, scoped_to_media: r.media })),
+        rules: rules.map((r) => ({ name: r.name, keywords: r.words, tested: r.tested, scoped_to_media: r.media, require_follow: r.requireFollow })),
         disclosure: disclosureLine(await env.KV.get('rules').then((r) => JSON.parse(r || 'null')).catch(() => null), env),
         platforms: platformsView(env),
         token_refreshed_at: await env.KV.get('token_refreshed_at'),

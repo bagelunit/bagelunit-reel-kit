@@ -89,6 +89,11 @@ export function meta(opts = {}) {
       if (p.endsWith('/999/content_publishing_limit')) return ok({ data: [{ quota_usage: opts.igQuota ?? 3, config: { quota_total: 50, quota_duration: 86400 } }] });
       if (fields.startsWith('status_code')) return ok({ status_code: next(`ig${p}`, opts.igStatus || ['FINISHED']) });
       if (fields === 'permalink') return ok({ permalink: 'https://www.instagram.com/reel/ABC123/' });
+      if (fields === 'is_user_follow_business') {                    // Meta's User Profile API: opts.follows is { <id>: true|false|'missing' }
+        const id = p.split('/').pop(); const v = opts.follows?.[id] ?? opts.follow;
+        return v === 'missing' || v === undefined ? ok({ name: 'x' }) : ok({ is_user_follow_business: v });
+      }
+      if (p.endsWith('/messages') && opts.noButtons && body?.message?.quick_replies) return new Response(JSON.stringify({ error: { message: 'quick replies not allowed here', code: 100 } }), { status: 400 });
       if (p.endsWith('/messages') || p.endsWith('/replies')) return ok({ id: 'x', message_id: 'm' });
       // Facebook Page
       if (p.endsWith('/PAGE1/video_reels') && body?.upload_phase === 'start') return ok({ video_id: 'V1', upload_url: 'https://rupload.facebook.com/video-upload/V1' });

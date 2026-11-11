@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { checkReel, scheduleReel, postingLine, cancel, status } from '../scripts/schedule.mjs';
 import { pull } from '../scripts/pull.mjs';
-import { writeToml, steps, check, names, sendSecrets, saveUrl, secretPlan, subscribe, loginOf } from '../scripts/setup.mjs';
+import { followCheck, writeToml, steps, check, names, sendSecrets, saveUrl, secretPlan, subscribe, loginOf } from '../scripts/setup.mjs';
 import { lastGateC, appendUnder, parseArgs, sha256File, connection, Plain, isMain } from '../scripts/lib.mjs';
 import { forget } from '../scripts/forget.mjs';
 import { spawnSync } from 'node:child_process';
@@ -265,6 +265,26 @@ test('setup check: asks GET /admin with the key and prints no secret', async () 
   const bad = tmp('cfg-');
   fs.writeFileSync(path.join(bad, 'publisher-testbrand.json'), JSON.stringify({ url: 'https://pub.example', admin_key: 'wrong' }));
   await assert.rejects(check({ root: ws, fetchImpl: workerFetch(e), configDir: bad, log: quiet }), /refused the admin key/);
+});
+
+test('setup follow-check: uses the newest person who messaged, or an id, and says plainly what Meta answered', async () => {
+  const { ws, cfg } = workspace();
+  const e = env({ KV: kv() }); const out = []; const log = (s) => out.push(s);
+  await assert.rejects(followCheck({ root: ws, fetchImpl: workerFetch(e), configDir: cfg, log }), /nobody has messaged/);
+  await e.KV.put('message:m1', JSON.stringify({ kind: 'message', direction: 'received', from_id: '123456', at: '2026-11-11T10:00:00Z' }), { metadata: { kind: 'message', direction: 'received', from_id: '123456', at: '2026-11-11T10:00:00Z' } });
+  const real = globalThis.fetch;
+  try {
+    globalThis.fetch = meta({ follows: { 123456: true } });
+    let r = await followCheck({ root: ws, fetchImpl: workerFetch(e), configDir: cfg, log });
+    assert.equal(r.follows, true); assert.match(out.join('\n'), /ending 3456/); assert.match(out.join('\n'), /follows the account/);
+    globalThis.fetch = meta({ follows: { 123456: false } });
+    out.length = 0; r = await followCheck({ root: ws, id: '123456', fetchImpl: workerFetch(e), configDir: cfg, log });
+    assert.equal(r.follows, false); assert.match(out.join('\n'), /does NOT follow/);
+    globalThis.fetch = meta({ follows: { 123456: 'missing' } });
+    out.length = 0; r = await followCheck({ root: ws, id: '123456', fetchImpl: workerFetch(e), configDir: cfg, log });
+    assert.equal(r.follows, null); assert.match(out.join('\n'), /did not answer/);
+  } finally { globalThis.fetch = real; }
+  assert.ok(!out.join('\n').includes('IGTOKEN123'));
 });
 
 test('setup secrets: read from the token files, sent on stdin, never printed, app secret removed after', () => {

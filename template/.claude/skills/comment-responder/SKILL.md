@@ -82,7 +82,13 @@ finish later; next time, read `brand.json` -> `cta.dm_tool` and `cta.tested_keyw
    plus Other. Check it is not a common word people type anyway.
 4. **Write the rule:** the keyword (and common typos), the public reply (warm, short, no link) and the DM
    (the resource and its link). Facts only from `brand/facts.md`. Show all three for approval (question block:
-   "Use these", "Change something").
+   "Use these", "Change something"). **Ask whether the link is for followers only** (question block: "Anyone who
+   comments (Recommended to start)", "Followers only"). For followers only, the rule becomes `"require_follow": true`
+   and needs two more texts: `ask` (the first private message: warm, short, no link, "tap the button") and
+   `follow_nudge` (a short reminder to follow, then tap again, no link), with `button`, `follow_button` and
+   `max_nudges` (3). Say once what it costs: some people comment and never tap, and it is two steps because Meta allows
+   one private message per comment. Before turning it on, run `node publisher/scripts/setup.mjs follow-check` with the
+   owner (a second account messages the account, then follows it and messages again) and stop if Meta does not answer.
 5. **Connect it, with the owner doing every login.** With the browser tool (rule 15 in `CLAUDE.md`, `docs/browser.md`), do the web pages yourself; the owner logs in, copies each secret into the file you opened, and clicks the last Delete.
    - the kit's publisher: write `publisher/rules.json` from the approved texts (`rules.example.json` shows the
      shape, `"tested": false`), then follow `docs/connect.md` step 7 in order: upload the rule, the app secret and

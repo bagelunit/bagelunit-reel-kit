@@ -178,7 +178,14 @@ Meta sends comment notifications only to an app that is Live with Advanced Acces
 5. App Review for Advanced Access to the comments and messages permissions, Business Verification, then switch the app to Live.
 6. Comment the keyword from a second, public account while `MODE` is `"dry_run"`, check `status` and `/admin` show what it would send, then set `"tested": true` for that rule and `MODE = "live"`.
 
-Safety rules that always apply: a rule sends only when it is tested and `MODE` is live; one public reply and one private message per comment; only within 7 days of the comment (Meta's rule); at most 30 an hour (`MAX_PER_HOUR`); never a reply to your own comments; never a link in a public reply.
+Safety rules that always apply: a rule sends only when it is tested and `MODE` is live; one public reply and one private message per comment (a follow rule adds only the replies to people it asked); only within 7 days of the comment (Meta's rule); at most 30 an hour (`MAX_PER_HOUR`); never a reply to your own comments; never a link in a public reply.
+
+**Send the link only to people who follow you (optional).** Add `"require_follow": true` to a rule and it works in two steps, because Meta allows one private message in answer to a comment, and the person's own reply is what lets the publisher read whether they follow:
+
+1. The comment gets the public reply (no link) and a private message with a button (`ask`, `button`). The person is remembered for 7 days.
+2. They tap the button or write anything back. The publisher asks Meta (`is_user_follow_business`, the User Profile API). A follower gets the link (`dm`). Someone who does not follow gets a short reminder (`follow_nudge`, button `follow_button`), up to `max_nudges` times (3 by default, at most 5), then it stops and leaves them for you.
+
+If Meta does not say whether the person follows, or the check fails, **no link is sent** and the reason is in `status`. Neither `ask` nor `follow_nudge` may contain a link, and all three messages carry the automated-reply line. A person who writes to the account without having been asked is never answered. Before a rule goes live, test the follow field on your own account: message the account from a second account, then `node publisher/scripts/setup.mjs follow-check` says whether Meta reports that person as a follower (follow from the second account, message again and run it once more: it should flip). If it does not answer, do not turn the rule on.
 
 **Every automatic message says it is automated.** Some places require this by law (for example California and Germany), and Meta's policy follows the law. The publisher adds the line `(This is an automated reply.)` to the end of every automatic private message. You can change the words with `"disclosure"` in `rules.json` or `DM_DISCLOSURE` in `wrangler.toml` (for example in another language), but you cannot turn it off: an empty setting uses the default.
 

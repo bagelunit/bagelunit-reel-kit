@@ -2,6 +2,20 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.15.0 (2026-11-11)
+
+**Send the link only to people who follow you.** A comment-to-DM rule can now ask for a follow first. In the rule (`publisher/rules.json`) add `"require_follow": true`:
+
+1. Someone comments the keyword. They get the public reply (no link) and a private message with a button ("Send me the link").
+2. They tap the button or write back. The publisher asks Meta whether they follow the account (Meta's User Profile API, `is_user_follow_business`).
+3. A follower gets the link. Someone who does not follow gets a short reminder with an "I'm following" button, up to 3 times (you can set 1 to 5), then it stops and leaves them for you.
+
+It is two steps because Meta allows one private message in answer to a comment, and only lets the follow status be read once the person has messaged the account. **It fails closed:** if Meta does not say whether the person follows, or the check errors, no link is sent and `schedule.mjs status` shows why. Neither the first message nor the reminder may contain a link, every message carries the automated-reply line, and a person who was never asked is never answered. The same safety gates apply as before (live mode, a tested rule, the hourly cap, each message handled once). Forgetting a person (`forget.mjs`) also ends their wait.
+
+- **Test before you rely on it:** `node publisher/scripts/setup.mjs follow-check` asks Meta about the newest person who messaged the account and says whether they count as a follower. It works only once Meta's app is Live with the messages permission, and Meta's follow field has not been tried against a real account yet: run the test first and leave `require_follow` off if it does not answer.
+- `/comment-responder` asks whether the link is for followers only and writes the extra texts. `docs/auto-reply.md`, `docs/connect.md` step 7 and `publisher/README.md` explain it. 15 new tests (100 in all).
+- Update a brand workspace with `node setup/sync-template.mjs <workspace>` (dry run, then `--apply`), then deploy the publisher again (`npx wrangler deploy` in its folder) so the Worker has the new code.
+
 ## 1.14.2 (2026-11-11)
 
 - **A winner now needs real views too.** "What is working for them" ranked by ratio to each account's own median, so one hit on a small account (179 times a median of 3,000) outranked steadier signals at scale. A post must now also have at least 5,000 views (`dashboard.competitors_min_views` in `brand/brand.json`, 0 turns it off), and the panel says how many recent winners the floor left out.

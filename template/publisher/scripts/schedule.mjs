@@ -219,7 +219,7 @@ export async function status({ root, fetchImpl = fetch, configDir = CONFIG_DIR, 
   }
   // comment replies: the rules, and the latest replies sent or (in dry run, or for an untested rule) only written down
   if ((a.rules || []).length || a.rules_error) {
-    log(`Comment rules: ${a.rules_error ? `could not be read (${a.rules_error})` : a.rules.map((r) => `${r.name} (${(r.keywords || []).join(', ')})${r.tested ? '' : ', not tested yet'}`).join('; ')}`);
+    log(`Comment rules: ${a.rules_error ? `could not be read (${a.rules_error})` : a.rules.map((r) => `${r.name} (${(r.keywords || []).join(', ')})${r.require_follow ? ', asks for a follow first' : ''}${r.tested ? '' : ', not tested yet'}`).join('; ')}`);
     const inbox = await admin(conn, 'GET', '/admin/inbox', { fetchImpl });
     const R = inbox.replies || {};
     const rows = [...(R.dry_run || []).map((x) => ['would have sent', x]), ...(R.sent || []).map((x) => ['sent', x]), ...(R.left_for_a_person || []).map((x) => ['left for you', x]), ...(R.errors || []).map((x) => ['error', x])]
