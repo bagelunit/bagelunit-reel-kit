@@ -2,6 +2,13 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.10.1 (2026-11-10)
+
+- **Dashboard layout fixed.** The "Needs you" and "Next 14 days" lists were drawn over by the "Your content team" band and everything below it, because a small bar in the audience section shared their layout's style name. The bar has its own name now, and the lists show in full.
+- **Long titles no longer break the page.** A long title or reel folder name with no spaces could stretch its column past the window, squeeze the column next to it to one word per line, and make the page scroll sideways. Every column now keeps to its share of the width, long words wrap, and small cards fit a phone screen.
+- **Odd data no longer blanks the dashboard.** Audience numbers saved in a different shape (for example by hand) are read instead of stopping the whole page from drawing.
+- **A check so it stays fixed.** The kit's checks now fail if two styles in the dashboard share one name by mistake.
+
 ## 1.10.0 (2026-11-09)
 
 - **Content calendar and dashboard.** Type `/content-calendar` in a brand folder. It makes one page, `brand/dashboard.html`, that works on a computer and a phone: your numbers up top, what needs you next (each with its command), the next 14 days, a calendar of planned, scheduled and posted reels with your open posting days, a board of where each reel is (idea, script, each approval, scheduled, posted), and your top posts. A plain-text copy goes in `brand/calendar.md`.

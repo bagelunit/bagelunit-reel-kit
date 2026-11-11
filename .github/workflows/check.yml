@@ -104,6 +104,20 @@ jobs:
           node setup/new-brand.mjs "$B" | grep -q "cal-reels"
           B="$B-reels"
           for f in template/.claude/skills/content-calendar/*.mjs; do node --check "$f"; done
+          # one class name, one job: two top-level rules for the same class once squashed a whole section (1.10.1)
+          node - <<'JS'
+          const s = require('fs').readFileSync('template/.claude/skills/content-calendar/page.mjs', 'utf8');
+          const css = s.slice(s.indexOf('<style>'), s.indexOf('</style>')).replace(/\/\*[\s\S]*?\*\//g, '');
+          const seen = {}; let depth = 0, buf = '', inAt = false;
+          for (const ch of css) {
+            if (ch === '{') { if (depth === 0 && buf.trim().startsWith('@')) inAt = true; else if (depth === 0) for (const sel of buf.split(',')) { const t = sel.trim().split(/[\n}]/).pop().trim(); if (/^\.[\w-]+$/.test(t)) seen[t] = (seen[t] || 0) + 1; } depth++; buf = ''; }
+            else if (ch === '}') { depth = Math.max(0, depth - 1); if (depth === 0) inAt = false; buf = ''; }
+            else buf += ch;
+          }
+          const allowed = ['.mbar', '.dv-any'];   // the same element, styled in two places on purpose
+          const twice = Object.entries(seen).filter(([k, n]) => n > 1 && !allowed.includes(k)).map(([k]) => k);
+          if (twice.length) { console.error('Dashboard CSS styles these classes in more than one top-level rule (rename one, or add it to the allowed list if it is the same element): ' + twice.join(', ')); process.exit(1); }
+          JS
           node "$B/.claude/skills/content-calendar/calendar.mjs" "$B" >/dev/null && grep -q 'id="setup"' "$B/brand/dashboard.html" && grep -q "/brand-setup" "$B/brand/dashboard.html"
           if grep -q 'class="agent live"' "$B/brand/dashboard.html"; then echo "a new brand folder should show no agent as having made something today"; exit 1; fi
           python - "$B" <<'PY'
