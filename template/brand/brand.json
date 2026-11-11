@@ -55,6 +55,14 @@
     "dm_tool": "",
     "tested_keywords": []
   },
+  "loop": {
+    "_note": "The reel loop (/reel-loop). All optional. viral_views_multiple: how many times the median views counts as a breakout (default 5); viral_min_views: and at least this many (default 5000); min_hours: hours a reel is out before it is judged (default 72); min_views_to_judge: views before its skip rate means anything (default 500); stall_after: judged reels in a row with no better skip rate before it says stalled (default 6).",
+    "viral_views_multiple": 5,
+    "viral_min_views": 5000,
+    "min_hours": 72,
+    "min_views_to_judge": 500,
+    "stall_after": 6
+  },
   "reels": {
     "_note": "Where reel folders sit under reels/. \"flat\" (default) = reels/<slug>. \"dated\" = reels/2026/11 November/November 12/<slug>, by the day the reel is planned to post. Every script finds a reel in either place. New reels follow this setting; move the ones you have with `kit organize --layout dated` (it shows the moves first, --apply does them) and back with --layout flat.",
     "layout": "flat"

@@ -262,3 +262,17 @@ def brand_of(project):
         if (d / 'brand' / 'brand.json').is_file():
             return d
     return p.parent.parent
+
+
+# ── the score bar (owner rule 2026-11-11): anything scored must reach 90 or more, or it is redone and rechecked ──────────
+MIN_SCORE = 90
+
+
+def review_score(line):
+    """The score in a /reel-review verdict line, on a 0 to 100 scale, or None. Reads "(92/100; ..." and the older "(4.3/5; ..."
+    (4.5 out of 5 is 90)."""
+    m = re.search(r'\((\d+(?:\.\d+)?)\s*/\s*(100|5)\b', str(line or ''))
+    if not m:
+        return None
+    n, top = float(m.group(1)), int(m.group(2))
+    return round(n * 100 / top, 1)

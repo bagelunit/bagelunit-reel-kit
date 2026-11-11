@@ -110,7 +110,7 @@ Use `/analytics-readout`: judge every figure against the brand's own median, nam
 
 ## 10b. Reel review before Gate C (step 10 and step 12)
 
-`/reel-review` checks a built reel on its real frames and numbers: seven must-pass checks (facts, words match, frame 0 and the hook, safe zones and size, handle and payoffs, sound, honesty) and eight scored checks from 1 to 5. It ends in one verdict line: meets the bar (every must-pass passes and the average is 4.0 or more), close (3.5 to 3.9), or not ready. The verdict goes in `approvals.md` next to Gate C and the scores go in `brand/log.md`, so after a few reels you can see which check keeps scoring lowest for the brand. A reel that is not ready still goes to the approver with the line attached.
+`/reel-review` checks a built reel on its real frames and numbers: seven must-pass checks (facts, words match, frame 0 and the hook, safe zones and size, handle and payoffs, sound, honesty) and eight scored checks from 1 to 5. It ends in one verdict line with a score out of 100: meets the bar (every must-pass passes and the score is 90 or more) or not ready. Below 90 the reel is redone and reviewed again until it reaches 90, and Gate C refuses a lower score. The verdict goes in `approvals.md` next to Gate C and the scores go in `brand/log.md`, so after a few reels you can see which check keeps scoring lowest for the brand. A reel that is not ready still goes to the approver with the line attached.
 
 ## 11. Comment replies and links
 

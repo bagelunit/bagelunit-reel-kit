@@ -2,6 +2,28 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.19.0 (2026-11-11)
+
+**The reel loop: trial reels in, what to change out, until a reel breaks out.** Instagram trial reels show a reel to non-followers first, so the skip rate and watch time of a trial reel are an honest read of a hook on a cold audience. The kit already posted trial reels (`schedule.mjs --trial`) and read those numbers; this connects them into a loop.
+
+- **`/reel-loop` (new skill).** One cycle: read the numbers, say what to change, change one thing, make the next reel (hook, script, fact check, gates, a review of 90 or more), post it as a trial reel, wait, read again. It stops when a reel breaks out, when it is waiting on fresh reels, when there are no numbers, or when the last six reels stopped improving.
+- **`loop.mjs` (the learning step, in the content-calendar skill).** Reads each posted reel's views, skip rate (people who left in the first 3 seconds: the hook) and average watch time (the middle), and writes `brand/loop.md` (the brief) and `brand/loop.json` (the state). For each reel it says where it loses people. It names a best angle only from 2 or more reels each, picks one variable for the next reel (hook, middle, topic or format), and calls a breakout only at 5 times the median views, at least 5,000, with a skip rate no worse than the median. A reel is judged after 72 hours and 500 views. It says "not enough yet" instead of guessing. Settings in `brand.json` -> `loop`.
+- **Nothing posts by itself.** The loop is what Claude does between the owner's yeses, not a way around them: every reel still needs the fact check, Gates A, B and C, a `/reel-review` of 90 or more and the owner's yes to its time and platforms (house rule 11). `loop.mjs` only writes its two brand files.
+- Test: `setup/test-loop.mjs`.
+
+To update: `/kit-update`.
+
+## 1.18.0 (2026-11-11)
+
+**A score bar of 90: anything scored is redone and rechecked until it reaches 90.** Owner rule. The one score the kit gives a reel is `/reel-review`'s, so that is where it is enforced.
+
+- **`/reel-review` scores out of 100.** The eight scored checks (1 to 5) are averaged, divided by 5 and multiplied by 100, rounded down (an average of 4.5 is 90). The reel **meets the bar** at 90 or more with every must-pass passing. The old "close" band (3.5 to 3.9) is gone: anything under 90 is **not ready**, and it is redone and reviewed again until it reaches 90. The skill spells out the loop: name what pulled the score down, make the smallest fixes, rebuild, run every check again on the new file, never carry an old score over and never raise a score to reach 90. If two passes in a row gain nothing, or the cause is outside the reel (an uncleared fact, a take only the person can re-record), it stops and says what is blocking.
+- **Gate C enforces it.** `kit gate <reel> record --gate C` refuses unless the latest `Review:` line says "meets the bar" with a score of 90 or more (`Review: meets the bar (92/100; weakest: ...)`; the older `4.5/5` scale is read as 90). Only the latest line counts, so after a redo the new verdict is a new line and the earlier passes stay as the history. Only the owner overrides it, with `--skip-review "reason"`, which is written into the record as "REVIEW BELOW THE BAR".
+- **The house rules and guides say so** (`template/CLAUDE.md` rule 10, `docs/process.md`, the review playbook, `docs/first-reel.md`).
+- Test: `setup/test-score-bar.mjs`.
+
+To update: `/kit-update` (the review skill and house rules) and `bash setup/install.sh` (the gate).
+
 ## 1.17.2 (2026-11-11)
 
 **The fact check finds `brand/facts.md` for a reel filed by date.** Feedback from the same brand: `facts.py` looked for the facts file two folders above the reel, which for a dated reel is `reels/2026/11 November/brand/facts.md`. So `kit facts` said "no facts file", and with `--facts` the PASS recorded but Gate A and C worked out the fingerprint from the missing path and refused it as stale. Every dated reel needed `--skip-facts`.

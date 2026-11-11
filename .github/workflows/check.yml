@@ -59,6 +59,12 @@ jobs:
       - name: Reel folders by date work (lookup in JS and Python, dashboard, organize, start, tidy)
         run: node setup/test-reel-folders.mjs
 
+      - name: Score bar works (Gate C refuses a review under 90 out of 100, accepts 90 or more, records the owner's override)
+        run: node setup/test-score-bar.mjs
+
+      - name: Reel loop learns from the numbers (too few reels, waiting, best angle, weak hook or middle, breakout, stalled)
+        run: node setup/test-loop.mjs
+
       - name: New brand folder script works (copy, refuse existing, refuse inside the kit)
         shell: bash
         run: |

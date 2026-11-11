@@ -65,23 +65,39 @@ Score whole numbers. 5 is the best work the brand has shipped, 3 is acceptable, 
 | Brand fit | Sounds, looks and reads like this brand, not a generic template |
 | Cover and caption | Cover reads at 150 px wide; caption's first line is under 125 characters, one ask |
 
-The reel **meets the bar** when every must-pass check passes and the scored average is 4.0 or more.
-It is **close** at 3.5 to 3.9 with all must-passes passing. Below that, or any must-pass failing, it
-is **not ready**.
+**The score** is out of 100: the average of the eight scores (1 to 5) divided by 5, times 100, rounded
+(an average of 4.5 is 90). Round down, never up.
+
+The reel **meets the bar** when every must-pass check passes and the score is **90 or more**. Below
+90, or any must-pass failing, it is **not ready**, and a not-ready reel is **redone and reviewed again
+until it reaches 90**: it does not go to the approver as it is, and `kit gate <reel> record --gate C`
+refuses it. The loop:
+
+1. Name what pulled the score down (the lowest checks, most valuable first).
+2. Make the smallest changes that fix them (re-cue, re-cut, re-time, rewrite the caption, remake the
+   cover), rebuild, and run every check again from the start, on the new file. Never carry an old score
+   over to a changed reel.
+3. Score again, with the same strictness. Never raise a score to reach 90.
+4. Stop only at 90 or more. If two passes in a row gain nothing, or the cause is outside the reel (a
+   fact that is not cleared, a take the person has to re-record), say exactly what is blocking and ask
+   the approver; do not loop forever and do not write a score the files do not support.
 
 ## Part 3: the verdict
-Write exactly one line, then up to three fixes (most valuable first), each with a second and the
-smallest possible change:
+Write exactly one line, then up to three fixes (most valuable first) when the score is under 100, each
+with a second and the smallest possible change:
 
 ```
-Review: meets the bar (4.3/5; weakest: ending drags after 27 s).
-Review: close (3.7/5; must-pass 4 failed: handle hidden by the caption band at 12 to 15 s).
+Review: meets the bar (92/100; weakest: ending drags after 27 s).
+Review: not ready (84/100; weakest: hook has no snapback, handle hidden by the caption band at 12 to 15 s).
 Review: not ready (must-pass 1 failed: "3x faster" is not in facts.md).
 ```
 
+The number in brackets is required: Gate C reads it. Only the last line counts, so after a redo write
+a new verdict line (never edit the old one) and keep the earlier ones as the history of the passes.
+
 Save it in `reels/<slug>/approvals.md` under the Gate C heading, and add the scores to the reel's row
-in `brand/log.md`. A reel that is not ready still goes to the approver with the line attached, so the
-person decides.
+in `brand/log.md`. Only a line that meets the bar goes to the approver. Only the owner may send a reel under 90 to
+Gate C anyway (`--skip-review "reason"`, written into the record).
 
 ## Honesty
 This is a judgement from frames, numbers and the transcript, not a prediction of views. Say plainly

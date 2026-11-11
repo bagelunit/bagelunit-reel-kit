@@ -50,7 +50,7 @@ Two kit guides live in the kit's own folder, not in this copy: [the sticker host
 | `craft-playbook.md` | what goes on screen: one world, a through-line, a picture for each kind of line |
 | `style-ideas.md` | style concepts that are not built yet |
 
-**`.claude/skills/`: 26 skills** (Claude loads the right one for each step; you can also type its name)
+**`.claude/skills/`: 27 skills** (Claude loads the right one for each step; you can also type its name)
 
 | Skill | What it does |
 |---|---|

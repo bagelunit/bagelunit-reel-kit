@@ -43,6 +43,7 @@ const GROUPS = [
   ]],
   ['Finish and post', '', [
     ['/caption-and-hashtags', 'Writes the caption, hashtags and first comment, using only cleared facts.', 'brand folder'],
+    ['/reel-loop', 'The self-improving loop: reads what your trial reels did (skip rate, watch time), says what to change, makes the next reel from it and takes it to you for approval, until one breaks out. Never posts by itself.', 'brand folder'],
     ['/cover-thumbnail-brief', 'Writes the cover text and the brief for a cover that stops the scroll.', 'brand folder'],
     ['/reel-repurpose', 'Turns an approved reel into its TikTok and YouTube Shorts versions (captions, titles, a check of where each app\'s buttons sit), a carousel and a blog post.', 'brand folder'],
     ['/reel-posting', 'Gets an approved reel posted: a posting card for posting by hand, or scheduling it through the kit\'s publisher on Instagram, your Facebook Page and Threads (dry run first), and setting that up step by step.', 'brand folder'],

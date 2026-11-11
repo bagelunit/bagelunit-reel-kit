@@ -18,6 +18,7 @@ Group,Command,What it does,Where you type it
 "Check before you post","/reel-review","Reviews a draft or final against the kit's quality bar and writes a one-line verdict.","brand folder"
 "Check before you post","/reel-predict","Measures a reel and, once 8 or more posted reels have numbers, estimates where viewers may drop off.","brand folder"
 "Finish and post","/caption-and-hashtags","Writes the caption, hashtags and first comment, using only cleared facts.","brand folder"
+"Finish and post","/reel-loop","The self-improving loop: reads what your trial reels did (skip rate, watch time), says what to change, makes the next reel from it and takes it to you for approval, until one breaks out. Never posts by itself.","brand folder"
 "Finish and post","/cover-thumbnail-brief","Writes the cover text and the brief for a cover that stops the scroll.","brand folder"
 "Finish and post","/reel-repurpose","Turns an approved reel into its TikTok and YouTube Shorts versions (captions, titles, a check of where each app's buttons sit), a carousel and a blog post.","brand folder"
 "Finish and post","/reel-posting","Gets an approved reel posted: a posting card for posting by hand, or scheduling it through the kit's publisher on Instagram, your Facebook Page and Threads (dry run first), and setting that up step by step.","brand folder"

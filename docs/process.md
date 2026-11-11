@@ -93,7 +93,7 @@ Pull frames from the CURRENT `build/draft.mp4`, not the stills folder (it can ho
 - text size (aim for 40 px or more on screen); no em dash reaches the screen;
 - the hook on frames at 0, 0.5, 1, 2 and 3 s of the draft: moving on frame 0, biggest element at least 40 percent of the frame, claim landing about 1.2 to 1.6 s, readable on mute (checklist in the playbook).
 
-Run `/reel-review` on the draft: seven must-pass checks, eight scored checks and a one-line verdict (meets the bar, close, or not ready). Give the person the draft (with real sound, step 11) to watch on a phone. Apply changes as the smallest possible edits and verify again.
+Run `/reel-review` on the draft: seven must-pass checks, eight scored checks and a one-line verdict with a score out of 100. Under 90 you redo what it named and review again until it reaches 90; Gate C refuses less. Give the person the draft (with real sound, step 11) to watch on a phone. Apply changes as the smallest possible edits and verify again.
 
 ## 11. Real sound
 

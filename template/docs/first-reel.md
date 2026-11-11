@@ -20,7 +20,7 @@ Claude does the work. You answer a few questions, approve three times, and post 
 4. **Approve the script (Gate A).** Click Approve, or "Change something" and say what. Nothing is spent before you approve.
 5. **Claude makes the voice and the visual plan**: a short description of what the screen does on each line, and the handle that will show.
 6. **Approve the visual plan (Gate B).**
-7. **Wait while Claude builds, checks and mixes the real sound.** Then it makes the final, the cover and the caption, fact checks again, and gives a review verdict (meets the bar, close, or not ready). Watch it on your phone.
+7. **Wait while Claude builds, checks and mixes the real sound.** Then it makes the final, the cover and the caption, fact checks again, and scores the reel out of 100 and fixes and re-checks it until the score is 90 or more. Watch it on your phone.
 8. **Approve the final (Gate C).** The finished video is in `reels/<the reel's name>/out/`.
 9. **Post it yourself.** `/reel-posting` gives you a posting card: the file, the cover, the caption ready to copy and the quality setting. Or schedule it in Instagram.
 10. **A day later, type `/analytics-readout` with your numbers** (where to find them: `docs/after-posting.md`).

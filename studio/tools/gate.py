@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Approval gates: record what was approved, and prove later that the file is still that file.
 
-  python3 tools/gate.py <project> record [--gate A|B|C] [--note "text"] [--skip-facts "reason"]
+  python3 tools/gate.py <project> record [--gate A|B|C] [--note "text"] [--skip-facts "reason"] [--skip-review "reason"]
   python3 tools/gate.py <project> check  [--gate C]
 
 <project> is a reel folder (reels/<slug>); the log is its approvals.md. Default gate: C.
@@ -15,13 +15,16 @@
   gate A / gate C  also need a current PASS from the fact check (tools/facts.py, scope script for A, scope final for C): the
                    script, the caption and facts.md must be unchanged since it was recorded. Otherwise the record is refused.
                    --skip-facts "reason" records anyway and writes "FACTS NOT RE-CHECKED: reason" into the entry.
+  gate C           also needs the latest "Review:" line in approvals.md to say "meets the bar" with a score of 90 or more (out of 100;
+                   the older 4.5 out of 5 counts). Below 90 the reel is redone and /reel-review is run again until it reaches 90.
+                   --skip-review "reason" is the owner's override: it records anyway and writes "REVIEW BELOW THE BAR: reason".
 No network, no keys.
 """
 import hashlib, re, sys
 from datetime import datetime
 from pathlib import Path
 
-from kitcore import resolve_reel, Flags, fail, read_json
+from kitcore import resolve_reel, Flags, fail, read_json, review_score, MIN_SCORE
 import facts as factlib
 
 TOOL = 'gate'
@@ -102,6 +105,25 @@ def main():
             fail(TOOL, f'Gate {gate} needs a current fact check, and it is {state}: {detail}. Run /reel-factcheck '
                        f'(or  facts.py <project> check  then  record --scope {scope} --result PASS). '
                        f'To go ahead without it, add  --skip-facts "reason".')
+    review_line = ''
+    if gate == 'C':
+        reviews0 = re.findall(r'^\s*(?:[-*]\s*)?(Review:.*)$', text, re.M)
+        last = reviews0[-1].strip() if reviews0 else ''
+        score = review_score(last)
+        ok = bool(last) and score is not None and score >= MIN_SCORE and 'meets the bar' in last.lower()
+        skip_r = flags.get('skip-review')
+        if ok:
+            review_line = ''
+        elif skip_r:
+            if skip_r is True:
+                fail(TOOL, '--skip-review needs a reason in quotes')
+            review_line = f'REVIEW BELOW THE BAR: {skip_r} (latest: {last or "none recorded"})'
+        else:
+            what = ('no "Review:" line in approvals.md yet' if not last else
+                    f'the latest review scores {score:g}/100' if score is not None else
+                    'the latest review line has no score (write it as "Review: meets the bar (92/100; ...)")')
+            fail(TOOL, f'Gate C needs a review of {MIN_SCORE}/100 or more, and {what}. Fix what the review named, rebuild, run /reel-review again, '
+                       f'and repeat until it reaches {MIN_SCORE}. Only the owner overrides this, with  --skip-review "reason".')
     stamp = datetime.now().strftime('%Y-%m-%d %H:%M')
     if gate == 'C':
         video = newest_out(project)
@@ -116,7 +138,7 @@ def main():
         cover = project / 'out' / 'cover.jpg'
         if cover.exists():
             lines.append(f'- Cover: {cover.name} | sha256: {sha256(cover)[:12]}')
-        lines += [f'- QA: {qa_text}', f'- {verdict}', f'- {facts_line}']
+        lines += [f'- QA: {qa_text}', f'- {verdict}', f'- {facts_line}'] + ([f'- {review_line}'] if review_line else [])
         if note:
             lines.append(f'- Note: {note}')
         entry = '\n'.join(lines)
