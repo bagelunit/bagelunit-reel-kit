@@ -14,9 +14,9 @@ Claude does the work. You answer a few questions, approve three times, and post 
 3. `/analytics-readout` with your numbers, a day or more after posting.
 
 **The steps**
-1. **Ask for a reel**, with a topic: "Make a reel on how to [SOMETHING THE BRAND REALLY KNOWS]."
+1. **Ask for a reel:** type `/bagelunit-reels` with a topic, for example `/bagelunit-reels how to [SOMETHING THE BRAND REALLY KNOWS]`.
 2. **Pick the style** (Print, 3D, or Talking head if you filmed yourself). Take the recommended one if unsure.
-3. **Claude writes hooks and the script.** Then it fact checks the script: it re-reads every source, and a claim it cannot back up is flagged before anything is spent. It also shows what the voice will cost.
+3. **Claude writes hooks (each a triple hook: context, lean, contrarian snapback) and the script.** Then it fact checks the script: it re-reads every source, and a claim it cannot back up is flagged before anything is spent. It also shows what the voice will cost.
 4. **Approve the script (Gate A).** Click Approve, or "Change something" and say what. Nothing is spent before you approve.
 5. **Claude makes the voice and the visual plan**: a short description of what the screen does on each line, and the handle that will show.
 6. **Approve the visual plan (Gate B).**

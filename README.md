@@ -4,7 +4,7 @@ Make ready-to-post vertical reels (1080x1920, Instagram, TikTok, Shorts) with Cl
 
 Each person runs the kit on their own computer with their own Claude Code account and their own keys. Nothing in this repo holds a key, a photo of anyone or any client data.
 
-> **Quick start.** 1) Download this kit. 2) In its folder run **`bash setup/install.sh`** (Windows: `node setup/install.mjs`), or let Claude Code run it with Message 1 below. 3) Open Claude Code there and type **`/brand-setup`** to make your brand's folder. 4) Open that folder and type **`/bagelunit-reels`** with your topic. Step by step: [Start here](#start-here-if-you-have-never-done-this-before).
+> **Quick start** (when Node.js 22 or newer, Claude Code and, on a Mac, Homebrew are already installed; new to all this? begin at [Start here](#start-here-if-you-have-never-done-this-before)). 1) Download this kit. 2) In its folder run **`bash setup/install.sh`** (Windows: `node setup/install.mjs`), or let Claude Code run it with Message 1 below. 3) Open Claude Code there and type **`/brand-setup`** to make your brand's folder. 4) Open that folder and type **`/bagelunit-reels`** with your topic. Step by step: [Start here](#start-here-if-you-have-never-done-this-before).
 
 > **Every command in one place:** [COMMANDS.md](COMMANDS.md), also as a [PDF](docs/commands.pdf) and a [spreadsheet](docs/commands.csv).
 
@@ -65,6 +65,8 @@ Each person runs the kit on their own computer with their own Claude Code accoun
 `~` means your home folder (on Windows, `C:\Users\<you>`). Keep brand folders out of iCloud Drive, OneDrive and Dropbox: renders are large and syncing them slows everything down.
 
 ## Quick start
+
+For people who already have Node.js 22 or newer, Claude Code and (on a Mac) Homebrew. Everyone else: start at [Start here](#start-here-if-you-have-never-done-this-before) below, which installs those first.
 
 ```bash
 git clone https://github.com/bagelunit/bagelunit-reel-kit.git ~/dev/bagelunit-reel-kit

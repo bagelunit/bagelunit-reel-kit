@@ -25,13 +25,9 @@ Type `/content-calendar` in Claude Code in this folder. It makes one page, `bran
 
 The page works on a phone screen too, and holds still if your system asks for reduced motion. Everything below is optional and off until you turn it on.
 
-## All your brands on one page
-
-Running several brands? Type `/content-calendar all` in any brand folder. It draws one page with every brand folder on this computer (each adds itself when its dashboard is drawn), most urgent first: what needs you in each, the week's numbers, the next 7 days across all of them, and a link to each brand's own dashboard. It stays on your computer.
-
 ## 1. Plan your weeks
 
-- `/content-calendar days` asks which days and at what time you usually post. Empty posting days show as open slots.
+- `/content-calendar days` asks which days you post, how many times a day and at what times (one a day, or several, each its own slot). Empty posting days show as open slots.
 - `/content-calendar plan` suggests topics for those slots, each with one goal and its own angle, and adds them to `brand/plan.md` after your yes. You can also edit that file yourself.
 
 ## 2. Connect your numbers: Instagram, Facebook, Threads (read only)
@@ -91,6 +87,10 @@ node .claude/skills/content-calendar/schedule.mjs remove
 - **Linux:** one line in your crontab, marked `# bagelunit-reels:<slug>`.
 
 What each run did is in `.cache/refresh.log` in this folder. A failed pull or send shows on the dashboard under "Needs you".
+
+## Several brands: all on one page
+
+Running several brands? Type `/content-calendar all` in any brand folder. It draws one page with every brand folder on this computer (each adds itself when its dashboard is drawn), most urgent first: what needs you in each, the week's numbers, the next 7 days across all of them, and a link to each brand's own dashboard. It stays on your computer.
 
 ## 6. Safety
 

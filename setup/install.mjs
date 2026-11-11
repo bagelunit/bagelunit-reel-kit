@@ -300,6 +300,32 @@ step('Kit packages (npm install) and the render browser (npm run browser)');
   ok('packages and headless Chromium ready');
 }
 
+// ---------------------------------------------------------------- 2b. the browser tool (before the key and the sound packs, the steps it helps with)
+// Every setup step on the web (the ElevenLabs key, the Kenney packs, the Meta app, Cloudflare, Telegram, a host) is
+// done by Claude in the person's browser through Claude in Chrome (template/docs/browser.md). A project cannot turn it
+// on (Claude Code refuses that), so this only checks and tells. Claude Code writes a connection file for the browser
+// the first time the browser tool is turned on; finding one means it has been set up on this computer before.
+step('Browser tool (Claude in Chrome), for the setup steps on the web');
+{
+  const MAC = path.join(HOME, 'Library', 'Application Support');
+  const dirs = IS_MAC ? [['Google', 'Chrome'], ['Microsoft Edge'], ['BraveSoftware', 'Brave-Browser'], ['Chromium']].map((d) => path.join(MAC, ...d))
+    : IS_WIN ? [] : ['google-chrome', 'microsoft-edge', 'BraveSoftware/Brave-Browser', 'chromium'].map((d) => path.join(HOME, '.config', d));
+  const file = dirs.map((d) => path.join(d, 'NativeMessagingHosts', 'com.anthropic.claude_code_browser_extension.json')).find(exists);
+  let where = file ? path.basename(path.dirname(path.dirname(file))) : null;
+  if (!where && IS_WIN) {                       // on Windows the connection is a registry key per browser
+    const keys = [['Google\\Chrome', 'Chrome'], ['Microsoft\\Edge', 'Edge'], ['BraveSoftware\\Brave-Browser', 'Brave']];
+    where = (keys.find(([k]) => cp.spawnSync('reg', ['query', `HKCU\\Software\\${k}\\NativeMessagingHosts\\com.anthropic.claude_code_browser_extension`], { stdio: 'ignore' }).status === 0) || [])[1] || null;
+  }
+  if (where) ok(`set up before on this computer (${where}). In Claude Code, /chrome shows whether it is on now.`);
+  else {
+    warn('not set up yet. Claude does the web steps in your browser while you watch; you only log in, copy a key into the file Claude opens, and click the last Delete when something is removed.');
+    info('1. Use Google Chrome, Microsoft Edge, Brave, Arc, Vivaldi or Opera (not Safari or Firefox; not inside WSL).');
+    info('2. Install the Claude extension: https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn');
+    info('3. In Claude Code, type /chrome and turn it on (or start with: claude --chrome). It needs a Claude Pro, Max, Ultra, Team or Enterprise plan, signed in with /login.');
+    info('Without it, every guide has the same steps written out for you to do by hand. Details: template/docs/browser.md');
+  }
+}
+
 // ---------------------------------------------------------------- 3. settings folder + key
 step('Settings folder for your own keys');
 if (!F.dryRun) fs.mkdirSync(CONFIG, { recursive: true, mode: 0o700 });
@@ -446,32 +472,6 @@ else {
     if (sh('claude', ['mcp', 'get', 'earshot'], { capture: true, always: true }).status === 0) ok('already registered');
     else if (sh('claude', ['mcp', 'add', '--scope', 'user', 'earshot', '--', VENV_BIN('earshot'), 'mcp']).status === 0) ok('registered');
   } else info(`not registered. To add it later: claude mcp add --scope user earshot -- ${VENV_BIN('earshot')} mcp`);
-}
-
-// ---------------------------------------------------------------- 5b. the browser tool
-// Every setup step on the web (the ElevenLabs key, the Kenney packs, the Meta app, Cloudflare, Telegram, a host) is
-// done by Claude in the person's browser through Claude in Chrome (template/docs/browser.md). A project cannot turn it
-// on (Claude Code refuses that), so this only checks and tells. Claude Code writes a connection file for the browser
-// the first time the browser tool is turned on; finding one means it has been set up on this computer before.
-step('Browser tool (Claude in Chrome), for the setup steps on the web');
-{
-  const MAC = path.join(HOME, 'Library', 'Application Support');
-  const dirs = IS_MAC ? [['Google', 'Chrome'], ['Microsoft Edge'], ['BraveSoftware', 'Brave-Browser'], ['Chromium']].map((d) => path.join(MAC, ...d))
-    : IS_WIN ? [] : ['google-chrome', 'microsoft-edge', 'BraveSoftware/Brave-Browser', 'chromium'].map((d) => path.join(HOME, '.config', d));
-  const file = dirs.map((d) => path.join(d, 'NativeMessagingHosts', 'com.anthropic.claude_code_browser_extension.json')).find(exists);
-  let where = file ? path.basename(path.dirname(path.dirname(file))) : null;
-  if (!where && IS_WIN) {                       // on Windows the connection is a registry key per browser
-    const keys = [['Google\\Chrome', 'Chrome'], ['Microsoft\\Edge', 'Edge'], ['BraveSoftware\\Brave-Browser', 'Brave']];
-    where = (keys.find(([k]) => cp.spawnSync('reg', ['query', `HKCU\\Software\\${k}\\NativeMessagingHosts\\com.anthropic.claude_code_browser_extension`], { stdio: 'ignore' }).status === 0) || [])[1] || null;
-  }
-  if (where) ok(`set up before on this computer (${where}). In Claude Code, /chrome shows whether it is on now.`);
-  else {
-    warn('not set up yet. Claude does the web steps in your browser while you watch; you only log in, copy a key into the file Claude opens, and click the last Delete when something is removed.');
-    info('1. Use Google Chrome, Microsoft Edge, Brave, Arc, Vivaldi or Opera (not Safari or Firefox; not inside WSL).');
-    info('2. Install the Claude extension: https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn');
-    info('3. In Claude Code, type /chrome and turn it on (or start with: claude --chrome). It needs a Claude Pro, Max, Ultra, Team or Enterprise plan, signed in with /login.');
-    info('Without it, every guide has the same steps written out for you to do by hand. Details: template/docs/browser.md');
-  }
 }
 
 // ---------------------------------------------------------------- 6. checkup

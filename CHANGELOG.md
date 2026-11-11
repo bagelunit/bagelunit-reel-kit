@@ -23,6 +23,7 @@ Two fresh reviews walked the kit as a stranger would, from the GitHub page to th
 - **Brand files stay in the brand folder.** `/brand-setup` in the kit folder leaves the sticker host and other brand files for the brand's own folder. The kit refuses to start a reel in its own `template/`, and ignores a stray `brand/` or `reels/` folder at its top level.
 - **The dashboard's hooks work on Windows without Git Bash.** The hook path is now filled in by Claude Code itself, and the hooks also run after PowerShell commands.
 - **The template sync no longer creates a folder you did not ask for.** Run with no arguments, it refreshes a copy-from folder only when you keep one (`REEL_TEMPLATE_HOME`).
+- **Everything reads in the order you do it.** The README's quick start says it is for people who already have the prerequisites. The installer checks for the browser tool before the key and sound-pack steps it helps with. Keyword replies start Business Verification before App Review, since it takes longest. The dashboard guide puts several brands last. The first reel starts with `/bagelunit-reels`.
 - SETUP.md has the Windows and Linux lines for the steps that were Mac only, and says when Whisper is needed. The posting question reads the same everywhere. The costs list every optional paid part.
 
 **Connecting your accounts**
