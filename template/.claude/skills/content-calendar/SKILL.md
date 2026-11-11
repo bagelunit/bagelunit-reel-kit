@@ -44,7 +44,7 @@ Ask every choice with a question block (AskUserQuestion), the recommended option
 | `brand/ideas.md` | post ideas drafted from the competitors' winners: Date, Idea, Hook, Based on, Goal, Angle, Status (`suggested`, `planned`, `rejected`); written by `/content-calendar ideas` |
 | `brand/how-often.json` | written by `how-often.mjs`: the suggested posting pace and why; the Planner panel shows it |
 | `brand/calendar.md`, `brand/dashboard.html` | written by `calendar.mjs` each run (the page itself is drawn by `page.mjs`; fonts in `fonts/`) |
-| `brand/brand.json` | `posting.timezone`, `posting.days`, `posting.times` (or the older single `posting.time`), `batch.max_reels`, and `dashboard`: `instagram`, `facebook`, `threads`, `telegram`, `competitors` (each on only after the owner's yes; `competitors_every` is the days between reads, default 7), `refresh` (with `time` and `day`, written by `schedule.mjs`), `host` (`local`, `wifi`, `netlify`, `cloudflare` or `folder`), `site` (the Netlify site id or Cloudflare Pages project), `url` (the site's https address), `path_key` (the private path, made by `host.mjs` run by hand) and `publish_every` (minutes between background uploads, default 15, 0 for the scheduled refresh only) |
+| `brand/brand.json` | `posting.timezone`, `posting.days`, `posting.times` (or the older single `posting.time`), `batch.max_reels`, and `dashboard`: `instagram`, `facebook`, `threads`, `telegram`, `competitors` (each on only after the owner's yes; `competitors_every` is the days between reads, default 7; `competitors_days` is how many recent days "What is working for them" covers, default 7), `refresh` (with `time` and `day`, written by `schedule.mjs`), `host` (`local`, `wifi`, `netlify`, `cloudflare` or `folder`), `site` (the Netlify site id or Cloudflare Pages project), `url` (the site's https address), `path_key` (the private path, made by `host.mjs` run by hand) and `publish_every` (minutes between background uploads, default 15, 0 for the scheduled refresh only) |
 
 Stages, in order: Idea, Script written, Script approved (Gate A), Visual plan approved (Gate B), Final approved
 (Gate C), Scheduled, Posted. The four agent panels map the kit's skills: Ideator (`/comment-mining`,
@@ -170,7 +170,7 @@ public data; it never posts, follows, likes or comments.
 3. **Keep it fresh.** Turn on the weekly read (`brand.json` -> `dashboard.competitors: true`, after the owner's yes):
    the daily refresh then reads the accounts through Meta whenever the oldest read is more than 7 days old
    (`dashboard.competitors_every`). Each read adds a line to `brand/research/history.csv`, so follower growth and median
-   views over time show up after the second week. `competitors.mjs remove <handle>` drops an account and `list` shows
+   views over time show up after the second week. `competitors.mjs remove <handle>` drops an account for good (its saved posts stay in `brand/research`, but it does not come back; adding it again does) and `list` shows
    what is read and how.
 4. Run the calendar (`calendar.mjs`) and point the owner at the Competitors section. If an account says "not read", offer
    the export route for it.
@@ -178,9 +178,11 @@ public data; it never posts, follows, likes or comments.
 ## /content-calendar ideas: post ideas from what is working for them
 
 Claude's step (no script writes ideas). It turns the competitors' winners into this brand's own post ideas.
-1. Read the winners: each `brand/research/<handle>.csv` (url, timestamp, views, likes, comments, caption), with a post's
-   ratio being its views over that account's median of its last 12 posts (3x or more is STUDY, 1.5x NOTE; the dashboard
-   shows the same list), then
+1. Read the winners: each `brand/research/<handle>.csv` (url, timestamp, views, likes, comments, caption), **only posts from
+   the last `dashboard.competitors_days` days (default 7)**, with a post's ratio being its views over that account's
+   median of its last 12 posts (3x or more is STUDY, 1.5x NOTE; the dashboard shows the same list). Older posts are judged
+   against today's median, so they are not "working now". If fewer than 3 recent posts qualify, say so and ask whether to
+   widen the window instead of reaching back quietly. Then read
    `brand/voice.md`, `brand/facts.md`, `brand/tests.md`, `brand/log.md` (so no idea repeats a recent angle) and
    `brand/swipe.md`. If fewer than 3 accounts have a median yet, say so and stop: ideas from nothing are guesses.
 2. Draft 5 to 8 ideas. Each takes the **shape** of a winner (hook shape, structure, length, the question it answers), never

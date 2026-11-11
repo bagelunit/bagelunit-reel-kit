@@ -774,7 +774,8 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
   const ownViews = (media.length ? media.map((m) => ({ at: m.at, v: m.nums.views })) : items.filter((x) => x.postedAt && x.nums?.views != null).map((x) => ({ at: x.postedAt, v: x.nums.views })))
     .filter((x) => x.at && x.v != null).sort((a, b) => b.at - a.at);
   const competitors = loadCompetitors(root, {
-    now: now.getTime(), dayName: (t) => pretty(dayKey(new Date(t)), { weekday: 'short' }),
+    now: now.getTime(), windowDays: Math.min(90, Math.max(1, Math.round(Number(brand.dashboard?.competitors_days) || 7))),
+    dayName: (t) => pretty(dayKey(new Date(t)), { weekday: 'short' }),
     own: { followers: followersNow, median: median(ownViews.slice(0, 12).map((x) => x.v)), perWeek: ownViews.length >= 3 ? Math.round((ownViews.filter((x) => now - x.at <= 28 * 864e5).length / 4) * 10) / 10 : null },
   });
 

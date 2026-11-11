@@ -61,7 +61,22 @@ const html = fs.readFileSync(path.join(root, 'brand', 'dashboard.html'), 'utf8')
 assert.ok(html.includes('id="competitors"') && html.includes('@rival_one'));
 fs.writeFileSync(path.join(root, 'brand', 'ideas.md'), '| Date | Idea | Hook | Based on | Goal | Angle | Status |\n|---|---|---|---|---|---|---|\n| 2026-11-10 | A | h | @rival_one | saves | list | suggested |\n');
 assert.equal(lib.load(root).competitors.ideas[0].status, 'suggested');
+// the winners list is recent posts only: rival_one's 5.2x post is 6 days old, its 3.1x post is 14 days old
+const W = lib.load(root).competitors;
+assert.equal(W.windowDays, 7);
+assert.ok(W.outliers.every((o) => o.at > now - 7 * day), 'only posts from the last 7 days');
+assert.ok(W.outliers.some((o) => o.handle === 'rival_one' && o.ratio > 5) && !W.outliers.some((o) => Math.abs(o.ratio - 3.1) < 0.01), 'the 14-day-old 3.1x post is left out');
+assert.ok(W.olderWinners >= 1);
+const bj = path.join(root, 'brand', 'brand.json');
+fs.writeFileSync(bj, JSON.stringify({ ...JSON.parse(fs.readFileSync(bj, 'utf8')), dashboard: { competitors_days: 30 } }));
+assert.ok(lib.load(root).competitors.outliers.some((o) => Math.abs(o.ratio - 3.1) < 0.01), 'competitors_days widens the window');
+// patterns look back further than the winners list, and say so
+assert.equal(W.patterns.windowDays, 90);
+// a removed account stays removed, even with its saved file still in brand/research
 c.remove(root, 'third_acct');
 assert.equal(lib.load(root).competitors.configured, 2);
+assert.ok(!lib.load(root).competitors.accounts.some((a) => a.handle === 'third_acct'), 'removed account does not come back as Other');
+c.add(root, ['third_acct'], 'adjacent');
+assert.ok(lib.load(root).competitors.accounts.some((a) => a.handle === 'third_acct' && a.tag === 'adjacent'), 'adding it again brings it back');
 fs.rmSync(root, { recursive: true, force: true });
 console.log('competitors: OK');

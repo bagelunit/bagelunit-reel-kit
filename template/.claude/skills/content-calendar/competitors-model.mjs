@@ -9,7 +9,9 @@ import { accountPace } from './how-often.mjs';
 
 export const TAGS = { niche: 'In your niche', adjacent: 'Adjacent', big: 'Big (format ideas)', other: 'Other' };
 export const MIN_POSTS = 5;                       // fewer than this and an account has no trustworthy median
-export const WINDOW = 12;                         // posts used for the median
+export const WINDOW = 12;
+export const WINDOW_DAYS = 7;                     // "what is working for them" looks at this many recent days (brand.json -> dashboard.competitors_days)
+export const PATTERN_DAYS = 90;                   // the shape and day patterns need more posts, so they look further back, and say so                         // posts used for the median
 const DAY = 864e5;
 const STALE_DAYS = 14;
 export const USERNAME = /^[A-Za-z0-9._]{1,30}$/;  // Instagram's own rule for a username
@@ -69,11 +71,12 @@ export function configOf(root) {
   const cfg = readJSON(path.join(root, 'brand', 'competitors.json'), {});
   const list = (Array.isArray(cfg.accounts) ? cfg.accounts : []).filter((a) => isObj(a) && USERNAME.test(String(a.handle || '').replace(/^@/, '')))
     .map((a) => ({ handle: String(a.handle).replace(/^@/, ''), tag: TAGS[a.tag] ? a.tag : 'other', added: a.added || '', source: a.source || 'auto' }));
-  return { list, cfg };
+  const removed = new Set((Array.isArray(cfg.removed) ? cfg.removed : []).map((h) => String(h).toLowerCase()));
+  return { list, cfg, removed };
 }
 
-export function loadCompetitors(root, { now = Date.now(), own = {}, dayName = (t) => new Date(t).toUTCString().slice(0, 3) } = {}) {
-  const { list } = configOf(root);
+export function loadCompetitors(root, { now = Date.now(), own = {}, windowDays = WINDOW_DAYS, patternDays = PATTERN_DAYS, dayName = (t) => new Date(t).toUTCString().slice(0, 3) } = {}) {
+  const { list, removed } = configOf(root);
   const dir = path.join(root, 'brand', 'research');
   const meta = readJSON(path.join(dir, 'accounts.json'), {});
   const hist = history(root);
@@ -81,7 +84,7 @@ export function loadCompetitors(root, { now = Date.now(), own = {}, dayName = (t
   if (fs.existsSync(dir)) {                      // research the owner did before the list existed still counts
     for (const f of fs.readdirSync(dir)) {
       const m = f.match(/^(.+)\.csv$/i);
-      if (!m || /^(hashtag-|history$)/i.test(m[1]) || !USERNAME.test(m[1])) continue;
+      if (!m || /^(hashtag-|history$)/i.test(m[1]) || !USERNAME.test(m[1]) || removed.has(m[1].toLowerCase())) continue;
       if (!handles.some((h) => h.handle.toLowerCase() === m[1].toLowerCase())) handles.push({ handle: m[1], tag: 'other', added: '', source: 'file' });
     }
   }
@@ -106,20 +109,22 @@ export function loadCompetitors(root, { now = Date.now(), own = {}, dayName = (t
   }
   accounts.sort((a, b) => (b.score ?? -1) - (a.score ?? -1) || (b.followers ?? 0) - (a.followers ?? 0));
 
-  // the posts that beat their own account's median: study first, then by ratio
-  const outliers = accounts.flatMap((a) => a.posts.filter((p) => p.tier === 'STUDY' || p.tier === 'NOTE').map((p) => ({ ...p, handle: a.handle, tag: a.tag })))
-    .sort((a, b) => (b.tier === 'STUDY') - (a.tier === 'STUDY') || b.ratio - a.ratio);
+  // the posts that beat their own account's median, inside the window (recent posts only: an old post is judged against
+  // today's median, so it is not a fair "what is working now"); study first, then by ratio
+  const all = accounts.flatMap((a) => a.posts.filter((p) => p.tier === 'STUDY' || p.tier === 'NOTE').map((p) => ({ ...p, handle: a.handle, tag: a.tag })));
+  const outliers = all.filter((p) => p.at > now - windowDays * DAY).sort((a, b) => (b.tier === 'STUDY') - (a.tier === 'STUDY') || b.ratio - a.ratio);
 
-  // what the winners have in common: for each hook shape, how many of the ranked posts beat their median
-  const ranked = accounts.flatMap((a) => a.posts.filter((p) => p.ratio != null));
+  // what the winners have in common: for each hook shape, how many of the ranked posts beat their median (a longer window,
+  // because a week holds too few posts to compare shapes)
+  const ranked = accounts.flatMap((a) => a.posts.filter((p) => p.ratio != null && p.at > now - patternDays * DAY));
   const shapes = {};
   for (const p of ranked) { const s = (shapes[p.shape] ||= { shape: p.shape, posts: 0, hits: 0 }); s.posts++; if (p.ratio >= 1.5) s.hits++; }
   const base = ranked.length ? ranked.filter((p) => p.ratio >= 1.5).length / ranked.length : 0;
   const shapeRows = Object.values(shapes).filter((s) => s.posts >= 3 && s.shape !== 'no caption')
     .map((s) => ({ ...s, rate: s.hits / s.posts, lift: base ? s.hits / s.posts / base : null })).sort((a, b) => b.rate - a.rate);
   const days = {};
-  for (const p of outliers.filter((x) => x.tier === 'STUDY' || x.ratio >= 1.5)) days[dayName(p.at)] = (days[dayName(p.at)] || 0) + 1;
-  const patterns = { n: ranked.length, hits: ranked.filter((p) => p.ratio >= 1.5).length, base, shapes: shapeRows, days: Object.entries(days).sort((a, b) => b[1] - a[1]) };
+  for (const p of all.filter((x) => x.at > now - patternDays * DAY && x.ratio >= 1.5)) days[dayName(p.at)] = (days[dayName(p.at)] || 0) + 1;
+  const patterns = { n: ranked.length, hits: ranked.filter((p) => p.ratio >= 1.5).length, base, shapes: shapeRows, days: Object.entries(days).sort((a, b) => b[1] - a[1]), windowDays: patternDays };
 
   // what they posted this week
   const feed = accounts.flatMap((a) => a.posts.filter((p) => p.at > now - 7 * DAY).map((p) => ({ ...p, handle: a.handle, tag: a.tag })))
@@ -135,6 +140,6 @@ export function loadCompetitors(root, { now = Date.now(), own = {}, dayName = (t
     goal: key(r, 'goal'), angle: key(r, 'angle'), status: (key(r, 'status') || 'suggested').toLowerCase(),
   })).filter((i) => i.idea);
 
-  const out = { accounts, outliers, patterns, feed, own: ownRow, ideas, configured: list.length, any: accounts.length > 0, withData: accounts.filter((a) => a.readPosts).length };
+  const out = { accounts, outliers, windowDays, olderWinners: all.length - outliers.length, patterns, feed, own: ownRow, ideas, configured: list.length, any: accounts.length > 0, withData: accounts.filter((a) => a.readPosts).length };
   return out;
 }

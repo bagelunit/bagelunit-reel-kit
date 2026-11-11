@@ -33,7 +33,7 @@ const clean = (h) => String(h || '').trim().replace(/^@/, '').replace(/^https?:\
 const file = (root) => path.join(root, 'brand', 'competitors.json');
 
 export function save(root, cfg) { writeAtomic(file(root), JSON.stringify(cfg, null, 2) + '\n'); }
-function loadCfg(root) { const { list, cfg } = configOf(root); return { ...cfg, accounts: list.map(({ handle, tag, added, source }) => ({ handle, tag, added, source })) }; }
+function loadCfg(root) { const { list, cfg, removed } = configOf(root); return { ...cfg, removed: [...removed], accounts: list.map(({ handle, tag, added, source }) => ({ handle, tag, added, source })) }; }
 
 export function add(root, handles, tag = 'niche') {
   if (!TAGS[tag] || tag === 'other') throw new Plain(`the tag is niche, adjacent or big (got "${tag}")`);
@@ -44,6 +44,7 @@ export function add(root, handles, tag = 'niche') {
     if (!USERNAME.test(h)) { skipped.push(`${raw} (not an Instagram username)`); continue; }
     if (cfg.accounts.some((a) => a.handle.toLowerCase() === h.toLowerCase())) { skipped.push(`@${h} (already on the list)`); continue; }
     if (cfg.accounts.length >= MAX_ACCOUNTS) { skipped.push(`@${h} (the list holds ${MAX_ACCOUNTS} accounts)`); continue; }
+    cfg.removed = cfg.removed.filter((x) => x !== h.toLowerCase());    // adding it again brings it back
     cfg.accounts.push({ handle: h, tag, added: new Date().toISOString().slice(0, 10), source: 'auto' });
     added.push(h);
   }
@@ -55,6 +56,7 @@ export function remove(root, handle) {
   const n = cfg.accounts.length;
   cfg.accounts = cfg.accounts.filter((a) => a.handle.toLowerCase() !== h);
   if (cfg.accounts.length === n) throw new Plain(`@${clean(handle)} is not on the list`);
+  if (!cfg.removed.includes(h)) cfg.removed.push(h);         // so the saved file in brand/research does not bring it back as "Other"
   save(root, cfg);                                           // the saved posts stay in brand/research, the owner can delete them
 }
 

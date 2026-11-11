@@ -2,6 +2,15 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.14.1 (2026-11-10)
+
+Fixes from a first real run of the competitor dashboard.
+
+- **"What is working for them" shows recent posts only.** It listed every winning post the kit had ever read, so most of the top 8 were weeks old. It now covers the last 7 days (`dashboard.competitors_days` in `brand/brand.json` changes it, up to 90), the panel says so, and when nothing recent qualifies it says how many older posts did instead of quietly showing them. Older posts are not shown because each is judged against the account's median today.
+- **The patterns say how far back they look.** "What the winners share" uses the last 90 days (a week holds too few posts to compare hook shapes) and is labelled. The leaderboard column is now "Beat their median, 30 days", and the feed is "Posted in the last 7 days", so each panel names its own range.
+- **A removed account stays removed.** Its saved file in `brand/research` brought it back as "Other". Removing now records it, and adding the account again brings it back.
+- `/content-calendar ideas` reads the same recent window and asks before reaching further back.
+
 ## 1.14.0 (2026-11-10)
 
 **A competitor dashboard.** The content dashboard has a new Competitors section: who you watch, what they post, what is working for them, and post ideas drawn from it.
