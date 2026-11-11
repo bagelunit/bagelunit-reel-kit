@@ -40,7 +40,7 @@ Each person runs the kit on their own computer with their own Claude Code accoun
 
 **Your numbers after posting.** Type `/analytics-readout` with your numbers: it keeps one row per posted reel in `brand/insights.csv` and says what to make more of and what to stop, against your own results. Once 8 of your posted reels have numbers, `/reel-predict` can estimate how a new draft will hold viewers before you post it. See [`template/docs/after-posting.md`](template/docs/after-posting.md).
 
-**One-command updates.** Type `/kit-update` in a brand folder: it shows what changed, previews, updates the workspace without touching your brand's files, and offers to update the engine too. It works even if you downloaded the kit as a ZIP.
+**One-command updates.** Type `/kit-update` in a brand folder: it shows what changed, previews, updates the workspace without touching your brand's files, and updates the engine too. It works even if you downloaded the kit as a ZIP.
 
 ## Requirements
 

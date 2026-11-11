@@ -4,7 +4,10 @@
 //   node .claude/skills/kit-update/update.mjs check              which version is out, and what changed (reads one public file)
 //   node .claude/skills/kit-update/update.mjs get                download that kit version into ~/.bagelunit-reel-kit/<version>/
 //   node .claude/skills/kit-update/update.mjs preview            show what would change in this workspace (changes nothing)
-//   node .claude/skills/kit-update/update.mjs apply              update this workspace (old files kept as *.bak-<date>)
+//   node .claude/skills/kit-update/update.mjs apply              update this workspace (old files kept as *.bak-<date>), then the engine
+//   node .claude/skills/kit-update/update.mjs engine             update only the engine (the installed /bagelunit-reels), if it is behind
+// The engine is updated by `apply` itself when it is older than the kit (once per computer: a second workspace finds it current).
+// --no-engine skips that. A linked engine (install.sh --link) follows the kit folder and is left alone.
 // Options: --workspace <folder> (default: this folder), --from <kit folder or .tar.gz> (use a local copy instead of
 // downloading), --version <x.y.z> (a specific release instead of the newest).
 //
@@ -13,7 +16,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 
 const REPO = 'bagelunit/bagelunit-reel-kit';
 const HOME_KIT = path.join(os.homedir(), '.bagelunit-reel-kit');
@@ -95,6 +98,27 @@ function sync(kit, apply) {
   return execFileSync(process.execPath, a, { encoding: 'utf8' });
 }
 
+// Update the installed engine (~/.claude/skills/bagelunit-reels) with the kit's own installer, when it is behind this kit.
+// The installer's marker file holds the kit version it was installed from. It runs the installer without the program,
+// plugin and sound-library steps (an update has them already; those steps can ask questions or download gigabytes);
+// stdin is not a terminal here, so the installer never installs a program on its own. Returns true when it ran and succeeded.
+export function updateEngine(kit, version, { skills = path.join(os.homedir(), '.claude', 'skills'), run = spawnSync, log = console.log } = {}) {
+  const target = path.join(skills, 'bagelunit-reels');
+  const installer = path.join(kit, 'setup', 'install.mjs');
+  if (!fs.existsSync(installer)) { log('The engine was not updated: this kit has no installer.'); return false; }
+  let linked = false; try { linked = fs.lstatSync(target).isSymbolicLink(); } catch {}
+  if (linked) { log('The engine is linked to a kit folder (install with --link), so it follows that folder. Nothing to update.'); return false; }
+  if (!fs.existsSync(target)) { log(`The engine is not installed yet. Install it once: node "${installer}"`); return false; }
+  const kitV = version === 'local' ? (() => { try { return fs.readFileSync(path.join(kit, 'VERSION'), 'utf8').trim(); } catch { return ''; } })() : version;
+  let have = 'unknown'; try { have = fs.readFileSync(path.join(target, '.bagelunit-reel-kit'), 'utf8').split('\n')[1]?.trim() || 'unknown'; } catch {}
+  if (kitV && have !== 'unknown' && cmp(kitV, have) <= 0) { log(`The engine is already on ${have}.`); return false; }
+  log(`Updating the engine (${have === 'unknown' ? 'an older version' : have} to ${kitV || 'the newest'}) with the kit's installer...`);
+  const r = run(process.execPath, [installer, '--skip-packages', '--skip-plugins', '--skip-sound'], { stdio: 'inherit' });
+  if (r.status !== 0) { log(`The engine update did not finish. Run it yourself and read what it says: node "${installer}"`); return false; }
+  log('The engine is updated. Restart Claude Code so the new engine and skills load.');
+  return true;
+}
+
 async function main() {
   if (!fs.existsSync(path.join(WS, 'brand', 'brand.json'))) fail(`Not a reel workspace: ${WS}`);
   const mine = have();
@@ -115,10 +139,14 @@ async function main() {
   }
   if (cmd === 'apply') {
     process.stdout.write(sync(kit, true));
-    console.log(`\nThe engine (the /bagelunit-reels command) is updated separately, once per computer:\n  node "${path.join(kit, 'setup', 'install.mjs')}"\nIt shows each step and asks before installing anything.`);
+    console.log('');
+    if (args.includes('--no-engine')) console.log(`The engine was not touched (--no-engine). Update it later: node .claude/skills/kit-update/update.mjs engine`);
+    else updateEngine(kit, version);
     return;
   }
-  fail(`Unknown command "${cmd}". Use check, get, preview or apply.`);
+  if (cmd === 'engine') { updateEngine(kit, version); return; }
+  fail(`Unknown command "${cmd}". Use check, get, preview, apply or engine.`);
 }
 
-main().catch((e) => fail(e.message));
+import { fileURLToPath } from 'node:url';
+if (process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) main().catch((e) => fail(e.message));

@@ -2,7 +2,7 @@
 name: kit-update
 description: >
   Update this workspace to the newest BagelUnit Reel Kit, step by step, even if the kit was downloaded as a ZIP:
-  check the version, show what changed, download it, preview, apply, then update the engine. Use when the user
+  check the version, show what changed, download it, preview, apply, then update the engine by itself. Use when the user
   says "update the kit", "is there a new version", "check for updates", "upgrade", or when the start-of-session
   version check found a newer kit.
 user-invokable: true
@@ -30,10 +30,12 @@ brand's data (`brand/` values, `reels/`): it adds new settings and missing start
    brand only; Claude Code reads it automatically and updates never touch it) instead of re-applying it.
 3. **Ask** (question block): "Update this workspace (Recommended)", "Not now".
 4. **Apply:** `node .claude/skills/kit-update/update.mjs apply`. Report what changed in two or three lines.
-5. **The engine** (`/bagelunit-reels`) is updated once per computer, not per workspace. Ask (question block):
-   "Update the engine too (Recommended)", "Later". If yes, run the installer command `apply` printed; it shows each
-   step and asks before installing any program. Tell the owner to restart Claude Code afterwards so the new skills
-   load.
+5. **The engine** (`/bagelunit-reels`) is updated once per computer, and `apply` does it by itself when it is older
+   than the kit: it runs the kit's installer (without the program, plugin and sound-library steps) and prints
+   "The engine is updated" or why it did not. Do not ask the owner a question about it. Report the line, and tell
+   the owner to restart Claude Code so the new engine and skills load. A linked engine (installed with `--link`)
+   follows its kit folder and is left alone. If it says the update did not finish, show the owner the command it
+   printed and what the installer said. `--no-engine` skips it; `update.mjs engine` runs only this step.
 6. **Other workspaces** (other brands on this computer): offer to update each one the same way, one at a time,
    with `--workspace <folder>`.
 

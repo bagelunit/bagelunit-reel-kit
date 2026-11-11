@@ -6,7 +6,7 @@ Group,Command,What it does,Where you type it
 "Get started (once per computer)","node setup/sync-template.mjs <brand folder>","Shows what a kit update would change in a brand folder; add --apply to do it. /kit-update does this for you.","terminal, kit folder"
 "Set up and keep up to date","/brand-setup","Sets up the brand (name, handle, colours, logo, fonts, presenter, voice, call to action) or changes it later.","brand folder"
 "Set up and keep up to date","/sticker-host","Makes your sticker host, a cartoon of you or your mascot for Print reels: a base pose from one photo, then a starter 10, then any pose a reel needs (new, add <pose>, check <reel>, status).","brand folder"
-"Set up and keep up to date","/kit-update","Checks for a newer kit, shows what changed, updates this folder without touching your brand or reels, and offers to update the engine.","brand folder"
+"Set up and keep up to date","/kit-update","Checks for a newer kit, shows what changed, updates this folder without touching your brand or reels, and updates the engine too.","brand folder"
 "Make a reel","/bagelunit-reels","Makes a reel: type it with your topic. Script, voice, animated shots, self-checks and the final mp4, with three approvals on the way.","brand folder"
 "Make a reel","/viral-hook-writer","Writes hooks (the first 1 to 3 seconds) for a reel.","brand folder"
 "Make a reel","/hook-mining","Makes new hooks from a file of hooks that already worked, keeping what made them work.","brand folder"

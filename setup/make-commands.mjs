@@ -25,7 +25,7 @@ const GROUPS = [
   ['Set up and keep up to date', 'Type these in Claude Code inside a brand folder.', [
     ['/brand-setup', 'Sets up the brand (name, handle, colours, logo, fonts, presenter, voice, call to action) or changes it later.', 'brand folder'],
     ['/sticker-host', 'Makes your sticker host, a cartoon of you or your mascot for Print reels: a base pose from one photo, then a starter 10, then any pose a reel needs (new, add <pose>, check <reel>, status).', 'brand folder'],
-    ['/kit-update', 'Checks for a newer kit, shows what changed, updates this folder without touching your brand or reels, and offers to update the engine.', 'brand folder'],
+    ['/kit-update', 'Checks for a newer kit, shows what changed, updates this folder without touching your brand or reels, and updates the engine too.', 'brand folder'],
   ]],
   ['Make a reel', 'The main command, plus the steps it uses. Claude picks the right one; you can also type it.', [
     ['/bagelunit-reels', 'Makes a reel: type it with your topic. Script, voice, animated shots, self-checks and the final mp4, with three approvals on the way.', 'brand folder'],

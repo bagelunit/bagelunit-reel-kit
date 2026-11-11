@@ -2,6 +2,18 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.20.0 (2026-11-11)
+
+**`/kit-update` updates the engine by itself.** Before, it updated the workspace and then asked whether to update the engine too, which left the engine behind whenever the answer was "later" or the installer was never run (the Gate C score check and the dated-folder fixes live in the engine).
+
+- **No question, no second command.** After the workspace is updated, `update.mjs apply` runs the kit's own installer when the installed engine is older than the kit, then says "The engine is updated. Restart Claude Code so the new engine and skills load." It runs the installer without the program, plugin and sound-library steps (an update has them already, and those steps can ask questions or download gigabytes). The installer is never run with `--yes`, and with no terminal it cannot install a program on its own, so an update never installs software without you.
+- **It knows when the engine is behind.** The installer now writes the kit version into the engine's marker file (`~/.claude/skills/bagelunit-reels/.bagelunit-reel-kit`). An engine installed before this, with only a date in the marker, counts as behind and is updated once. A second workspace finds it current and skips it.
+- **Left alone when it should be.** An engine installed with `--link` follows its kit folder and is not touched. If the engine is not installed at all, it prints the installer command. If the installer fails, it says so and shows the command.
+- **Switches:** `update.mjs apply --no-engine` skips it; `update.mjs engine` runs only that step.
+- Test: `setup/test-kit-update-engine.mjs`.
+
+The first time: this update arrives through the old `/kit-update`, which cannot yet update the engine. After it finishes, run `node .claude/skills/kit-update/update.mjs engine` once (or `bash setup/install.sh`). From then on `/kit-update` does both.
+
 ## 1.19.0 (2026-11-11)
 
 **The reel loop: trial reels in, what to change out, until a reel breaks out.** Instagram trial reels show a reel to non-followers first, so the skip rate and watch time of a trial reel are an honest read of a hook on a cold audience. The kit already posted trial reels (`schedule.mjs --trial`) and read those numbers; this connects them into a loop.

@@ -65,6 +65,9 @@ jobs:
       - name: Reel loop learns from the numbers (too few reels, waiting, best angle, weak hook or middle, breakout, stalled)
         run: node setup/test-loop.mjs
 
+      - name: /kit-update updates the engine by itself (behind, current, linked, missing, failed installer)
+        run: node setup/test-kit-update-engine.mjs
+
       - name: New brand folder script works (copy, refuse existing, refuse inside the kit)
         shell: bash
         run: |

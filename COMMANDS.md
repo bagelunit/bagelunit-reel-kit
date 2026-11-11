@@ -1,6 +1,6 @@
 # BagelUnit Reel Kit commands
 
-Every command in the kit (version 1.19.0) and what it does. Also as a [PDF](docs/commands.pdf) and a [spreadsheet](docs/commands.csv) (opens in Excel).
+Every command in the kit (version 1.20.0) and what it does. Also as a [PDF](docs/commands.pdf) and a [spreadsheet](docs/commands.csv) (opens in Excel).
 
 Most of the time you only need four: `/brand-setup`, `/bagelunit-reels` with your topic, `/analytics-readout` with your numbers, and `/kit-update`.
 
@@ -24,7 +24,7 @@ Type these in Claude Code inside a brand folder.
 |---|---|
 | `/brand-setup` | Sets up the brand (name, handle, colours, logo, fonts, presenter, voice, call to action) or changes it later. |
 | `/sticker-host` | Makes your sticker host, a cartoon of you or your mascot for Print reels: a base pose from one photo, then a starter 10, then any pose a reel needs (new, add <pose>, check <reel>, status). |
-| `/kit-update` | Checks for a newer kit, shows what changed, updates this folder without touching your brand or reels, and offers to update the engine. |
+| `/kit-update` | Checks for a newer kit, shows what changed, updates this folder without touching your brand or reels, and updates the engine too. |
 
 ## Make a reel
 
