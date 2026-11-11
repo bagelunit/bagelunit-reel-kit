@@ -2,6 +2,19 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.17.0 (2026-11-11)
+
+**Reel folders can be filed by date.** Feedback from a brand posting three reels a day: they wanted `reels/2026/11 November/November 12/<slug>/` but held off, because the dashboard, `pull.mjs`, `schedule.mjs`, `best-times.mjs` and `kit calibrate` only looked in `reels/<slug>`, and moving a reel would have stopped its "Posted" lines being recorded.
+
+- **One lookup everywhere.** A reel's name is still its slug: the plan, the log, the insights and the publisher already use the slug, never a path. All of those scripts now find a reel wherever it sits under `reels/` (flat or in dated folders), so moving a reel changes nothing else. `schedule.mjs` also takes `reels/<slug>` or just the slug for a reel that moved.
+- **A setting for it.** `brand.json` -> `reels.layout` is `"flat"` (the default, `reels/<slug>`) or `"dated"` (`reels/2026/11 November/November 12/<slug>`). The date is the day the reel is planned to post, from its row in `brand/plan.md`.
+- **`kit start` follows the setting.** With the dated layout, `kit start reels/<slug> --style print` files the new reel under its planned day (or `--date 2026-11-12`, or today when there is no plan row). A reel already filed somewhere under `reels/` is carried on there, never started a second time.
+- **`kit organize`.** Shows where every reel would move (`kit organize --layout dated`), then `--apply` does it and saves the setting. It takes the date from the plan, else the scheduled or posted time, else the day the folder was made. `--layout flat` moves them back. Links inside a reel that pointed by a relative path are kept working; empty date folders are removed.
+- **`kit tidy`.** Frees disk space in reels that are posted: `kit tidy <reel>` or `kit tidy --all` lists what it would delete (the `build/` and `stills/` folders and any file in `out/` that Gate C did not approve), and `--apply` deletes it. It keeps the script, approvals, caption, `reel.json` and the approved video and cover. The paid voice take (`audio/`) stays unless you add `--audio`. A reel that is not posted yet is skipped unless you add `--force`.
+- **One final in `out/`.** `realsound.py` used to leave two files in `out/` (the plain export and the `-real` one). It now moves the plain one to `build/pre-real/` (still there to redo the step), so `out/` holds one final. Giving `--out` yourself keeps both.
+
+To update an existing brand: `/kit-update`, and the engine with `bash setup/install.sh`. Nothing moves until you run `kit organize --apply`.
+
 ## 1.16.0 (2026-11-11)
 
 **Posting follows your plan, and the times follow your numbers.** Feedback from a brand posting three reels a day to Instagram, its Facebook Page and Threads: platforms and times are decided once, ahead of time, so the kit should not ask for them on every reel.

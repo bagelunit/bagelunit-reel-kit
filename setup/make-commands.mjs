@@ -78,6 +78,8 @@ const GROUPS = [
     ['kit sound', 'Mixes the voice, effects and music.', 'engine'],
     ['kit export', 'Joins picture and sound into the finished mp4 for Instagram.', 'engine'],
     ['kit cover', 'Renders the reel\'s cover to out/cover.jpg at Meta\'s size, plus a sheet showing how it crops in the grid.', 'engine'],
+    ['kit organize', 'Files your reel folders by post date (reels/2026/11 November/November 12/<slug>) or back to reels/<slug>. Shows the moves first; --apply does them.', 'engine'],
+    ['kit tidy', 'Frees disk space in posted reels: removes build files and unapproved exports, keeps the words and the approved video. Shows the list first; --apply deletes.', 'engine'],
     ['kit live', 'Serves the reel so you can watch it play in a browser.', 'engine'],
   ]],
   ['Publisher commands (in a brand folder, after you set it up)', 'node publisher/scripts/<script>.mjs', [

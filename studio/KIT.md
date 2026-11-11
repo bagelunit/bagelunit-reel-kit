@@ -141,7 +141,7 @@ Read `modes/<mode>/GUIDE.md` in full before writing code: the bar, the look, the
   **Crew hand-off rules** (so builders agree):
   - **Shared props live in one file written by you (the lead) before any builder starts:** in print `scenes/props.js`, listed first in `SCENE_FILES` in `timeline.js` so it loads first (other modes: see the mode's guide). Anything two shots both draw (the story object, a recurring card, a character's look) is defined there once; builders call it, never redraw it.
   - **Write a hand-off block in `STORYBOARD.md`** before spawning builders: names and ids (every person, product, file, number on screen), colours (theme tokens used for each), which slot/seat/item is the hero, and the end state of each shot that the next one starts from. Every builder reads it and follows it exactly; a builder that needs a new shared fact asks you to add it, never invents its own.
-- Everything is saved in `reels/<slug>/` as you go. "Continue the reel" means: read `STORYBOARD.md` and the shot files, and carry on. Never regenerate the voice unless the script changed.
+- Everything is saved in the reel's folder as you go: `reels/<slug>/`, or `reels/2026/11 November/November 12/<slug>/` when the brand's `reels.layout` is `dated` (`kit start reels/<slug>` files it there; every tool finds a reel by its slug). "Continue the reel" means: read `STORYBOARD.md` and the shot files, and carry on. Never regenerate the voice unless the script changed.
 
 ---
 

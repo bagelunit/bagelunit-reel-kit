@@ -11,6 +11,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { findBrand } from './lib.mjs';
+import { listReels } from '../../../publisher/scripts/reels.mjs';
 
 const quietExit = () => process.exit(0);
 process.on('uncaughtException', quietExit);
@@ -26,11 +27,8 @@ function stamp() {
   const brand = path.join(root, 'brand');
   for (const f of ['brand.json', 'plan.md', 'log.md', 'insights.csv', 'swipe.md', 'stats.md', 'instagram.json', 'followers.csv', 'tests.md', 'host/host.json', 'facebook.json', 'threads.json', 'publisher.json', 'inbox-log.md']) look(path.join(brand, f));
   look(path.join(root, '.cache', 'refresh-status.json'));
-  const reels = path.join(root, 'reels');
-  let names = [];
-  try { names = fs.readdirSync(reels, { withFileTypes: true }).filter((e) => e.isDirectory() && !e.name.startsWith('_') && !e.name.startsWith('.')).map((e) => e.name); } catch {}
-  for (const n of names) {
-    const d = path.join(reels, n);
+  const names = listReels(root);
+  for (const { dir: d } of names) {
     look(d);
     for (const f of ['approvals.md', 'script.txt', 'reel.json', 'STORYBOARD.md', 'onscreen.md', 'test.json', 'out', 'out/platforms', 'build/voice-log.jsonl']) look(path.join(d, f));
     try { for (const f of fs.readdirSync(path.join(d, 'out'))) look(path.join(d, 'out', f)); } catch {}

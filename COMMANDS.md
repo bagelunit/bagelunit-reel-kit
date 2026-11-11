@@ -1,6 +1,6 @@
 # BagelUnit Reel Kit commands
 
-Every command in the kit (version 1.16.0) and what it does. Also as a [PDF](docs/commands.pdf) and a [spreadsheet](docs/commands.csv) (opens in Excel).
+Every command in the kit (version 1.17.0) and what it does. Also as a [PDF](docs/commands.pdf) and a [spreadsheet](docs/commands.csv) (opens in Excel).
 
 Most of the time you only need four: `/brand-setup`, `/bagelunit-reels` with your topic, `/analytics-readout` with your numbers, and `/kit-update`.
 
@@ -101,6 +101,8 @@ Run on every reel; Claude runs them at the approvals.
 | `kit sound` | Mixes the voice, effects and music. |
 | `kit export` | Joins picture and sound into the finished mp4 for Instagram. |
 | `kit cover` | Renders the reel's cover to out/cover.jpg at Meta's size, plus a sheet showing how it crops in the grid. |
+| `kit organize` | Files your reel folders by post date (reels/2026/11 November/November 12/<slug>) or back to reels/<slug>. Shows the moves first; --apply does them. |
+| `kit tidy` | Frees disk space in posted reels: removes build files and unapproved exports, keeps the words and the approved video. Shows the list first; --apply deletes. |
 | `kit live` | Serves the reel so you can watch it play in a browser. |
 
 ## Publisher commands (in a brand folder, after you set it up)

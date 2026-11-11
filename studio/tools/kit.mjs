@@ -7,6 +7,7 @@ import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { serve, SKILL } from './server.mjs';
 import { exclusive, openReel } from './session.mjs';
+import * as folders from './folders.mjs';
 
 const MODES_DIR = path.join(SKILL, 'modes');
 const MODES = fs.readdirSync(MODES_DIR).filter((m) => fs.existsSync(path.join(MODES_DIR, m, 'starter')));
@@ -14,7 +15,8 @@ const PY = os.platform() === 'win32' ? 'python' : 'python3';
 const NUMBER = /^-?\d+(\.\d+)?$/;
 
 /* ── the command line: verb, reel folder, then --flags (a flag takes the next word as its value unless that is a flag too) ── */
-const [verb, target, ...rest] = process.argv.slice(2);
+const argv = process.argv.slice(2), verb = argv[0], hasTarget = argv[1] !== undefined && !argv[1].startsWith('--');
+const target = hasTarget ? argv[1] : undefined, rest = argv.slice(hasTarget ? 2 : 1);   // `kit organize --apply` has flags and no folder
 const flags = {}, loose = [];
 for (let i = 0; i < rest.length; i++) {
   if (!rest[i].startsWith('--')) { loose.push(rest[i]); continue; }
@@ -73,7 +75,20 @@ function start() {
   const style = text('style') ?? 'print';
   if (!MODES.includes(style)) die(`--style takes one of: ${MODES.join(', ')}`);
   if (!target) die('usage: kit start <dir> --style <style>');
-  const dir = path.resolve(target);
+  let dir = path.resolve(target);
+  // a reel named reels/<slug> goes where the brand's layout says (brand.json "reels": {"layout": "dated"} files it under its post
+  // date: reels/2026/11 November/November 12/<slug>); a reel already filed somewhere under reels/ is carried on there
+  const brand0 = folders.findBrand(path.dirname(dir));
+  if (brand0 && path.dirname(dir) === path.join(brand0, 'reels')) {
+    const slug = path.basename(dir), there = folders.findReel(brand0, slug);
+    if (there) dir = there;
+    else if (folders.layoutOf(brand0) === 'dated') {
+      const p2 = (n) => String(n).padStart(2, '0'), t = new Date();
+      const date = text('date') || folders.plannedDate(brand0, slug) || `${t.getFullYear()}-${p2(t.getMonth() + 1)}-${p2(t.getDate())}`;
+      if (!folders.datedFolder(date)) die('--date takes a day like 2026-11-12');
+      dir = folders.newReelDir(brand0, slug, date);
+    }
+  }
   if (fs.existsSync(path.join(dir, 'reel.json'))) die(`${dir} already holds a reel (reel.json is there)`);
   // local addition: reels are made only inside a set-up brand folder (<brand>-reels, holding brand/brand.json and .kit-version)
   if (!flags.anywhere) {
@@ -246,6 +261,39 @@ function host() {
   if (missing.length) process.exitCode = 2;
 }
 
+// the brand folder for `organize` and `tidy`: the folder given, or the one you are in
+function brandForFolders() {
+  const root = folders.findBrand(target && !target.startsWith('--') && fs.existsSync(target) ? path.resolve(target) : process.cwd());
+  if (!root) die('run this inside a brand folder (the one holding brand/brand.json)');
+  return root;
+}
+function organize() {
+  const root = brandForFolders();
+  const layout = text('layout');
+  if (layout && !['dated', 'flat'].includes(layout)) die('--layout takes dated or flat');
+  const r = folders.organize(root, { layout, apply: !!flags.apply });
+  console.log(`layout: ${r.layout}${layout ? ' (from --layout)' : ' (brand.json reels.layout)'}`);
+  for (const m of r.moves) console.log(`${flags.apply ? 'moved' : 'would move'}  reels/${m.fromRel}  ->  reels/${m.toRel}${m.why ? `   (date from ${m.why})` : ''}`);
+  console.log(`${r.moves.length} ${flags.apply ? 'moved' : 'to move'}, ${r.kept.length} already in place`);
+  for (const p of r.problems) console.log(`note: ${p}`);
+  if (!flags.apply && r.moves.length) console.log('Nothing was changed. Run it again with --apply to move them.');
+  if (flags.apply && layout && layout !== folders.layoutOf(root)) console.log(`brand.json: reels.layout is now ${layout}`);
+  if (flags.apply && r.moves.length) console.log('Plans, the log, insights numbers and posts use each reel\'s name, so they keep working. Open the dashboard again to see it.');
+}
+function tidy() {
+  const root = brandForFolders();
+  const all = !!flags.all;
+  if (!all && !(target && !target.startsWith('--'))) die('which reel? give its folder or name, or --all for every posted reel');
+  const r = folders.tidy(root, { target, all, audio: !!flags.audio, apply: !!flags.apply, force: !!flags.force });
+  for (const x of r.reels) {
+    console.log(`${x.slug}  ${folders.human(x.bytes)}`);
+    for (const i of x.items) console.log(`   ${r.applied ? 'removed' : 'would remove'}  ${path.relative(path.join(root, 'reels', x.rel), i.path)}  (${folders.human(i.bytes)})`);
+  }
+  for (const s of r.skipped) console.log(`skipped ${s.slug}: ${s.why}`);
+  console.log(`${r.applied ? 'freed' : 'would free'} ${folders.human(r.freed)} in ${r.reels.length} reel${r.reels.length === 1 ? '' : 's'}`);
+  if (!r.applied && r.reels.length) console.log('Nothing was deleted. Run it again with --apply to delete these files. Kept: script, approvals, caption, reel.json, the approved video and cover.');
+}
+
 async function live() {
   const reel = reelAt(target);
   const { url } = await serve(reel.dir, reel.cfg.style, num('port', 0));
@@ -270,6 +318,8 @@ const COMMANDS = {
   export: [exportReel, '<dir> [--remix]', 'picture + sound → out/<name>.mp4, ready for Instagram'],
   live: [live, '<dir> [--port n]', 'serve the reel and print a link to watch it play'],
   cover: [cover, '<dir> [--page cover.html] [--at <seconds>]', 'the reel cover: out/cover.jpg (1080x1920 JPEG to Meta\'s cover rules) and build/cover-crops.jpg showing what the grid and a feed post crop'],
+  organize: [organize, '[--layout dated|flat] [--apply]', 'file the brand\'s reel folders by post date (reels/2026/11 November/November 12/<slug>) or back to reels/<slug>; shows the moves first, --apply does them. Nothing else changes: plans, logs and numbers use the slug'],
+  tidy: [tidy, '<reel>|--all [--audio] [--force] [--apply]', 'free disk space in finished (posted) reels: removes build/, stills/ and unapproved files in out/; keeps the script, approvals, caption, reel.json and the approved video and cover. --audio also removes the voice take (re-voicing costs credits). Shows the list first'],
   host: [host, '<dir> [--dir <poses folder>] [--check]', 'sticker host: link the brand\'s pose set into the reel, list every pose in reel.json, and name any pose the cues need that the set lacks'],
 };
 

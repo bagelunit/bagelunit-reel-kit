@@ -31,6 +31,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { parseArgs, readJSON, read, sha256File, findBrand, brandSlug, atHandle, stamp, lastGateC, appendUnder, connection, admin, Plain, isMain, CONFIG_DIR, planSlot, zonedIso } from './lib.mjs';
+import { findReel, resolveReelArg } from './reels.mjs';
 import { checkText, checkLength, videoTargets, LIMITS } from '../src/limits.js';
 import { fileSeconds } from '../src/mp4.js';
 
@@ -42,7 +43,7 @@ const list = (v) => (v && v !== true ? String(v).split(',').map((s) => s.trim())
 // All the checks that need no network. Returns { problems, ...what the upload needs }.
 export function checkReel(reelDir, args = {}, now = Date.now()) {
   const problems = [];
-  const reel = path.resolve(reelDir);
+  const reel = resolveReelArg(reelDir);                                // a folder, reels/<slug> or a slug; dated folders too
   const root = findBrand(reel);
   if (!root) return { problems: [`no brand/brand.json above ${reel}: run this inside the brand folder`] };
   const brand = readJSON(path.join(root, 'brand', 'brand.json'), {});
@@ -254,7 +255,8 @@ export async function cancel(id, { root, fetchImpl = fetch, configDir = CONFIG_D
   if (!/^[0-9a-f]{12}$/.test(String(id || ''))) throw new Plain('cancel needs the post id (12 letters and digits, from status)');
   const conn = connection(brandSlug(root), configDir);
   const r = await admin(conn, 'POST', `/admin/cancel/${id}`, { fetchImpl });
-  const ap = r.reel ? path.join(root, 'reels', r.reel, 'approvals.md') : null;
+  const reelDir = r.reel ? findReel(root, r.reel) : null;
+  const ap = reelDir ? path.join(reelDir, 'approvals.md') : null;
   if (ap && fs.existsSync(ap)) appendUnder(ap, 'Posting', `- ${stamp(new Date(now))} Cancelled post ${id} on the publisher`);
   log(`Post ${id}: ${r.status}.${ap && fs.existsSync(ap) ? ' Recorded in approvals.md.' : ''}`);
   return r;

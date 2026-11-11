@@ -16,6 +16,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { readJSON, read, findBrand, brandSlug, atHandle, stamp, appendUnder, connection, admin, Plain, isMain, CONFIG_DIR } from './lib.mjs';
+import { findReel } from './reels.mjs';
 
 function inboxLog(root, line, mark) {
   const f = path.join(root, 'brand', 'inbox-log.md');
@@ -51,7 +52,8 @@ export async function pull({ root, fetchImpl = fetch, configDir = CONFIG_DIR, lo
   // "Posted on" lines, once per link
   let added = 0;
   for (const p of posts) {
-    const ap = p.reel ? path.join(root, 'reels', p.reel, 'approvals.md') : null;
+    const reelDir = p.reel ? findReel(root, p.reel) : null;
+    const ap = reelDir ? path.join(reelDir, 'approvals.md') : null;
     if (!ap || !fs.existsSync(ap)) continue;
     for (const [name, label] of [['instagram', `Posted on ${handle}`], ['facebook', 'Posted on Facebook'], ['threads', 'Posted on Threads']]) {
       const t = p.targets[name];

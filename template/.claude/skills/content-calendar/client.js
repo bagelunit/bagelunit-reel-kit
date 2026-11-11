@@ -230,7 +230,7 @@
   function cardHtml(it) {
     const idx = D.stages.findIndex((s) => s.k === it.stage), sib = siblings(it), pos = sib.indexOf(it.id), n = it.nums;
     const fileText = it.file ? h(it.file.name) + ' · ' + (it.file.state === 'match' ? '<span class="up">matches what you approved</span>' : it.file.state === 'posted' ? 'posted (not checked again)' : it.file.state === 'changed' ? '<span class="down">changed after you approved it</span>' : '<span class="down">missing</span>') : '';
-    const fileLink = (f) => local && it.slug ? '<a href="../reels/' + encodeURIComponent(it.slug) + '/' + f.split('/').map(encodeURIComponent).join('/') + '">' + h(f) + '</a>' : '<span>' + h(f) + '</span>';
+    const fileLink = (f) => local && it.slug ? '<a href="../reels/' + (it.rel || it.slug).split('/').map(encodeURIComponent).join('/') + '/' + f.split('/').map(encodeURIComponent).join('/') + '">' + h(f) + '</a>' : '<span>' + h(f) + '</span>';
     const dateText = (k, t) => h(fd(k, { weekday: 'short', month: 'short', day: 'numeric' }) + (t ? ' ' + t : ''));
     const goDay = (k) => ' <button type="button" class="link small" data-goto-day="' + k + '">See the day</button>';
     return '<header class="dr-head"><span class="stage-chip">' + h(STAGE_NAME[it.stage]) + '</span><div class="dr-nav">'

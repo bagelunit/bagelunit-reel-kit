@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { folderSlug } from './reels.mjs';
 
 export const CONFIG_DIR = path.join(os.homedir(), '.config', 'bagelunit-reels');
 
@@ -149,7 +150,7 @@ export function planRows(text) {
 }
 const firstKey = (o, names) => Object.keys(o).find((k) => names.some((n) => k === n || k.startsWith(n)));
 export const planDate = (cells) => cells[firstKey(cells, ['date', 'when', 'day'])] || '';
-export const planFolder = (cells) => (cells[firstKey(cells, ['reel', 'folder', 'slug'])] || '').replace(/[`]/g, '').replace(/^reels\//, '').replace(/\/+$/, '').trim();
+export const planFolder = (cells) => folderSlug(cells[firstKey(cells, ['reel', 'folder', 'slug'])]);
 
 // The date and time the plan gives one reel: { row, date, time } or { problem }.
 export function planSlot(root, reelDir) {

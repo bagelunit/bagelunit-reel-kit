@@ -61,6 +61,7 @@ def in_reel(reel, path, must_exist=True):
 def pick_video(reel):
     c = [p for p in glob.glob(os.path.join(reel, "out", "*.mp4")) if "-real" not in p]
     c += [os.path.join(reel, "build", f) for f in ("final.mp4", "draft.mp4")]
+    c += glob.glob(os.path.join(reel, "build", "pre-real", "*.mp4"))      # a finished reel whose out/ file was replaced by the -real one
     c = [p for p in c if os.path.exists(p)]
     if not c: sys.exit("no rendered video: run kit render first")
     return max(c, key=os.path.getmtime)
@@ -142,6 +143,8 @@ def main():
     reel = os.path.abspath(a.reel)
     video = in_reel(reel, a.video) if a.video else pick_video(reel)
     out = in_reel(reel, a.out, must_exist=False) if a.out else video[:-4] + "-real.mp4"
+    if not a.out and os.path.basename(os.path.dirname(video)) == "pre-real":     # redoing it: the result goes back to out/
+        out = os.path.join(reel, "out", os.path.basename(out))
     work = os.path.join(reel, "build", "realsound")
     os.makedirs(work, exist_ok=True)
     if not os.path.exists(os.path.join(KIT, "catalog.json")):
@@ -202,6 +205,14 @@ def main():
         cr = subprocess.run([EARSHOT, "critique", out], capture_output=True, text=True).stdout.splitlines()
         lines.append("earshot: " + (rl[-1] if rl else "no reading"))
         lines += ["  " + x.strip() for x in cr if any(k in x for k in ("onset +-1", "salient hit", "brightness", "L/R", "loudness"))]
+    # one final in out/: when the file that was mixed came from out/ and the result sits beside it, the plain one moves to
+    # build/pre-real/ (still there to redo this step), so out/ holds only the -real file. Not done with --out (you chose the name).
+    out_dir = os.path.join(reel, "out")
+    if not a.out and os.path.dirname(video) == out_dir and os.path.dirname(out) == out_dir and os.path.exists(out):
+        keep = os.path.join(reel, "build", "pre-real")
+        os.makedirs(keep, exist_ok=True)
+        os.replace(video, os.path.join(keep, os.path.basename(video)))
+        lines.append(f"moved {os.path.basename(video)} to build/pre-real/ so out/ holds one final: {os.path.basename(out)}")
     report = "\n".join(lines)
     open(os.path.join(work, "report.txt"), "w").write(report + "\n")
     print(report)

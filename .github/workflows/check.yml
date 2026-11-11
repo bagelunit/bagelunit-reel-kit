@@ -56,6 +56,9 @@ jobs:
       - name: Best posting times work (not enough data, own hours, audience hours, apply moves only unscheduled rows, autopilot.retime)
         run: node setup/test-best-times.mjs
 
+      - name: Reel folders by date work (lookup in JS and Python, dashboard, organize, start, tidy)
+        run: node setup/test-reel-folders.mjs
+
       - name: New brand folder script works (copy, refuse existing, refuse inside the kit)
         shell: bash
         run: |

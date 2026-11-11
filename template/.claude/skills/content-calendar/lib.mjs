@@ -1,6 +1,7 @@
 // The content calendar's model: reads one brand folder and works out where every reel stands, what needs the
 // owner, the numbers and the trends. calendar.mjs draws it, telegram.mjs sends a summary of it, instagram.mjs
 // adds the account's own numbers to it. Reading only: nothing here writes, posts or sends.
+import { listReels, folderSlug } from '../../../publisher/scripts/reels.mjs';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -17,6 +18,7 @@ const objs = (v) => (Array.isArray(v) ? v.filter(isObj) : []);          // a lis
 const str = (v) => (v == null ? '' : typeof v === 'object' ? '' : String(v));
 export const CONFIG_DIR = path.join(os.homedir(), '.config', 'bagelunit-reels');
 
+const encRel = (r) => String(r).split('/').map(encodeURIComponent).join('/');
 export function findBrand(start) {
   for (let d = path.resolve(start || process.cwd()); ; d = path.dirname(d)) {
     if (fs.existsSync(path.join(d, 'brand', 'brand.json'))) return d;
@@ -246,10 +248,10 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
   // the brand's files
   const plan = mdTable(read(path.join(root, 'brand', 'plan.md'))).map((r) => ({
     date: pick(r, 'date', 'day', 'when'), topic: pick(r, 'topic', 'idea', 'title'), goal: pick(r, 'goal'), angle: pick(r, 'angle'),
-    folder: pick(r, 'reel', 'folder', 'slug').replace(/^reels\//, '').replace(/[`/]/g, ''), notes: pick(r, 'notes'), series: pick(r, 'series'),
+    folder: folderSlug(pick(r, 'reel', 'folder', 'slug')), notes: pick(r, 'notes'), series: pick(r, 'series'),
   }));
   const log = mdTable(read(path.join(root, 'brand', 'log.md'))).map((r) => ({
-    date: pick(r, 'date'), folder: pick(r, 'reel', 'folder').replace(/^reels\//, '').replace(/[`/]/g, ''), hook: pick(r, 'hook'),
+    date: pick(r, 'date'), folder: folderSlug(pick(r, 'reel', 'folder')), hook: pick(r, 'hook'),
     first: pick(r, 'first line'), goal: pick(r, 'goal'), angle: pick(r, 'angle'), verdict: pick(r, 'review', 'verdict'),
   })).filter((r) => r.folder || r.date);
   const insights = csv(read(path.join(root, 'brand', 'insights.csv')));
@@ -262,17 +264,14 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
   shaCache.file = path.join(root, '.cache', 'sha-cache.json');
   shaCache.data = readJSON(shaCache.file, {});
   pruneShaCache();
-  const reelsDir = path.join(root, 'reels');
-  const folders = fs.existsSync(reelsDir) ? fs.readdirSync(reelsDir, { withFileTypes: true })
-    .filter((e) => e.isDirectory() && !e.name.startsWith('_') && !e.name.startsWith('.')).map((e) => e.name) : [];
-  const items = folders.map((name) => {
-    const dir = path.join(reelsDir, name);
+  const folders = listReels(root);                                   // reels/<slug>/ or reels/2026/11 November/November 12/<slug>/
+  const items = folders.map(({ slug: name, dir, rel }) => {
     const cfg = readJSON(path.join(dir, 'reel.json'));
     const approvals = read(path.join(dir, 'approvals.md'));
     const sec = sections(approvals);
     const passed = (g) => Object.entries(sec).some(([h, body]) => new RegExp(`^Gate ${g}\\b`, 'i').test(h) && /\S/.test(body));
     const script = read(path.join(dir, 'script.txt'));
-    const it = { slug: name, name: str(cfg.name) || name, dir, titleFromName: !str(cfg.title), title: clip(str(cfg.title) || name.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase())),
+    const it = { slug: name, rel, name: str(cfg.name) || name, dir, titleFromName: !str(cfg.title), title: clip(str(cfg.title) || name.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase())),
       hook: clip(firstLine(script)), caption: read(path.join(dir, 'out', 'caption.txt')), scriptAt: mtime(path.join(dir, 'script.txt')) };
     const gc = [...approvals.matchAll(/^- File: (.+?) \| sha256: ([0-9a-f]{12})/gm)].pop();
     const postedAlready = /^\s*-.*\bposted\b/im.test(sec.Posting || '') || log.some((r) => r.folder === name);
@@ -743,7 +742,7 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
     { key: 'writer', name: 'Hook & Script', job: 'writes hooks and scripts in your voice, fact checked before you see them',
       lastRun: newest(madeAt('writer'), ...items.map((x) => x.gateA)),
       metrics: [[scripts.filter((x) => x.stage === 'script').length, 'waiting for your yes'], [items.filter((x) => x.gateA && ago(x.gateA, 7)).length, 'approved this week']],
-      output: scripts.slice(0, 6).map((x) => ({ id: x.id, text: x.hook || x.title, note: `${x.title} · ${stageName(x.stage).toLowerCase()}`, href: `../reels/${x.slug}/script.txt` })),
+      output: scripts.slice(0, 6).map((x) => ({ id: x.id, text: x.hook || x.title, note: `${x.title} · ${stageName(x.stage).toLowerCase()}`, href: `../reels/${encRel(x.rel || x.slug)}/script.txt` })),
       next: scripts.some((x) => x.stage === 'script') ? 'approve or change the scripts waiting at Gate A' : '/viral-hook-writer, then /reel-scripter', skills: '/viral-hook-writer, /hook-mining, /reel-scripter, /reel-factcheck' },
     { key: 'planner', name: 'Planner', job: 'puts reels on your posting days and keeps the angles different',
       lastRun: madeAt('planner'),

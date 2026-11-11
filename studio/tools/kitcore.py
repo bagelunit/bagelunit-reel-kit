@@ -184,3 +184,46 @@ def whisper_words(audio, opts):
 
 
 CJK_CHAR = re.compile(r'[぀-ヿ㐀-鿿가-힯]')
+
+
+# ── where a reel folder is (same rules as the template's publisher/scripts/reels.mjs) ─────────────────────────────────
+REEL_MARKERS = ('reel.json', 'approvals.md', 'script.txt', 'STORYBOARD.md')
+
+
+def is_date_folder_name(n):
+    return bool(re.fullmatch(r'\d{4}', n) or re.fullmatch(r'\d{2} [A-Za-z]+', n) or re.fullmatch(r'[A-Za-z]+ \d{1,2}', n))
+
+
+def list_reels(brand):
+    """Every reel folder under <brand>/reels: reels/<slug> or the dated reels/2026/11 November/November 12/<slug>.
+    Returns [(slug, Path)] sorted by path. Folders starting with _ or . are skipped; a reel folder is not searched inside."""
+    base, out = Path(brand) / 'reels', []
+
+    def walk(d, depth):
+        try:
+            entries = sorted(d.iterdir())
+        except OSError:
+            return
+        for e in entries:
+            if not e.is_dir() or e.name.startswith(('_', '.')):
+                continue
+            if depth < 4 and is_date_folder_name(e.name) and not any((e / m).exists() for m in REEL_MARKERS):
+                walk(e, depth + 1)
+            else:
+                out.append((e.name, e))
+    if base.is_dir():
+        walk(base, 0)
+    return sorted(out, key=lambda t: t[1].relative_to(base).as_posix())
+
+
+def find_reel(brand, slug):
+    """The folder of the reel called slug (a slug, reels/<slug> or a dated path all work), or None."""
+    s = [p for p in str(slug).replace('\\', '/').replace('`', '').split('/') if p.strip()]
+    s = s[-1].strip() if s else ''
+    if not s or s.startswith(('_', '.')):
+        return None
+    flat = Path(brand) / 'reels' / s
+    if flat.is_dir():
+        return flat
+    hits = [p for n, p in list_reels(brand) if n == s]
+    return hits[-1] if hits else None

@@ -20,6 +20,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { brandRoot, load, readJSON, read, median, num, writeAtomic, isObj } from './lib.mjs';
 import { loadCompetitors } from './competitors-model.mjs';
+import { findReel, folderSlug } from '../../../publisher/scripts/reels.mjs';
 
 const DAY = 864e5, HOUR = 36e5;
 export const MIN_POSTS = 15;            // posts with numbers before the brand's own results count
@@ -170,7 +171,7 @@ export function run(root, { now = Date.now() } = {}) {
 // ---- apply ----
 const scheduledOrPosted = (root, folder) => {
   if (!folder) return false;
-  const t = read(path.join(root, 'reels', folder, 'approvals.md'));
+  const t = read(path.join(findReel(root, folder) || path.join(root, 'reels', folder), 'approvals.md'));
   return /\bScheduled on\b|\bPosted (on|as)\b/.test(t);
 };
 // the plan rows that would move: future, not scheduled or posted, at an old time. Returns [{ line, folder, date, from, to }]
@@ -189,7 +190,7 @@ export function planMoves(root, moves, { now = Date.now(), tz = 'UTC' } = {}) {
     if (!m) continue;
     const from = `${p2(+m[2])}:${m[3]}`, to = map[from];
     if (!to) continue;
-    const folder = (c[fi] || '').replace(/[`]/g, '').replace(/^reels\//, '').replace(/\/+$/, '').trim();
+    const folder = folderSlug(c[fi]);
     if (scheduledOrPosted(root, folder)) continue;
     const nowLocal = localParts(now, tz), dayNow = nowLocal.date, tNow = `${p2(nowLocal.hour)}:${p2(nowLocal.minute)}`;
     if (m[1] < dayNow || (m[1] === dayNow && from <= tNow)) continue;          // already past (the plan's own clock is the brand's timezone): leave it

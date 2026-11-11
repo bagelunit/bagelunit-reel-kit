@@ -55,6 +55,10 @@
     "dm_tool": "",
     "tested_keywords": []
   },
+  "reels": {
+    "_note": "Where reel folders sit under reels/. \"flat\" (default) = reels/<slug>. \"dated\" = reels/2026/11 November/November 12/<slug>, by the day the reel is planned to post. Every script finds a reel in either place. New reels follow this setting; move the ones you have with `kit organize --layout dated` (it shows the moves first, --apply does them) and back with --layout flat.",
+    "layout": "flat"
+  },
   "work_dir": "~/dev/reel-work/<slug>",
   "posting": {
     "_note": "How this brand's reels get posted: \"by hand\" (default), \"instagram-scheduler\", \"tool: <name>\" or \"own publisher\". Set with /reel-posting. Timezone for scheduling, e.g. America/Toronto. days and times: the brand's posting days (e.g. [\"tue\", \"thu\"]) and times on each of them, any number a day (one: [\"18:00\"]; several: [\"09:00\", \"13:00\", \"19:00\"]), set with /content-calendar days; every time on a posting day is one slot, and the calendar marks empty ones as open. time is the older single time, still read when times is empty. platforms = where every reel goes with the kit's publisher, e.g. [\"instagram\", \"facebook\", \"threads\"]; empty = Instagram only; schedule.mjs uses it when --platforms is not given, and /reel-posting asks about it once, not per reel. A reel's time comes from its row in brand/plan.md (schedule.mjs --from-plan).",

@@ -19,7 +19,7 @@ import csv, datetime, json, re, sys
 from pathlib import Path
 import numpy as np
 
-from kitcore import Flags, HOME_CFG, fail, read_json
+from kitcore import Flags, HOME_CFG, fail, read_json, find_reel
 
 TOOL = 'calibrate'
 MIN_REELS = 8
@@ -105,7 +105,8 @@ def find_measure(name, roots):
     stem = Path(name).stem if re.search(r'\.\w{2,4}$', name) else name
     stem = stem.strip().strip('/')
     for root in roots:
-        for cand in (root / stem, root / 'reels' / stem, Path(name)):
+        found = find_reel(root.parent if root.name == 'reels' else root, stem)   # a dated folder too (reels/2026/11 November/November 12/<slug>)
+        for cand in (root / stem, root / 'reels' / stem, *([found] if found else []), Path(name)):
             f = cand / 'build' / 'measure.json'
             if f.is_file():
                 return f
