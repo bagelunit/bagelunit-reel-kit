@@ -88,6 +88,17 @@ node .claude/skills/content-calendar/schedule.mjs remove
 
 What each run did is in `.cache/refresh.log` in this folder. A failed pull or send shows on the dashboard under "Needs you".
 
+## Watch your competitors
+
+The dashboard's Competitors section shows who you watch, what is working for them and what to post next. Start with `/content-calendar competitors`.
+
+- **Who:** 6 to 12 accounts. About 4 in your niche and a bit ahead of you, 4 next door, and 2 to 4 big ones for format ideas only. Claude suggests some, you confirm each.
+- **What you see:** a table (followers and how they changed, posts a week, median views, views per follower, with your own account in the same table); the posts that beat their own account's normal (3x their median is "Study", 1.5x is "Note"); what those winners have in common (hook shape and day, guessed from the caption's first line, so treat a small sample as a hint); what they posted this week; and post ideas drawn from it.
+- **Where the numbers come from, best first:** Meta's official API (free, no scraping; business and creator accounts only, needs the Unified or Facebook login from step 2); Apify for an account Meta will not show (costs money, off until you turn scraping on, and you say yes to each run); or a file you already have (`node .claude/skills/content-calendar/competitors.mjs import <handle> <file>`). The table says which source each account used.
+- **Fresh by itself:** turn on `dashboard.competitors` in `brand/brand.json` (Claude asks first) and the daily refresh reads the accounts through Meta once a week. Each read is kept, so growth shows after two weeks.
+- **Ideas:** `/content-calendar ideas` turns the winners into ideas in your voice. They copy a winner's shape (hook, structure, length), never its words, footage or characters, use only facts you cleared, and wait in `brand/ideas.md` as "suggested" until you accept one (`/content-calendar ideas accept <number>` puts it in your plan). Nothing is made or posted for you.
+- **What no source gives:** another account's watch time, saves or shares. Views, likes and comments only.
+
 ## Several brands: all on one page
 
 Running several brands? Type `/content-calendar all` in any brand folder. It draws one page with every brand folder on this computer (each adds itself when its dashboard is drawn), most urgent first: what needs you in each, the week's numbers, the next 7 days across all of them, and a link to each brand's own dashboard. It stays on your computer.

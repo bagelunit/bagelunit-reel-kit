@@ -5,7 +5,7 @@
 //
 //   node .claude/skills/content-calendar/refresh.mjs [brand folder] [--no-instagram] [--no-telegram]
 //
-// Each part runs only when the brand owner turned it on in brand/brand.json -> dashboard (instagram, telegram).
+// Each part runs only when the brand owner turned it on in brand/brand.json -> dashboard (instagram, telegram, competitors).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -15,6 +15,7 @@ import { pull, Plain as IgError } from './instagram.mjs';
 import { send, Plain as TgError } from './telegram.mjs';
 import { publishLocked } from './host.mjs';
 import { connected, pullFacebook, pullThreads } from './platforms.mjs';
+import { due as competitorsDue, syncAll as syncCompetitors } from './competitors.mjs';
 
 export async function refresh(root, { instagram = true, telegram = true } = {}) {
   const dash = readJSON(path.join(root, 'brand', 'brand.json')).dashboard || {};
@@ -50,6 +51,17 @@ export async function refresh(root, { instagram = true, telegram = true } = {}) 
       writeStatus(root, p, { ok: false, error: msg });
       say(`${p === 'facebook' ? 'Facebook' : 'Threads'}: ${msg}`);
     }
+  }
+  if (dash.competitors) {                                          // other accounts' public posts, through Meta only (never Apify: that costs money and is run by hand)
+    try {
+      if (!competitorsDue(root, Number(dash.competitors_every) || 7)) say('Competitors: read recently, nothing due.');
+      else {
+        const res = await syncCompetitors(root, { useApify: false });
+        const ok = res.filter((r) => r.source).length;
+        writeStatus(root, 'competitors', { ok: ok === res.length, error: ok === res.length ? undefined : `${res.length - ok} account${res.length - ok === 1 ? '' : 's'} could not be read` });
+        say(`Competitors: ${ok} of ${res.length} account${res.length === 1 ? '' : 's'} read${ok < res.length ? ` (${res.filter((r) => !r.source).map((r) => '@' + r.handle).join(', ')} need an export, /content-calendar competitors)` : ''}.`);
+      }
+    } catch (e) { const msg = e instanceof IgError ? e.message : 'unexpected error (details hidden so no token can show)'; writeStatus(root, 'competitors', { ok: false, error: msg }); say(`Competitors: ${msg}`); }
   }
   if (['netlify', 'cloudflare', 'folder'].includes(dash.host)) {   // put the fresh page online before the summary links to it
     build(root);

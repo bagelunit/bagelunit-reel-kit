@@ -18,6 +18,7 @@ Fewer than 5 reels gives no trustworthy median, so the account is reported but n
 Examples:
   python3 outliers.py --json export.json
   python3 outliers.py --handles mybrand,rival1,rival2 --limit 30 --out brand/swipe.md
+  python3 outliers.py --handles rival1,rival2 --save-research brand/research --out brand/swipe.md
   python3 outliers.py --handles mybrand --dry-run
   python3 outliers.py --selftest
 Standard library only.
@@ -136,6 +137,42 @@ def render(result, window, show_all=False):
     return "\n".join(lines)
 
 
+def save_research_csv(items, folder):
+    """Write each account's posts to <folder>/<account>.csv in the format research.mjs uses (url,timestamp,views,likes,comments,caption,type),
+    plus the followers the scraper reported, so the dashboard's competitors section reads Apify data the same way as Meta's."""
+    folder = pathlib.Path(folder)
+    folder.mkdir(parents=True, exist_ok=True)
+    by = {}
+    for it in items:
+        by.setdefault(owner_of(it), []).append(it)
+    accounts = {}
+    for acct, its in by.items():
+        safe = "".join(c if c.isalnum() or c in "._-" else "_" for c in acct)
+        its.sort(key=when, reverse=True)
+        with open(folder / f"{safe}.csv", "w", newline="", encoding="utf-8") as fh:
+            w = csv.writer(fh)
+            w.writerow(["url", "timestamp", "views", "likes", "comments", "caption", "type"])
+            for it in its:
+                v = views_of(it)
+                w.writerow([it.get("url") or "", it.get("timestamp") or "", "" if v is None else v, it.get("likesCount", ""), it.get("commentsCount", ""),
+                            " ".join((it.get("caption") or "").split())[:300], "REELS" if is_reel(it) else (it.get("type") or "")])
+        fol = next((it.get("ownerFollowersCount") for it in its if isinstance(it.get("ownerFollowersCount"), (int, float))), None)
+        accounts[safe.lower()] = {"followers": fol, "read": len(its), "pulled_at": datetime.datetime.now(datetime.timezone.utc).isoformat(), "source": "apify"}
+    meta = folder / "accounts.json"
+    try:
+        cur = json.loads(meta.read_text()) if meta.exists() else {}
+    except ValueError:
+        cur = {}
+    for k, v in accounts.items():
+        old = cur.get(k, {})
+        if v["followers"] is None:
+            v["followers"] = old.get("followers")
+        v["media_count"] = old.get("media_count")
+        cur[k] = v
+    meta.write_text(json.dumps(cur, indent=2) + "\n")
+    return sorted(accounts)
+
+
 def find_brand():
     p = pathlib.Path.cwd()
     for d in [p, *p.parents]:
@@ -242,6 +279,12 @@ def selftest():
         log_spend(bd, ["a"], 1000)
         assert abs(spend_total(bd) - 4.05) < 0.001, spend_total(bd)
         assert (bd / "spend.csv").read_text().startswith("date,service")
+    with tempfile.TemporaryDirectory() as d:
+        names = save_research_csv(items, pathlib.Path(d) / "research")
+        assert names == ["few", "t"], names
+        txt = (pathlib.Path(d) / "research" / "t.csv").read_text()
+        assert txt.startswith("url,timestamp,views,likes,comments,caption,type") and "5200" in txt
+        assert json.loads((pathlib.Path(d) / "research" / "accounts.json").read_text())["t"]["source"] == "apify"
     print("selftest OK")
 
 
@@ -256,6 +299,7 @@ def main():
     ap.add_argument("--max-cost", type=float, default=1.00, help="abort if the estimate is above this many USD (default 1.00)")
     ap.add_argument("--out", help="append the report to this file (for example brand/swipe.md)")
     ap.add_argument("--all", action="store_true", help="list every reel with its ratio (use on the brand's own account to fill brand/stats.md)")
+    ap.add_argument("--save-research", metavar="FOLDER", help="with --handles: also save each account's posts as FOLDER/<account>.csv (brand/research) for the dashboard's competitors section")
     ap.add_argument("--dry-run", action="store_true", help="show the plan and cost, fetch nothing")
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args()
@@ -273,6 +317,8 @@ def main():
             print(f"Would fetch {len(handles)} account(s) x {a.limit} posts, about ${est:.2f}. Nothing sent.")
             return
         items = fetch(handles, a.limit, a.max_cost)
+        if a.save_research:
+            print("Saved research for: " + ", ".join(save_research_csv(items, a.save_research)), file=sys.stderr)
     else:
         ap.error("give --json FILE, --csv FILE or --handles a,b")
     report = render(analyse(items, a.window), a.window, a.all)

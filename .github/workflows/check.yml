@@ -50,6 +50,9 @@ jobs:
           python template/.claude/skills/hook-mining/mine_hooks.py --selftest
           python template/.claude/skills/brand-setup/prefill.py --selftest
 
+      - name: Competitor tracking works (fake Meta, file import, the 3x rule, the dashboard section)
+        run: node setup/test-competitors.mjs
+
       - name: New brand folder script works (copy, refuse existing, refuse inside the kit)
         shell: bash
         run: |

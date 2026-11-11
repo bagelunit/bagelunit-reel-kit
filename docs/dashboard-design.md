@@ -48,6 +48,12 @@ A brand owner checking in once or twice a day, on a laptop or on a phone after t
 - Tests, mix, series, flow and costs are worked out in `lib.mjs`; the tests' verdict rule (enough views each, 10% apart) is a rule of thumb and the page says so.
 - `overview.mjs` reads every registered brand folder with the same `load()` and draws `~/.config/bagelunit-reels/overview.html`; `notice.mjs` is the SessionStart hook.
 
+## Competitors section
+
+- Sits after Trends. Data comes from `competitors-model.mjs` (read only), attached to the model as `M.competitors`; `competitors.mjs` is what reads and saves. Never fake a number: with no view counts the table shows a dash, and an account Meta cannot read says so under "Accounts that need attention".
+- The brand's own row sits first in the table, tinted. The 3x rule and the hook-shape guess are labelled as rules of thumb on the page.
+- Ideas show a Copy button for the command that accepts them; the page changes nothing itself.
+
 ## Build rules
 
 - One self-contained HTML file: fonts as data, no network requests, no libraries. The same file is used locally, on the Wi-Fi server and online.

@@ -2,6 +2,18 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.14.0 (2026-11-10)
+
+**A competitor dashboard.** The content dashboard has a new Competitors section: who you watch, what they post, what is working for them, and post ideas drawn from it.
+
+- **The table.** Each account's followers (and how they changed over 7 days), posts a week, median views and views per follower, with your own account in the same table, so you can see who does well for their size.
+- **What is working for them.** Posts that beat their own account's normal, by the same 3x rule as `/account-audit` (3x their median is "Study", 1.5x is "Note"), with a link to each. Then what the winners share: which hook shapes and which days beat the average most. The shape is guessed from the first line of the caption, and the page says a small sample proves little.
+- **Posted this week.** What every account you watch put out in the last 7 days.
+- **Post ideas.** `/content-calendar ideas` turns the winners into ideas in your voice. They copy a winner's shape, never its words, footage or characters, and use only your cleared facts. They wait in `brand/ideas.md` as "suggested" until you accept one (`/content-calendar ideas accept <number>` puts it in your plan). Nothing is made or posted for you.
+- **Every way to track.** Each account uses the best source that works, and the table says which: Meta's official API (free, no scraping, business and creator accounts), Apify (for an account Meta will not show; only when you turned scraping on, with the cost shown first, and never from the scheduled refresh), or a file you have (`competitors.mjs import`, any Insights or scraper export). An account no source can read is listed with the reason and the way to fix it.
+- **Fresh by itself.** With `dashboard.competitors` on, the daily refresh reads the accounts through Meta once a week and keeps a line a day per account in `brand/research/history.csv`, so growth over time shows after two weeks.
+- New: `/content-calendar competitors` (add, remove, list, sync, import) and `/content-calendar ideas`; `competitors.mjs`, `competitors-model.mjs`, `brand/competitors.json`, `brand/ideas.md`. `outliers.py` can save the accounts it fetches for the dashboard (`--save-research`). Update a brand workspace with `node setup/sync-template.mjs <workspace>`, then `--apply`.
+
 ## 1.13.0 (2026-11-10)
 
 Two fresh reviews walked the kit as a stranger would, from the GitHub page to the first reel and through every connection, and checked each outside step against Meta's, Cloudflare's, Netlify's, Telegram's and Anthropic's current official pages. This release fixes what they found.

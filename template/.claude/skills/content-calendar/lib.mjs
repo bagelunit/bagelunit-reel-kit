@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { loadCompetitors } from './competitors-model.mjs';
 
 /* ── files and settings ────────────────────────────────────────────────────────────────────────────────────── */
 export const read = (p) => { try { return fs.readFileSync(p, 'utf8'); } catch { return ''; } };
@@ -564,6 +565,7 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
   if (ig?.token_expires_at && new Date(ig.token_expires_at) - now < 7 * 864e5) need(1, { ...sys, title: 'Instagram numbers' }, ig.login === 'instagram'
     ? 'the Instagram token runs out within a week: run the refresh once (it renews the token), or make a new one (docs/connect.md step 2A)'
     : `the Instagram token runs out on ${String(ig.token_expires_at).slice(0, 10)} and does not renew itself: make a new one before then (docs/connect.md step 2B), and send it to the publisher with  node publisher/scripts/setup.mjs secrets --only IG_TOKEN`);
+  if (status.competitors && !status.competitors.ok) need(2, { ...sys, title: 'Competitor numbers' }, `${status.competitors.error}. Give an export or try /content-calendar competitors`);
   if (status.telegram && !status.telegram.ok) need(2, { ...sys, title: 'Telegram summary' }, `the last send failed: ${status.telegram.error}`);
   if (status.host && !status.host.ok) need(2, { ...sys, title: 'Online dashboard' }, `the last upload failed: ${status.host.error}`);
   attention.sort((a, b) => a.p - b.p);
@@ -763,11 +765,21 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
     { key: 'plan', title: 'Plan your first weeks', why: 'Claude suggests topics for your open days, each with one goal and its own angle, and adds them after your yes.', cmd: '/content-calendar plan', done: dated > 0 || reelFolders > 0 },
     { key: 'reel', title: 'Make your first reel', why: 'Claude writes, checks and builds it, and stops three times for your yes.', cmd: '/bagelunit-reels ' + (items.find((x) => x.fromPlan)?.title || 'your topic'), done: reelFolders > 0 },
     { key: 'numbers', title: 'Connect your Instagram numbers', why: 'Followers, views, watch time and skip rate, read straight from your own account.', cmd: '/content-calendar connect instagram', done: !!dash.instagram || insights.rows.length > 0, optional: true },
+    { key: 'competitors', title: 'Watch your competitors', why: 'What they post and what beats their own normal, then post ideas drawn from it.', cmd: '/content-calendar competitors add', done: (readJSON(path.join(root, 'brand', 'competitors.json'), {}).accounts || []).length > 0, optional: true },
     { key: 'view', title: 'See it on your phone', why: 'A daily summary on Telegram, and the dashboard on your Wi-Fi or online.', cmd: '/content-calendar connect telegram', alt: '/content-calendar host', done: !!dash.telegram || (dash.host && dash.host !== 'local'), optional: true },
   ];
   const setupOpen = setup.some((x) => !x.optional && !x.done);
 
+  // other accounts: the leaderboard, the posts that beat their own median, the patterns and the ideas drafted from them
+  const ownViews = (media.length ? media.map((m) => ({ at: m.at, v: m.nums.views })) : items.filter((x) => x.postedAt && x.nums?.views != null).map((x) => ({ at: x.postedAt, v: x.nums.views })))
+    .filter((x) => x.at && x.v != null).sort((a, b) => b.at - a.at);
+  const competitors = loadCompetitors(root, {
+    now: now.getTime(), dayName: (t) => pretty(dayKey(new Date(t)), { weekday: 'short' }),
+    own: { followers: followersNow, median: median(ownViews.slice(0, 12).map((x) => x.v)), perWeek: ownViews.length >= 3 ? Math.round((ownViews.filter((x) => now - x.at <= 28 * 864e5).length / 4) * 10) / 10 : null },
+  });
+
   return {
+    competitors,
     setup, setupOpen, tests, mix, others, publisher, series, flow, costs, library, audience, stories: igStories, inbox,
     root, brand, slug, name: str(brand.name) || path.basename(root).replace(/-reels$/, ''), handle: str(brand.handle),
     accent: /^#[0-9a-f]{3,8}$/i.test(str(brand.colors?.accent)) ? brand.colors.accent : '#E4572E',

@@ -64,7 +64,9 @@ Rename, move or create nothing outside this folder. Never ask for, print or stor
 | `facebook.json`, `threads.json`, `followers-facebook.csv`, `followers-threads.csv` | the same for the brand's Facebook Page and Threads, once connected | `/content-calendar` |
 | `publisher.json` | what the brand's publisher scheduled and posted, with each post's status and link | `publisher/scripts/pull.mjs` (run by the refresh) |
 | `inbox-log.md` | every comment reply, private reply, hide, delete and DM sent, after the owner's yes | `/comment-responder` |
-| `research/` | other accounts' posts and hashtag top posts read through Meta's API, as CSV for `/account-audit` | `research.mjs` |
+| `research/` | other accounts' posts and hashtag top posts read through Meta's API, Apify or an export, as CSV for `/account-audit` and the dashboard's Competitors section; `history.csv` keeps one line a day per account | `research.mjs`, `competitors.mjs` |
+| `competitors.json` | the accounts this brand watches: handle and tag (niche, adjacent, big) | `/content-calendar competitors` |
+| `ideas.md` | post ideas drafted from the competitors' winners, each with its source and a status (suggested, planned, rejected) | `/content-calendar ideas` (after the owner's yes) |
 | `log.md` | what was posted, with hook formula, first line, goal and angle | `/ig-reel` or `/reel-posting` after the owner confirms |
 | `tests.md` | one row per finished A/B test (what was tested, the result, the lesson); read it before writing hooks or planning | `/ab-hook-tester record` |
 | `stats.md` | the brand's median summary, written by `/account-audit --all` from `insights.csv` | `/account-audit` |
@@ -96,7 +98,7 @@ When a request matches a row, load that skill with the Skill tool first and foll
 | Brand setup | `/brand-setup` |
 | Sticker host: make it, add a pose a reel needs | `/sticker-host` (`new`, `add <pose>`, `check <reel>`) |
 | Research: what the audience asks, reels to model, best reels | `/comment-mining`, `/reel-sources`, `/account-audit`, `/reel-analyzer` (a file the person supplies) |
-| Content calendar and dashboard: what is planned, scheduled and posted, what needs the owner, agents, numbers and trends; plan the next weeks; connect Instagram, Facebook Page and Threads numbers or a Telegram summary; refresh by itself | `/content-calendar` (`plan`, `days`, `how-often` for how often to post, `host`, `connect instagram`, `connect facebook`, `connect threads`, `connect telegram`, `auto`, `all` for every brand on this computer) |
+| Content calendar and dashboard: what is planned, scheduled and posted, what needs the owner, agents, numbers and trends; plan the next weeks; connect Instagram, Facebook Page and Threads numbers or a Telegram summary; refresh by itself | `/content-calendar` (`plan`, `days`, `how-often` for how often to post, `competitors` to track other accounts, `ideas` for post ideas from what is working for them, `host`, `connect instagram`, `connect facebook`, `connect threads`, `connect telegram`, `auto`, `all` for every brand on this computer) |
 | Plan: goal, angle, why a post flopped | `/going-viral`, `/virality` |
 | Hooks before Gate A | `/viral-hook-writer` (from nothing), `/hook-mining` (from a CSV of real hooks) |
 | Script before Gate A | Start the reel folder first (`kit start reels/<slug> --style <style>`: it fills a new folder with a sample `script.txt` and keeps one already there), then `/reel-scripter` writes the real `reels/<slug>/script.txt`; `/reel-builder` for a shoot plan without rendering |

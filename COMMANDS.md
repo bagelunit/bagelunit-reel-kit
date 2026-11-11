@@ -1,6 +1,6 @@
 # BagelUnit Reel Kit commands
 
-Every command in the kit (version 1.13.0) and what it does. Also as a [PDF](docs/commands.pdf) and a [spreadsheet](docs/commands.csv) (opens in Excel).
+Every command in the kit (version 1.14.0) and what it does. Also as a [PDF](docs/commands.pdf) and a [spreadsheet](docs/commands.csv) (opens in Excel).
 
 Most of the time you only need four: `/brand-setup`, `/bagelunit-reels` with your topic, `/analytics-readout` with your numbers, and `/kit-update`.
 
@@ -58,7 +58,7 @@ Run on every reel; Claude runs them at the approvals.
 | `/cover-thumbnail-brief` | Writes the cover text and the brief for a cover that stops the scroll. |
 | `/reel-repurpose` | Turns an approved reel into its TikTok and YouTube Shorts versions (captions, titles, a check of where each app's buttons sit), a carousel and a blog post. |
 | `/reel-posting` | Gets an approved reel posted: a posting card for posting by hand, or scheduling it through the kit's publisher on Instagram, your Facebook Page and Threads (dry run first), and setting that up step by step. |
-| `/content-calendar` | Your content calendar and dashboard: every reel from idea to posted, what needs you, the four agents, followers and trends. Add plan to fill the next weeks, days to set your posting days and times (any number a day), how-often for a suggestion of how often to post from accounts like yours, what you can keep up and your own numbers, host to view it on your Wi-Fi or online (Netlify suggested), connect instagram, connect facebook or connect threads for your numbers on each, connect telegram for a phone summary, auto to refresh by itself, all for every brand on one page. Posts nothing. |
+| `/content-calendar` | Your content calendar and dashboard: every reel from idea to posted, what needs you, the four agents, followers and trends. Add plan to fill the next weeks, days to set your posting days and times (any number a day), how-often for a suggestion of how often to post from accounts like yours, what you can keep up and your own numbers, competitors to track other accounts (what they post, what beats their own normal, what the winners share), ideas for post ideas drawn from what is working for them, host to view it on your Wi-Fi or online (Netlify suggested), connect instagram, connect facebook or connect threads for your numbers on each, connect telegram for a phone summary, auto to refresh by itself, all for every brand on one page. Posts nothing. |
 
 ## Research and plan
 

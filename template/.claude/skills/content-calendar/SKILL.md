@@ -8,9 +8,10 @@ description: >
   user says "content calendar", "dashboard", "what's scheduled", "what's next", "plan my posts", "show my
   pipeline", "how are my reels doing", "connect my Instagram stats", "connect Facebook", "connect Threads", "send it to my phone", "refresh every day",
   "put the dashboard online", "host my dashboard", "see it on my phone", "how often should I post", "how many
-  reels a week" or "posting frequency".
+  reels a week", "posting frequency", "track my competitors", "what are my competitors posting", "competitor
+  dashboard", "what's working for them" or "post ideas from my competitors".
 user-invokable: true
-argument-hint: "[plan | days | how-often | host | connect instagram | connect facebook | connect threads | connect telegram | auto | all | off]"
+argument-hint: "[plan | days | how-often | competitors | ideas | host | connect instagram | connect facebook | connect threads | connect telegram | auto | all | off]"
 metadata:
   author: BagelUnit
   version: "2.0.0"
@@ -38,9 +39,12 @@ Ask every choice with a question block (AskUserQuestion), the recommended option
 | `brand/instagram.json` | written by `instagram.mjs`: the account and every post's latest numbers (not kept in history) |
 | `brand/followers.csv` | written by `instagram.mjs`: one follower count a day (kept: it is the only record of growth) |
 | `brand/research/<username>.csv`, `brand/research/accounts.json` | other accounts' posts and their followers, written by `research.mjs competitor` (read by `how-often.mjs` and `/account-audit`) |
+| `brand/competitors.json` | the accounts the owner watches: handle and tag (`niche`, `adjacent`, `big`), written by `competitors.mjs add` |
+| `brand/research/history.csv` | one line a day per competitor from `competitors.mjs sync` (date, handle, followers, posts read, median views, source): the only record of their growth |
+| `brand/ideas.md` | post ideas drafted from the competitors' winners: Date, Idea, Hook, Based on, Goal, Angle, Status (`suggested`, `planned`, `rejected`); written by `/content-calendar ideas` |
 | `brand/how-often.json` | written by `how-often.mjs`: the suggested posting pace and why; the Planner panel shows it |
 | `brand/calendar.md`, `brand/dashboard.html` | written by `calendar.mjs` each run (the page itself is drawn by `page.mjs`; fonts in `fonts/`) |
-| `brand/brand.json` | `posting.timezone`, `posting.days`, `posting.times` (or the older single `posting.time`), `batch.max_reels`, and `dashboard`: `instagram`, `facebook`, `threads`, `telegram` (each on only after the owner's yes), `refresh` (with `time` and `day`, written by `schedule.mjs`), `host` (`local`, `wifi`, `netlify`, `cloudflare` or `folder`), `site` (the Netlify site id or Cloudflare Pages project), `url` (the site's https address), `path_key` (the private path, made by `host.mjs` run by hand) and `publish_every` (minutes between background uploads, default 15, 0 for the scheduled refresh only) |
+| `brand/brand.json` | `posting.timezone`, `posting.days`, `posting.times` (or the older single `posting.time`), `batch.max_reels`, and `dashboard`: `instagram`, `facebook`, `threads`, `telegram`, `competitors` (each on only after the owner's yes; `competitors_every` is the days between reads, default 7), `refresh` (with `time` and `day`, written by `schedule.mjs`), `host` (`local`, `wifi`, `netlify`, `cloudflare` or `folder`), `site` (the Netlify site id or Cloudflare Pages project), `url` (the site's https address), `path_key` (the private path, made by `host.mjs` run by hand) and `publish_every` (minutes between background uploads, default 15, 0 for the scheduled refresh only) |
 
 Stages, in order: Idea, Script written, Script approved (Gate A), Visual plan approved (Gate B), Final approved
 (Gate C), Scheduled, Posted. The four agent panels map the kit's skills: Ideator (`/comment-mining`,
@@ -137,6 +141,58 @@ and the suggestion with its reasons. Say plainly that it is a starting point: ho
 that posting that often is why they do well. Then ask "Use <N> a week (Recommended)", "Keep <current>", "Pick my
 own". On a number, run the days step below with it (days and times that add up to it, and `batch.max_reels`).
 Run it again about once a month; the Planner panel shows the latest suggestion and its date.
+
+## /content-calendar competitors: who the brand watches
+
+Fills the dashboard's Competitors section: a leaderboard (followers and their change, posts a week, median views,
+views per follower, you in the same table), the posts that beat their own account's median (the 3x rule: STUDY at 3x or
+more, NOTE at 1.5x), what those winners share (hook shape and day, guessed from the caption's first line, so a small
+sample proves little), what each account posted this week, and the ideas drafted from it (below). It reads and saves
+public data; it never posts, follows, likes or comments.
+
+1. **Pick the accounts** with a question block. Suggest 6 to 12: about 4 in the niche and a bit ahead, 4 next door, 2 to
+   4 big ones for format ideas only (stay within about 10x of the brand's followers for the others). Suggest from
+   `brand/swipe.md`, the owner's niche and what they name; confirm each handle. Save with
+   `node .claude/skills/content-calendar/competitors.mjs add <handle> ... --tag niche|adjacent|big` (up to 30).
+2. **Read them, best source first.** `node .claude/skills/content-calendar/competitors.mjs sync` tries each account in
+   turn and the dashboard says which source it used:
+   - **Meta's official API** (free, no scraping): needs the Unified or Facebook Login connection
+     (`docs/connect.md` step 2B) and works for business and creator accounts only. Without that connection, say once
+     what connecting gives and offer `/content-calendar connect instagram`.
+   - **Apify**, only for an account Meta will not show, and only when `autopilot.scrape` is true and the owner's token is
+     saved: `competitors.mjs sync <handle> --apify`. Say the cost first (`outliers.py --dry-run`), and tell the owner it
+     is logged in `brand/spend.csv`. Never run it from the scheduled refresh and never without the owner's yes for that
+     run. Never ask for or print the token.
+   - **A file the owner has**: an Insights export, a scraper export or a CSV saved from anywhere:
+     `competitors.mjs import <handle> <file.csv|file.json>` (a date column, and a views column for the outlier check).
+     This is also the way in for any account the other two cannot read.
+   Say plainly what no source gives: another account's retention, saves and shares. Views, likes and comments only.
+3. **Keep it fresh.** Turn on the weekly read (`brand.json` -> `dashboard.competitors: true`, after the owner's yes):
+   the daily refresh then reads the accounts through Meta whenever the oldest read is more than 7 days old
+   (`dashboard.competitors_every`). Each read adds a line to `brand/research/history.csv`, so follower growth and median
+   views over time show up after the second week. `competitors.mjs remove <handle>` drops an account and `list` shows
+   what is read and how.
+4. Run the calendar (`calendar.mjs`) and point the owner at the Competitors section. If an account says "not read", offer
+   the export route for it.
+
+## /content-calendar ideas: post ideas from what is working for them
+
+Claude's step (no script writes ideas). It turns the competitors' winners into this brand's own post ideas.
+1. Read the winners: each `brand/research/<handle>.csv` (url, timestamp, views, likes, comments, caption), with a post's
+   ratio being its views over that account's median of its last 12 posts (3x or more is STUDY, 1.5x NOTE; the dashboard
+   shows the same list), then
+   `brand/voice.md`, `brand/facts.md`, `brand/tests.md`, `brand/log.md` (so no idea repeats a recent angle) and
+   `brand/swipe.md`. If fewer than 3 accounts have a median yet, say so and stop: ideas from nothing are guesses.
+2. Draft 5 to 8 ideas. Each takes the **shape** of a winner (hook shape, structure, length, the question it answers), never
+   the words, footage, colours, characters or prompts (house rule 8), in this brand's voice. One goal and one angle per
+   idea (rule 13), a hook written as a triple hook where it fits, and any number only from `brand/facts.md` (rule 1;
+   otherwise `{{needs cleared fact}}`). Run the text through `/humanizer`'s checks before showing it.
+3. Show them as a table first. After the owner's yes, append the kept ones to `brand/ideas.md` (create it with the
+   header `| Date | Idea | Hook | Based on | Goal | Angle | Status |` if missing), Status `suggested`, "Based on" naming the
+   account and the post's link so the owner can watch it.
+4. `/content-calendar ideas accept <n>` moves idea n into `brand/plan.md` (the next open slot, after the owner's yes) and
+   sets its Status to `planned`; `/content-calendar ideas reject <n>` sets `rejected` with the owner's reason in
+   "Idea" so the next draft learns from it. Accepting never starts a reel: that is `/bagelunit-reels`.
 
 ## /content-calendar plan: fill the next weeks
 

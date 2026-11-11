@@ -25,6 +25,26 @@ function writeCsv(root, name, rows) {
   return path.relative(root, file);
 }
 
+// one account's public posts through business discovery -> brand/research/<username>.csv and its row in accounts.json.
+// competitors.mjs calls this for every account on the list; `research.mjs competitor` calls it for one.
+export async function pullCompetitor(root, api, name, n = 50) {
+  const user = String(name).replace(/^@/, '');
+  if (!USERNAME.test(user)) throw new Plain(`"${name}" is not an Instagram username (letters, numbers, dots and underscores, up to 30)`);
+  fs.mkdirSync(path.join(root, 'brand', 'research'), { recursive: true });
+  const r = await api.get(api.me, { fields: `business_discovery.username(${user}){username,followers_count,media_count,media.limit(${n}){${FIELDS},view_count}}` });
+  const bd = r.business_discovery;
+  if (!bd) throw new Plain(`no public data for @${user}: it must be a business or creator account (and not age-gated)`);
+  const posts = bd.media?.data || [];
+  const file = writeCsv(root, user, posts);
+  // the account itself, for /content-calendar how-often and the competitors section: followers, how many posts it has, how many were read and when
+  const accFile = path.join(root, 'brand', 'research', 'accounts.json');
+  const accounts = readJSON(accFile, {});
+  accounts[(bd.username || user).toLowerCase()] = { followers: bd.followers_count ?? null, media_count: bd.media_count ?? null, read: posts.length, pulled_at: new Date().toISOString(), source: 'meta' };
+  writeAtomic(accFile, JSON.stringify(accounts, null, 2) + '\n');
+  const views = posts.map((p) => p.view_count).filter((v) => v != null).sort((a, b) => a - b);
+  return { username: bd.username || user, followers: bd.followers_count ?? null, mediaCount: bd.media_count ?? null, posts: posts.length, median: views.length ? views[views.length >> 1] : null, file };
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const bi = args.indexOf('--brand'), pi = args.indexOf('--posts');
@@ -36,23 +56,10 @@ async function main() {
   fs.mkdirSync(path.join(root, 'brand', 'research'), { recursive: true });
 
   if (what === 'competitor') {
-    const user = name.replace(/^@/, '');
-    if (!USERNAME.test(user)) throw new Plain(`"${name}" is not an Instagram username (letters, numbers, dots and underscores, up to 30)`);
     const n = Math.min(100, Math.max(5, Number(pi >= 0 ? args[pi + 1] : 50) || 50));
-    const r = await api.get(api.me, { fields: `business_discovery.username(${user}){username,followers_count,media_count,media.limit(${n}){${FIELDS},view_count}}` });
-    const bd = r.business_discovery;
-    if (!bd) throw new Plain(`no public data for @${user}: it must be a business or creator account (and not age-gated)`);
-    const posts = bd.media?.data || [];
-    const file = writeCsv(root, user, posts);
-    // the account itself, for /content-calendar how-often: followers, how many posts it has, how many were read and when
-    const accFile = path.join(root, 'brand', 'research', 'accounts.json');
-    const accounts = readJSON(accFile, {});
-    accounts[(bd.username || user).toLowerCase()] = { followers: bd.followers_count ?? null, media_count: bd.media_count ?? null, read: posts.length, pulled_at: new Date().toISOString() };
-    writeAtomic(accFile, JSON.stringify(accounts, null, 2) + '\n');
-    const views = posts.map((p) => p.view_count).filter((v) => v != null).sort((a, b) => a - b);
-    const med = views.length ? views[views.length >> 1] : null;
-    console.log(`@${bd.username || user}: ${bd.followers_count ?? '?'} followers, ${bd.media_count ?? '?'} posts; read ${posts.length} recent ones${med != null ? `, median ${med} views` : ''}. Wrote ${file}.`);
-    if (views.length) console.log(`Next: python3 .claude/skills/account-audit/outliers.py --csv ${file} --owner ${user}`);
+    const r = await pullCompetitor(root, api, name, n);
+    console.log(`@${r.username}: ${r.followers ?? '?'} followers, ${r.mediaCount ?? '?'} posts; read ${r.posts} recent ones${r.median != null ? `, median ${r.median} views` : ''}. Wrote ${r.file}.`);
+    if (r.median != null) console.log(`Next: python3 .claude/skills/account-audit/outliers.py --csv ${r.file} --owner ${r.username}`);
     else console.log('Meta gave no view counts for these posts, so the outlier check (views against the median) cannot run on them; compare likes and comments in the file instead.');
   } else if (what === 'hashtag') {
     const tag = name.replace(/^#/, '');

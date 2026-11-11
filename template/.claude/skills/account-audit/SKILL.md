@@ -52,6 +52,9 @@ The step that tells you what to make next: which reels beat an account's own nor
 5. **Turn it into the next reels.** Copy the shape (hook, structure, length), never the video, script, colours,
    characters or prompts. Every number in a script still has to be in `brand/facts.md`.
 
+## The dashboard's Competitors section
+`/content-calendar competitors` keeps the account list and reads each one (Meta first, Apify only with `--apify`, or an export), then the dashboard shows the same 3x rule for all of them side by side and `/content-calendar ideas` drafts post ideas from the winners. `outliers.py --handles a,b --save-research brand/research` saves an Apify fetch in the form the dashboard reads.
+
 ## Own stats for the review (step 14)
 `python3 ./.claude/skills/account-audit/outliers.py --csv brand/insights.csv --owner <the brand's handle> --all --out brand/stats.md` (the brand's own numbers, no scraping; or `--handles <handle>` with `autopilot.scrape` on, or `--json` on an export) lists every recent reel with views, likes, comments and its ratio to the brand's own median. `/analytics-readout` and the review step read `brand/stats.md`; the reel's row in `brand/log.md` can then point to it. It appends a dated block each time, so history stays.
 

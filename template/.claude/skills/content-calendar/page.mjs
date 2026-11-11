@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { stageName, STAGES, fmt, pct, signed, rate, clip, median, timesText } from './lib.mjs';
+import { TAGS, firstLine } from './competitors-model.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const CLIENT = fs.readFileSync(path.join(HERE, 'client.js'), 'utf8');   // the calendar views, the pipeline and the reel card
@@ -365,6 +366,54 @@ ${M.flow.slowest && M.flow.slowest.days >= 1 ? `<p class="foot">Reels wait longe
   <div class="series" data-reveal-group>${M.series.map((x) => `<button type="button" class="ser" data-series-pick="${esc(x.name)}"><b>${esc(x.name)}</b><span>${x.posted} posted · ${x.working} in progress · ${x.planned} planned</span>${x.next ? `<span class="foot">Next: ${esc(M.pretty(M.dayKey(x.next.when)))} · ${esc(clip(x.next.title, 40))}</span>` : ''}</button>`).join('')}</div>
 </section>` : '';
 
+  // competitors: who we watch, what is working for them, what they have in common, and the ideas drafted from it
+  const CP = M.competitors;
+  const SRC = { meta: 'Meta', apify: 'Apify', file: 'A file' };
+  const cmdLine = (c) => `<div class="cmd-line"><code>${esc(c)}</code><button type="button" class="copy" data-copy="${esc(c)}">Copy</button></div>`;
+  const igLink = (h) => `<a class="ig" href="https://www.instagram.com/${encodeURIComponent(h)}/" target="_blank" rel="noopener" aria-label="Open @${esc(h)} on Instagram">${icon('arrow')}</a>`;
+  const competitorsHtml = (() => {
+    if (!CP || !CP.any) return `<section class="wrap" id="competitors" aria-label="Competitors"${pfIn('all instagram')}>
+  <div class="sec-head" data-reveal>${label('grid', 'Competitors')}<span class="aside">Who you watch, and what is working for them</span></div>
+  <div class="panel" data-reveal><p class="empty">No competitors yet. Add 6 to 12 accounts: about 4 in your niche and a bit ahead, 4 next door, 2 to 4 big ones for format ideas. Claude reads their public posts and shows what beats their own normal.</p>${cmdLine('/content-calendar competitors add')}</div>
+</section>`;
+    const withData = CP.accounts.filter((a) => a.readPosts);
+    const last = Math.max(0, ...CP.accounts.map((a) => a.pulledAt || 0));
+    const you = CP.own;
+    const trow = (a) => `<tr><td><b>@${esc(a.handle)}</b> ${igLink(a.handle)}<span class="foot sub">${esc(TAGS[a.tag])}</span></td>
+<td class="r">${esc(fmt(a.followers))}${a.delta7 != null ? `<span class="foot sub ${a.delta7 > 0 ? 'up' : a.delta7 < 0 ? 'down' : 'eq'}">${esc(signed(a.delta7))} in 7 days</span>` : ''}</td>
+<td class="r">${a.pace ? esc(String(a.pace.perWeek)) : '–'}</td><td class="r">${esc(fmt(a.median))}</td><td class="r">${a.score == null ? '–' : esc(a.score.toFixed(2))}</td><td class="r hide-sm">${a.median == null ? '–' : esc(String(a.outliers30))}</td>
+<td class="hide-sm nowrap">${a.pending ? `<span class="foot sub">Not read yet</span>` : `${esc(SRC[a.source] || '')}${a.stale ? ' <span class="prio soon">Stale</span>' : ''}<span class="foot sub">${a.pulledAt ? esc(M.pretty(M.dayKey(new Date(a.pulledAt)))) : ''}</span>`}</td></tr>`;
+    const board = withData.length || you ? `<div class="scroll"><table class="comp"><thead><tr><th>Account</th><th class="r">Followers</th><th class="r">Posts a week</th><th class="r">Median views</th><th class="r" title="Median views divided by followers: how well it does for its size">Views per follower</th><th class="r hide-sm" title="Posts in the last 30 days at 1.5 times its own median or more">Beat their median</th><th class="hide-sm">Read</th></tr></thead><tbody>
+${you ? `<tr class="you"><td><b>You</b>${M.handle ? ` <span class="foot sub">${esc(M.handle)}</span>` : ''}</td><td class="r">${esc(fmt(you.followers))}</td><td class="r">${you.perWeek == null ? '–' : esc(String(you.perWeek))}</td><td class="r">${esc(fmt(you.median))}</td><td class="r">${you.score == null ? '–' : esc(you.score.toFixed(2))}</td><td class="r hide-sm">–</td><td class="hide-sm"><span class="foot sub">Your account</span></td></tr>` : ''}
+${CP.accounts.map(trow).join('')}</tbody></table></div>` : '<p class="empty">Nothing read yet. Run the sync.</p>';
+    const out = CP.outliers.slice(0, 8);
+    const worked = out.length ? `<ol class="wins">${out.map((o, i) => `<li><span class="n">${String(i + 1).padStart(2, '0')}</span><div class="wb"><div class="wt"><b class="ratio">${esc(o.ratio.toFixed(1))}x</b> <span class="prio ${o.tier === 'STUDY' ? 'now' : 'soon'}">${o.tier === 'STUDY' ? 'Study' : 'Note'}</span> <span>@${esc(o.handle)}</span>${safeUrl(o.url) ? ` <a class="ig" href="${esc(safeUrl(o.url))}" target="_blank" rel="noopener" aria-label="Open the post">${icon('arrow')}</a>` : ''}</div>
+<p>${esc(clip(firstLine(o.caption) || 'No caption', 110))}</p><span class="foot">${esc(fmt(o.views))} views · ${esc(o.shape)} · ${esc(M.pretty(M.dayKey(new Date(o.at))))}</span></div></li>`).join('')}</ol>${CP.outliers.length > out.length ? `<p class="foot">${CP.outliers.length - out.length} more at 1.5x or above.</p>` : ''}`
+      : '<p class="empty">Nothing is beating its own median yet. That needs at least 5 posts with views for an account.</p>';
+    const pt = CP.patterns;
+    const shapes = pt.shapes.length ? `<div class="scroll"><table><thead><tr><th>Hook shape</th><th class="r">Posts</th><th class="r">Beat their median</th></tr></thead><tbody>${pt.shapes.map((x) => `<tr><td>${esc(x.shape)}</td><td class="r">${x.posts}</td><td class="r">${esc(pct(x.rate))}${x.lift != null && x.lift >= 1.3 ? ' <span class="prio soon">Above average</span>' : ''}</td></tr>`).join('')}</tbody></table></div>` : '<p class="empty">Not enough posts yet to compare hook shapes (it needs 3 or more of a shape).</p>';
+    const patterns = `${shapes}<p class="foot">${pt.n ? `Of ${pt.n} posts compared, ${pt.hits} beat their own median (${esc(pct(pt.base))}). ` : ''}${pt.days.length ? `Most winners went out on ${esc(pt.days.slice(0, 2).map(([d, n]) => `${d} (${n})`).join(' and '))}. ` : ''}Hook shape is guessed from the first line of the caption; a small sample proves little.</p>`;
+    const feed = CP.feed.slice(0, 8);
+    const feedHtml = feed.length ? `<ul class="feed">${feed.map((f) => `<li><div><b>@${esc(f.handle)}</b> <span class="foot">${esc(M.pretty(M.dayKey(new Date(f.at))))}${f.views != null ? ` · ${esc(fmt(f.views))} views` : ''}${f.ratio != null ? ` · ${esc(f.ratio.toFixed(1))}x their median` : ''}</span>${safeUrl(f.url) ? ` <a class="ig" href="${esc(safeUrl(f.url))}" target="_blank" rel="noopener" aria-label="Open the post">${icon('arrow')}</a>` : ''}</div><p>${esc(clip(firstLine(f.caption) || 'No caption', 120))}</p></li>`).join('')}</ul>` : '<p class="empty">Nothing from the accounts you watch in the last 7 days.</p>';
+    const IDEA_OPEN = CP.ideas.filter((i) => !/^(planned|made|rejected|skipped)/.test(i.status));
+    const ideasHtml = `<div class="panel" data-reveal><h3>Post ideas from what is working</h3>${CP.ideas.length ? `<ol class="ideas">${CP.ideas.slice(0, 10).map((i, n) => `<li><span class="n">${String(n + 1).padStart(2, '0')}</span><div class="wb"><div class="wt"><b>${esc(clip(i.idea, 90))}</b> <span class="prio ${/^suggest/.test(i.status) ? 'soon' : ''}">${esc(i.status)}</span></div>${i.hook ? `<p>Hook: ${esc(clip(i.hook, 140))}</p>` : ''}<span class="foot">${[i.goal && `goal ${esc(i.goal)}`, i.angle && `angle ${esc(i.angle)}`, i.basedOn && `from ${esc(clip(i.basedOn, 60))}`].filter(Boolean).join(' · ')}</span>${/^suggest/.test(i.status) ? cmdLine(`/content-calendar ideas accept ${n + 1}`) : ''}</div></li>`).join('')}</ol>${CP.ideas.length > 10 ? `<p class="foot">${CP.ideas.length - 10} more in brand/ideas.md.</p>` : ''}` : `<p class="empty">${out.length ? 'No ideas drafted yet. Claude turns the winners above into reel ideas in your voice, from your cleared facts only.' : 'Ideas come from the posts that beat their own median. They appear here once an account has enough posts with views.'}</p>`}${out.length ? cmdLine('/content-calendar ideas') : ''}</div>`;
+    const missing = CP.accounts.filter((a) => a.pending || a.note);
+    const gaps = missing.length ? `<div class="panel" data-reveal><h3>Accounts that need attention</h3><ul class="gaps">${missing.map((a) => `<li><b>@${esc(a.handle)}</b> <span class="foot">${esc(a.note || 'Not read yet')}</span></li>`).join('')}</ul><p class="foot">Meta shows business and creator accounts only. For any other, give an export: <code>competitors.mjs import &lt;handle&gt; &lt;file&gt;</code>, or let Apify read it (costs money, off until you turn scraping on).</p></div>` : '';
+    return `<section class="wrap" id="competitors" aria-label="Competitors"${pfIn('all instagram')}>
+  <div class="sec-head" data-reveal>${label('grid', 'Competitors')}<span class="aside">${CP.accounts.length} account${CP.accounts.length === 1 ? '' : 's'}${last ? ` · read ${esc(M.pretty(M.dayKey(new Date(last))))}` : ''} · views only, public posts</span></div>
+  <div class="panel" data-reveal>${board}</div>
+  <div class="twin" style="margin-top:20px" data-reveal-group>
+    <div class="panel"><h3>What is working for them</h3>${worked}</div>
+    <div class="panel"><h3>What the winners share</h3>${patterns}</div>
+  </div>
+  <div class="twin" style="margin-top:20px" data-reveal-group>
+    <div class="panel"><h3>Posted this week</h3>${feedHtml}</div>
+    ${ideasHtml}
+  </div>
+  ${gaps ? `<div style="margin-top:20px">${gaps}</div>` : ''}
+</section>`;
+  })();
+
   // first run: the steps in order, checked off by what is really in the folder; gone once the core steps are done
   const core = M.setup.filter((x) => !x.optional), opt = M.setup.filter((x) => x.optional), nextKey = core.find((x) => !x.done)?.key;
   const step = (x, i) => `<li class="step${x.done ? ' done' : ''}${x.key === nextKey ? ' next' : ''}"><span class="mark" aria-hidden="true">${x.done ? icon('check') : i + 1}</span><div class="st"><b>${esc(x.title)}</b><p>${esc(x.why)}</p></div><div class="sc">${x.done ? '<span class="done-tag">Done</span>' : `<code>${esc(x.cmd)}</code><button type="button" class="copy" data-copy="${esc(x.cmd)}">Copy</button>`}</div></li>`;
@@ -547,6 +596,14 @@ tbody tr{transition:background 160ms var(--ease)} tbody tr:hover{background:var(
 .up{color:var(--good)}.down{color:var(--bad)}.eq{color:var(--mute)}
 .foot{font-size:12.5px;color:var(--mute);margin:10px 0 0}
 .rank{display:inline-block;width:30px;font-weight:600;color:var(--line-strong)}
+
+/* competitors */
+table.comp .sub{display:block;margin:3px 0 0;font-size:11.5px;font-weight:400} table.comp tr.you td{background:var(--accent-soft)}
+.wins,.ideas{list-style:none;margin:0;padding:0;display:grid;gap:14px} .wins li,.ideas li{display:grid;grid-template-columns:30px minmax(0,1fr);gap:8px;align-items:start}
+.wins .n,.ideas .n{font-weight:600;color:var(--line-strong);font-size:13px;padding-top:2px} .wb p{margin:4px 0 4px;font-size:14px;color:var(--ink)}
+.wt{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:14px} .wt .ratio{font:800 20px/1 var(--sans);color:var(--accent-text)}
+.feed,.gaps{list-style:none;margin:0;padding:0;display:grid;gap:12px} .feed p{margin:3px 0 0;font-size:14px} .feed .foot{display:inline;margin:0} .gaps .foot{display:inline;margin:0 0 0 6px}
+.ideas .cmd-line{margin-top:8px}
 
 /* calendar */
 .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--mute);margin:0 0 14px}
@@ -936,6 +993,8 @@ ${M.setupOpen && !S.measured && !S.posted && !PFS.length ? '' : `<div class="wra
     <div class="panel"><h3>Time and cost</h3>${timeHtml}</div>
   </div>
 </section>
+
+${competitorsHtml}
 
 <section class="wrap" id="calendar" aria-label="Calendar">
   <div class="sec-head" data-reveal>${label('cal', 'Calendar')}<span class="aside">${M.postDays.length ? `Posting days: ${esc(M.postDays.map((d) => d[0].toUpperCase() + d.slice(1)).join(', '))}${M.postTimes.length > 1 ? `, ${M.postTimes.length} times a day (${esc(timesText(M.postTimes))})` : M.postTime ? ` at ${esc(M.postTime)}` : ''}` : 'Set posting days with /content-calendar days'}</span></div>
