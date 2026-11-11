@@ -41,7 +41,7 @@ by default) and run only the steps whose permission is `true`:
 These still apply to every reel, whatever is on: ask the style first (Print, 3D, Talking head), run
 `budget.py` before Gate A, `/reel-factcheck` before Gate A and before Gate C, `/reel-review` on every
 draft and final, and Gates A, B and C from CLAUDE.md rules 10 and 13. Only cleared facts from
-`brand/facts.md` (rule 1). Weekly batches follow CLAUDE.md section 3c (up to `brand.json` -> `batch.max_reels` reels, default 3; goals may repeat, angles may not).
+`brand/facts.md` (rule 1). Weekly batches follow CLAUDE.md section 3c (up to `brand.json` -> `batch.max_reels` reels, default 3; goals may repeat; angles may not in a batch of up to five, and in a bigger one no two reels next to each other share one).
 
 ## The pipeline (what runs, in order)
 
@@ -136,7 +136,7 @@ RULES
 When you make several reels over time, rotate the angle so the feed stays varied: **proof** (only with a
 real, cleared result from `brand/facts.md`), **how-to** (the steps), **contrarian** ("you're doing X
 wrong"). One goal and one angle per reel. In a weekly batch, up to `batch.max_reels` reels (default 3) and no two share an angle
-(CLAUDE.md section 3c). Note every winner in `brand/log.md` so the next batch starts from what already
+(more than five: no two next to each other; CLAUDE.md section 3c). Note every winner in `brand/log.md` so the next batch starts from what already
 worked for *you*.
 
 ## Memory makes it yours

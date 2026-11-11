@@ -45,7 +45,21 @@
   const byDay = {};
   for (const e of D.entries) (byDay[e.d] = byDay[e.d] || []).push(e);
   for (const l of Object.values(byDay)) l.sort((a, b) => (a.t || '99').localeCompare(b.t || '99'));
-  const isSlot = (k) => !(byDay[k] || []).length && k >= D.today && D.postDays.includes(DAYS[wd(k)]);
+  // open slots per posting time, the same rule as openTimesOn in lib.mjs: a reel with a time takes the nearest free
+  // time, one without takes the earliest, and today's times that have gone by are not open
+  const PT = D.postTimes || (D.postTime ? [D.postTime] : []);
+  const mins = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+  const openTimes = (k) => {
+    if (k < D.today || !D.postDays.includes(DAYS[wd(k)])) return [];
+    const list = byDay[k] || [];
+    if (!PT.length) return list.length ? [] : [''];
+    const left = PT.slice();
+    list.filter((e) => e.t).forEach((e) => { if (!left.length) return; let at = 0; left.forEach((t, i) => { if (Math.abs(mins(t) - mins(e.t)) < Math.abs(mins(left[at]) - mins(e.t))) at = i; }); left.splice(at, 1); });
+    left.splice(0, list.filter((e) => !e.t).length);
+    return k === D.today ? left.filter((t) => t > D.nowTime) : left;
+  };
+  const tText = (l, max) => (l.length > max + 1 ? l.slice(0, max).join(', ') + ' and ' + (l.length - max) + ' more' : l.join(', '));
+  const openText = (open, max) => (open.length > 1 ? open.length + ' open posting slots · ' + h(tText(open, max)) : 'Open posting slot' + (open[0] ? ' · ' + h(open[0]) : ''));
   const LBL = { posted: 'Posted', scheduled: 'Scheduled', planned: 'Planned', late: 'Date passed' };
   const kindText = (e) => { const it = byId.get(e.id); return e.k === 'posted' || e.k === 'scheduled' ? LBL[e.k] : LBL[e.k] + ' · ' + (it ? STAGE_NAME[it.stage] : ''); };
   const k1 = (n) => n == null ? '–' : Math.abs(n) >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : Math.abs(n) >= 1e4 ? Math.round(n / 1e3) + 'K' : Math.abs(n) >= 1e3 ? (n / 1e3).toFixed(1) + 'K' : String(Math.round(n));
@@ -65,10 +79,11 @@
       const last = add(addMonths(first, 1), -1), end = add(monday(last), 6);
       let out = '<div class="month-grid">' + ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((w) => '<div class="wd">' + w + '</div>').join('');
       for (let k = monday(first); k <= end; k = add(k, 1)) {
-        const inM = parse(k).getUTCMonth() === m, list = byDay[k] || [];
-        out += '<div class="day' + (inM ? '' : ' out') + (k === D.today ? ' today' : '') + (k < D.today ? ' past' : '') + (inM && isSlot(k) ? ' slot' : '') + '"' + (inM && isSlot(k) ? ' title="Open posting slot' + (D.postTime ? ' at ' + h(D.postTime) : '') + '"' : '') + '>'
+        const inM = parse(k).getUTCMonth() === m, list = byDay[k] || [], open = inM ? openTimes(k) : [], extra = list.length > 4 ? list.length - 3 : 0;
+        out += '<div class="day' + (inM ? '' : ' out') + (k === D.today ? ' today' : '') + (k < D.today ? ' past' : '') + (open.length ? ' slot' : '') + '"' + (open.length ? ' title="' + openText(open, 8) + '"' : '') + '>'
           + '<button type="button" class="dn" data-day="' + k + '" aria-label="Open ' + h(fd(k, { weekday: 'long', month: 'long', day: 'numeric' })) + '">' + parse(k).getUTCDate() + '</button>'
-          + list.map(ev).join('') + (isSlot(k) ? '<div class="open">Open slot' + (D.postTime ? ' · ' + h(D.postTime) : '') + '</div>' : '') + '</div>';
+          + (extra ? list.slice(0, 3) : list).map(ev).join('') + (extra ? '<button type="button" class="ev-more" data-day="' + k + '">+' + extra + ' more</button>' : '')
+          + (open.length ? '<div class="open">' + (open.length > 1 ? open.length + ' open' : 'Open slot' + (open[0] ? ' · ' + h(open[0]) : '')) + '</div>' : '') + '</div>';
       }
       title.textContent = fd(first, { month: 'long', year: 'numeric' });
       return out + '</div>';
@@ -77,10 +92,10 @@
       const start = monday(state.cur), end = add(start, 6);
       let out = '<div class="week">';
       for (let k = start; k <= end; k = add(k, 1)) {
-        const list = byDay[k] || [];
-        out += '<div class="wk-day' + (k === D.today ? ' today' : '') + (k < D.today ? ' past' : '') + (isSlot(k) ? ' slot' : '') + '">'
+        const list = byDay[k] || [], open = openTimes(k);
+        out += '<div class="wk-day' + (k === D.today ? ' today' : '') + (k < D.today ? ' past' : '') + (open.length ? ' slot' : '') + '">'
           + '<button type="button" class="wk-head" data-day="' + k + '"><span>' + h(fd(k, { weekday: 'short' })) + '</span><b>' + parse(k).getUTCDate() + '</b></button>'
-          + '<div class="wk-list">' + list.map(card).join('') + (isSlot(k) ? '<div class="open">Open posting slot' + (D.postTime ? ' · ' + h(D.postTime) : '') + '</div>' : '') + (!list.length && !isSlot(k) ? '<div class="quiet">Nothing</div>' : '') + '</div></div>';
+          + '<div class="wk-list">' + list.map(card).join('') + (open.length ? '<div class="open">' + openText(open, 3) + '</div>' : '') + (!list.length && !open.length ? '<div class="quiet">Nothing</div>' : '') + '</div></div>';
       }
       const sm = fd(start, { month: 'short' }), em = fd(end, { month: 'short' });
       title.textContent = sm + ' ' + parse(start).getUTCDate() + ' to ' + (sm === em ? '' : em + ' ') + parse(end).getUTCDate() + ', ' + parse(end).getUTCFullYear();
@@ -90,12 +105,13 @@
       const list = byDay[state.cur] || [], timed = list.filter((e) => e.t), loose = list.filter((e) => !e.t);
       const hours = new Set([6, 8, 10, 12, 14, 16, 18, 20, 22]);
       timed.forEach((e) => hours.add(Number(e.t.slice(0, 2))));
-      const slotHour = isSlot(state.cur) && D.postTime ? Number(D.postTime.slice(0, 2)) : null;
-      if (slotHour != null) hours.add(slotHour);
-      let out = '<div class="dayview"><div class="dv-any"><span class="dv-h">Any time</span><div>' + (loose.length ? loose.map(card).join('') : '<span class="quiet">Nothing without a time</span>') + (isSlot(state.cur) && !D.postTime ? '<div class="open">Open posting slot</div>' : '') + '</div></div>';
+      const open = openTimes(state.cur), openAt = open.filter(Boolean);
+      openAt.forEach((t) => hours.add(Number(t.slice(0, 2))));
+      let out = '<div class="dayview"><div class="dv-any"><span class="dv-h">Any time</span><div>' + (loose.length ? loose.map(card).join('') : '<span class="quiet">Nothing without a time</span>') + (open.length && !open[0] ? '<div class="open">Open posting slot</div>' : '') + '</div></div>';
       for (const hr of [...hours].sort((a, b) => a - b)) {
         const here = timed.filter((e) => Number(e.t.slice(0, 2)) === hr);
-        out += '<div class="dv-row' + (here.length || hr === slotHour ? ' has' : '') + '"><span class="dv-h">' + String(hr).padStart(2, '0') + ':00</span><div>' + here.map(card).join('') + (hr === slotHour ? '<div class="open">Open posting slot · ' + h(D.postTime) + '</div>' : '') + '</div></div>';
+        const openHere = openAt.filter((t) => Number(t.slice(0, 2)) === hr);
+        out += '<div class="dv-row' + (here.length || openHere.length ? ' has' : '') + '"><span class="dv-h">' + String(hr).padStart(2, '0') + ':00</span><div>' + here.map(card).join('') + openHere.map((t) => '<div class="open">Open posting slot · ' + h(t) + '</div>').join('') + '</div></div>';
       }
       title.textContent = fd(state.cur, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
       return out + '</div>';
@@ -250,6 +266,7 @@
     paintSelection();
   }
   const closeCard = () => { if (dlg && dlg.open) dlg.close(); };
+  const gotoDay = (k) => { if (!cal) return; state.cur = k; state.view = 'day'; localStorage.setItem('bu-cal-view', 'day'); closeCard(); renderCal(true); save(); const c = $('#calendar'); if (c) c.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); };
   if (dlg) {
     dlg.addEventListener('close', () => { state.open = null; clearHash(); paintSelection(); });
     dlg.addEventListener('cancel', clearHash);
@@ -260,7 +277,7 @@
       const st = e.target.closest('[data-step]');
       if (st && state.open) { const sib = siblings(byId.get(state.open)), next = sib[sib.indexOf(state.open) + Number(st.dataset.step)]; if (next) openCard(next); return; }
       const g = e.target.closest('[data-goto-day]');
-      if (g) { state.cur = g.dataset.gotoDay; state.view = 'day'; localStorage.setItem('bu-cal-view', 'day'); closeCard(); renderCal(true); save(); const c = $('#calendar'); if (c) c.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); }
+      if (g) gotoDay(g.dataset.gotoDay);
     });
     dlg.addEventListener('keydown', (e) => {
       if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && !e.target.closest('input,textarea')) { const b = $('[data-step="' + (e.key === 'ArrowRight' ? 1 : -1) + '"]', cb); if (b && !b.disabled) b.click(); }
@@ -269,6 +286,8 @@
   document.addEventListener('click', (e) => {
     const o = e.target.closest('[data-open]');
     if (o && !e.target.closest('dialog')) { e.preventDefault(); openCard(o.dataset.open); return; }
+    const g = e.target.closest('[data-goto-day]');
+    if (g && !e.target.closest('dialog')) { gotoDay(g.dataset.gotoDay); return; }
     const cp = e.target.closest('[data-copy]');
     if (cp) {
       const text = cp.dataset.copy, done = () => { const was = cp.textContent; cp.textContent = 'Copied'; cp.classList.add('ok'); setTimeout(() => { cp.textContent = was; cp.classList.remove('ok'); }, 1400); };

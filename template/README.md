@@ -23,7 +23,7 @@ Two kit guides live in the kit's own folder, not in this copy: [the sticker host
 
 | File | What it holds |
 |---|---|
-| `brand.json` | name, handle, people, colours, fonts, presenter, voice, call to action, posting plan (`batch.max_reels`), posting method, autopilot permissions (all off to start), update notices |
+| `brand.json` | name, handle, people, colours, fonts, presenter, voice, call to action, posting plan (`batch.max_reels`, posting days and times, any number a day), posting method, autopilot permissions (all off to start), update notices |
 | `voice.md` | who the brand talks to and how it sounds |
 | `facts.md` | the only claims, numbers and results a reel may state (the owner confirms each one) |
 | `plan.md` | the planned reels, one row each with a date (`/content-calendar plan` fills it after your yes) |

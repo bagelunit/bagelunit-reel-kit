@@ -37,7 +37,7 @@ Ask every choice with a question block (AskUserQuestion), the recommended option
 | `brand/instagram.json` | written by `instagram.mjs`: the account and every post's latest numbers (not kept in history) |
 | `brand/followers.csv` | written by `instagram.mjs`: one follower count a day (kept: it is the only record of growth) |
 | `brand/calendar.md`, `brand/dashboard.html` | written by `calendar.mjs` each run (the page itself is drawn by `page.mjs`; fonts in `fonts/`) |
-| `brand/brand.json` | `posting.timezone`, `posting.days`, `posting.time`, `batch.max_reels`, and `dashboard`: `instagram`, `facebook`, `threads`, `telegram` (each on only after the owner's yes), `refresh` (with `time` and `day`, written by `schedule.mjs`), `host` (`local`, `wifi`, `netlify`, `cloudflare` or `folder`), `site` (the Netlify site id or Cloudflare Pages project), `url` (the site's https address), `path_key` (the private path, made by `host.mjs` run by hand) and `publish_every` (minutes between background uploads, default 15, 0 for the scheduled refresh only) |
+| `brand/brand.json` | `posting.timezone`, `posting.days`, `posting.times` (or the older single `posting.time`), `batch.max_reels`, and `dashboard`: `instagram`, `facebook`, `threads`, `telegram` (each on only after the owner's yes), `refresh` (with `time` and `day`, written by `schedule.mjs`), `host` (`local`, `wifi`, `netlify`, `cloudflare` or `folder`), `site` (the Netlify site id or Cloudflare Pages project), `url` (the site's https address), `path_key` (the private path, made by `host.mjs` run by hand) and `publish_every` (minutes between background uploads, default 15, 0 for the scheduled refresh only) |
 
 Stages, in order: Idea, Script written, Script approved (Gate A), Visual plan approved (Gate B), Final approved
 (Gate C), Scheduled, Posted. The four agent panels map the kit's skills: Ideator (`/comment-mining`,
@@ -92,9 +92,20 @@ one, `overview.mjs --scan <folder>`; to drop one, `--forget <folder>`. It stays 
 
 ## /content-calendar days: posting days and time
 
-Ask which days the brand posts (multi-select, Monday to Sunday; suggest as many as `batch.max_reels`), the usual
-time ("6 pm", "12 pm", "9 am", Other) and the timezone if `posting.timezone` is empty. Write `posting.days`
-(`["tue", "thu", "sat"]`), `posting.time` (`"18:00"`) and `posting.timezone` in `brand/brand.json`.
+Ask which days the brand posts (multi-select, Monday to Sunday; suggest as many as `batch.max_reels`), how many
+posts a day ("1", "2", "3", Other: any number, 20 a day works) and when: for one a day the time ("6 pm", "12 pm",
+"9 am", Other); for several, "Spread evenly from 9 am to 9 pm (Recommended)" or their own times. Ask the timezone if
+`posting.timezone` is empty. Write `posting.days` (`["tue", "thu", "sat"]`), `posting.times` (`["18:00"]`, or for
+several a day every time, sorted, 24-hour: `["09:00", "15:00", "21:00"]`; spread evenly means equal steps from the
+first time to the last, rounded to 5 minutes) and `posting.timezone` in `brand/brand.json`, and clear the older
+`posting.time`. Each time on each posting day is one slot on the calendar. If `batch.max_reels` is below the posts a
+week this makes, offer to raise it to match.
+
+Several a day: a day shows its reels and its open times; the 14-day list shows six reels a day and links to the
+rest in the calendar's day view. Say once what the pace takes: every reel still needs Gate A, B and C, each voiced
+reel uses about 800 voice characters (`python3 ~/.claude/skills/bagelunit-reels/tools/budget.py` shows what is
+left), and Meta caps automatic posting (the publisher checks: Instagram's 24-hour publishing limit, 30 Facebook
+reels a day, 250 Threads posts a day).
 
 ## /content-calendar plan: fill the next weeks
 
@@ -104,7 +115,9 @@ The Planner. It fills `brand/plan.md`; it never starts, schedules or posts a ree
    numbers (the Analyst panel, `brand/stats.md`). Read `brand/log.md` so no angle repeats the last post; one goal
    and one angle per reel (house rule 13); claims only from `brand/facts.md` (rule 1).
 3. Propose at most `batch.max_reels` a week, each with a date from an open slot, a topic, a goal and an angle, as
-   a short table. Ask: "Add these to the plan (Recommended)", "Change some", "Not now".
+   a short table. With several posting times a day, each row takes one open time and the Date column holds both
+   (`2026-11-12 13:00`). With more than five reels, the angles take turns so no two reels next to each other share
+   one. Ask: "Add these to the plan (Recommended)", "Change some", "Not now".
 4. On yes, add the rows to `brand/plan.md` (never delete or rewrite the owner's rows), refresh, and name the next
    step: `/bagelunit-reels` with the first topic.
 

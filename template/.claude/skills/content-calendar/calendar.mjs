@@ -9,7 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { load, brandRoot, stageName, STAGES, NEXT, fmt, pct, signed, rate, registerBrand, writeAtomic, validDay } from './lib.mjs';
+import { load, brandRoot, stageName, STAGES, NEXT, fmt, pct, signed, rate, registerBrand, writeAtomic, validDay, timesText, slotsByDay } from './lib.mjs';
 import { html } from './page.mjs';
 export { html };
 
@@ -42,11 +42,12 @@ export function markdown(M) {
   let any = false;
   for (let k = M.addDays(M.today, -7); k <= M.last; k = M.addDays(k, 1)) {
     const list = M.byDay[k] || [];
-    if (!list.length && !(k >= M.today && M.isPostDay(k))) continue;
+    const open = M.openTimesOn(k);
+    if (!list.length && !open.length) continue;
     any = true;
     const head = `- ${M.pretty(k)}${k === M.today ? ' (today)' : ''}:`;
-    if (!list.length) md.push(`${head} open posting slot${M.postTime ? ` (${M.postTime})` : ''}`);
-    else md.push(`${head} ${list.map((e) => `${e.time ? e.time + ' ' : ''}${e.it.title} [${['posted', 'scheduled'].includes(e.kind) ? LABEL[e.kind] : `${LABEL[e.kind]}, ${stageName(e.it.stage).toLowerCase()}`}]`).join('; ')}`);
+    const openText = open.length ? `${open.length === 1 ? 'open posting slot' : `${open.length} open posting slots`}${open[0] ? ` (${timesText(open, 8)})` : ''}` : '';
+    md.push(`${head} ${[...list.map((e) => `${e.time ? e.time + ' ' : ''}${e.it.title} [${['posted', 'scheduled'].includes(e.kind) ? LABEL[e.kind] : `${LABEL[e.kind]}, ${stageName(e.it.stage).toLowerCase()}`}]`), ...(openText ? [openText] : [])].join('; ')}`);
   }
   if (!any) md.push('- Nothing dated yet. Add dates in brand/plan.md, or type /content-calendar plan.');
   md.push('', '## Every reel', '', '| Reel | Stage | Planned | Scheduled or posted | Views | Next step |', '|---|---|---|---|---|---|');
@@ -103,7 +104,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
   const S = M.stats;
   console.log(`Content calendar for ${M.name}: ${S.posted} posted, ${S.scheduled} scheduled, ${S.inProgress} in progress, ${S.ideas} ideas${S.followers != null ? `, ${fmt(S.followers)} followers` : ''}.`);
   if (M.attention.length) { console.log('Needs you:'); for (const a of M.attention.slice(0, 8)) console.log(`  - ${a.it.title} (${ref(a.it)}): ${a.what}`); }
-  if (M.postDays.length) console.log(`Open posting slots in the next ${M.days} days: ${M.openSlots.length ? M.openSlots.map((k) => M.pretty(k)).join(', ') : 'none'}`);
+  if (M.postDays.length) console.log(`Open posting slots in the next ${M.days} days: ${M.openSlots.length ? `${M.openSlots.length}${M.postTimes.length > 1 ? `, on ${slotsByDay(M.openSlots).map(([k, t]) => `${M.pretty(k)} (${t.length})`).join(', ')}` : `: ${M.openSlots.map((x) => M.pretty(x.key)).join(', ')}`}` : 'none'}`);
   const out = path.join(root, 'brand', 'dashboard.html');
   console.log(`Wrote brand/calendar.md and ${out}`);
   if (args.includes('--open')) openFile(out);

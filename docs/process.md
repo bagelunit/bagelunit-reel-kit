@@ -133,7 +133,7 @@ A reel that ends on "Comment WORD" needs something that answers those comments. 
 
 ## Weekly batch (optional)
 
-For a week's reels in one sitting: plan up to the brand's `batch.max_reels` topics (default 3, set per brand in `brand.json`), each with one goal (goals may repeat) and a different angle; write all the scripts; take them to Gate A together but record each approval separately; spend voice credits only on approved scripts; then run each reel through Gates B and C one at a time. A problem in one reel does not block the others. After posting, `/account-audit --all` fills `brand/stats.md` so the review (step 14) uses the brand's own numbers.
+For a week's reels in one sitting: plan up to the brand's `batch.max_reels` topics (default 3, set per brand in `brand.json`), each with one goal (goals may repeat) and a different angle (more than five reels, for several posts a day: the angles take turns so no two neighbours share one); write all the scripts; take them to Gate A together but record each approval separately; spend voice credits only on approved scripts; then run each reel through Gates B and C one at a time. A problem in one reel does not block the others. After posting, `/account-audit --all` fills `brand/stats.md` so the review (step 14) uses the brand's own numbers.
 
 ## Updating the kit
 

@@ -173,6 +173,11 @@ export const NEXT = {
   b: 'being built; needs your yes on the final (Gate C)', c: 'approved: post it or schedule it with /reel-posting', scheduled: '', posted: '',
 };
 
+// open posting times in a few words: "09:00, 13:00" or, for many a day, "09:00, 09:45, 10:30 and 17 more"
+export const timesText = (list, max = 4) => (list.length > max + 1 ? `${list.slice(0, max).join(', ')} and ${list.length - max} more` : list.join(', '));
+// open slots grouped by day: [[day, [times]], ...] in date order
+export const slotsByDay = (slots) => Object.entries(slots.reduce((m, x) => ((m[x.key] ||= []).push(x.time), m), {}));
+
 // one reel's numbers, from an insights.csv row or from the Instagram API, in the same shape
 function numsFromRow(r) {
   return { views: num(r.views ?? r.plays), reach: num(r.reach), likes: num(r.likes), comments: num(r.comments), saves: num(r.saves ?? r.saved),
@@ -229,8 +234,12 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
   const posting = asObj(brand.posting) || {};
   const rawDays = Array.isArray(posting.days) ? posting.days : typeof posting.days === 'string' ? posting.days.split(/[\s,]+/) : [];
   const postDays = rawDays.map((d) => str(d).slice(0, 3).toLowerCase()).filter((d) => WD.includes(d));
-  // the posting time, zero-padded (9:30 becomes 09:30) so the day view can read its hour
-  const postTime = (() => { const m = str(posting.time).trim().match(/^(\d{1,2}):(\d{2})$/); return m && +m[1] < 24 && +m[2] < 60 ? `${m[1].padStart(2, '0')}:${m[2]}` : ''; })();
+  // the posting times, zero-padded (9:30 becomes 09:30) so the day view can read their hours. posting.times is a list
+  // (["09:00", "13:00", "19:00"], any number a day); the older posting.time holds one time. Either may be "09:00, 13:00".
+  const normTime = (t) => { const m = String(t ?? '').trim().match(/^(\d{1,2}):(\d{2})$/); return m && +m[1] < 24 && +m[2] < 60 ? `${m[1].padStart(2, '0')}:${m[2]}` : ''; };
+  const timeList = (v) => (Array.isArray(v) ? v : typeof v === 'string' ? v.split(/[\s,;]+/) : []).map(normTime).filter(Boolean);
+  const postTimes = [...new Set(timeList(posting.times).length ? timeList(posting.times) : timeList(posting.time))].sort();
+  const postTime = postTimes[0] || '';                                 // the first one, for anything that shows a single time
   const isPostDay = (key) => postDays.includes(WD[weekday(key)]);
 
   // the brand's files
@@ -339,8 +348,8 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
   for (const row of plan) {                                      // plan rows: a date for a reel, or an idea with no folder yet
     const when = parseWhen(row.date);
     const it = row.folder && items.find((x) => x.slug === row.folder || x.name === row.folder);
-    if (it) { it.plannedAt = when; it.goal = row.goal; it.angle = row.angle; it.notes = row.notes; if (row.series) it.series = row.series; if (row.topic) it.title = clip(row.topic); continue; }
-    items.push({ id: `plan-${++planIndex}`, slug: row.folder || '', name: row.topic || '(untitled idea)', title: clip(row.topic || '(untitled idea)'), topic: row.topic, notes: row.notes, series: row.series, goal: row.goal, angle: row.angle, plannedAt: when, stage: 'idea', fromPlan: true });
+    if (it) { it.plannedAt = when; it.plannedHasTime = hasTime(row.date); it.goal = row.goal; it.angle = row.angle; it.notes = row.notes; if (row.series) it.series = row.series; if (row.topic) it.title = clip(row.topic); continue; }
+    items.push({ id: `plan-${++planIndex}`, slug: row.folder || '', name: row.topic || '(untitled idea)', title: clip(row.topic || '(untitled idea)'), topic: row.topic, notes: row.notes, series: row.series, goal: row.goal, angle: row.angle, plannedAt: when, plannedHasTime: hasTime(row.date), stage: 'idea', fromPlan: true });
   }
   for (const r of log) if (r.folder && !items.some((x) => x.slug === r.folder || x.name === r.folder)) {
     const row = insights.rows.find((x) => x.reel === r.folder);
@@ -507,6 +516,7 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
   const soon = addDays(today, 7);
   const attention = [];
   const need = (p, it, what) => attention.push({ p, it, what });
+  const notStarted = { late: [], soon: [] };                          // planned reels not started yet: grouped below when many
   for (const it of items) {
     const due = it.plannedAt ? dayKey(it.plannedAt) : null;
     if (it.fileState === 'changed' && it.stage !== 'posted') need(1, it, 'the final mp4 changed after Gate C: it needs Gate C again before posting');
@@ -521,12 +531,21 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
     if (it.stage === 'posted' && !it.nums && it.postedAt && (now - it.postedAt) > 864e5) need(2, it, ig ? 'posted, but not matched to an Instagram post: add its link to the "Posted" line in approvals.md' : 'posted: add its numbers with /analytics-readout');
     if (it.stage === 'posted' && !it.logged && !it.gone && it.slug) need(3, it, 'posted but not in brand/log.md yet');
     if (!['scheduled', 'posted'].includes(it.stage)) {
-      if (due && due < today) need(1, it, `was planned for ${pretty(due)}: ${NEXT[it.stage]}`);
-      else if (due && due <= soon) need(2, it, `planned for ${pretty(due)}: ${NEXT[it.stage]}`);
+      if (due && due < today) { if (it.stage === 'idea') notStarted.late.push(it); else need(1, it, `was planned for ${pretty(due)}: ${NEXT[it.stage]}`); }
+      else if (due && due <= soon) { if (it.stage === 'idea') notStarted.soon.push(it); else need(2, it, `planned for ${pretty(due)}: ${NEXT[it.stage]}`); }
       else if (!due && ['script', 'a', 'b', 'c'].includes(it.stage)) need(3, it, NEXT[it.stage]);
     }
   }
   const sys = { title: 'Dashboard', slug: '', fromPlan: false, system: true };
+  // a few planned reels not started yet are listed one by one; more (several posts a day) become one line each
+  const byDue = (a, b) => a.plannedAt - b.plannedAt;
+  for (const [list, p, one, many] of [
+    [notStarted.late.sort(byDue), 1, (d) => `was planned for ${pretty(d)}: ${NEXT.idea}`, (n, f, d) => `${n} planned reels have a date that has passed and are not started (the first: ${f}, ${pretty(d)}): start them with /bagelunit-reels, or give them new dates with /content-calendar plan`],
+    [notStarted.soon.sort(byDue), 2, (d) => `planned for ${pretty(d)}: ${NEXT.idea}`, (n, f, d) => `${n} reels planned in the next 7 days are not started yet (the first: ${f}, ${pretty(d)}): start them with /bagelunit-reels`],
+  ]) {
+    if (list.length <= 3) for (const it of list) need(p, it, one(dayKey(it.plannedAt)));
+    else need(p, { ...sys, title: 'Planned reels' }, many(list.length, list[0].title, dayKey(list[0].plannedAt)));
+  }
   for (const t of tests) {
     const owner = items.find((x) => x.slug === t.id);
     if (t.verdict === 'winner') need(2, owner, `A/B test: ${t.note}${t.trial ? ` Share ${t.lead} to your followers in the Instagram app, then record it with /ab-hook-tester` : ' Record the winner with /ab-hook-tester'}`);
@@ -549,14 +568,31 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
   const entryOf = (it) => {
     if (it.postedAt) return { key: dayKey(it.postedAt), kind: 'posted', time: it.postedHasTime ? timeOf(it.postedAt) : '' };
     if (it.scheduledAt) return { key: dayKey(it.scheduledAt), kind: 'scheduled', time: timeOf(it.scheduledAt) };
-    if (it.plannedAt) return { key: dayKey(it.plannedAt), kind: dayKey(it.plannedAt) < today ? 'late' : 'planned', time: '' };
+    if (it.plannedAt) return { key: dayKey(it.plannedAt), kind: dayKey(it.plannedAt) < today ? 'late' : 'planned', time: it.plannedHasTime ? timeOf(it.plannedAt) : '' };
     return null;
   };
   const byDay = {};
   for (const it of items) { const e = entryOf(it); if (e) (byDay[e.key] ||= []).push({ ...e, it }); }
   for (const list of Object.values(byDay)) list.sort((a, b) => (a.time || '99').localeCompare(b.time || '99'));
-  const openSlots = [];
-  for (let k = today; k <= last; k = addDays(k, 1)) if (isPostDay(k) && !(byDay[k] || []).length) openSlots.push(k);
+  // open slots: each posting time on a posting day is one slot. A reel with a time takes the nearest free time, a reel
+  // without one takes the earliest free time, and today's times that have gone by are not open any more. With no times
+  // set, a posting day is one slot.
+  const mins = (t) => +t.slice(0, 2) * 60 + +t.slice(3, 5);
+  const openTimesOn = (k) => {
+    if (k < today || !isPostDay(k)) return [];
+    const list = byDay[k] || [];
+    if (!postTimes.length) return list.length ? [] : [''];
+    const left = [...postTimes];
+    for (const e of list.filter((x) => x.time)) {
+      if (!left.length) break;
+      let at = 0; left.forEach((t, i) => { if (Math.abs(mins(t) - mins(e.time)) < Math.abs(mins(left[at]) - mins(e.time))) at = i; });
+      left.splice(at, 1);
+    }
+    left.splice(0, list.filter((x) => !x.time).length);
+    return k === today ? left.filter((t) => t > timeOf(now)) : left;
+  };
+  const openSlots = [];                                                // { key, time } for each open slot, today to the last day shown
+  for (let k = today; k <= last; k = addDays(k, 1)) for (const t of openTimesOn(k)) openSlots.push({ key: k, time: t });
 
   // numbers: the whole account when the Instagram API is connected, otherwise the kit's own reels
   const posts = ig ? media.map((m) => ({ title: m.reel ? m.reel.title : clip(firstLine(m.caption || '') || m.media_product_type || 'post', 70), at: m.at, nums: m.nums, link: m.permalink, reel: m.reel, kind: m.media_product_type }))
@@ -652,7 +688,7 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
       next: scripts.some((x) => x.stage === 'script') ? 'approve or change the scripts waiting at Gate A' : '/viral-hook-writer, then /reel-scripter', skills: '/viral-hook-writer, /hook-mining, /reel-scripter, /reel-factcheck' },
     { key: 'planner', name: 'Planner', job: 'puts reels on your posting days and keeps the angles different',
       lastRun: madeAt('planner'),
-      metrics: [[planned14.length, 'planned in the next 14 days'], [openSlots.filter((k) => k <= addDays(today, 13)).length, 'open slots in 14 days'], ...(perWeek ? [[`${thisWeek}/${perWeek}`, 'this week vs your target']] : [])],
+      metrics: [[planned14.length, 'planned in the next 14 days'], [openSlots.filter((x) => x.key <= addDays(today, 13)).length, 'open slots in 14 days'], ...(perWeek ? [[`${thisWeek}/${perWeek}`, 'this week vs your target']] : [])],
       output: [...(mix.count >= 3 && (mix.repeat || mix.heavy || mix.unusedAngles.length) ? [{ text: mix.repeat ? `Change the angle: the last 3 were ${mix.repeat}` : mix.unusedAngles.length ? `Try an angle you have not used lately: ${mix.unusedAngles.slice(0, 2).join(', ')}` : `Mix in other angles than ${mix.heavy}`, note: 'from your last ' + mix.count + ' posts', href: null }] : []), ...planned14.slice(0, 6).map((x) => ({ id: x.id, text: x.title, note: `${pretty(dayKey(x.plannedAt))} · ${stageName(x.stage).toLowerCase()}`, href: x.fromPlan ? 'plan.md' : `../reels/${x.slug}/approvals.md` }))],
       next: postDays.length ? '/content-calendar plan' : '/content-calendar days, then plan', skills: '/content-calendar plan, /reel-posting' },
     { key: 'analyst', name: 'Analyst', job: 'reads your real numbers and says what to make more of',
@@ -686,7 +722,7 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
     setup, setupOpen, tests, mix, others, publisher, series, flow, costs, library, audience, stories: igStories, inbox,
     root, brand, slug, name: str(brand.name) || path.basename(root).replace(/-reels$/, ''), handle: str(brand.handle),
     accent: /^#[0-9a-f]{3,8}$/i.test(str(brand.colors?.accent)) ? brand.colors.accent : '#E4572E',
-    tz: TZ, now, today, last, days, postDays, postTime, isPostDay,
+    tz: TZ, now, today, last, days, postDays, postTime, postTimes, isPostDay, openTimesOn,
     dayKey, timeOf, pretty, addDays, weekday, weekStart, parseWhen,
     plan, log, insights, ig, media, followerRows, status,
     items, attention, entryOf, byDay, openSlots, stats, top, weeks, recent, agents,

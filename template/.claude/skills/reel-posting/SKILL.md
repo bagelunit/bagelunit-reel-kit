@@ -34,7 +34,7 @@ Give the owner a **posting card** and nothing else to think about:
 - **Caption:** the text of `out/caption.txt`, ready to copy.
 - **Settings:** Settings and privacy, Media quality, turn on "Upload at highest quality".
 - **When:** the reel's date in `brand/plan.md` if it has one, else the next open slot from `/content-calendar`
-  (`brand.json` -> `posting.days` and `posting.time`), else a time from the brand's own `brand/log.md` (when
+  (`brand.json` -> `posting.days` and `posting.times`, or the older single `posting.time`), else a time from the brand's own `brand/log.md` (when
   its best reels went out), or say there is no data yet. Instagram's own scheduler (Advanced settings, Schedule this post) can hold it until then.
 - **After posting:** ask (question block) "Posted" or "Scheduled in Instagram for <time>", then add the line
   to `approvals.md` under `## Posting` and, once it is live, the reel's row to `brand/log.md` (date, hook

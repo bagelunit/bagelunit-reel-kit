@@ -13,7 +13,7 @@
 // `link --yes=<chat id>` adds "chat_id" to that file. The token is never printed.
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { brandRoot, brandSlug, readJSON, secretFile, writeSecret, writeStatus, load, fmt, pct, signed, clip, stageName, CONFIG_DIR } from './lib.mjs';
+import { brandRoot, brandSlug, readJSON, secretFile, writeSecret, writeStatus, load, fmt, pct, signed, clip, stageName, CONFIG_DIR, slotsByDay } from './lib.mjs';
 
 class Plain extends Error {}
 const esc = (s) => String(s ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -71,8 +71,8 @@ export function digest(M) {
   for (let k = M.today; k <= M.addDays(M.today, 6); k = M.addDays(k, 1)) for (const e of M.byDay[k] || [])
     if (e.kind !== 'posted') up.push(`• ${esc(M.pretty(k))}${e.time ? ` ${e.time}` : ''}: ${esc(clip(e.it.title, 50))} (${e.kind === 'scheduled' ? 'scheduled' : stageName(e.it.stage).toLowerCase()})`);
   if (up.length) out.push(['<b>Next 7 days</b>', ...up.slice(0, 6)]);
-  const open = M.openSlots.filter((k) => k <= M.addDays(M.today, 6));
-  if (open.length) out.push(`Open slots: ${open.map((k) => esc(M.pretty(k))).join('; ')}. Type /content-calendar plan in Claude Code to fill them.`);
+  const open = M.openSlots.filter((x) => x.key <= M.addDays(M.today, 6));
+  if (open.length) out.push(`Open slots: ${M.postTimes.length > 1 ? `${open.length} in the next 7 days (${slotsByDay(open).map(([k, t]) => `${esc(M.pretty(k))}: ${t.length}`).join('; ')})` : open.map((x) => esc(M.pretty(x.key))).join('; ')}. Type /content-calendar plan in Claude Code to fill them.`);
   const best = M.top.find((p) => p.at && M.now - p.at <= 7 * 864e5) || null;
   if (best) out.push(`Best this week: ${esc(clip(best.title, 50))}, ${fmt(best.nums.views)} views`);
   const idea = M.agents.find((a) => a.key === 'ideator')?.output[0];

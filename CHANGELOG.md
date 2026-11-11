@@ -2,6 +2,14 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.11.0 (2026-11-10)
+
+- **Post as often as you like, up to 20 a day or more.** A brand can now have any number of posting times a day (`brand.json` -> `posting.times`, for example `["09:00", "13:00", "19:00"]`). Each time on each posting day is one slot. `/brand-setup` asks "Several a day" with how many and when (spread evenly, or your own times), and `/content-calendar days` does the same. Brands with one posting time keep working as before.
+- **Open slots per time, not per day.** A day used to count as full as soon as one reel was on it. Now a reel with a time takes that slot, a reel without one takes the earliest free time, and the rest of the day's times show as open on the dashboard, in `calendar.md`, in the Telegram summary and in the summary after each refresh. Times that have already gone by today no longer count as open.
+- **A plan row can carry its time.** Write `2026-11-12 13:00` in the Date column of `brand/plan.md` and the reel takes the 13:00 slot. `/content-calendar plan` fills every open time this way.
+- **A busy calendar stays readable.** The next 14 days show six reels a day and a link to the rest; month cells show three and "+N more", which opens that day; the week and day views list every reel and every open time. "Needs you" groups many reels that are not started yet into one line instead of one line each.
+- **Angles at high volume.** With more than five reels in a batch, the angles take turns so no two reels next to each other share one (there are five angles, so a big batch cannot keep them all different).
+
 ## 1.10.1 (2026-11-10)
 
 - **Dashboard layout fixed.** The "Needs you" and "Next 14 days" lists were drawn over by the "Your content team" band and everything below it, because a small bar in the audience section shared their layout's style name. The bar has its own name now, and the lists show in full.

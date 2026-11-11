@@ -131,6 +131,13 @@ jobs:
           PY
           node "$B/.claude/skills/content-calendar/calendar.mjs" "$B" --today 2030-01-06 | tee "$RUNNER_TEMP/cal.txt"
           grep -q "1 in progress, 1 ideas" "$RUNNER_TEMP/cal.txt"
+          # several posts a day: each time is a slot; an untimed reel takes the earliest free time, a timed one its own
+          node -e "const fs=require('fs'),f=process.argv[1],d=JSON.parse(fs.readFileSync(f,'utf8'));d.posting.times=['19:00','09:00','13:00'];fs.writeFileSync(f,JSON.stringify(d,null,2))" "$B/brand/brand.json"
+          echo "| 2030-01-10 13:00 | A timed topic | save | story |  |  |  |" >> "$B/brand/plan.md"
+          node "$B/.claude/skills/content-calendar/calendar.mjs" "$B" --today 2030-01-06 >/dev/null
+          grep -q "Tue, Jan 8: A planned topic \[planned, idea\]; 2 open posting slots (13:00, 19:00)" "$B/brand/calendar.md"
+          grep -q "Thu, Jan 10: 13:00 A timed topic \[planned, idea\]; 2 open posting slots (09:00, 19:00)" "$B/brand/calendar.md"
+          grep -q "3 times a day" "$B/brand/dashboard.html"
           test -s "$B/brand/dashboard.html" && grep -q "A planned topic" "$B/brand/calendar.md" && grep -q "Hook &amp; Script" "$B/brand/dashboard.html"
           node "$B/.claude/skills/content-calendar/telegram.mjs" "$B" show | grep -q "Cal"
           node "$B/.claude/skills/content-calendar/schedule.mjs" "$B" status | grep -q "Off"

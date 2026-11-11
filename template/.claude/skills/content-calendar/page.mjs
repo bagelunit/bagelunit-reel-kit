@@ -8,7 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { stageName, STAGES, fmt, pct, signed, rate, clip, median } from './lib.mjs';
+import { stageName, STAGES, fmt, pct, signed, rate, clip, median, timesText } from './lib.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const CLIENT = fs.readFileSync(path.join(HERE, 'client.js'), 'utf8');   // the calendar views, the pipeline and the reel card
@@ -160,12 +160,17 @@ export function html(M) {
   const needs = M.attention.length ? `<ol class="needs">${M.attention.map((a, i) => `<li${a.it.id ? ` data-id="${esc(a.it.id)}"` : ''}><span class="n">${String(i + 1).padStart(2, '0')}</span><div class="nb"><div class="nt">${a.it.id ? `<button type="button" class="link" data-open="${esc(a.it.id)}">${esc(a.it.title)}</button>` : `<b>${esc(a.it.title)}</b>`}<span class="prio ${PRIO[a.p][1]}">${PRIO[a.p][0]}</span></div><div class="nw">${withCommands(a.what)}</div></div></li>`).join('')}</ol>`
     : '<p class="empty">Nothing needs you right now.</p>';
 
+  // the next 14 days: up to AG_MAX reels a day (several posts a day would make it endless), then a link to the day
+  const AG_MAX = 6;
+  const openLine = (open) => (open.length ? `<div class="ag open"><i class="sw slot" aria-hidden="true"></i><span>${open.length === 1 ? 'Open posting slot' : `${open.length} open posting slots`}${open[0] ? ` · ${esc(timesText(open))}` : ''}</span></div>` : '');
   const agenda = [];
   for (let k = M.today; k <= M.addDays(M.today, 13); k = M.addDays(k, 1)) {
-    const list = M.byDay[k] || [];
-    if (!list.length && !M.isPostDay(k)) continue;
-    agenda.push(`<li class="${k === M.today ? 'today' : ''}"><div class="when"><span>${esc(M.pretty(k, { weekday: 'short' }))}</span><b>${esc(M.pretty(k, { month: 'short', day: 'numeric' }))}</b></div><div class="what">${list.length ? list.map((e) => `<div class="ag" data-id="${esc(e.it.id)}"><i class="sw ${e.kind}" aria-hidden="true"></i><span>${e.time ? `<b>${esc(e.time)}</b> ` : ''}<button type="button" class="link" data-open="${esc(e.it.id)}">${esc(e.it.title)}</button></span><em>${esc(LABEL[e.kind])}</em></div>`).join('') : `<div class="ag open"><i class="sw slot" aria-hidden="true"></i><span>Open posting slot${M.postTime ? ` · ${esc(M.postTime)}` : ''}</span></div>`}</div></li>`);
+    const list = M.byDay[k] || [], open = M.openTimesOn(k);
+    if (!list.length && !open.length && !M.isPostDay(k)) continue;
+    const more = list.length - AG_MAX;
+    agenda.push(`<li class="${k === M.today ? 'today' : ''}"><div class="when"><span>${esc(M.pretty(k, { weekday: 'short' }))}</span><b>${esc(M.pretty(k, { month: 'short', day: 'numeric' }))}</b></div><div class="what">${list.slice(0, more > 1 ? AG_MAX : list.length).map((e) => `<div class="ag" data-id="${esc(e.it.id)}"><i class="sw ${e.kind}" aria-hidden="true"></i><span>${e.time ? `<b>${esc(e.time)}</b> ` : ''}<button type="button" class="link" data-open="${esc(e.it.id)}">${esc(e.it.title)}</button></span><em>${esc(LABEL[e.kind])}</em></div>`).join('')}${more > 1 ? `<div class="ag ag-more"><i aria-hidden="true"></i><span><button type="button" class="link" data-goto-day="${k}">${more} more on this day</button></span></div>` : ''}${openLine(open)}${!list.length && !open.length ? '<div class="ag open"><i class="sw" aria-hidden="true"></i><span class="quiet">Every slot has gone by</span></div>' : ''}</div></li>`);
   }
+  const open14 = M.openSlots.filter((x) => x.key <= M.addDays(M.today, 13)).length;
   const agendaHtml = agenda.length ? `<ol class="agenda">${agenda.join('')}</ol>` : '<p class="empty">Nothing dated yet. <code>/content-calendar days</code> sets your posting days, then <code>/content-calendar plan</code> fills them.</p>';
 
   const agents = M.agents.map((a) => {
@@ -185,8 +190,8 @@ ${scene(a.key)}
     let cells = '<div class="day blank"></div>'.repeat(lead);
     for (let d = 1; d <= days; d++) {
       const k = `${y}-${mm}-${String(d).padStart(2, '0')}`, list = M.byDay[k] || [];
-      const slot = !list.length && k >= M.today && k <= M.last && M.isPostDay(k);
-      cells += `<div class="day${k === M.today ? ' today' : ''}${k < M.today ? ' past' : ''}${slot ? ' slot' : ''}"><span class="dn">${d}</span>${list.map((e) => `<div class="ev ${e.kind}" title="${esc(`${e.it.title} · ${stageName(e.it.stage)} · ${ref(e.it)}`)}">${e.time ? `<b>${esc(e.time)}</b> ` : ''}<span>${esc(clip(e.it.title, 42))}</span></div>`).join('')}${slot ? `<div class="open">Open${M.postTime ? ` · ${esc(M.postTime)}` : ''}</div>` : ''}</div>`;
+      const open = k <= M.last ? M.openTimesOn(k) : [], slot = open.length > 0, extra = list.length > 4 ? list.length - 3 : 0;
+      cells += `<div class="day${k === M.today ? ' today' : ''}${k < M.today ? ' past' : ''}${slot ? ' slot' : ''}"><span class="dn">${d}</span>${(extra ? list.slice(0, 3) : list).map((e) => `<div class="ev ${e.kind}" title="${esc(`${e.it.title} · ${stageName(e.it.stage)} · ${ref(e.it)}`)}">${e.time ? `<b>${esc(e.time)}</b> ` : ''}<span>${esc(clip(e.it.title, 42))}</span></div>`).join('')}${extra ? `<div class="ev-more">+${extra} more</div>` : ''}${slot ? `<div class="open">${open.length > 1 ? `${open.length} open` : `Open${open[0] ? ` · ${esc(open[0])}` : ''}`}</div>` : ''}</div>`;
     }
     const title = new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
     return { title, grid: `<div class="month-grid">${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((w) => `<div class="wd">${w}</div>`).join('')}${cells}</div>` };
@@ -228,7 +233,7 @@ ${GATE[k] ? `<span class="gate-mark" title="${esc(GATE[k])}: you approve here">$
     posted: 'Posted. Add or read its numbers to learn what to make next.',
   };
   const data = {
-    today: M.today, postDays: M.postDays, postTime: M.postTime, tz: M.tz, series: M.series.map((x) => x.name),
+    today: M.today, postDays: M.postDays, postTime: M.postTime, postTimes: M.postTimes, nowTime: M.timeOf(M.now), tz: M.tz, series: M.series.map((x) => x.name),
     stages: STAGES.map(([k, n]) => ({ k, n })),
     entries: M.items.map((it) => { const e = M.entryOf(it); return e && it.id ? { d: e.key, t: e.time || '', k: e.kind, id: it.id } : null; }).filter(Boolean),
     items: M.items.filter((it) => it.id).map((it) => ({
@@ -431,6 +436,8 @@ h1 .dot{color:var(--accent-raw)}
 .ag{display:grid;grid-template-columns:10px minmax(0,1fr) auto;align-items:baseline;gap:10px;font-size:14px;padding:2px 0}
 .ag em{font-style:normal;font-size:12px;color:var(--mute);text-align:right}
 .ag.open span{color:var(--accent-text);font-size:13px}
+.ag.ag-more .link{font-size:13px;font-weight:500;color:var(--accent-text)} .ag.open .quiet{color:var(--mute)}
+.day .ev-more{display:block;margin-top:4px;padding:0;border:0;background:none;cursor:pointer;text-align:left;font:500 11px/1.3 var(--sans);color:var(--accent-text)}
 .sw{width:10px;height:10px;display:inline-block;transform:translateY(1px);background:var(--line)}
 .sw.posted{background:color-mix(in oklch, var(--good) 55%, var(--raised))}.sw.scheduled{background:var(--accent)}.sw.planned{background:var(--line-strong)}.sw.late{background:transparent;border:1.5px dashed var(--bad)}.sw.slot{background:transparent;border:1.5px dashed var(--accent)}
 
@@ -540,6 +547,7 @@ tbody tr{transition:background 160ms var(--ease)} tbody tr:hover{background:var(
 .ev.planned{background:var(--sunken);color:var(--ink)}
 .ev.late{background:transparent;border:1px dashed var(--bad);color:var(--bad)}
 .day .open{display:none}
+.wk-list .open,.dayview .open{padding:6px 8px;border:1.5px dashed var(--accent);font-size:12.5px;line-height:1.35;color:var(--accent-text)}
 
 footer.page{margin:56px 0 40px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--mute);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 
@@ -873,7 +881,7 @@ ${M.setupOpen && !S.measured && !S.posted ? '' : `<div class="wrap"><div class="
 
 <section class="wrap" id="today"><div class="split">
   <div data-reveal><div class="sec-head">${label('bell', 'Needs you')}<span class="aside">${M.attention.length} item${M.attention.length === 1 ? '' : 's'}</span></div>${needs}</div>
-  <div data-reveal><div class="sec-head">${label('clock', 'Next 14 days')}<span class="aside">${M.openSlots.length} open slot${M.openSlots.length === 1 ? '' : 's'} in ${M.days} days</span></div>${agendaHtml}</div>
+  <div data-reveal><div class="sec-head">${label('clock', 'Next 14 days')}<span class="aside">${open14} open slot${open14 === 1 ? '' : 's'} in these 14 days</span></div>${agendaHtml}</div>
 </div></section>
 
 <section class="band" id="agents" aria-labelledby="agents-title"><div class="wrap">
@@ -899,7 +907,7 @@ ${M.setupOpen && !S.measured && !S.posted ? '' : `<div class="wrap"><div class="
 </section>
 
 <section class="wrap" id="calendar" aria-label="Calendar">
-  <div class="sec-head" data-reveal>${label('cal', 'Calendar')}<span class="aside">${M.postDays.length ? `Posting days: ${esc(M.postDays.map((d) => d[0].toUpperCase() + d.slice(1)).join(', '))}${M.postTime ? ` at ${esc(M.postTime)}` : ''}` : 'Set posting days with /content-calendar days'}</span></div>
+  <div class="sec-head" data-reveal>${label('cal', 'Calendar')}<span class="aside">${M.postDays.length ? `Posting days: ${esc(M.postDays.map((d) => d[0].toUpperCase() + d.slice(1)).join(', '))}${M.postTimes.length > 1 ? `, ${M.postTimes.length} times a day (${esc(timesText(M.postTimes))})` : M.postTime ? ` at ${esc(M.postTime)}` : ''}` : 'Set posting days with /content-calendar days'}</span></div>
   <div class="legend" data-reveal><span><i class="sw planned"></i>Planned</span><span><i class="sw scheduled"></i>Scheduled</span><span><i class="sw posted"></i>Posted</span><span><i class="sw late"></i>Date passed</span><span><i class="sw slot"></i>Open slot</span></div>
   <div class="cal" id="cal" data-reveal>
     <div class="cal-bar"><div class="seg" role="group" aria-label="Calendar view"><button type="button" data-view="month" aria-pressed="true">Month</button><button type="button" data-view="week" aria-pressed="false">Week</button><button type="button" data-view="day" aria-pressed="false">Day</button></div>

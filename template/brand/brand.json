@@ -57,10 +57,11 @@
   },
   "work_dir": "~/dev/reel-work/<slug>",
   "posting": {
-    "_note": "How this brand's reels get posted: \"by hand\" (default), \"instagram-scheduler\", \"tool: <name>\" or \"own publisher\". Set with /reel-posting. Timezone for scheduling, e.g. America/Toronto. days and time: the brand's usual posting days (e.g. [\"tue\", \"thu\"]) and time (\"18:00\"), set with /content-calendar days; the calendar marks empty ones as open slots.",
+    "_note": "How this brand's reels get posted: \"by hand\" (default), \"instagram-scheduler\", \"tool: <name>\" or \"own publisher\". Set with /reel-posting. Timezone for scheduling, e.g. America/Toronto. days and times: the brand's posting days (e.g. [\"tue\", \"thu\"]) and times on each of them, any number a day (one: [\"18:00\"]; several: [\"09:00\", \"13:00\", \"19:00\"]), set with /content-calendar days; every time on a posting day is one slot, and the calendar marks empty ones as open. time is the older single time, still read when times is empty.",
     "method": "by hand",
     "timezone": "",
     "days": [],
+    "times": [],
     "time": ""
   },
   "dashboard": {
@@ -78,7 +79,7 @@
     "publish_every": 15
   },
   "batch": {
-    "_note": "Weekly batch: the most reels Claude plans in one sitting for this brand. Each reel is still approved on its own. Goals may repeat; angles may not.",
+    "_note": "The most reels Claude plans in one sitting for this brand (a week's worth: for several posts a day, the number a day times the posting days). Each reel is still approved on its own. Goals may repeat; angles may not in a batch of up to five, and in a bigger one no two reels next to each other share one.",
     "max_reels": 3
   },
   "autopilot": {
