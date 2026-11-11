@@ -2,6 +2,15 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.17.2 (2026-11-11)
+
+**The fact check finds `brand/facts.md` for a reel filed by date.** Feedback from the same brand: `facts.py` looked for the facts file two folders above the reel, which for a dated reel is `reels/2026/11 November/brand/facts.md`. So `kit facts` said "no facts file", and with `--facts` the PASS recorded but Gate A and C worked out the fingerprint from the missing path and refused it as stale. Every dated reel needed `--skip-facts`.
+
+- The brand folder is now found the way the dashboard scripts find it: the nearest folder above the reel holding `brand/brand.json` (`kitcore.brand_of`). Flat and dated reels both use `brand/facts.md`. Gate A and C use the same file, so a recorded PASS counts.
+- Test: `setup/test-reel-folders.mjs` now runs `kit facts` and `kit gate record --gate A` on a dated reel without `--skip-facts`.
+
+To update: `bash setup/install.sh` (the engine only; no workspace change).
+
 ## 1.17.1 (2026-11-11)
 
 **Every engine command finds a reel filed by date.** Feedback from the brand that moved six reels with `kit organize`: `kit gate`, `facts`, `host`, `qa` and the rest said "has no reel.json, so it isn't a reel yet" for a reel filed under `reels/2026/11 November/November 12/<slug>`, and only the full dated path worked.

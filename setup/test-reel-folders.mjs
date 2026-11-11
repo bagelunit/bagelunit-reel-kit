@@ -109,6 +109,19 @@ for (const t of ['voice', 'sound', 'lint', 'effort', 'predict', 'take']) {
   assert.ok(!/reels\/dated-one is not|no such file or directory: 'dated-one'/i.test(o.stdout + o.stderr) && !/\/test-reels\/dated-one\b/.test(o.stderr.replace(/November 12\/dated-one/g, '')), `${t}.py resolves the slug: ${o.stderr.slice(0, 200)}`);
 }
 
+// 5c. a dated reel finds brand/facts.md, and Gate A then accepts the PASS it recorded (the fingerprint uses the same file)
+W('brand/facts.md', '# Facts\n\n| Claim | Source | Cleared | Notes |\n|---|---|---|---|\n| The kit has three styles | studio/README.md | yes | |\n');
+const dated = T.findReel(root, 'dated-one');
+W(path.relative(root, path.join(dated, 'script.txt')), 'The kit has three styles.\nSave this for later.\n');
+let f1 = run('facts', 'reels/dated-one', 'check', '--scope', 'script');
+assert.ok(!/no facts file/.test(f1.stdout + f1.stderr), `kit facts finds brand/facts.md for a dated reel: ${f1.stdout}${f1.stderr}`);
+const f2 = run('facts', 'reels/dated-one', 'record', '--scope', 'script', '--result', 'PASS');
+assert.equal(f2.status, 0, f2.stdout + f2.stderr);
+const g = run('gate', 'reels/dated-one', 'record', '--gate', 'A');
+assert.equal(g.status, 0, `Gate A on a dated reel, no --skip-facts: ${g.stdout}${g.stderr}`);
+assert.ok(!/STALE|FACTS NOT RE-CHECKED/.test(g.stdout + g.stderr), 'the fact check is current, not stale or skipped');
+assert.match(fs.readFileSync(path.join(dated, 'approvals.md'), 'utf8'), /Gate A[^\n]*Fact check: PASS/);
+
 // 6. kit start puts a new reel under its planned day; a reel already filed is carried on there
 W('brand/plan.md', '| Date | Topic | Goal | Angle | Reel (folder) | Notes |\n|---|---|---|---|---|---|\n| 2026-12-03 09:00 | t | save | x | `reels/new-one` | |\n');
 let st = run('start', 'reels/new-one', '--style', 'print');

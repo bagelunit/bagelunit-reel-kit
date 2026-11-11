@@ -251,3 +251,14 @@ def resolve_in_reel(arg, cwd=None):
     if typed.exists():
         return typed
     return resolve_reel(typed.parent, cwd) / typed.name if str(typed.parent) not in ('', '.') else typed
+
+
+def brand_of(project):
+    """The brand folder a reel sits in: the nearest folder above it holding brand/brand.json (as findBrand does in the dashboard
+    scripts), so a reel in reels/<slug> and one in reels/2026/11 November/November 12/<slug> both find brand/facts.md. Falls back
+    to two folders up (the flat layout) when no brand.json is found, so a bare test folder still works."""
+    p = Path(project).resolve()
+    for d in p.parents:
+        if (d / 'brand' / 'brand.json').is_file():
+            return d
+    return p.parent.parent

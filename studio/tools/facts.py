@@ -4,7 +4,7 @@
   python3 tools/facts.py <project> [check] [--scope script|final] [--facts path]
   python3 tools/facts.py <project> record --scope script|final --result PASS|FAIL [--note "text"]
 
-<project> is a reel folder (reels/<slug>); the brand's cleared facts are ../../brand/facts.md (or --facts).
+<project> is a reel folder (reels/<slug>); the brand's cleared facts are brand/facts.md in the brand folder above the reel, flat or dated (or --facts).
 
   check    The mechanical half. No network, no keys. It reads brand/facts.md and the reel's words and checks:
            - every facts row has a source and a cleared date (blank = error); a cleared date older than 30 days is a warning;
@@ -28,7 +28,7 @@ import hashlib, json, re, sys
 from datetime import date, datetime
 from pathlib import Path
 
-from kitcore import resolve_reel, Flags, fail
+from kitcore import resolve_reel, Flags, brand_of, fail
 
 TOOL = 'facts'
 STALE_DAYS = 30
@@ -41,7 +41,7 @@ STOP = set('the a an and or of to in on for with is are be it its this that your
 
 
 def project_paths(project, facts_override=None):
-    facts = Path(facts_override) if facts_override else project.parent.parent / 'brand' / 'facts.md'
+    facts = Path(facts_override) if facts_override else brand_of(project) / 'brand' / 'facts.md'
     return facts
 
 
