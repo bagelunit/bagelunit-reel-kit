@@ -138,6 +138,12 @@ jobs:
           grep -q "Tue, Jan 8: A planned topic \[planned, idea\]; 2 open posting slots (13:00, 19:00)" "$B/brand/calendar.md"
           grep -q "Thu, Jan 10: 13:00 A timed topic \[planned, idea\]; 2 open posting slots (09:00, 19:00)" "$B/brand/calendar.md"
           grep -q "3 times a day" "$B/brand/dashboard.html"
+          # how often to post: three accounts posting 7, 3 and 5 reels a week; the two doing best for their size post 7 and 5
+          node -e "const fs=require('fs'),d=process.argv[1]+'/brand/research',end=Date.parse('2030-01-06T12:00:00Z');fs.mkdirSync(d,{recursive:true});const acc={};for(const [n,w,v] of [['ava',7,3000],['ben',3,500],['cal2',5,2000]]){const rows=['url,timestamp,views,likes,comments,caption,type'];for(let i=0;i<w*8;i++)rows.push('https://x/'+n+i+','+new Date(end-(i+0.5)*7/w*864e5).toISOString()+','+v+',10,1,c,REELS');fs.writeFileSync(d+'/'+n+'.csv',rows.join('\n')+'\n');acc[n]={followers:1000,media_count:w*8,pulled_at:'2030-01-06T12:00:00Z'}}fs.writeFileSync(d+'/accounts.json',JSON.stringify(acc))" "$B"
+          node "$B/.claude/skills/content-calendar/how-often.mjs" --brand "$B" --today 2030-01-06 --offline --approve 10 | tee "$RUNNER_TEMP/often.txt"
+          grep -q "3 to 7 reels a week, median 5" "$RUNNER_TEMP/often.txt" && grep -q "The 2 doing best for their size (views per follower) post a median of 6" "$RUNNER_TEMP/often.txt" && grep -q "Suggestion: 6 reels a week" "$RUNNER_TEMP/often.txt"
+          node "$B/.claude/skills/content-calendar/how-often.mjs" --brand "$B" --today 2030-01-06 --offline --approve 4 | grep -q "Suggestion: 4 reels a week"
+          node "$B/.claude/skills/content-calendar/calendar.mjs" "$B" --today 2030-01-06 >/dev/null && grep -q "Suggested: 4 a week" "$B/brand/dashboard.html"
           test -s "$B/brand/dashboard.html" && grep -q "A planned topic" "$B/brand/calendar.md" && grep -q "Hook &amp; Script" "$B/brand/dashboard.html"
           node "$B/.claude/skills/content-calendar/telegram.mjs" "$B" show | grep -q "Cal"
           node "$B/.claude/skills/content-calendar/schedule.mjs" "$B" status | grep -q "Off"

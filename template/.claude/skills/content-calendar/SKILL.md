@@ -7,9 +7,10 @@ description: >
   and Threads numbers and a Telegram summary, and sets up a daily refresh on Mac, Windows or Linux. Use on /content-calendar, or when the
   user says "content calendar", "dashboard", "what's scheduled", "what's next", "plan my posts", "show my
   pipeline", "how are my reels doing", "connect my Instagram stats", "connect Facebook", "connect Threads", "send it to my phone", "refresh every day",
-  "put the dashboard online", "host my dashboard" or "see it on my phone".
+  "put the dashboard online", "host my dashboard", "see it on my phone", "how often should I post", "how many
+  reels a week" or "posting frequency".
 user-invokable: true
-argument-hint: "[plan | days | host | connect instagram | connect facebook | connect threads | connect telegram | auto | all | off]"
+argument-hint: "[plan | days | how-often | host | connect instagram | connect facebook | connect threads | connect telegram | auto | all | off]"
 metadata:
   author: BagelUnit
   version: "2.0.0"
@@ -36,6 +37,8 @@ Ask every choice with a question block (AskUserQuestion), the recommended option
 | `brand/log.md`, `brand/insights.csv`, `brand/swipe.md`, `brand/stats.md` | posted reels, numbers, research |
 | `brand/instagram.json` | written by `instagram.mjs`: the account and every post's latest numbers (not kept in history) |
 | `brand/followers.csv` | written by `instagram.mjs`: one follower count a day (kept: it is the only record of growth) |
+| `brand/research/<username>.csv`, `brand/research/accounts.json` | other accounts' posts and their followers, written by `research.mjs competitor` (read by `how-often.mjs` and `/account-audit`) |
+| `brand/how-often.json` | written by `how-often.mjs`: the suggested posting pace and why; the Planner panel shows it |
 | `brand/calendar.md`, `brand/dashboard.html` | written by `calendar.mjs` each run (the page itself is drawn by `page.mjs`; fonts in `fonts/`) |
 | `brand/brand.json` | `posting.timezone`, `posting.days`, `posting.times` (or the older single `posting.time`), `batch.max_reels`, and `dashboard`: `instagram`, `facebook`, `threads`, `telegram` (each on only after the owner's yes), `refresh` (with `time` and `day`, written by `schedule.mjs`), `host` (`local`, `wifi`, `netlify`, `cloudflare` or `folder`), `site` (the Netlify site id or Cloudflare Pages project), `url` (the site's https address), `path_key` (the private path, made by `host.mjs` run by hand) and `publish_every` (minutes between background uploads, default 15, 0 for the scheduled refresh only) |
 
@@ -106,6 +109,28 @@ rest in the calendar's day view. Say once what the pace takes: every reel still 
 reel uses about 800 voice characters (`python3 ~/.claude/skills/bagelunit-reels/tools/budget.py` shows what is
 left), and Meta caps automatic posting (the publisher checks: Instagram's 24-hour publishing limit, 30 Facebook
 reels a day, 250 Threads posts a day).
+
+## /content-calendar how-often: how often to post
+
+A suggestion from real numbers, never a rule of thumb about a niche ("food accounts post X a week" is guesswork,
+and house rule 1 bans numbers the kit cannot back). Three sources, each optional:
+1. **Accounts like yours.** Ask for 3 to 5 accounts in the brand's niche, about its size or a bit ahead (a question
+   block: the owner's own picks under Other, or "Find some for me", then suggest from `brand/swipe.md` and what the
+   owner says about the niche, and confirm each). With Instagram connected through Unified or Facebook Login, run
+   `node .claude/skills/content-calendar/research.mjs competitor <username>` for each (free, Meta's official API,
+   business and creator accounts only). Without it, say once what connecting gives (`docs/connect.md`), or take an
+   export the owner has (a CSV with a timestamp column, saved as `brand/research/<username>.csv`). Never scrape
+   unless `autopilot.scrape` is on (house rule 7).
+2. **What the owner can keep up.** Ask "How many reels a week can you review and approve?" (choices "Up to 3",
+   "Up to 7", "Up to 20", Other). The script reads the voice credits itself (the engine's `budget.py --left`).
+3. **The brand's own numbers**, read from this folder once 8 posted reels have numbers across 4 finished weeks.
+
+Then run `node .claude/skills/content-calendar/how-often.mjs --approve <their answer>` and show what it prints: the
+accounts' paces (and which do best for their size), what the owner can keep up, what the brand's own numbers say,
+and the suggestion with its reasons. Say plainly that it is a starting point: how often accounts post is not proof
+that posting that often is why they do well. Then ask "Use <N> a week (Recommended)", "Keep <current>", "Pick my
+own". On a number, run the days step below with it (days and times that add up to it, and `batch.max_reels`).
+Run it again about once a month; the Planner panel shows the latest suggestion and its date.
 
 ## /content-calendar plan: fill the next weeks
 

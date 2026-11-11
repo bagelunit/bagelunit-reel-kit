@@ -26,6 +26,8 @@ The step that tells you what to make next: which reels beat an account's own nor
     reads that account's followers and its latest posts with views, likes and comments, and writes
     `brand/research/<username>.csv` for `outliers.py --csv ... --owner <username>`. It works for business and creator
     accounts only (Meta's rule); a personal account says so. Instagram Login cannot do this (the script says so).
+    The same files (and `brand/research/accounts.json`, each account's followers) feed `/content-calendar how-often`,
+    which suggests how often to post.
   - An export of posts you already have.
   - Apify with the brand owner's permission:
   `brand/brand.json` -> `autopilot.scrape` is `true`, and the owner has saved an Apify token to

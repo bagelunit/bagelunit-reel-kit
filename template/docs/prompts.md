@@ -53,7 +53,7 @@ HOW EACH REEL ENDS
 - Tell me when a newer kit version is out: [yes / no]
 
 HOW OFTEN
-- Reels I want to post each week: [1 / 2 or 3 / 4 or 5 / one a day]
+- How often I want to post: [2 or 3 a week / one a day / several a day: how many and at what times / suggest a number for me]
 
 Rules: write down only what I confirm. Do not put any number, result, price or client name in brand/facts.md unless I state it here and you read it back to me. Never ask for or show any key or password. When done, give me a short summary of what you wrote and what is still empty.
 ```

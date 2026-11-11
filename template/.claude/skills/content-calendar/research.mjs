@@ -11,7 +11,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { brandRoot, writeAtomic } from './lib.mjs';
+import { brandRoot, writeAtomic, readJSON } from './lib.mjs';
 import { connect, Plain } from './instagram.mjs';
 
 const FIELDS = 'id,caption,media_type,media_product_type,permalink,timestamp,like_count,comments_count';
@@ -44,6 +44,11 @@ async function main() {
     if (!bd) throw new Plain(`no public data for @${user}: it must be a business or creator account (and not age-gated)`);
     const posts = bd.media?.data || [];
     const file = writeCsv(root, user, posts);
+    // the account itself, for /content-calendar how-often: followers, how many posts it has, how many were read and when
+    const accFile = path.join(root, 'brand', 'research', 'accounts.json');
+    const accounts = readJSON(accFile, {});
+    accounts[(bd.username || user).toLowerCase()] = { followers: bd.followers_count ?? null, media_count: bd.media_count ?? null, read: posts.length, pulled_at: new Date().toISOString() };
+    writeAtomic(accFile, JSON.stringify(accounts, null, 2) + '\n');
     const views = posts.map((p) => p.view_count).filter((v) => v != null).sort((a, b) => a - b);
     const med = views.length ? views[views.length >> 1] : null;
     console.log(`@${bd.username || user}: ${bd.followers_count ?? '?'} followers, ${bd.media_count ?? '?'} posts; read ${posts.length} recent ones${med != null ? `, median ${med} views` : ''}. Wrote ${file}.`);

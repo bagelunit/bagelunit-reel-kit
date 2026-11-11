@@ -2,6 +2,7 @@
 """budget.py - will this script fit in the ElevenLabs credits left? Run it before Gate A (before any voice is made).
 
   python3 budget.py reels/<slug>/script.txt [--takes 2]
+  python3 budget.py --left [--json]       just the account: characters left, the monthly allowance, the reset date
   python3 budget.py --selftest
 
 Counts the script's characters (what the voice step sends), asks ElevenLabs how many characters the account has left
@@ -30,7 +31,8 @@ def verdict(need, left):
     return 'NOT ENOUGH', f'short by about {need - left:,}: top up, wait for the monthly reset, or shorten the script'
 
 
-def credits_left():
+def subscription():
+    """The account's subscription (a free read with the saved key) as (dict, None), or (None, why)."""
     from kitcore import api_key
     try:
         key = api_key('elevenlabs', 'budget')
@@ -46,13 +48,33 @@ def credits_left():
         return None, f'ElevenLabs answered {e.code}'
     except (urllib.error.URLError, TimeoutError):
         return None, 'offline right now'
+    return sub, None
+
+
+def credits_left():
+    sub, why = subscription()
+    if sub is None:
+        return None, why
     return int(sub.get('character_limit', 0)) - int(sub.get('character_count', 0)), None
+
+
+def account(sub):
+    """What the pace suggestion needs: left, the monthly allowance, the reset date (ISO, UTC) and the plan's name."""
+    limit = int(sub.get('character_limit', 0) or 0)
+    reset = sub.get('next_character_count_reset_unix')
+    when = None
+    if reset:
+        import datetime
+        when = datetime.datetime.fromtimestamp(int(reset), datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    return {'left': limit - int(sub.get('character_count', 0) or 0), 'limit': limit, 'reset': when, 'tier': sub.get('tier')}
 
 
 def selftest():
     assert count_chars("Save   this.\n\n# note\n[pause]\nThree steps.") == len("Save this. Three steps.")
     assert verdict(800, 5000)[0] == 'OK' and verdict(800, 900)[0] == 'TIGHT' and verdict(800, 100)[0] == 'NOT ENOUGH'
     assert verdict(800, None)[0] == 'UNKNOWN'
+    a = account({'character_limit': 100000, 'character_count': 25000, 'next_character_count_reset_unix': 1893456000, 'tier': 'creator'})
+    assert a == {'left': 75000, 'limit': 100000, 'reset': '2030-01-01T00:00:00Z', 'tier': 'creator'}, a
     print('selftest OK')
 
 
@@ -63,6 +85,14 @@ def main():
     takes = 2
     if '--takes' in a:
         i = a.index('--takes'); takes = int(a[i + 1]); del a[i:i + 2]
+    if '--left' in a:
+        sub, why = subscription()
+        if sub is None:
+            print(json.dumps({'left': None, 'why': why}) if '--json' in a else f'credits: unknown ({why})')
+            sys.exit(0)
+        info = account(sub)
+        print(json.dumps(info) if '--json' in a else f"credits: {info['left']:,} characters left of {info['limit']:,} a month" + (f", resets {info['reset'][:10]}" if info['reset'] else ''))
+        return
     if not a:
         sys.exit(__doc__)
     text = Path(a[0]).expanduser().read_text(encoding='utf-8')

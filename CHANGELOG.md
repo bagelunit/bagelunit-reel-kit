@@ -2,6 +2,18 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.12.0 (2026-11-10)
+
+- **How often should you post? Ask the kit.** Type `/content-calendar how-often` in a brand folder. It suggests how many reels a week to post from real numbers, not a rule of thumb about your niche:
+  - **Accounts like yours.** You name 3 to 5 accounts in your niche (or Claude suggests some for you to confirm). With Instagram connected through Unified or Facebook Login, the kit reads each one through Meta's official API: how many posts and reels a week they make, and which do best for their size (views or likes and comments per follower). It also reads an export you already have.
+  - **What you can keep up.** How many reels a week you say you can approve, and how far your voice credits go (talking-head reels use none).
+  - **Your own numbers.** Once 8 posted reels have numbers across 4 weeks, whether your busier weeks got fewer views per reel than your quieter ones.
+- It prints the suggestion with every reason, says plainly that it is a starting point, and offers to set your posting days, times and weekly plan to match. A new brand in a fast niche is told to start lower and build up over the first month. The Planner panel on the dashboard shows the latest suggestion and its date.
+- **"Suggest a number for me" in `/brand-setup`.** The posting question now offers it. Without Instagram connected yet, it says so, starts at 3 a week, and points to `/content-calendar how-often` for later.
+- **Competitor reads keep the account's followers** (`brand/research/accounts.json`), so `/account-audit` and the suggestion can compare accounts of different sizes.
+- **The engine's voice budget can report the account alone**: `budget.py --left` prints the characters left, the monthly allowance and the reset date. Run `/kit-update` (it updates the engine too) to get it.
+- The prompts guide (`docs/prompts.md`) offers the same posting choices as setup, including several a day.
+
 ## 1.11.0 (2026-11-10)
 
 - **Post as often as you like, up to 20 a day or more.** A brand can now have any number of posting times a day (`brand.json` -> `posting.times`, for example `["09:00", "13:00", "19:00"]`). Each time on each posting day is one slot. `/brand-setup` asks "Several a day" with how many and when (spread evenly, or your own times), and `/content-calendar days` does the same. Brands with one posting time keep working as before.
