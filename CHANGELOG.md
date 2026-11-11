@@ -6,6 +6,8 @@ Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. T
 
 Two fresh reviews walked the kit as a stranger would, from the GitHub page to the first reel and through every connection, and checked each outside step against Meta's, Cloudflare's, Netlify's, Telegram's and Anthropic's current official pages. This release fixes what they found.
 
+**Switch between platforms on the dashboard.** Once Facebook or Threads is connected, a switch in the filter bar (All, Instagram, Facebook, Threads) shows each platform's own followers, views (plays on Facebook), engagement, posts, follower chart, views by week and top posts; All adds them up, and the page remembers your choice. Sections only Instagram has (audience, best time to post, comments, hook tests) say so on the other platforms.
+
 **Getting started**
 - **The README walks a new person through every prerequisite.** Homebrew on a Mac (with the "Next steps" lines it prints), Git on Windows, Node.js on Linux, which ZIP folder to open, a terminal on Linux, and the browser tool as a "before you begin" step. There is also a table of what goes where on your computer, and the install time (20 to 40 minutes, mostly downloads).
 - **Message 1 and the browser tool now agree.** With the browser tool on, Claude does the website steps (the key page, the sound packs). It makes the empty key file and opens it for you, and it hands you any command that needs your password instead of failing at it.

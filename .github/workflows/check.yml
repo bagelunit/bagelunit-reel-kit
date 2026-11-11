@@ -154,6 +154,7 @@ jobs:
           test -f "$B/.claude/settings.json" && node -e "JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'))" "$B/.claude/settings.json"
           rm -f "$B/brand/dashboard.html"; CLAUDE_PROJECT_DIR="$B" node "$B/.claude/skills/content-calendar/sync.mjs"; test -s "$B/brand/dashboard.html"
           grep -q 'id="f-q"' "$B/brand/dashboard.html" && grep -q 'data-stage-pick="posted"' "$B/brand/dashboard.html"
+          if grep -q 'data-pf-pick="' "$B/brand/dashboard.html"; then echo "the platform switch should show only once Facebook or Threads is connected"; exit 1; fi
           if grep -q 'id="setup"' "$B/brand/dashboard.html"; then echo "the Get started panel should be gone once days, a plan and a reel exist"; exit 1; fi
           echo "| 2020-01-07 | An overdue idea | save | contrarian |  |  |  |" >> "$B/brand/plan.md"
           CLAUDE_PROJECT_DIR="$B" node "$B/.claude/skills/content-calendar/notice.mjs" | grep -q "An overdue idea"
@@ -168,6 +169,7 @@ jobs:
           echo '{"pulled_at": "2030-01-05T12:00:00Z", "page": {"id": "1", "name": "Cal", "followers": 12}, "d28": {"views": 300}, "posts": [{"id": "9", "caption": "A hook line", "timestamp": "2030-01-04T12:00:00+0000", "permalink": "https://www.facebook.com/reel/9", "nums": {"plays": 40, "likes": 3}}]}' > "$B/brand/facebook.json"
           echo '{"pulled_at": "2030-01-05T12:00:00Z", "account": {"username": "cal", "followers": 7}, "d7": {"views": 20}, "posts": []}' > "$B/brand/threads.json"
           node "$B/.claude/skills/content-calendar/calendar.mjs" "$B" >/dev/null && grep -q 'id="elsewhere"' "$B/brand/dashboard.html" && grep -q "Facebook and Threads" "$B/brand/dashboard.html"
+          for p in all instagram facebook threads; do grep -q "data-pf-pick=\"$p\"" "$B/brand/dashboard.html" && grep -q "data-pf=\"$p\"" "$B/brand/dashboard.html" || { echo "platform switch: $p missing"; exit 1; }; done
           echo '{"media": [{"id": "1", "caption": "z", "timestamp": "2030-01-04T12:00:00+0000", "permalink": "javascript:alert(1)"}], "comments": [null, {"id": "c", "username": "u", "text": "hi", "permalink": "javascript:x"}], "stories": {"bad": 1}}' > "$B/brand/instagram.json"
           echo null > "$B/reels/one/reel.json"
           node "$B/.claude/skills/content-calendar/calendar.mjs" "$B" >/dev/null && grep -q 'data-open="one"' "$B/brand/dashboard.html"

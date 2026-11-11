@@ -133,6 +133,20 @@
     });
   }
 
+  /* ── the platform switch (All, Instagram, Facebook, Threads), when Facebook or Threads is connected ─────────── */
+  const pfButtons = $$('[data-pf-pick]');
+  if (pfButtons.length) {
+    const setPlatform = (p) => {
+      pfButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.pfPick === p)));
+      $$('[data-pf]').forEach((el) => { el.hidden = el.dataset.pf !== p; });
+      $$('[data-pf-in]').forEach((el) => { el.hidden = !el.dataset.pfIn.split(' ').includes(p); });
+      try { localStorage.setItem('bu-platform', p); } catch (_) {}
+    };
+    let saved = null; try { saved = localStorage.getItem('bu-platform'); } catch (_) {}
+    setPlatform(pfButtons.some((b) => b.dataset.pfPick === saved) ? saved : 'all');
+    pfButtons.forEach((b) => b.addEventListener('click', () => setPlatform(b.dataset.pfPick)));
+  }
+
   /* ── the filter bar, applied everywhere ──────────────────────────────────────────────────────────────────── */
   const fq = $('#f-q'), fneeds = $('#f-needs'), fstage = $('#f-stage'), fseries = $('#f-series'), fclear = $('#f-clear'), fcount = $('#f-count');
   const LIMIT = 6;

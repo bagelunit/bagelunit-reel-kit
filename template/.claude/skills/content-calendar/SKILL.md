@@ -65,6 +65,11 @@ When the owner asks how to use it, say this in two lines and point to `docs/dash
 
 ## What else the page shows
 
+- **Platform switch:** with Facebook or Threads connected, All, Instagram, Facebook and Threads in the filter bar
+  change the number strip, the follower and views charts and Top posts (`M.platforms` in `lib.mjs`). "All" adds up
+  followers, views and plays, posts and interactions; engagement there and on Facebook and Threads is of views
+  (Instagram's is of reach). Audience, comments and A/B tests are Instagram only and show on All and Instagram.
+
 - **A/B tests:** each reel with a `test.json` (made by `/ab-hook-tester`) shows its versions side by side on the deciding
   number, with the views each still needs, and calls a winner once both have enough and they differ by 10% or more.
   A winner shows under "Needs you": share it to followers in the Instagram app, then `/ab-hook-tester record`.

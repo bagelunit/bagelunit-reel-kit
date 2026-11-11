@@ -634,6 +634,44 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
   }
   const recent = [...posts].filter((p) => p.at && (p.nums.watch != null || p.nums.skip != null)).sort((a, b) => b.at - a.at).slice(0, 8);
 
+  // one view per platform, for the dashboard's platform switch (shown once Facebook or Threads is connected). Meta
+  // counts differently on each: Facebook gives plays, Threads views; Instagram engagement is of reach, the others of
+  // views. "All" adds up what can be added: followers, views and plays, posts, and likes, comments and shares.
+  const readFollowers = (file) => csv(read(path.join(root, 'brand', file))).rows
+    .map((r) => ({ key: r.date, followers: num(r.followers) })).filter((r) => r.key && r.followers != null).sort((a, b) => a.key.localeCompare(b.key));
+  const weeksOf = (list) => Array.from({ length: 8 }, (_, i) => {
+    const start = addDays(weekStart(today), -7 * (7 - i)), l = list.filter((p) => p.at && weekStart(dayKey(p.at)) === start);
+    return { start, posts: l.length, views: l.length ? sumOf(l, 'views') : 0 };
+  });
+  const deltaOf = (rows, nowVal, n) => { const target = addDays(today, -n); const r = [...rows].reverse().find((x) => x.key <= target); return r && nowVal != null ? nowVal - r.followers : null; };
+  const platformView = (key, name, list, followers, rows, of) => {
+    const based = list.map((p) => ({ e: engaged(p.nums), b: (of === 'reach' ? p.nums.reach : null) || p.nums.views || 0 })).filter((x) => x.b);
+    const base = based.reduce((t, x) => t + x.b, 0);
+    return { key, name, posts: list, followers, followerRows: rows, followers7: deltaOf(rows, followers, 7), followers30: deltaOf(rows, followers, 30),
+      views30: list.length ? sumOf(list.filter((p) => ago(p.at, 30)), 'views') : null,
+      last7: list.filter((p) => ago(p.at, 7)).length, last30: list.filter((p) => ago(p.at, 30)).length,
+      medianViews: median(list.map((p) => p.nums.views)), engagement: base ? based.reduce((t, x) => t + x.e, 0) / base : null, engagementOf: of,
+      measured: list.length, weeks: weeksOf(list), top: [...list].filter((p) => p.nums.views != null).sort((a, b) => b.nums.views - a.nums.views).slice(0, 5) };
+  };
+  let platforms = null;
+  if (Object.keys(others).length) {
+    const igPosts = posts.map((p) => ({ ...p, platform: 'instagram' }));
+    const views = { instagram: platformView('instagram', 'Instagram', igPosts, followersNow, followerRows, 'reach') };
+    for (const [k, o] of Object.entries(others)) {
+      const list = o.posts.map((x) => ({ title: x.title, at: x.at, link: x.link, platform: k, reel: x.reelId ? items.find((i) => i.id === x.reelId) : null,
+        nums: { views: x.views, likes: x.likes, comments: x.comments, shares: x.shares, watch: x.watch } }));
+      views[k] = platformView(k, k === 'facebook' ? 'Facebook' : 'Threads', list, o.followers, readFollowers(`followers-${k}.csv`), 'views');
+    }
+    // all platforms: followers added up from the first day every platform has a count, carrying each one forward
+    const series = Object.values(views).map((v) => v.followerRows).filter((r) => r.length);
+    const from = series.length ? series.map((r) => r[0].key).sort().at(-1) : null;
+    const allRows = from ? [...new Set(series.flatMap((r) => r.map((x) => x.key)))].filter((d) => d >= from).sort()
+      .map((d) => ({ key: d, followers: series.reduce((t, r) => t + ([...r].reverse().find((x) => x.key <= d)?.followers || 0), 0) })) : [];
+    const known = Object.values(views).map((v) => v.followers).filter((n) => n != null);
+    views.all = platformView('all', 'All platforms', Object.values(views).flatMap((v) => v.posts), known.length ? known.reduce((t, n) => t + n, 0) : null, allRows, 'views');
+    platforms = views;
+  }
+
   // Honest agent activity. Each agent is judged only by its own outputs, as a set of small keys; it "made something"
   // when a key appears that was not there last time (something only removed or moved does not count):
   //   Ideator:  plan rows with no date yet (ideas) and rows in brand/swipe.md. A dated row is the Planner's work, so
@@ -736,6 +774,6 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
     tz: TZ, now, today, last, days, postDays, postTime, postTimes, isPostDay, openTimesOn,
     dayKey, timeOf, pretty, addDays, weekday, weekStart, parseWhen,
     plan, log, insights, ig, media, followerRows, status,
-    items, attention, entryOf, byDay, openSlots, stats, top, weeks, recent, agents,
+    items, attention, entryOf, byDay, openSlots, stats, top, weeks, recent, agents, platforms,
   };
 }

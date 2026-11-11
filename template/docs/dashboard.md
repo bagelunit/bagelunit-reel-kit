@@ -42,6 +42,8 @@ This reads your own accounts through Meta's official APIs. On Instagram: your fo
 
 Each pull saves the account and every post's numbers in `brand/instagram.json` (and `brand/facebook.json`, `brand/threads.json`), adds today's follower count to `brand/followers.csv` (that file is your growth history, keep it), and, once a reel is 7 days old, adds its row to `brand/insights.csv`. `/analytics-readout` and `/reel-predict` already use that file.
 
+**One platform at a time.** Once Facebook or Threads is connected, a switch in the filter bar (All, Instagram, Facebook, Threads) changes the numbers at the top, the follower and views charts and Top posts to that platform; the page remembers your choice. "All" adds up what can be added: followers, views and plays, posts, and likes, comments and shares. Meta counts differently on each (Facebook gives plays, Threads gives views and no watch time), and your audience, best time to post, comments and hook tests come from Instagram only, so those show on All and Instagram.
+
 **Matching posts to reels.** The kit matches each post (Instagram, Facebook, Threads) to its reel folder by the post's link, then the caption, then the day it went out. To be sure, add the link to the reel's "Posted" line in `approvals.md`: `- 2026-11-09 21:05 Posted by hand on @handle: https://www.instagram.com/reel/...`. `/reel-posting` asks for it.
 
 ## 3. A summary on your phone (Telegram)

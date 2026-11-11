@@ -62,9 +62,9 @@ function minibars(values, w = 120, h = 30) {
   const hi = Math.max(...values), bw = w / values.length;
   return `<svg class="minibars" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true" data-draw>${values.map((x, i) => `<rect x="${(i * bw + 1.5).toFixed(1)}" y="${(h - (x / hi) * h).toFixed(1)}" width="${(bw - 3).toFixed(1)}" height="${((x / hi) * h).toFixed(1)}" style="--i:${i}"/>`).join('')}</svg>`;
 }
-function followerChart(M) {
-  const rows = M.followerRows.slice(-90);
-  if (rows.length < 2) return `<p class="empty">${M.ig ? 'The line starts once there are two days of counts. Each refresh adds one.' : 'Connect Instagram to record a follower count each day (docs/dashboard.md).'}</p>`;
+function followerChart(M, all = M.followerRows, connected = Boolean(M.ig)) {
+  const rows = all.slice(-90);
+  if (rows.length < 2) return `<p class="empty">${connected ? 'The line starts once there are two days of counts. Each refresh adds one.' : 'Connect Instagram to record a follower count each day (docs/dashboard.md).'}</p>`;
   const W = 640, H = 200, P = 28, ys = rows.map((r) => r.followers), lo = Math.min(...ys), hi = Math.max(...ys), span = hi - lo || 1;
   const x = (i) => P + (i * (W - 2 * P)) / (rows.length - 1), y = (v) => H - P - ((v - lo) * (H - 2 * P)) / span;
   const pts = rows.map((r, i) => `${x(i).toFixed(1)},${y(r.followers).toFixed(1)}`).join(' ');
@@ -75,10 +75,10 @@ ${gl}<polygon class="area" points="${P},${H - P} ${pts} ${x(rows.length - 1)},${
 <text x="${P}" y="${H - 6}" class="axis">${esc(M.pretty(rows[0].key, { month: 'short', day: 'numeric' }))}</text><text x="${W - P}" y="${H - 6}" class="axis" text-anchor="end">${esc(M.pretty(rows.at(-1).key, { month: 'short', day: 'numeric' }))}</text>
 <text x="${x(rows.length - 1) - 10}" y="${y(rows.at(-1).followers) - 12}" class="val" text-anchor="end">${esc(rows.at(-1).followers.toLocaleString('en-US'))}</text></svg>`;
 }
-function weekChart(M) {
-  if (!M.weeks.some((w) => w.views)) return '<p class="empty">Views by week show here once posts have numbers.</p>';
-  const W = 640, H = 200, P = 24, n = M.weeks.length, bw = (W - 2 * P) / n, hi = Math.max(1, ...M.weeks.map((w) => w.views)), now = M.weekStart(M.today);
-  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Views by the week posts went out, last 8 weeks" data-draw>${M.weeks.map((w, i) => {
+function weekChart(M, weeks = M.weeks) {
+  if (!weeks.some((w) => w.views)) return '<p class="empty">Views by week show here once posts have numbers.</p>';
+  const W = 640, H = 200, P = 24, n = weeks.length, bw = (W - 2 * P) / n, hi = Math.max(1, ...weeks.map((w) => w.views)), now = M.weekStart(M.today);
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Views by the week posts went out, last 8 weeks" data-draw>${weeks.map((w, i) => {
     const h = (w.views / hi) * (H - 2 * P - 16), x = P + i * bw + 8, y = H - P - h, cw = bw - 16;
     return `<g style="--i:${i}"><rect class="bar${w.start === now ? ' now' : ''}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${cw.toFixed(1)}" height="${Math.max(h, w.views ? 2 : 0).toFixed(1)}"><title>${esc(`Week of ${M.pretty(w.start)}: ${w.posts} post${w.posts === 1 ? '' : 's'}, ${fmt(w.views)} views`)}</title></rect>
 ${w.views ? `<text x="${(x + cw / 2).toFixed(1)}" y="${(y - 6).toFixed(1)}" class="val" text-anchor="middle">${esc(fmt(w.views))}</text>` : ''}<text x="${(x + cw / 2).toFixed(1)}" y="${H - 6}" class="axis" text-anchor="middle">${esc(M.pretty(w.start, { month: 'short', day: 'numeric' }))}</text></g>`;
@@ -155,6 +155,23 @@ export function html(M) {
     metric('Posted', String(S.last7), 'int', S.last7, `this week · ${S.last30} in 30 days`, minibars(M.weeks.map((w) => w.posts))),
     metric('In the works', String(S.inProgress + S.scheduled), 'int', S.inProgress + S.scheduled, `${S.scheduled} scheduled · ${S.ideas} idea${S.ideas === 1 ? '' : 's'} waiting`),
   ].join('');
+
+  // with Facebook or Threads connected: a platform switch (All, Instagram, Facebook, Threads) and, for each platform,
+  // its own number strip, trends and top posts. Sections that exist only for Instagram say so on the other platforms.
+  const PFS = M.platforms ? ['all', 'instagram', ...Object.keys(M.others)] : [];
+  const PF_DEFAULT = 'all';
+  const pfAttr = (k) => (PFS.length ? ` data-pf="${k}"${k === PF_DEFAULT ? '' : ' hidden'}` : '');
+  const pfIn = (list) => (PFS.length ? ` data-pf-in="${list}"${list.split(' ').includes(PF_DEFAULT) ? '' : ' hidden'}` : '');
+  const VIEW_WORD = { all: 'views and plays', facebook: 'plays', threads: 'views' };
+  const platformStrip = (V) => [
+    metric('Followers', V.followers == null ? '–' : fmt(V.followers), 'k', V.followers, V.followers == null ? 'Not read yet' : delta(V.followers7, 'in 7 days') || (V.key === 'all' ? 'on every connected platform' : ''), spark(V.followerRows.slice(-30).map((r) => r.followers))),
+    metric('Views', fmt(V.views30), 'k', V.views30, V.measured ? `${VIEW_WORD[V.key]} on posts from the last 30 days` : 'No numbers yet', minibars(V.weeks.map((w) => w.views))),
+    metric('Engagement', pct(V.engagement), 'pct', V.engagement, 'likes, comments and shares, of views'),
+    metric('Posted', String(V.last7), 'int', V.last7, `posts this week · ${V.last30} in 30 days`, minibars(V.weeks.map((w) => w.posts))),
+    metric('In the works', String(S.inProgress + S.scheduled), 'int', S.inProgress + S.scheduled, `${S.scheduled} scheduled · ${S.ideas} idea${S.ideas === 1 ? '' : 's'} waiting`),
+  ].join('');
+  const stripHtml = PFS.length ? PFS.map((k) => `<div class="strip"${pfAttr(k)} data-reveal-group>${k === 'instagram' ? strip : platformStrip(M.platforms[k])}</div>`).join('')
+    : `<div class="strip" data-reveal-group>${strip}</div>`;
 
   const PRIO = { 1: ['Now', 'now'], 2: ['Soon', 'soon'], 3: ['Later', 'later'] };
   const needs = M.attention.length ? `<ol class="needs">${M.attention.map((a, i) => `<li${a.it.id ? ` data-id="${esc(a.it.id)}"` : ''}><span class="n">${String(i + 1).padStart(2, '0')}</span><div class="nb"><div class="nt">${a.it.id ? `<button type="button" class="link" data-open="${esc(a.it.id)}">${esc(a.it.title)}</button>` : `<b>${esc(a.it.title)}</b>`}<span class="prio ${PRIO[a.p][1]}">${PRIO[a.p][0]}</span></div><div class="nw">${withCommands(a.what)}</div></div></li>`).join('')}</ol>`
@@ -256,8 +273,11 @@ ${GATE[k] ? `<span class="gate-mark" title="${esc(GATE[k])}: you approve here">$
   };
   const dataJson = JSON.stringify(data).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
 
-  const top = M.top.length ? `<div class="scroll"><table><thead><tr><th>Post</th><th class="hide-sm">Posted</th><th class="r">Views</th><th class="r">Engagement</th><th class="r">Saves</th><th class="r">Shares</th><th class="r">Avg watch</th></tr></thead><tbody>${M.top.map((p, i) => `<tr${p.reel?.id ? ` data-id="${esc(p.reel.id)}"` : ''}><td><span class="rank">${String(i + 1).padStart(2, '0')}</span>${p.reel?.id ? `<button type="button" class="link" data-open="${esc(p.reel.id)}">${esc(clip(p.title, 56))}</button>` : esc(clip(p.title, 56))}${safeUrl(p.link) ? ` <a class="ig" href="${esc(safeUrl(p.link))}" target="_blank" rel="noopener" aria-label="Open on Instagram">${icon('arrow', 'ic')}</a>` : ''}</td><td class="nowrap hide-sm">${esc(p.at ? M.pretty(M.dayKey(p.at)) : '')}</td><td class="r">${esc(fmt(p.nums.views))}</td><td class="r">${esc(pct(rate(p.nums)))}</td><td class="r">${esc(fmt(p.nums.saves))}</td><td class="r">${esc(fmt(p.nums.shares))}</td><td class="r">${p.nums.watch == null ? '–' : esc(p.nums.watch.toFixed(1) + ' s')}</td></tr>`).join('')}</tbody></table></div>`
-    : '<p class="empty">No numbers yet. Connect Instagram (docs/dashboard.md), or a day after a reel goes out type <code>/analytics-readout</code> with its numbers.</p>';
+  // top posts, for one platform or all of them (then with a Platform column)
+  const PF_NAME = { instagram: 'Instagram', facebook: 'Facebook', threads: 'Threads' };
+  const topTable = (list, all = false) => (list.length ? `<div class="scroll"><table><thead><tr><th>Post</th>${all ? '<th>Platform</th>' : ''}<th class="hide-sm">Posted</th><th class="r">Views</th><th class="r">Engagement</th><th class="r">Saves</th><th class="r">Shares</th><th class="r">Avg watch</th></tr></thead><tbody>${list.map((p, i) => `<tr${p.reel?.id ? ` data-id="${esc(p.reel.id)}"` : ''}><td><span class="rank">${String(i + 1).padStart(2, '0')}</span>${p.reel?.id ? `<button type="button" class="link" data-open="${esc(p.reel.id)}">${esc(clip(p.title, 56))}</button>` : esc(clip(p.title, 56))}${safeUrl(p.link) ? ` <a class="ig" href="${esc(safeUrl(p.link))}" target="_blank" rel="noopener" aria-label="Open on ${esc(PF_NAME[p.platform] || 'Instagram')}">${icon('arrow', 'ic')}</a>` : ''}</td>${all ? `<td>${esc(PF_NAME[p.platform] || '')}</td>` : ''}<td class="nowrap hide-sm">${esc(p.at ? M.pretty(M.dayKey(p.at)) : '')}</td><td class="r">${esc(fmt(p.nums.views))}</td><td class="r">${esc(pct(rate(p.nums)))}</td><td class="r">${esc(fmt(p.nums.saves))}</td><td class="r">${esc(fmt(p.nums.shares))}</td><td class="r">${p.nums.watch == null ? '–' : esc(p.nums.watch.toFixed(1) + ' s')}</td></tr>`).join('')}</tbody></table></div>`
+    : '<p class="empty">No numbers yet. Connect Instagram (docs/dashboard.md), or a day after a reel goes out type <code>/analytics-readout</code> with its numbers.</p>');
+  const top = topTable(M.top);
 
   const source = M.ig ? 'Instagram numbers' : 'Numbers from brand/insights.csv';
 
@@ -286,7 +306,7 @@ ${M.flow.slowest && M.flow.slowest.days >= 1 ? `<p class="foot">Reels wait longe
   const demoList = (rows, map) => (Array.isArray(rows) ? rows : rows && typeof rows === 'object' ? Object.entries(rows).sort((a, b) => b[1] - a[1]) : [])
     .filter((r) => Array.isArray(r) && Number.isFinite(+r[1])).slice(0, 5).map(([k, v]) => [map ? map[k] || k : k, +v]);
   const demoBars = (title, rows) => { const tot = rows.reduce((t, [, v]) => t + v, 0) || 1; return rows.length ? `<div><h4>${esc(title)}</h4>${rows.map(([k, v]) => `<div class="mrow"><span>${esc(k)}</span><i style="--w:${Math.round((v / tot) * 100)}%"></i><b>${Math.round((v / tot) * 100)}%</b></div>`).join('')}</div>` : ''; };
-  const audienceHtml = A ? `<section class="wrap" id="audience" aria-label="Audience">
+  const audienceHtml = A ? `<section class="wrap" id="audience" aria-label="Audience"${pfIn('all instagram')}>
   <div class="sec-head" data-reveal>${label('trend', 'Audience')}<span class="aside">From your Instagram account · updated ${esc(ago(M, A.at ? new Date(A.at) : null).toLowerCase())}</span></div>
   <div class="aud" data-reveal-group>
     <div class="panel"><h3>Last 7 days</h3>
@@ -309,10 +329,10 @@ ${M.flow.slowest && M.flow.slowest.days >= 1 ? `<p class="foot">Reels wait longe
   // the same reels on Facebook and Threads (platforms.mjs)
   const PLAT = { facebook: ['Facebook Page', 'plays', 'Comments', 'Shares'], threads: ['Threads', 'views', 'Replies', 'Reposts'] };
   const otherKeys = Object.keys(M.others || {});
-  const othersHtml = otherKeys.length ? `<section class="wrap" id="elsewhere" aria-label="Facebook and Threads">
+  const othersHtml = otherKeys.length ? `<section class="wrap" id="elsewhere" aria-label="Facebook and Threads"${pfIn(['all', ...otherKeys].join(' '))}>
   <div class="sec-head" data-reveal>${label('trend', otherKeys.length > 1 ? 'Facebook and Threads' : PLAT[otherKeys[0]][0])}<span class="aside">The same reels on your other accounts</span></div>
   <div class="twin" data-reveal-group>${otherKeys.map((k) => { const o = M.others[k], [title, verb, c3, c4] = PLAT[k], w = o.window || {};
-    return `<div class="panel"><h3>${safeUrl(o.link) ? `<a href="${esc(safeUrl(o.link))}" target="_blank" rel="noopener">${esc(title)}</a>` : esc(title)} <span class="foot">${esc(o.name)} · updated ${esc(ago(M, o.at ? new Date(o.at) : null).toLowerCase())}</span></h3>
+    return `<div class="panel"${pfIn(`all ${k}`)}><h3>${safeUrl(o.link) ? `<a href="${esc(safeUrl(o.link))}" target="_blank" rel="noopener">${esc(title)}</a>` : esc(title)} <span class="foot">${esc(o.name)} · updated ${esc(ago(M, o.at ? new Date(o.at) : null).toLowerCase())}</span></h3>
       <div class="tc"><div><div class="tc-big">${esc(fmt(o.followers))}</div><div class="foot">followers</div></div><div class="tc-big-r"><div class="tc-big">${esc(fmt(w.views))}</div><div class="foot">${k === 'facebook' ? 'views' : 'profile views'}, last ${w.days} days${w.people != null ? ` (${esc(fmt(w.people))} people)` : ''}</div></div></div>
       ${o.medianViews != null ? `<p class="foot">Median ${esc(verb)} per post: ${esc(fmt(o.medianViews))}${M.stats.medianViews ? ` (Instagram: ${esc(fmt(M.stats.medianViews))} views)` : ''}.</p>` : ''}
       ${o.posts.length ? `<div class="scroll"><table><thead><tr><th>Post</th><th class="r">${esc(verb[0].toUpperCase() + verb.slice(1))}</th><th class="r">Likes</th><th class="r">${esc(c3)}</th><th class="r">${esc(c4)}</th></tr></thead><tbody>${o.posts.slice(0, 8).map((x) => `<tr${x.reelId ? ` data-id="${esc(x.reelId)}"` : ''}><td>${x.reelId ? `<button type="button" class="linkish" data-open="${esc(x.reelId)}">${esc(clip(x.title, 48))}</button>` : safeUrl(x.link) ? `<a href="${esc(safeUrl(x.link))}" target="_blank" rel="noopener">${esc(clip(x.title, 48))}</a>` : esc(clip(x.title, 48))}</td><td class="r">${esc(fmt(x.views))}</td><td class="r">${esc(fmt(x.likes))}</td><td class="r">${esc(fmt(x.comments))}</td><td class="r">${esc(fmt(x.shares))}</td></tr>`).join('')}</tbody></table></div>` : '<p class="empty">No posts read yet.</p>'}
@@ -321,7 +341,7 @@ ${M.flow.slowest && M.flow.slowest.days >= 1 ? `<p class="foot">Reels wait longe
 
   // comments waiting for a reply, and posts the account is tagged in
   const I = M.inbox, sinceText = (d) => { if (!d) return ''; const hrs = Math.round((M.now - d) / 36e5); return hrs < 1 ? 'just now' : hrs < 24 ? `${hrs} h ago` : `${Math.round(hrs / 24)} d ago`; };
-  const commentsHtml = M.ig ? `<section class="wrap" id="comments" aria-label="Comments and mentions">
+  const commentsHtml = M.ig ? `<section class="wrap" id="comments" aria-label="Comments and mentions"${pfIn('all instagram')}>
   <div class="sec-head" data-reveal>${label('bell', 'Comments and mentions')}<span class="aside">${I.waiting.length} waiting for a reply · ${I.tags.length} tagged post${I.tags.length === 1 ? '' : 's'}</span></div>
   <div class="twin" data-reveal-group>
     <div class="panel"><h3>Waiting for a reply</h3>${I.waiting.length ? `<ul class="cmts">${I.waiting.slice(0, 8).map((c) => `<li${c.reel?.id ? ` data-id="${esc(c.reel.id)}"` : ''}><div><b>@${esc(c.username)}</b> <span class="foot">${esc(sinceText(c.at))}${c.reel ? ` · on ${esc(clip(c.reel.title, 40))}` : ''}</span></div><p>${esc(clip(c.text, 220))}</p><div class="cmd-line"><code>/comment-responder reply ${esc(c.id)}</code><button type="button" class="copy" data-copy="/comment-responder reply ${esc(c.id)}">Copy</button>${safeUrl(c.permalink) ? `<a class="ig" href="${esc(safeUrl(c.permalink))}" target="_blank" rel="noopener" aria-label="Open the post on Instagram">${icon('arrow')}</a>` : ''}</div></li>`).join('')}</ul>${I.waiting.length > 8 ? `<p class="foot">${I.waiting.length - 8} more: /comment-responder list</p>` : ''}` : '<p class="empty">Nothing waiting. Every recent comment has your reply.</p>'}</div>
@@ -331,7 +351,7 @@ ${M.flow.slowest && M.flow.slowest.days >= 1 ? `<p class="foot">Reels wait longe
 
   // A/B tests (trial reels)
   const VERDICT = { early: 'Too early', winner: 'Winner', tie: 'No clear winner', waiting: 'Waiting for numbers', decided: 'Decided' };
-  const testsHtml = M.tests.length ? `<section class="wrap" id="tests" aria-label="A/B tests">
+  const testsHtml = M.tests.length ? `<section class="wrap" id="tests" aria-label="A/B tests"${pfIn('all instagram')}>
   <div class="sec-head" data-reveal>${label('trend', 'A/B tests')}<span class="aside">Trial reels show each version to non-followers first</span></div>
   <div class="tests" data-reveal-group>${M.tests.map((t) => `<article class="test v-${t.verdict}">
 <header><div><h3>${esc(t.title)}</h3><p class="foot">Testing the ${esc(t.variable)} · decided by ${esc(t.metricName)} (${esc(t.better)} is better) · ${esc(t.sample.toLocaleString('en-US'))} views each</p></div><span class="verdict">${esc(VERDICT[t.verdict])}</span></header>
@@ -568,6 +588,9 @@ button{font:inherit;color:inherit}
 .seg button+button{border-left:1px solid var(--line-strong)}
 .seg button[aria-pressed=true]{background:var(--ink);color:var(--raised)}
 .seg button:hover:not([aria-pressed=true]){background:var(--sunken);color:var(--ink)}
+[data-pf][hidden],[data-pf-in][hidden]{display:none!important}
+.twin:has(> [hidden]){grid-template-columns:minmax(0,1fr)}
+.pf-note{margin-top:28px}
 .cal-nav{display:inline-flex;gap:6px}
 .cal-nav button{min-width:38px;height:36px;padding:0 12px;display:grid;place-items:center;border:1px solid var(--line-strong);background:var(--raised);color:var(--ink);cursor:pointer;font:600 11.5px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;transition:background 180ms var(--ease)}
 .cal-nav button:hover{background:var(--sunken)}
@@ -867,11 +890,12 @@ dialog.drawer[open]{animation:drawer 320ms var(--ease)}
 
 ${alertHtml}
 ${setupHtml}
-${M.setupOpen && !S.measured && !S.posted ? '' : `<div class="wrap"><div class="strip" data-reveal-group>${strip}</div></div>`}
+${M.setupOpen && !S.measured && !S.posted && !PFS.length ? '' : `<div class="wrap">${stripHtml}</div>`}
 
 <div class="focus-bar" id="focus"><div class="wrap focus">
   <label class="find"><span class="sr">Find a reel or idea</span><input type="search" id="f-q" placeholder="Find a reel or idea" autocomplete="off"></label>
   <button type="button" id="f-needs" class="toggle" aria-pressed="false"><i class="needs-dot" aria-hidden="true"></i>Needs you</button>
+  ${PFS.length ? `<div class="seg pf" role="group" aria-label="Platform">${PFS.map((k) => `<button type="button" data-pf-pick="${k}" aria-pressed="${k === PF_DEFAULT}">${k === 'all' ? 'All' : PF_NAME[k]}</button>`).join('')}</div>` : ''}
   <label class="pick"><span class="sr">Stage</span><select id="f-stage"><option value="">All stages</option>${STAGES.map(([k, n]) => `<option value="${k}">${esc(n)}</option>`).join('')}</select></label>
   ${M.series.length ? `<label class="pick"><span class="sr">Series</span><select id="f-series"><option value="">All series</option>${M.series.map((x) => `<option value="${esc(x.name)}">${esc(x.name)}</option>`).join('')}</select></label>` : ''}
   <button type="button" id="f-clear" class="clear" hidden>Clear</button>
@@ -894,12 +918,19 @@ ${M.setupOpen && !S.measured && !S.posted ? '' : `<div class="wrap"><div class="
 </div></section>
 
 <section class="wrap" id="trends" aria-label="Trends">
-  <div class="sec-head" data-reveal>${label('trend', 'Trends')}<span class="aside">${M.ig ? 'From your Instagram account' : 'From brand/insights.csv'}</span></div>
-  <div class="twin" data-reveal-group>
+  <div class="sec-head" data-reveal>${label('trend', 'Trends')}<span class="aside">${PFS.length ? 'From your connected accounts' : M.ig ? 'From your Instagram account' : 'From brand/insights.csv'}</span></div>
+  ${PFS.length ? PFS.map((k) => k === 'instagram' ? `<div class="twin"${pfAttr(k)} data-reveal-group>
     <div class="panel"><h3>Followers</h3>${followerChart(M)}</div>
     <div class="panel"><h3>Views by the week posts went out</h3>${weekChart(M)}</div>
-  </div>
-  <div class="panel" style="margin-top:20px" data-reveal><h3>Watch time and skip rate, latest reels</h3>${retention(M)}</div>
+  </div>` : `<div class="twin"${pfAttr(k)} data-reveal-group>
+    <div class="panel"><h3>Followers${k === 'all' ? ', all platforms' : ''}</h3>${followerChart(M, M.platforms[k].followerRows, true)}</div>
+    <div class="panel"><h3>${k === 'facebook' ? 'Plays' : k === 'all' ? 'Views and plays' : 'Views'} by the week posts went out</h3>${weekChart(M, M.platforms[k].weeks)}</div>
+  </div>`).join('') : `<div class="twin" data-reveal-group>
+    <div class="panel"><h3>Followers</h3>${followerChart(M)}</div>
+    <div class="panel"><h3>Views by the week posts went out</h3>${weekChart(M)}</div>
+  </div>`}
+  <div class="panel" style="margin-top:20px" data-reveal${pfIn('all instagram')}><h3>Watch time and skip rate, latest reels${PFS.length ? ' (Instagram)' : ''}</h3>${retention(M)}</div>
+  ${PFS.length ? `<div class="panel" style="margin-top:20px"${pfIn('facebook threads')}><h3>Watch time and skip rate</h3><p class="empty">Instagram only. Facebook gives an average watch time per reel (in Top posts below); Threads gives none.</p></div>` : ''}
   <div class="twin" style="margin-top:20px" data-reveal-group>
     <div class="panel"><h3>Content mix${M.mix.count ? ` · last ${M.mix.count} posts` : ''}</h3>${mixHtml}</div>
     <div class="panel"><h3>Time and cost</h3>${timeHtml}</div>
@@ -929,10 +960,11 @@ ${commentsHtml}
 ${testsHtml}
 ${seriesHtml}
 ${audienceHtml}
+${PFS.length && (A || M.ig || M.tests.length) ? `<section class="wrap pf-note"${pfIn('facebook threads')}><p class="empty">Your audience and best time to post, comments and hook tests come from Instagram only: switch to All or Instagram to see them.</p></section>` : ''}
 ${othersHtml}
 <section class="wrap" id="top" aria-label="Top posts">
-  <div class="sec-head" data-reveal>${label('star', 'Top posts')}<span class="aside">By views</span></div>
-  <div class="panel" data-reveal>${top}</div>
+  <div class="sec-head" data-reveal>${label('star', 'Top posts')}<span class="aside">By views${PFS.includes('facebook') ? ' (plays on Facebook)' : ''}</span></div>
+  ${PFS.length ? PFS.map((k) => `<div class="panel"${pfAttr(k)} data-reveal>${k === 'instagram' ? top : topTable(M.platforms[k].top, k === 'all')}</div>`).join('') : `<div class="panel" data-reveal>${top}</div>`}
 </section>
 
 <footer class="page wrap"><span>Made from this brand folder's files${(() => { const n = [M.ig && 'Instagram', M.others?.facebook && 'Facebook', M.others?.threads && 'Threads'].filter(Boolean); return n.length ? ` and its ${n.length > 1 ? n.slice(0, -1).join(', ') + ' and ' + n.at(-1) : n[0]} numbers` : ''; })()}. This page posts nothing.</span><span>BagelUnit Reel Kit</span></footer>
