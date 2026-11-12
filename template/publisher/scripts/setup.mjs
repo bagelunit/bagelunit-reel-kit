@@ -191,7 +191,7 @@ export function sendSecrets({ slug, configDir = CONFIG_DIR, pubDir = PUB, only =
 // (Meta's "Set up Instagram Webhooks" guide). Unified Login: graph.facebook.com, fields comments, mentions, messages.
 // Instagram Login: graph.instagram.com, fields comments and messages (mentions arrive inside comments there). The
 // token comes from the token file, goes in the Authorization header only, and is blanked from any error.
-export const SUBSCRIBE_FIELDS = { unified: ['comments', 'mentions', 'messages'], instagram: ['comments', 'messages'] };
+export const SUBSCRIBE_FIELDS = { unified: ['comments', 'mentions', 'messages', 'messaging_postbacks'], instagram: ['comments', 'messages', 'messaging_postbacks'] };
 export async function subscribe({ slug, configDir = CONFIG_DIR, fetchImpl = fetch, dryRun = false, log = console.log, apiVersion = 'v27.0' }) {
   const { file, login } = loginOf(slug, configDir);
   if (!file) throw new Plain(`no Instagram connection for this brand yet: docs/connect.md step 2A or 2B makes ${path.join(configDir, `instagram-${slug}.json`)}`);

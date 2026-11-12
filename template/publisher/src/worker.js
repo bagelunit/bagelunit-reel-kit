@@ -71,8 +71,23 @@ export function loadRules(raw, env = {}) {
     const follow = r.require_follow === true;
     if (follow) for (const k of ['ask', 'follow_nudge']) if (r[k] && LINK.test(r[k])) throw new Error(`${name}: ${k} contains a link; the link goes only in dm, after the follow check`);
     const nudges = Math.round(Number(r.max_nudges));
+    // Optional "cards" : the messages carry real buttons instead of plain text. The ask and the
+    // reminder get a "Follow me" link button (follow_url, the account's profile) and an "I'm following" tap button; the
+    // link message gets one link button (link_url) titled link_button. If Meta refuses a card, the old behaviour is the
+    // fallback: a quick-reply chip, then plain text with the link in it. Titles are cut to Meta's 20 characters.
+    const cards = r.cards === true;
+    const https = (u) => /^https:\/\/\S+$/.test(String(u || ''));
+    if (cards && !https(r.link_url)) throw new Error(`${name}: cards needs link_url, an https address (the button on the link message)`);
+    if (cards && follow && !https(r.follow_url)) throw new Error(`${name}: cards with require_follow needs follow_url, the https address of the account's profile`);
     return {
       name,
+      cards,
+      followUrl: https(r.follow_url) ? String(r.follow_url) : '',
+      linkUrl: https(r.link_url) ? String(r.link_url) : '',
+      followLabel: String(r.follow_label || 'Follow me').slice(0, 20),
+      linkButton: String(r.link_button || 'Open the link').slice(0, 20),
+      // the plain-text version of the link message, used only if Meta refuses the link button: the link goes in the text
+      dmFallback: withDisclosure(cards && !String(r.dm).includes(String(r.link_url)) ? `${String(r.dm).trimEnd()}\n${r.link_url}` : String(r.dm), line),
       requireFollow: follow,
       ask: withDisclosure(String(r.ask || ASK_DEFAULT), line),
       button: String(r.button || BUTTON_DEFAULT).slice(0, 20),
@@ -221,7 +236,9 @@ export async function handleComment(env, c, rules, fetchImpl = fetch) {
   catch (e) { result.reply = `failed: ${e.message}`; }
   try {
     const to = { comment_id: c.id };
-    await sendDm(api, env.IG_USER_ID || c.account, to, rule.requireFollow ? rule.ask : rule.dm, rule.requireFollow ? rule.button : null);
+    const from = env.IG_USER_ID || c.account;
+    if (rule.requireFollow) await sendDm(api, from, to, rule.ask, rule.button, rule.cards ? followCards(rule) : null);
+    else await sendDm(api, from, to, rule.dm, null, rule.cards ? linkCards(rule) : null, rule.dmFallback);
     result.dm = 'sent';
     if (rule.requireFollow) { result.step = 'asked'; await env.KV.put(`pending:${c.fromId}`, JSON.stringify({ rule: rule.name, comment_id: c.id, username: c.username, at: new Date().toISOString(), nudges: 0 }), { expirationTtl: PENDING_TTL }); }
   } catch (e) { result.dm = `failed: ${e.message}`; }
@@ -231,14 +248,25 @@ export async function handleComment(env, c, rules, fetchImpl = fetch) {
 
 // One private message. With a button label it carries a quick-reply button; if Meta refuses the button, the same text
 // goes without it (the person can still just reply).
-async function sendDm(api, from, recipient, text, button) {
+// With cards (a list of Instagram button-template buttons) the message is a card with real buttons; if Meta refuses it,
+// the quick-reply chip is tried, then plain text. `plain` is the text for the last step when it differs from `text`
+// (the link message: the card text has no link, the plain fallback does).
+async function sendDm(api, from, recipient, text, button, cards = null, plain = null) {
   const path = `${from}/messages`;
+  if (cards?.length) {
+    try { return await api.post(path, { recipient, message: { attachment: { type: 'template', payload: { template_type: 'button', text: String(text).slice(0, 640), buttons: cards } } } }); }
+    catch { /* try the chip, then plain text */ }
+  }
   if (button) {
     try { return await api.post(path, { recipient, message: { text, quick_replies: [{ content_type: 'text', title: button, payload: 'FOLLOW_CHECK' }] } }); }
     catch { /* try without the button */ }
   }
-  return api.post(path, { recipient, message: { text } });
+  return api.post(path, { recipient, message: { text: plain || text } });
 }
+// The two buttons on the ask and on the reminder: open the profile, or tap to say you follow (a postback, which
+// arrives like a short reply and goes through the same follow check).
+const followCards = (rule) => [{ type: 'web_url', url: rule.followUrl, title: rule.followLabel }, { type: 'postback', title: rule.nudgeButton, payload: 'FOLLOW_CHECK' }];
+const linkCards = (rule) => [{ type: 'web_url', url: rule.linkUrl, title: rule.linkButton }];
 
 // The second step of a require_follow rule: a person who was asked has answered (a reply or the button). Read whether
 // they follow, then send the link, or a short nudge up to max_nudges times. Every send goes through the same safety
@@ -266,7 +294,7 @@ export async function handleReply(env, m, rules, fetchImpl = fetch) {
 
   const from = env.IG_USER_ID || m.account;
   if (follows) {
-    try { await sendDm(api, from, { id: m.from_id }, rule.dm, null); }
+    try { await sendDm(api, from, { id: m.from_id }, rule.dm, null, rule.cards ? linkCards(rule) : null, rule.dmFallback); }
     catch (e) { return { action: 'error', rec: await log(env, 'error', { ...c, id: `${c.id}:link` }, { why: `the link message failed: ${e.message}`, rule: rule.name, follows: true }) }; }
     await env.KV.delete(`pending:${m.from_id}`);
     return { action: 'lead', rec: await log(env, 'lead', { ...c, id: `${c.id}:link` }, { rule: rule.name, step: 'link', follows: true }) };
@@ -276,7 +304,7 @@ export async function handleReply(env, m, rules, fetchImpl = fetch) {
     await env.KV.delete(`pending:${m.from_id}`);
     return { action: 'defer', rec: await log(env, 'defer', { ...c, id: `${c.id}:gaveup` }, { why: `still not following after ${rule.maxNudges} reminder${rule.maxNudges === 1 ? '' : 's'}`, rule: rule.name }) };
   }
-  try { await sendDm(api, from, { id: m.from_id }, rule.nudge, rule.nudgeButton); }
+  try { await sendDm(api, from, { id: m.from_id }, rule.nudge, rule.nudgeButton, rule.cards ? followCards(rule) : null); }
   catch (e) { return { action: 'error', rec: await log(env, 'error', { ...c, id: `${c.id}:nudge` }, { why: `the reminder failed: ${e.message}`, rule: rule.name }) }; }
   await env.KV.put(`pending:${m.from_id}`, JSON.stringify({ ...pend, nudges }), { expirationTtl: PENDING_TTL });
   return { action: 'lead', rec: await log(env, 'lead', { ...c, id: `${c.id}:nudge${nudges}` }, { rule: rule.name, step: 'nudge', follows: false, nudges }) };

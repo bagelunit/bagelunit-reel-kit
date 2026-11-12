@@ -466,16 +466,16 @@ test('setup subscribe: turns on the account\'s notifications on the right host, 
   assert.equal(calls[0].url, 'https://graph.instagram.com/v27.0/1784/subscribed_apps');
   assert.equal(calls[0].init.method, 'POST');
   assert.equal(calls[0].init.headers.Authorization, 'Bearer IGTOKENSECRET');
-  assert.equal(new URLSearchParams(calls[0].init.body).get('subscribed_fields'), 'comments,messages');
+  assert.equal(new URLSearchParams(calls[0].init.body).get('subscribed_fields'), 'comments,messages,messaging_postbacks');
   assert.ok(!calls[0].url.includes('IGTOKENSECRET') && !calls[0].init.body.includes('IGTOKENSECRET'));
-  assert.deepEqual(a.fields, ['comments', 'messages']);
+  assert.deepEqual(a.fields, ['comments', 'messages', 'messaging_postbacks']);
   assert.ok(!out.join('\n').includes('IGTOKENSECRET'));
   // Unified Login, shared token file: graph.facebook.com, the brand's own id, mentions too
   fs.writeFileSync(path.join(cfg, 'instagram.json'), JSON.stringify({ access_token: 'SUATSECRET', login: 'unified', ig_user_id: '999' }));
   fs.writeFileSync(path.join(cfg, 'instagram-un.ids.json'), JSON.stringify({ ig_user_id: '1785' }));
   await subscribe({ slug: 'un', configDir: cfg, fetchImpl: ok, log: quiet });
   assert.equal(calls[1].url, 'https://graph.facebook.com/v27.0/1785/subscribed_apps');
-  assert.equal(new URLSearchParams(calls[1].init.body).get('subscribed_fields'), 'comments,mentions,messages');
+  assert.equal(new URLSearchParams(calls[1].init.body).get('subscribed_fields'), 'comments,mentions,messages,messaging_postbacks');
   // a dry run sends nothing
   const before = calls.length;
   const d = await subscribe({ slug: 'un', configDir: cfg, fetchImpl: ok, dryRun: true, log: quiet });

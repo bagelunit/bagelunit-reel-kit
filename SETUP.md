@@ -198,6 +198,7 @@ Keep brand folders out of iCloud-synced folders (Desktop, Documents) if you can:
 - **"opus-sound-layer library missing":** run `uv run scripts/sfx.py kit` in `~/dev/sound/opus-sound-layer`.
 - **realsound.py cannot import numpy:** run it with earshot's Python: `~/dev/sound/earshot/.venv/bin/python`.
 - **The laptop gets loud:** normal during a final render. Drafts are half size, and renders take turns.
+- **"Operation not permitted" when a tool writes into Documents (Mac):** a security program's ransomware protection (for example Bitdefender's Safe Files) is blocking programs it does not trust. It is per program, so allowing your editor does not cover the commands it runs. Allow the shell (`zsh`, `bash`), `git`, `node`, `python3`, `ffmpeg`, `ffprobe`, `whisper-cli` and the basic file tools (`cp`, `mv`, `mkdir`, `rm`, `touch`) in the program's application-access list. Homebrew's version folders change on an upgrade, so the block can come back after one.
 
 ## Optional: Apify (outlier scan)
 

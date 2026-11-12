@@ -42,3 +42,10 @@ If you would rather not, or your browser cannot run it, every guide in the kit s
 | Telegram bot, Netlify or Cloudflare Pages | `docs/dashboard.md` |
 | Apify, Runway (paid, optional) | `SETUP.md`, "Optional" |
 | Sticker host: connecting Higgsfield, an OpenAI or Gemini key, or making each pose in ChatGPT or the Gemini app | `/sticker-host` |
+
+## 5. When the browser tool misbehaves
+
+- **It cannot open a file on your computer** (a `file://` address): open the file yourself (on a Mac, `open <file>` in the terminal).
+- **Several browsers or profiles:** Claude may be connected to a different Chrome window or profile than the one you are looking at. Tell it which window has the extension and is logged in.
+- **A Meta page shows an old state after Claude clicked in it:** reload the page and look again before trusting what it showed.
+- **A file upload that fails in the tool** (for example a screen recording on Meta's App Review): do that one upload yourself, in the same window, and tell Claude when it is done.

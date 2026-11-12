@@ -93,6 +93,7 @@ export function meta(opts = {}) {
         const id = p.split('/').pop(); const v = opts.follows?.[id] ?? opts.follow;
         return v === 'missing' || v === undefined ? ok({ name: 'x' }) : ok({ is_user_follow_business: v });
       }
+      if (p.endsWith('/messages') && opts.noCards && body?.message?.attachment) return new Response(JSON.stringify({ error: { message: 'templates not allowed here', code: 100 } }), { status: 400 });
       if (p.endsWith('/messages') && opts.noButtons && body?.message?.quick_replies) return new Response(JSON.stringify({ error: { message: 'quick replies not allowed here', code: 100 } }), { status: 400 });
       if (p.endsWith('/messages') || p.endsWith('/replies')) return ok({ id: 'x', message_id: 'm' });
       // Facebook Page

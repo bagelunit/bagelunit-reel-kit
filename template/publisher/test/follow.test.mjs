@@ -172,3 +172,76 @@ test('forget removes a pending wait, and the admin follow check answers without 
   assert.equal(r.status, 200);
   assert.equal((await worker.fetch(new Request('https://pub.example/admin/follow-check?id=123456'), e, ctx)).status, 403);
 });
+
+// ---------- cards: real buttons instead of plain text ----------
+const CARDS = { ...RULE, cards: true, follow_url: 'https://www.instagram.com/bagelunit/', link_url: 'https://github.com/bagelunit/bagelunit-reel-kit',
+  dm: 'Here is the BagelUnit Reel Kit. It is free to use.', link_button: 'Open the kit', ask: 'Before I send the kit, are you following me?' };
+const cardRules = (x = {}) => loadRules({ rules: [{ ...CARDS, ...x }] });
+
+test('cards: rules need an https link_url, and an https follow_url when the follow gate is on', () => {
+  assert.throws(() => cardRules({ link_url: undefined }), /cards needs link_url/);
+  assert.throws(() => cardRules({ link_url: 'http://x.co' }), /cards needs link_url/);
+  assert.throws(() => cardRules({ follow_url: undefined }), /cards with require_follow needs follow_url/);
+  assert.doesNotThrow(() => cardRules({ require_follow: false, follow_url: undefined }));      // no gate: no profile button needed
+  const r = cardRules()[0];
+  assert.equal(r.cards, true); assert.equal(r.linkButton, 'Open the kit'); assert.equal(r.followLabel, 'Follow me');
+  assert.equal(cardRules({ link_button: 'x'.repeat(40) })[0].linkButton.length, 20);          // Meta's 20-character button title
+  assert.equal(rules()[0].cards, false);                                                       // a plain rule is unchanged
+});
+
+test('cards step 1: the ask is a card with Follow me (profile link) and I\'m following (tap); no kit link in the text', async () => {
+  const e = env(); const g = meta();
+  const out = await handleComment(e, comment(), cardRules(), g);
+  assert.equal(out.rec.step, 'asked');
+  const [dm] = sends(g);
+  assert.deepEqual(dm.recipient, { comment_id: 'c1' });
+  const p = dm.message.attachment.payload;
+  assert.equal(dm.message.attachment.type, 'template'); assert.equal(p.template_type, 'button');
+  assert.ok(!/github|https?:/.test(p.text)); assert.ok(p.text.endsWith(DEFAULT_DISCLOSURE));
+  assert.deepEqual(p.buttons, [{ type: 'web_url', url: 'https://www.instagram.com/bagelunit/', title: 'Follow me' }, { type: 'postback', title: "I'm following", payload: 'FOLLOW_CHECK' }]);
+  assert.ok(await e.KV.get('pending:123'));
+});
+
+test('cards step 2: a follower tapping I\'m following gets a card with one Open the kit link button', async () => {
+  const e = env(); await handleComment(e, comment(), cardRules(), meta());
+  const g = meta({ follows: { 123: true } });
+  const ev = extractEvents({ entry: [{ id: '999', time: 1, messaging: [{ sender: { id: '123' }, recipient: { id: '999' }, timestamp: 1, postback: { mid: 'pb1', title: "I'm following", payload: 'FOLLOW_CHECK' } }] }] });
+  assert.equal(ev.messages.length, 1);
+  const out = await handleReply(e, { ...ev.messages[0], account: '999' }, cardRules(), g);
+  assert.equal(out.rec.step, 'link');
+  const [dm] = sends(g); const p = dm.message.attachment.payload;
+  assert.deepEqual(dm.recipient, { id: '123' });
+  assert.deepEqual(p.buttons, [{ type: 'web_url', url: 'https://github.com/bagelunit/bagelunit-reel-kit', title: 'Open the kit' }]);
+  assert.ok(!/https?:/.test(p.text)); assert.ok(p.text.endsWith(DEFAULT_DISCLOSURE));
+});
+
+test('cards step 2: someone not following gets the reminder card with the same two buttons, and never the kit link', async () => {
+  const e = env(); await handleComment(e, comment(), cardRules(), meta());
+  const g = meta({ follows: { 123: false } });
+  const out = await handleReply(e, msg(), cardRules(), g);
+  assert.equal(out.rec.step, 'nudge');
+  const [dm] = sends(g); const p = dm.message.attachment.payload;
+  assert.equal(p.buttons.length, 2); assert.equal(p.buttons[1].type, 'postback');
+  assert.ok(!JSON.stringify(dm).includes('github.com'));
+});
+
+test('cards: if Meta refuses the card, the chip goes, then plain text; the plain link message carries the link in the text', async () => {
+  const e = env(); const g = meta({ noCards: true });
+  await handleComment(e, comment(), cardRules(), g);
+  const asked = sends(g);
+  assert.equal(asked.length, 2); assert.ok(asked[0].message.attachment); assert.ok(asked[1].message.quick_replies);     // card refused, chip sent
+  const g2 = meta({ noCards: true, follows: { 123: true } });
+  await handleReply(e, msg(), cardRules(), g2);
+  const link = sends(g2);
+  assert.equal(link.length, 2); assert.ok(link[0].message.attachment);
+  assert.match(link[1].message.text, /https:\/\/github\.com\/bagelunit\/bagelunit-reel-kit/);
+  assert.ok(link[1].message.text.endsWith(DEFAULT_DISCLOSURE));
+});
+
+test('cards without the follow gate: the comment gets the link card straight away', async () => {
+  const e = env(); const g = meta();
+  const out = await handleComment(e, comment(), cardRules({ require_follow: false }), g);
+  assert.equal(out.action, 'lead');
+  const [dm] = sends(g);
+  assert.deepEqual(dm.message.attachment.payload.buttons.map((b) => b.title), ['Open the kit']);
+});

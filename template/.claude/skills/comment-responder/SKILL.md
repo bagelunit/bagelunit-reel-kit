@@ -71,12 +71,17 @@ Walk the owner through it one step at a time. Ask every choice with a question b
 a short checklist in your reply so they always see where they are, and stop after any step they want to
 finish later; next time, read `brand.json` -> `cta.dm_tool` and `cta.tested_keywords` to see where they got to.
 
+0. **Say the limit plainly before anything else:** automatic replies and DMs cannot run until Meta approves
+   the brand's app. That takes days to weeks, nobody (Claude included) can speed it up or skip it, and the legal
+   clicks (Tech Provider, Allowed usage) and the screen recording are the owner's. Until then the reel's DMs are
+   sent by hand, one at a time after the owner's yes, or through a no-code tool. Never promise a keyword DM in a
+   reel before one of those is working.
 1. **Explain in three lines:** the kit drafts the rule and the texts; something connected to their Instagram
    has to send them. With the kit's publisher, Meta must approve the app first (App Review for the comments
    permission, Business Verification, then Live), which takes days to weeks. Nothing goes out until they test it
    from a second, public account.
 2. **Pick the route** (question block): "The kit's publisher (Recommended)" (free, runs on their Cloudflare, needs
-   Meta's approval), "A no-code comment-to-DM tool" (faster to start, paid, the tool holds the Meta approval),
+   Meta's approval), "A no-code comment-to-DM tool" (faster to start, paid at about $15 to $40 a month, the tool holds the Meta approval; start with one low-stakes reel because some accounts report Instagram restrictions),
    "Not now". Read `docs/auto-reply.md` for the route.
 3. **Pick the keyword** (question block): offer 2 or 3 short, distinct words that fit the brand's resource,
    plus Other. Check it is not a common word people type anyway.

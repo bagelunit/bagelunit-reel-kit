@@ -35,7 +35,7 @@ is what usually brings the owner here.
    (every replaced file is kept next to the new one as `<name>.bak-<date>`, and `brand/` values and `reels/` are
    never touched), then updates the engine (`/bagelunit-reels`) when it is older than the kit by running the kit's
    installer without the program, plugin and sound-library steps. Report it in two or three lines. If the owner
-   changed `CLAUDE.md` or a skill for this brand only, say that the change was replaced (the `.bak` copy is kept) and
+   changed `CLAUDE.md`, a skill or the publisher's code (`publisher/src`, `publisher/scripts`, `publisher/test`) for this brand only, say that the change was replaced (the `.bak` copy is kept) and
    offer to move it into `CLAUDE.local.md` (rules for this brand only; updates never touch it).
 4. **Restart:** if it printed "The engine is updated", tell the owner to restart Claude Code so the new engine and
    skills load. A linked engine (installed with `--link`) follows its kit folder and is left alone. If it says the

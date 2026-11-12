@@ -30,6 +30,10 @@ In the Instagram app or Meta Business Suite, upload the approved mp4 from `reels
 
 A scheduling app connects to an Instagram professional account and posts at a set time. You upload the approved file and cover once. Check the app's current price and terms first.
 
+## Changing a post after it is out
+
+Instagram's and Threads' APIs cannot edit a caption once it is posted, so the publisher cannot fix one. Edit the caption by hand in the app. For a wrong video, delete the post by hand and schedule the fixed reel again, then add the new post's link to the reel's "Posting" lines so the dashboard matches it.
+
 ## Test, then go live
 
 1. With the publisher in dry run, schedule one approved reel a few minutes ahead (`/reel-posting`). `autopilot.post` can still be `false` for this: a dry run posts nothing. After its time, check with `node publisher/scripts/schedule.mjs status` that it would have posted the right file, cover and caption on each platform.
