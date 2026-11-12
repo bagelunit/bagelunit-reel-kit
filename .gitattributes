@@ -1,0 +1,2 @@
+# the synced scene styles are fingerprinted byte for byte, so they stay LF on every system (a Windows checkout would otherwise change them)
+studio/styles/** text eol=lf
