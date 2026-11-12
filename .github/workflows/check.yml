@@ -63,7 +63,9 @@ jobs:
         run: node setup/test-reel-folders.mjs
 
       - name: Release smoke (a new brand in both folder layouts, every reel command finds the reel by its slug, no hand-built reel paths, every engine command known)
-        run: node setup/test-release-smoke.mjs
+        run: |
+          python -m pip install --quiet numpy
+          node setup/test-release-smoke.mjs
 
       - name: Score bar works (Gate C refuses a review under 90 out of 100, accepts 90 or more, records the owner's override)
         run: node setup/test-score-bar.mjs

@@ -35,7 +35,8 @@ if (unknown.length) fail(`kit.mjs has command(s) this test does not know: ${unkn
 else ok(`all ${listed.length} engine commands are known to the smoke test`);
 
 // ── 1. a new brand in each layout ─────────────────────────────────────────────────────────────────────────────────────
-const NOT_FOUND = /not found|no such (file|reel)|is not a reel|not inside a brand|ENOENT|Traceback|TypeError|ReferenceError|Cannot find/i;
+// what a command says when it cannot find the reel (a missing Python package is a different problem and is not counted here)
+const NOT_FOUND = /has no reel\.json|isn't a reel yet|is not a folder|not inside a brand folder|No such file or directory|FileNotFoundError|no reel (named|found)|could not find (the |a )?reel/i;
 for (const layout of ['flat', 'dated']) {
   const made = spawnSync('node', [path.join(kit, 'setup', 'new-brand.mjs'), path.join(tmp, 'smoke-' + layout)], { encoding: 'utf8' });
   const B = path.join(tmp, 'smoke-' + layout + '-reels');
@@ -52,7 +53,7 @@ for (const layout of ['flat', 'dated']) {
   for (const [cmd, extra] of Object.entries(takesReel)) {
     for (const ref of ['smoke-reel', 'reels/smoke-reel']) {
       const r = kitRun(cmd, ref, ...extra), out = (r.stdout || '') + (r.stderr || '');
-      if (NOT_FOUND.test(out)) fail(`${layout}: kit ${cmd} ${ref} did not find the reel: ${out.trim().split('\n')[0]}`);
+      if (NOT_FOUND.test(out)) fail(`${layout}: kit ${cmd} ${ref} could not find the reel: ${out.trim().split('\n')[0]}`);
     }
   }
   ok(`${layout}: every reel command found the reel by its slug`);
