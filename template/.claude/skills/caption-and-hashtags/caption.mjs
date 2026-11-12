@@ -21,6 +21,7 @@
 // Everything is tailored to the brand: brand.json -> niche (topic, audience, keywords, tags) is where the steady phrases and tags
 // come from, and check notes any keyword that shares no word with the caption, the script or the niche.
 import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { resolveReelArg } from '../../../publisher/scripts/reels.mjs';
 import { findBrand, readJSON, parseArgs, Plain } from '../../../publisher/scripts/lib.mjs';
@@ -176,6 +177,6 @@ async function main() {
   else console.log('Caption layout is right: caption, hashtags, keywords, one blank line between each.');
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname)) {
+if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url))) {
   main().catch((e) => { console.error(e instanceof Plain ? e.message : `Unexpected error: ${e?.message || e}`); process.exit(1); });
 }

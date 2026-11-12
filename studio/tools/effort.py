@@ -62,10 +62,6 @@ def main():
     project = resolve_reel(args[0])
     reel = reel_settings(project)
     mode = reel.get('style', 'print')
-    words = load_words(project)
-    if not words:
-        fail(TOOL, 'no build/words.json yet (voice the script first)')
-    seconds = words[-1]['e'] + 0.6
     mode_dir = KIT_ROOT / 'modes' / mode
     if not mode_dir.is_dir() and (KIT_ROOT / 'styles' / mode / 'engine.js').is_file():
         # local addition: a scene style draws with its engine's templates; the reel's own work is scenes.json (props, narration),
@@ -74,6 +70,10 @@ def main():
               'style\'s templates). Judge the plan instead: kit scene <dir> plan, kit scene <dir> check, and look at the sheets.')
         sys.exit(0)
 
+    words = load_words(project)
+    if not words:
+        fail(TOOL, 'no build/words.json yet (voice the script first)')
+    seconds = words[-1]['e'] + 0.6
     files = {f for pattern in SCENE_GLOBS for f in project.glob(pattern) if f.is_file()}
     files |= {project / name for name in (reel.get('scenes') or []) if (project / name).is_file()}
     PREVIEW_PAGES = ('parts_sheet.js', 'props_sheet.js', 'kit_preview.js')   # preview pages are not the reel

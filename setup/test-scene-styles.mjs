@@ -107,18 +107,22 @@ const out = (r) => (r.stdout || '') + (r.stderr || '');
   check(kit('start', 'reels/plain', '--style', 'print').status === 0 && fs.existsSync(path.join(B, 'reels', 'plain', 'index.html')), 'kit start --style print still makes a print reel');
   const p = kit('scene', 'reels/plain', 'plan');
   check(p.status !== 0 && /is a print reel/.test(out(p)), 'kit scene refuses a print reel in plain words');
-  const v = kit('scene', 'reels/demo', 'stand-in');
-  check(v.status === 0 && fs.existsSync(path.join(R, 'audio', 'vo.mp3')) && fs.existsSync(path.join(R, 'build', 'words.json')) && fs.existsSync(path.join(R, 'build', 'word_index.txt')), 'kit scene stand-in writes audio/vo.mp3, build/words.json and build/word_index.txt (no key)');
-  const wj = JSON.parse(fs.readFileSync(path.join(R, 'build', 'words.json'), 'utf8'));
-  check(Array.isArray(wj) && wj.length > 20 && ['w', 's', 'e'].every((k) => k in wj[0]), 'words.json has the voice.py format [{w, s, e}]');
-  const pl = kit('scene', 'reels/demo', 'plan');
-  check(pl.status === 0 && (out(pl).match(/words (\d+)\/\1:/g) || []).length === 3, 'kit scene plan anchors all 3 sample scenes to their words');
-  // a voice that is not a stand-in is never replaced
-  fs.copyFileSync(path.join(R, 'audio', 'vo.mp3'), path.join(tmp, 'vo-copy.mp3'));
-  spawnSync('ffmpeg', ['-v', 'error', '-y', '-f', 'lavfi', '-i', 'sine=d=1', path.join(R, 'audio', 'vo.mp3')]);
-  const again = kit('scene', 'reels/demo', 'stand-in');
-  check(again.status !== 0 && /not a stand-in/.test(out(again)), 'kit scene stand-in refuses to replace a real voice take');
-  fs.copyFileSync(path.join(tmp, 'vo-copy.mp3'), path.join(R, 'audio', 'vo.mp3'));
+  const HAS_FFMPEG = spawnSync('ffmpeg', ['-version']).status === 0;
+  if (!HAS_FFMPEG) console.log('SKIPPED stand-in voice checks: ffmpeg is not installed');
+  else {
+    const v = kit('scene', 'reels/demo', 'stand-in');
+    check(v.status === 0 && fs.existsSync(path.join(R, 'audio', 'vo.mp3')) && fs.existsSync(path.join(R, 'build', 'words.json')) && fs.existsSync(path.join(R, 'build', 'word_index.txt')), 'kit scene stand-in writes audio/vo.mp3, build/words.json and build/word_index.txt (no key)');
+    const wj = JSON.parse(fs.readFileSync(path.join(R, 'build', 'words.json'), 'utf8'));
+    check(Array.isArray(wj) && wj.length > 20 && ['w', 's', 'e'].every((k) => k in wj[0]), 'words.json has the voice.py format [{w, s, e}]');
+    const pl = kit('scene', 'reels/demo', 'plan');
+    check(pl.status === 0 && (out(pl).match(/words (\d+)\/\1:/g) || []).length === 3, 'kit scene plan anchors all 3 sample scenes to their words');
+    // a voice that is not a stand-in is never replaced
+    fs.copyFileSync(path.join(R, 'audio', 'vo.mp3'), path.join(tmp, 'vo-copy.mp3'));
+    spawnSync('ffmpeg', ['-v', 'error', '-y', '-f', 'lavfi', '-i', 'sine=d=1', path.join(R, 'audio', 'vo.mp3')]);
+    const again = kit('scene', 'reels/demo', 'stand-in');
+    check(again.status !== 0 && /not a stand-in/.test(out(again)), 'kit scene stand-in refuses to replace a real voice take');
+    fs.copyFileSync(path.join(tmp, 'vo-copy.mp3'), path.join(R, 'audio', 'vo.mp3'));
+  }
   const fx = spawnSync(PY, [path.join(STUDIO, 'tools', 'effort.py'), R], { encoding: 'utf8' });
   check(fx.status === 0 && /SKIPPED/.test(out(fx)), 'kit effort says it does not apply to a scene style (no false FAIL)');
   const ln = spawnSync(PY, [path.join(STUDIO, 'tools', 'lint.py'), R], { encoding: 'utf8' });

@@ -16,6 +16,7 @@
 //   - This shows what went WITH good posts, not that the tag caused it. Small samples are loud: read the counts.
 // Posts with no views (hashtag-search files have likes only, and some accounts hide views) are left out of the maths.
 import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { brandRoot, readJSON, writeAtomic } from './lib.mjs';
 
@@ -98,7 +99,7 @@ export function run(root) {
   return a;
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname)) {
+if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url))) {
   const root = brandRoot(process.cwd());
   const a = run(root);
   const best = [...a.ranked.slice(0, 5).map((r) => `#${r.tag} (${x(r.lift)}, ${r.posts} posts)`)];
