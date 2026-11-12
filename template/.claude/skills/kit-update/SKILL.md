@@ -4,7 +4,7 @@ description: >
   Update this workspace to the newest BagelUnit Reel Kit, step by step, even if the kit was downloaded as a ZIP:
   check the version, show what changed, download it, preview, apply, then update the engine by itself. Use when the user
   says "update the kit", "is there a new version", "check for updates", "upgrade", or when the start-of-session
-  version check found a newer kit.
+  version check found a newer kit or a newer build of the same version.
 user-invokable: true
 argument-hint: "[check | preview | apply]"
 metadata:
@@ -14,6 +14,11 @@ metadata:
 ---
 
 # Kit update: newest kit, nothing of yours lost
+
+The kit's version (`.kit-version`) changes only for a release; smaller changes come as newer builds of the same version
+(`.kit-build`, a time and a fingerprint). `update.mjs` treats a newer build as an update: `check` says "a newer build of
+<version> is out", `now` downloads that build fresh (`~/.bagelunit-reel-kit/<version>+<fingerprint>/`), shows the
+version's changelog entry, updates this workspace, and updates the engine only when the engine itself changed.
 
 Ask every choice with a question block (AskUserQuestion). The tool is `.claude/skills/kit-update/update.mjs`
 (run with `node`). It reads and downloads only the public kit from GitHub, needs no key, and never changes this

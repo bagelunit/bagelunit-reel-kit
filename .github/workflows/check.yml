@@ -36,6 +36,9 @@ jobs:
       - name: Safety scan (secrets, private files, personal paths, em dashes)
         run: node setup/scan-repo.mjs
 
+      - name: Build stamp matches the files (template/.kit-build, so brand folders notice a newer build of the same version)
+        run: node setup/stamp-build.mjs --check
+
       - name: Installer syntax and help
         run: |
           node --check setup/install.mjs

@@ -289,9 +289,11 @@ if (F.link) {
   if (!F.dryRun) mirror(STUDIO, TARGET);
   ok(`copied studio/ to ${TARGET}`);
 }
-// the marker holds the date and the kit version this engine came from, so /kit-update can tell when the engine is behind
+// the marker holds the date, the kit version and the kit's build stamp this engine came from, so /kit-update can tell
+// when the engine is behind, also for a newer build of the same version (template/.kit-build, setup/stamp-build.mjs)
 const KIT_VERSION = (() => { try { return fs.readFileSync(path.resolve(STUDIO, '..', 'VERSION'), 'utf8').trim(); } catch { return ''; } })();
-if (!F.dryRun) { try { fs.writeFileSync(path.join(TARGET, MARKER), new Date().toISOString().slice(0, 10) + '\n' + KIT_VERSION + '\n'); } catch { /* linked */ } }
+const KIT_BUILD = (() => { try { return fs.readFileSync(path.resolve(STUDIO, '..', 'template', '.kit-build'), 'utf8').trim(); } catch { return ''; } })();
+if (!F.dryRun) { try { fs.writeFileSync(path.join(TARGET, MARKER), new Date().toISOString().slice(0, 10) + '\n' + KIT_VERSION + '\n' + (KIT_BUILD ? KIT_BUILD + '\n' : '')); } catch { /* linked */ } }
 
 step('Kit packages (npm install) and the render browser (npm run browser)');
 {

@@ -38,6 +38,10 @@ const args = process.argv.slice(2);
 const apply = args.includes('--apply');
 const target = args.find((a) => !a.startsWith('--'));
 const kitVersion = (() => { try { return fs.readFileSync(path.join(REPO, 'VERSION'), 'utf8').trim(); } catch { return 'unknown'; } })();
+// the build stamp (setup/stamp-build.mjs): a newer build of the same version is an update too; the workspace keeps it in .kit-build
+const buildOf = (f) => { try { const m = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z) kit:([0-9a-f]{12})/.exec(fs.readFileSync(f, 'utf8').trim()); return m ? { at: m[1], kit: m[2], line: fs.readFileSync(f, 'utf8').trim() } : null; } catch { return null; } };
+const kitBuild = buildOf(path.join(SRC, '.kit-build'));
+const buildText = (b) => (b ? `build ${b.at.replace('T', ' ').replace('Z', ' UTC')}` : 'no build stamp');
 
 if (!fs.existsSync(path.join(SRC, 'CLAUDE.md'))) { console.error('Cannot find template/ next to this script.'); process.exit(1); }
 for (const a of args) if (a.startsWith('--') && a !== '--apply') { console.error(`Unknown option: ${a} (use --apply)`); process.exit(1); }
@@ -118,12 +122,15 @@ if (!apply) {
   console.log(`DRY RUN for: ${DEST}   (nothing changed; add --apply to do it)`);
   const vf = path.join(DEST, '.kit-version');
   const have = fs.existsSync(vf) ? fs.readFileSync(vf, 'utf8').trim() || 'unknown' : 'unknown';
+  const haveBuild = buildOf(path.join(DEST, '.kit-build'));
   console.log(`  kit version: ${kitVersion}   this workspace: ${have}`);
+  console.log(`  kit ${buildText(kitBuild)}   this workspace: ${buildText(haveBuild)}`);
   const tup = (v) => (v.match(/\d+/g) || ['0']).slice(0, 3).map(Number);
   const cmp = (a, b) => { const x = tup(a), y = tup(b); for (let i = 0; i < 3; i++) { if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) - (y[i] || 0); } return 0; };
   let log = ''; try { log = fs.readFileSync(path.join(REPO, 'CHANGELOG.md'), 'utf8'); } catch { /* none */ }
   const blocks = log.split(/^## /m).slice(1);
-  if (have !== 'unknown' && cmp(have, kitVersion) >= 0) console.log('  (this workspace is already on the newest kit version)');
+  const sameBuild = !kitBuild || (haveBuild && haveBuild.kit === kitBuild.kit);
+  if (have !== 'unknown' && cmp(have, kitVersion) >= 0) console.log(sameBuild ? '  (this workspace is already on the newest kit version and build)' : `  (same version; the kit has a different build, ${buildText(kitBuild)})`);
   const news = have === 'unknown' ? blocks.slice(0, 1) : blocks.filter((b) => cmp(b.split(/\s/)[0], have) > 0);
   for (const b of news) console.log(`\n  What changed in ${b.trimEnd().replace(/\n/g, '\n  ')}\n`);
   for (const r of added) console.log(`  new       ${r}`);
@@ -151,4 +158,5 @@ for (const f of newStarters) fs.copyFileSync(path.join(SRC, 'brand', f), path.jo
 if (newStarters.length) console.log(`new brand files: ${newStarters.map((f) => 'brand/' + f).join(', ')}`);
 fs.writeFileSync(path.join(DEST, '.kit-synced'), new Date().toISOString().slice(0, 10) + '\n');
 fs.writeFileSync(path.join(DEST, '.kit-version'), kitVersion + '\n');
-console.log(`Updated ${DEST} to kit version ${kitVersion}. Replaced files were saved as *.bak-${S}. Your brand data and reels were not changed (only new settings and missing starter files were added). Rules for this brand only belong in CLAUDE.local.md, which updates never touch.`);
+if (kitBuild) fs.writeFileSync(path.join(DEST, '.kit-build'), kitBuild.line + '\n');
+console.log(`Updated ${DEST} to kit version ${kitVersion}${kitBuild ? ` (${buildText(kitBuild)})` : ''}. Replaced files were saved as *.bak-${S}. Your brand data and reels were not changed (only new settings and missing starter files were added). Rules for this brand only belong in CLAUDE.local.md, which updates never touch.`);

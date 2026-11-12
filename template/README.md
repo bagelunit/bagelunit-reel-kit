@@ -84,7 +84,7 @@ Two kit guides live in the kit's own folder, not in this copy: [the sticker host
 
 ## Updating this copy to a newer kit
 
-This copy records the kit version it is on in `.kit-version`. The kit's changes are listed in its `CHANGELOG.md` and announced as GitHub Releases (on the kit's GitHub page: Watch, then Custom, then Releases, to get an email). Claude tells you about a newer version once at the start of a session (`updates.check_on_start` in `brand/brand.json`, on by default; set it to `false` to stop the check).
+This copy records the kit version it is on in `.kit-version` and the build in `.kit-build`. The version changes only for a release; smaller changes come as newer builds of the same version, and `/kit-update` treats both as an update. The kit's changes are listed in its `CHANGELOG.md` and new versions are announced as GitHub Releases (on the kit's GitHub page: Watch, then Custom, then Releases, to get an email). Claude tells you about a newer version or build once at the start of a session (`updates.check_on_start` in `brand/brand.json`, on by default; set it to `false` to stop the check).
 
 **The normal way:** open Claude Code in this folder and type `/kit-update`. The `/kit-update` skill downloads the newest public kit (it works even if you first downloaded the kit as a ZIP), shows what changed, previews which files would change, asks you, applies the update, and then updates the engine too. It never needs a key and never changes your brand's data or reels.
 

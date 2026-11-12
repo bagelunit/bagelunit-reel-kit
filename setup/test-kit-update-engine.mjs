@@ -98,5 +98,47 @@ assert.match(src, /MARKER\), new Date\(\)\.toISOString\(\)\.slice\(0, 10\) \+ '\
   console.log('ok   session-start version note');
 }
 
+// ── builds: a newer build of the same version is an update (template/.kit-build, setup/stamp-build.mjs) ─────────────
+{
+  const { parseBuild, buildNewer, behind, versionNote } = await import(pathToFileURL(path.join(kit, 'template', '.claude', 'skills', 'kit-update', 'update.mjs')).href);
+  const B = (at, k, e) => `${at} kit:${k.repeat(12)} engine:${e.repeat(12)}`;
+  const old = B('2026-11-12T10:00Z', 'a', 'c'), newer = B('2026-11-13T09:00Z', 'b', 'c'), newEngine = B('2026-11-14T09:00Z', 'd', 'e');
+  assert.equal(parseBuild('nonsense'), null); assert.equal(parseBuild(old).kit, 'a'.repeat(12));
+  assert.ok(buildNewer(parseBuild(newer), parseBuild(old)));
+  assert.ok(!buildNewer(parseBuild(old), parseBuild(newer)), 'a copy ahead of GitHub is not behind');
+  assert.ok(!buildNewer(parseBuild(newer), parseBuild(newer)));
+  assert.ok(buildNewer(parseBuild(newer), null), 'no stamp yet: older');
+  assert.ok(!buildNewer(parseBuild(newer), parseBuild(old), 'engine'), 'only the template changed: the engine is current');
+  assert.ok(behind({ version: '1.0.0', build: parseBuild(newer) }, { version: '1.0.0', build: parseBuild(old) }));
+  assert.ok(!behind({ version: '1.0.0', build: parseBuild(newer) }, { version: '1.1.0', build: null }), 'a higher version is never behind');
+  assert.ok(behind({ version: '1.1.0', build: null }, { version: '1.0.0', build: parseBuild(newer) }));
+
+  // the engine: same version, reinstalled only when its own part of the build is newer
+  fs.rmSync(engine, { recursive: true, force: true });
+  fs.mkdirSync(engine, { recursive: true }); fs.writeFileSync(path.join(engine, '.bagelunit-reel-kit'), `2026-11-12\n1.0.0\n${old}\n`);
+  fs.mkdirSync(path.join(fakeKit, 'template'), { recursive: true }); fs.writeFileSync(path.join(fakeKit, 'setup', 'install.mjs'), '// fake');   // an earlier case removed it
+  fs.writeFileSync(path.join(fakeKit, 'template', '.kit-build'), newer + '\n'); calls = [];
+  assert.equal(updateEngine(fakeKit, '1.0.0', { skills, run: runner(), log }), false); assert.equal(calls.length, 0, 'template-only build: engine left alone');
+  fs.writeFileSync(path.join(fakeKit, 'template', '.kit-build'), newEngine + '\n');
+  assert.equal(updateEngine(fakeKit, '1.0.0', { skills, run: runner(), log }), true); assert.equal(calls.length, 1, 'engine part changed: reinstalled');
+  fs.writeFileSync(path.join(engine, '.bagelunit-reel-kit'), `2026-11-12\n1.0.0\n`); calls = [];
+  assert.equal(updateEngine(fakeKit, '1.0.0', { skills, run: runner(), log }), true, 'an engine from before builds is updated');
+
+  // the session note: a newer build of the same version
+  const ws = path.join(tmp, 'ws-build'); fs.mkdirSync(path.join(ws, 'brand'), { recursive: true });
+  fs.writeFileSync(path.join(ws, 'brand', 'brand.json'), '{}'); fs.writeFileSync(path.join(ws, '.kit-version'), '1.0.0\n'); fs.writeFileSync(path.join(ws, '.kit-build'), old + '\n');
+  fs.writeFileSync(path.join(engine, '.bagelunit-reel-kit'), `2026-11-12\n1.0.0\n${old}\n`);
+  const NOW = Date.UTC(2026, 10, 13);
+  let n = await versionNote(ws, { skills, now: NOW, fetchLatest: async () => ({ version: '1.0.0', build: parseBuild(newer) }) });
+  assert.match(n, /newer build of BagelUnit Reel Kit 1\.0\.0 is out \(2026-11-13 09:00 UTC; this workspace has the build from 2026-11-12 10:00 UTC\).*\/kit-update/);
+  fs.rmSync(path.join(ws, '.cache'), { recursive: true, force: true }); fs.writeFileSync(path.join(ws, '.kit-build'), newer + '\n');
+  assert.equal(await versionNote(ws, { skills, now: NOW, fetchLatest: async () => ({ version: '1.0.0', build: parseBuild(newer) }) }), '', 'same build: nothing to say');
+  // the workspace has a build whose engine part is newer than the installed engine: the engine is behind, no network needed
+  fs.writeFileSync(path.join(ws, '.kit-build'), newEngine + '\n'); fs.rmSync(path.join(ws, '.cache'), { recursive: true, force: true });
+  n = await versionNote(ws, { skills, now: NOW, fetchLatest: async () => ({ version: '1.0.0', build: parseBuild(newEngine) }) });
+  assert.match(n, /engine \(\/bagelunit-reels\) is on 1\.0\.0, build 2026-11-12 10:00 UTC, behind this workspace/); assert.ok(!/newer build/.test(n));
+  console.log('ok   builds of the same version');
+}
+
 fs.rmSync(tmp, { recursive: true, force: true });
 console.log('kit update engine: ok');
