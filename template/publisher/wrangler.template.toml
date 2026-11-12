@@ -8,6 +8,11 @@
 #   PUBLISH_MODE_INSTAGRAM  posting on Instagram: "dry_run" or "live"
 #   PUBLISH_MODE_FACEBOOK   posting on the Facebook Page: "dry_run" or "live"
 #   PUBLISH_MODE_THREADS    posting on Threads: "dry_run" or "live"
+#   PUBLISH_MODE_YOUTUBE    posting YouTube Shorts: "dry_run" or "live"
+#   PUBLISH_MODE_TIKTOK     posting on TikTok: "dry_run" or "live"
+# TikTok also has TIKTOK_POST_MODE ("draft": the video lands in the TikTok inbox and the owner taps Post in the app;
+# "direct": posts by itself, but private until TikTok has audited the app) and TIKTOK_AUDITED ("yes" only once TikTok
+# has passed the audit; without it a public direct post is refused when it is scheduled).
 # After a change, run  npx wrangler deploy  again. A post keeps the mode it was scheduled in: a dry-run post stays a
 # dry run after going live (schedule a new one), and setting a switch back to "dry_run" stops posts scheduled live.
 
@@ -30,6 +35,10 @@ PUBLISH_MODE = "dry_run"
 PUBLISH_MODE_INSTAGRAM = "dry_run"
 PUBLISH_MODE_FACEBOOK = "dry_run"
 PUBLISH_MODE_THREADS = "dry_run"
+PUBLISH_MODE_YOUTUBE = "dry_run"
+PUBLISH_MODE_TIKTOK = "dry_run"
+TIKTOK_POST_MODE = "draft"           # "draft" (the owner posts from the TikTok inbox) or "direct"
+TIKTOK_AUDITED = "no"                # "yes" only after TikTok's audit passed
 MAX_PER_RUN = "5"                    # posts handled per run
 MAX_PER_HOUR = "30"                  # automatic comment replies per hour
 DM_DISCLOSURE = "(This is an automated reply.)"   # added to every automatic DM; cannot be turned off

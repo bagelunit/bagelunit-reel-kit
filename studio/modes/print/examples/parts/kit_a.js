@@ -4,7 +4,7 @@
 // Whole reel in an older orange look (style 'print').
 const GTM = { lime: C.red };
 window.TOUR_ASSETS = [["gh_light", "assets/placeholder_gh_light.png"], ["gh_dark", "assets/placeholder_gh_dark.png"], ["gh_readme", "assets/placeholder_gh_readme.png"]];
-// IMG.gh_light / IMG.gh_dark: the github.com/owner/learn-mode repo page top (2560×1800 @2x; About 'A Claude Code / Codex plugin that helps you learn how to build while AI writes the code.', 2.1k stars, 97 forks). IMG.gh_readme: the page scrolled down (README start).
+// IMG.gh_light / IMG.gh_dark: the github.com/owner/study-kit repo page top (2560×1800 @2x; About 'A plugin that helps you learn how to build while the code writes itself.', 2.1k stars, 97 forks). IMG.gh_readme: the page scrolled down (README start).
 // draw a region of a screenshot (source px) into a box, cover-fit, rounded
 function shot(K, im, sx, sy, sw, sh, x, y, w, h, r = 18) {
   if (!im || !im.naturalWidth) return;
@@ -20,7 +20,7 @@ const CHIPS = [
   ['explained', owi(64)],
   ['map', owi(79)],
 ];
-const CARD_HEAD = '// learn-mode', CARD_TAG = 'learning mode';
+const CARD_HEAD = '// study-kit', CARD_TAG = 'learning mode';
 
 const CARD_COUNT = t => { const n = chipsOn(t); return { v: n ? `${n}/6` : 'off', on: n > 0, hot: false }; };
 const CARD_PROGRESS = t => chipsOn(t) / 6;

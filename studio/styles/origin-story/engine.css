@@ -1,0 +1,92 @@
+/* Origin Story look. The world (sky, empire, figures) is SVG drawn by engine.js; this file styles the HTML
+   parts: the headline plate, headline cards, stats, chapter cards, paper cards (blueprint, chart, map,
+   contract), name tags and captions. Local font stacks only. No blend modes and no blurred shadows (hard
+   offset shadows only, so frames are identical after a seek). Sizes scale with --u (1px at 1080). */
+html, body { background: #D8E4EA; }
+.fs {
+  position: absolute; inset: 0; overflow: hidden; background: #D8E4EA; color: #2B2420;
+  font-family: "Inter", "Noto Sans", "Arial Narrow", "Segoe UI", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased; --em: #C8503C;
+}
+.fs-layer { position: absolute; left: 0; top: 0; display: block; overflow: visible; }
+.fs-ov { pointer-events: none; }
+.fs-whtml { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; }
+.fs-hud { position: absolute; inset: 0; }
+.fs-grain {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0.2;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.17 0 0 0 0 0.14 0 0 0 0 0.12 0 0 0 0.9 -0.18'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>"),
+    radial-gradient(ellipse at 50% 45%, rgba(43, 36, 32, 0) 55%, rgba(43, 36, 32, 0.55) 100%);
+  background-size: 240px 240px, 100% 100%;
+}
+.fs-line { white-space: nowrap; }
+.fs-em { color: var(--em); }
+
+/* HUD components */
+.fs-comp { position: absolute; transform-origin: 50% 50%; }
+.fs-mv { position: absolute; inset: 0; box-sizing: border-box; }
+.fs-paper {
+  background: #F4ECDD; color: #2B2420;
+  box-shadow: inset 0 0 0 calc(4 * var(--u)) #2B2420, calc(8 * var(--u)) calc(9 * var(--u)) 0 rgba(43, 36, 32, 0.32);
+  border-radius: calc(4 * var(--u));
+}
+.fs-kicker { font-weight: 800; letter-spacing: 0.14em; color: #7C7268; white-space: nowrap; line-height: 1.2; }
+.fs-plate .fs-name { font-weight: 900; letter-spacing: -0.01em; }
+.fs-years {
+  display: block; background: #C8503C; color: #FBF6EC; font-family: Georgia, "Noto Serif", "Times New Roman", serif;
+  font-weight: 700; text-align: center; padding: 0.12em 0.5em 0.16em; white-space: nowrap; line-height: 1.2;
+  box-shadow: inset 0 0 0 calc(3 * var(--u)) #2B2420;
+}
+.fs-hl { box-shadow: inset 0 0 0 calc(5 * var(--u)) #2B2420, calc(10 * var(--u)) calc(11 * var(--u)) 0 rgba(43, 36, 32, 0.36); }
+.fs-hltext { font-weight: 900; letter-spacing: -0.01em; }
+.fs-hl-red .fs-hltext { color: #8E2F28; }
+.fs-hl-red .fs-hltext .fs-em { color: #C8503C; }
+.fs-num { font-weight: 900; color: #C8503C; line-height: 1.02; white-space: nowrap; letter-spacing: -0.02em; }
+.fs-statlab { font-family: Georgia, "Noto Serif", "Times New Roman", serif; font-style: italic; color: #2B2420; margin-top: calc(4 * var(--u)); }
+.fs-wash { background: rgba(244, 236, 221, 0.6); }
+.fs-year { font-family: Georgia, "Noto Serif", "Times New Roman", serif; font-weight: 700; color: #2B2420; text-align: center; white-space: nowrap; letter-spacing: -0.02em; }
+.fs-rule { background: #2B2420; border-radius: calc(4 * var(--u)); box-shadow: 0 calc(5 * var(--u)) 0 #C8503C; }
+.fs-ctitle { font-weight: 900; text-align: center; }
+.fs-ctitle .fs-line, .fs-csub .fs-line { text-align: center; }
+.fs-csub { font-style: italic; text-align: center; color: #2B2420; }
+.fs-label { background: #F4ECDD; box-shadow: inset 0 0 0 calc(3 * var(--u)) #2B2420; }
+.fs-label-acc { background: #C8503C; color: #FBF6EC; }
+.fs-ltext { font-weight: 800; }
+.fs-tag { box-shadow: inset 0 0 0 calc(4 * var(--u)) #2B2420, calc(5 * var(--u)) calc(6 * var(--u)) 0 rgba(43, 36, 32, 0.3); border-top: calc(10 * var(--u)) solid #3E6E8E; }
+.fs-tag-acc { border-top-color: #C8503C; }
+.fs-ttext { font-weight: 900; text-align: center; }
+.fs-ttext .fs-line { text-align: center; }
+.fs-vs { border-radius: 50%; background: #C8503C; box-shadow: inset 0 0 0 calc(7 * var(--u)) #2B2420, calc(9 * var(--u)) calc(10 * var(--u)) 0 rgba(43, 36, 32, 0.4); }
+.fs-vst { color: #FBF6EC; font-weight: 900; text-align: center; letter-spacing: -0.03em; font-style: italic; }
+.fs-caps { background: rgba(244, 236, 221, 0.94); box-shadow: inset 0 0 0 calc(3 * var(--u)) #2B2420; border-radius: calc(6 * var(--u)); }
+.fs-captext { text-align: center; }
+.fs-captext .fs-line { text-align: center; }
+.fs-cw { color: #A89E92; }
+.fs-cw.fs-said { color: #2B2420; }
+.fs-cw.fs-now { color: #C8503C; }
+.fs-stage { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(24 * var(--u)); }
+.fs-st, .fs-sx { padding: calc(14 * var(--u)) calc(22 * var(--u)); text-align: center; }
+
+/* paper cards */
+.fs-card { overflow: hidden; }
+.fs-csvg { position: absolute; left: 0; top: 0; display: block; overflow: visible; }
+.fs-ctext { position: absolute; inset: 0; }
+.fs-ct { position: absolute; white-space: nowrap; }
+.fs-blueprint {
+  background: #355F8A; color: #F2F5F7;
+  box-shadow: inset 0 0 0 calc(4 * var(--u)) #2B2420, inset 0 0 0 calc(12 * var(--u)) #2F5577, calc(9 * var(--u)) calc(10 * var(--u)) 0 rgba(43, 36, 32, 0.34);
+  border-radius: calc(4 * var(--u));
+}
+.fs-blueprint .fs-em { color: #F4D873; }
+.fs-mono { letter-spacing: 0.12em; }
+.fs-pname { letter-spacing: 0.01em; }
+.fs-spec { letter-spacing: 0.02em; }
+.fs-note { font-style: italic; background: rgba(244, 236, 221, 0.92); padding: 0 calc(4 * var(--u)); border-radius: calc(3 * var(--u)); }
+.fs-bigv { letter-spacing: -0.02em; }
+.fs-counter { position: absolute; text-align: right; line-height: 1; }
+.fs-cnum { font-weight: 900; color: #C8503C; }
+.fs-clab { font-weight: 800; letter-spacing: 0.12em; color: #7C7268; margin-top: calc(2 * var(--u)); }
+.fs-pinlab {
+  position: absolute; white-space: nowrap; font-weight: 800; color: #2B2420; padding: 0 calc(6 * var(--u));
+  background: rgba(244, 236, 221, 0.92); box-shadow: inset 0 0 0 calc(2 * var(--u)) #2B2420; border-radius: calc(3 * var(--u));
+}
+.fs-amount { letter-spacing: -0.02em; }

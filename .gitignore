@@ -8,6 +8,7 @@ template/reels/*/build/
 template/reels/*/audio/
 out/
 *.mp4
+!docs/samples/*.mp4
 *.wav
 .venv/
 .cache/

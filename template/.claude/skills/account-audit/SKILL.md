@@ -55,6 +55,9 @@ The step that tells you what to make next: which reels beat an account's own nor
 ## The dashboard's Competitors section
 `/content-calendar competitors` keeps the account list and reads each one (Meta first, Apify only with `--apify`, or an export), then the dashboard shows the same 3x rule for all of them side by side and `/content-calendar ideas` drafts post ideas from the winners. `outliers.py --handles a,b --save-research brand/research` saves an Apify fetch in the form the dashboard reads.
 
+## Reactions against the brand's own normal
+`python3 ./.claude/skills/account-audit/engagement.py --csv brand/insights.csv` scores each posted reel by how people reacted, not by views. It divides likes, comments, saves, shares and follows by reach, compares each with the brand's own median for it, and averages the ratios: 1.0 is a typical reel, 3.0 or more stands out. Every reaction counts the same by default, because the numbers do not say a comment is worth three likes; to weight them, use `--weights comments=2,shares=2` or `brand.json` -> `scoring.weights` (a goal of reach cares most about shares). Fewer than 5 reels with numbers: no ranking. `--out brand/stats.md` appends the table there. Use it in `/analytics-readout` to say what to make more of.
+
 ## Own stats for the review (step 14)
 `python3 ./.claude/skills/account-audit/outliers.py --csv brand/insights.csv --owner <the brand's handle> --all --out brand/stats.md` (the brand's own numbers, no scraping; or `--handles <handle>` with `autopilot.scrape` on, or `--json` on an export) lists every recent reel with views, likes, comments and its ratio to the brand's own median. `/analytics-readout` and the review step read `brand/stats.md`; the reel's row in `brand/log.md` can then point to it. It appends a dated block each time, so history stays.
 

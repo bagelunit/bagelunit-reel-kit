@@ -24,7 +24,28 @@ Type these in Claude Code inside a brand folder.
 |---|---|
 | `/brand-setup` | Sets up the brand (name, handle, colours, logo, fonts, presenter, voice, call to action) or changes it later. |
 | `/sticker-host` | Makes your sticker host, a cartoon of you or your mascot for Print reels: a base pose from one photo, then a starter 10, then any pose a reel needs (new, add <pose>, check <reel>, status). |
+| `/logo-library` | Adds and checks the logos and app icons your reels show: finds the brand's own artwork (it asks before downloading anything), records the rights, puts the SVG in a reel, and blocks posting a reel whose logos are not approved. The kit ships no logos. |
 | `/kit-update` | Checks for a newer kit, shows what changed, updates this folder without touching your brand or reels, and updates the engine too. |
+
+## Instagram skills (research, writing, planning)
+
+Ready-made Instagram skills in every brand folder.
+
+| Command | What it does |
+|---|---|
+| `/ig-audit` | Post-mortem on what you posted: which reels worked, why, and what to stop making. |
+| `/ig-caption` | Writes the Instagram caption (first line, body, one ask, search terms, hashtags) and lints it. |
+| `/ig-carousel` | Builds a carousel: the cover, slide-by-slide copy and the 1080x1350 files. |
+| `/ig-comment` | Writes comments on other people's posts that read as a person with an opinion. |
+| `/ig-dm` | Writes DMs that get replies: keyword delivery, first message, collab pitch and follow-ups. |
+| `/ig-human` | Strips the machine fingerprint out of a draft (dashes, AI words) and scores how human it reads. |
+| `/ig-plan` | Builds the week: what to post, which format, when, and who to engage with. |
+| `/ig-profile` | Scores an Instagram profile out of 100 and rewrites the parts that lose points. |
+| `/ig-reel` | Writes a reel from a raw idea: hook options off 26 formulas, script, on-screen text and a timed beat sheet. |
+| `/ig-repurpose` | Turns one long asset (video, podcast, newsletter, call) into a week of reels and carousels. |
+| `/ig-reply` | Drafts replies to the comments under your own posts, worth-answering first. |
+| `/ig-story` | Writes the day's Stories: the frame-by-frame sequence and the one that moves people to DMs. |
+| `/ig-viral` | Finds the reels working in your niche, ranks them by how far each beat its own account, and builds a swipe file. |
 
 ## Make a reel
 
@@ -54,11 +75,11 @@ Run on every reel; Claude runs them at the approvals.
 
 | Command | What it does |
 |---|---|
-| `/caption-and-hashtags` | Writes the caption, hashtags and first comment, using only cleared facts. |
+| `/caption-and-hashtags` | Writes the caption in three blocks: the caption, up to 5 hashtags picked from what has worked for you, and a line of search keywords. Uses only cleared facts. |
 | `/reel-loop` | The self-improving loop: reads what your trial reels did (skip rate, watch time), says what to change, makes the next reel from it and takes it to you for approval, until one breaks out. Never posts by itself. |
 | `/cover-thumbnail-brief` | Writes the cover text and the brief for a cover that stops the scroll. |
 | `/reel-repurpose` | Turns an approved reel into its TikTok and YouTube Shorts versions (captions, titles, a check of where each app's buttons sit), a carousel and a blog post. |
-| `/reel-posting` | Gets an approved reel posted: a posting card for posting by hand, or scheduling it through the kit's publisher on Instagram, your Facebook Page and Threads (dry run first), and setting that up step by step. |
+| `/reel-posting` | Gets an approved reel posted: a posting card for posting by hand, or scheduling it through the kit's publisher on Instagram, your Facebook Page, Threads, YouTube Shorts and TikTok (dry run first), and setting that up step by step. |
 | `/content-calendar` | Your content calendar and dashboard: every reel from idea to posted, what needs you, the four agents, followers and trends. Add plan to fill the next weeks, days to set your posting days and times (any number a day), how-often for a suggestion of how often to post from accounts like yours, what you can keep up and your own numbers, best-times for the hours to post at (from your own posts, when your audience is online and, as weak evidence, the winners of the accounts you track; it moves the times in the plan on your yes), competitors to track other accounts (what they post, what beats their own normal, what the winners share), ideas for post ideas drawn from what is working for them, host to view it on your Wi-Fi or online (Netlify suggested), connect instagram, connect facebook or connect threads for your numbers on each, connect telegram for a phone summary, auto to refresh by itself, all for every brand on one page. Posts nothing. |
 
 ## Research and plan
@@ -86,7 +107,7 @@ Run on every reel; Claude runs them at the approvals.
 
 | Command | What it does |
 |---|---|
-| `kit start` | Starts a new reel folder in a style (print, depth or talking). Only inside a set-up brand folder. |
+| `kit start` | Starts a new reel folder in a style (print, depth, talking, or one of the 19 scene styles). Only inside a set-up brand folder. |
 | `kit host` | Links the brand's sticker host into the reel and names any pose the reel needs that the set does not have (--check). |
 | `kit frames` | Takes still frames at chosen moments, plus a contact sheet, to look at before rendering. |
 | `kit render` | Renders a half-size draft, or the final 1080x1920 video with --final. |
@@ -101,6 +122,7 @@ Run on every reel; Claude runs them at the approvals.
 | `kit predict` | Measured facts, plus a watch-time estimate once calibrated. |
 | `kit sound` | Mixes the voice, effects and music. |
 | `kit export` | Joins picture and sound into the finished mp4 for Instagram. |
+| `kit scene` | Scene styles (the 19 looks, for example stick-figure-folk, comic, map): list them, plan the scenes of a reel, check them, or make a preview voice that needs no key (list, plan, check, stand-in). |
 | `kit cover` | Renders the reel's cover to out/cover.jpg at Meta's size, plus a sheet showing how it crops in the grid. |
 | `kit organize` | Files your reel folders by post date (reels/2026/11 November/November 12/<slug>) or back to reels/<slug>. Shows the moves first; --apply does them. |
 | `kit tidy` | Frees disk space in posted reels: removes build files and unapproved exports, keeps the words and the approved video. Shows the list first; --apply deletes. |
@@ -117,11 +139,10 @@ Run on every reel; Claude runs them at the approvals.
 | `pull.mjs` | Brings back what went out: links, errors and automatic replies, for the dashboard and the reel's Posting lines. |
 | `forget.mjs` | Deletes what the publisher kept about one person, when they ask. |
 
-## From the plugins the installer adds
+## From the plugin the installer adds
 
 | Command | What it does |
 |---|---|
-| `/ig-*` | The instagram-agent plugin: research, hooks, scripts, captions, plans, DMs and audits. |
 | `/hyperframes` | The HyperFrames plugin: an optional second engine (HTML scenes rendered to video). |
 
 This file is made by `node setup/make-commands.mjs` from one list; edit the list there, not this file.

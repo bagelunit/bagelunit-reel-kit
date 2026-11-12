@@ -53,8 +53,7 @@ the *sender* look smart/early/right. High-arousal beats positive: awe, anger, FO
   claim. The claim lands **~1.2–1.6s** - never at 0s (no payoff yet), never at 3s+ (too late).
 - **Open a gap, not a fact.** "The one setting that doubled my reach" - never "here are some reach tips."
 - **Rotate the angle every post** (contrarian / result-first / meta-self-proving / POV / numbered). The
-  meta *"this was made by AI"* self-proving angle is the strongest **when it's true** - the post proves
-  its own claim. The "N things nobody uses" listicle fatigues fastest; don't default to it.
+  meta self-proving angle (the post proves its own claim by showing it happen) is the strongest **when it's true**. The "N things nobody uses" listicle fatigues fastest; don't default to it.
 
 ## Step 3 - Hold them (after the hook)
 

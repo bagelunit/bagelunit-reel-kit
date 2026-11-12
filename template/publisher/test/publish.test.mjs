@@ -51,6 +51,7 @@ test('schedule: time, caption limits, trial, collaborators and platform checks',
   assert.match((await s({ at: '2026-12-01 09:00' })).json.error, /timezone/);
   assert.match((await s({ text: { instagram: 'x'.repeat(2201) } })).json.error, /2,200/);
   assert.match((await s({ text: { instagram: Array.from({ length: 31 }, (_, i) => `#t${i}`).join(' ') } })).json.error, /hashtags/);
+  assert.match((await s({ text: { instagram: Array.from({ length: 6 }, (_, i) => `#t${i}`).join(' ') } })).json.error, /6 hashtags; Instagram allows 5/);
   assert.match((await s({ platforms: ['threads'], text: { threads: 'x'.repeat(501) } })).json.error, /500/);
   assert.match((await s({ options: { collaborators: ['a'] } })).json.error, /Unified Login/);
   assert.match((await s({ options: { trial: true }, platforms: ['facebook'] })).json.error, /trial/);

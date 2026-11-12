@@ -52,7 +52,7 @@ draft and final, and Gates A, B and C from CLAUDE.md rules 10 and 13. Only clear
 3. HOOK         viral-hook-writer ... 10 scroll-stopping hooks for the first 1-3s, ranked
 4. SCRIPT       reel-scripter ....... tight 30-45s ORIGINAL script, then /reel-factcheck, budget.py, Gate A
 5. BUILD+RENDER /bagelunit-reels ...... Gate B, then the REAL rendered mp4 (Runway/Seedance only if paid_renders is on)
-6. CAPTION      caption-and-hashtags  caption + tiered hashtags + a first comment, then /reel-review and Gate C
+6. CAPTION      caption-and-hashtags  caption, up to 5 hashtags chosen from what worked, then a keyword line, then /reel-review and Gate C
 7. POST         prepare and pause ... prepares the post and pauses; a person posts (autopilot.post true still needs the owner's OK for that reel)
 8. LEADS        comment-responder ... draft the keyword rule (live only if dm_replies is on and the keyword is tested)
 9. COMPOUND     brand memory ........ note what worked in brand/log.md after the owner confirms
@@ -112,7 +112,7 @@ PIPELINE
    /reel-factcheck, run budget.py, then take it to Gate A.
 5) /bagelunit-reels: Gate B (visual plan), then a local render → a real mp4. Show me the beat table + the
    rendered reel. No Runway or Seedance unless paid_renders is on and I OK the cost.
-6) caption-and-hashtags: caption + tiered hashtags + first comment, with my CTA keyword only if it is
+6) caption-and-hashtags: caption, up to 5 hashtags and a keyword line (caption only, never comments), with my CTA keyword only if it is
    tested. Run /reel-factcheck (final) and /reel-review, then Gate C.
 7) POST: prepare the post and pause. If post is off, stop at the mp4 and caption and I post it myself.
    If post is on, you still wait for my OK for this reel.

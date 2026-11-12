@@ -48,6 +48,7 @@ From the prompt, settle five things: **topic/angle**, **their script or yours**,
 - **A video of them talking** → `talking`. Jump to section T.
 - **A pasted script** is used **word for word**. Fix only obvious typos.
 - **Mode:** ALWAYS ask the user which style to use before anything else, even when the topic or a pasted script suggests one: one question block with the AskUserQuestion tool (Print, 3D (`depth`), Talking head (`talking`, only if they have a video of themselves)), with your recommendation first and why. Never default silently. This is the brief's one question. <!-- local change, owner rule 2026-11-05; re-apply after kit updates -->
+  - **Scene styles** (local addition 2026-11-12): when `kit scene list` shows styles, add "A drawn scene style (stick figure, map, comic book and more)" as an option. If they pick it, show the list (`kit scene list`) and ask which one in a second question block, three or four that fit the topic with your pick first. Then follow section S.
 - **CTA keyword:** one memorable uppercase word tied to the topic (COFFEE, PLUGINS). It goes in `reel.json`.
 - **Language:** set `"language": "xx"` in `reel.json` (ru, es, de, ar…). The voice, captions, CTA and UI text follow it.
   - Latin, Cyrillic, Greek and Vietnamese fonts ship with the kit.
@@ -168,6 +169,26 @@ One render runs at a time (built-in lock). Drafts first, final once.
 
 ---
 
+## S · Scene styles (local addition, 2026-11-12)
+
+A scene style is a drawn look from `styles/` (`modes/MODE-RULES.md`, "Scene styles"): the reel is a list of scenes, each one template of the style with props, timed by the voice. Sections B to D and G apply; section E becomes the plan below and section F is replaced by it.
+```
+node "$KIT_DIR/tools/kit.mjs" scene list [<style>]                 the styles, then one style's templates
+node "$KIT_DIR/tools/kit.mjs" start <REELS>/<slug> --style <style>  reel.json, script.txt and a sample scenes.json
+python3 "$KIT_DIR/tools/voice.py" <REELS>/<slug>                     the voice and build/words.json, as for every mode
+node "$KIT_DIR/tools/kit.mjs" scene <REELS>/<slug> plan             each scene's time from the words, and what does not match
+node "$KIT_DIR/tools/kit.mjs" scene <REELS>/<slug> check            errors, safe area and seeking per scene; sheets in build/scenes/check/
+node "$KIT_DIR/tools/kit.mjs" render <REELS>/<slug> [--scene n]     changed scenes only; build/video.mp4 + build/draft.mp4
+node "$KIT_DIR/tools/kit.mjs" scene <REELS>/<slug> stand-in         optional: a tone and fake word times to preview timing (no key, no credits; never for posting)
+```
+1. Read `styles/<style>/SKILL.md` (the art direction and its golden rules) and `templates.json` (each template's props schema, example props and narration) before planning.
+2. Write `script.txt` (section C), then `scenes.json`: one scene per idea, `narration` = the exact words of the script it covers, `props` from the template's schema, using the narrator's own words in labels so the engine lands each one on its word. Reuse the same cast and props across scenes; vary the templates.
+3. Voice, then `kit scene <dir> plan`: every scene should say `words n/n`. Fix the narration of any scene on `even split`. Aim for 3 to 12 s a scene.
+4. `kit scene <dir> check`, then LOOK at every sheet; fix props (shorter labels, fewer items) and check again. Then `kit render`, pull frames around each cut, and section G from step 3 on: `kit pace` (the print bar; calm styles may need busier templates), `kit effort` says it does not apply, `kit lint` finds no shot data, `kit qa` checks the safe zone from the engine's boxes.
+5. Revisions: change a scene's props or narration and render again; only changed scenes are drawn again.
+
+---
+
 ## T · Talking-head mode (`talking`)
 
 Their own face take drives everything, with no TTS. Read `modes/talking/GUIDE.md` in full first.
@@ -214,9 +235,11 @@ Offer one round of changes: faster hook, different voice, swap a shot, different
 
 ## Map
 - `tools/`:
-  - `kit.mjs` (start · frames · render · pace · effort · sound · export · live)
+  - `kit.mjs` (start · frames · render · pace · effort · sound · export · live · scene)
+  - `scenes.mjs` (scene styles: plan, timing, render, check, stand-in voice)
   - `voice.py`, `take.py`, `voicebank.py`, `sound.py`, `glyphs.py`, `checkup.mjs`
 - `modes/<mode>/`: runtime, parts and starter project; plus `modes/MODE-RULES.md`.
+- `styles/`: the scene styles, synced from the styles repo (`STYLES.json`, `_core/`, one folder per style); never edited here.
 - `playbook/`:
   - `taste.md` (read first)
   - `writing.md`, `staging.md`

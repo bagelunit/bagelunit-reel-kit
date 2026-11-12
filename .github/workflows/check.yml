@@ -67,6 +67,15 @@ jobs:
           python -m pip install --quiet numpy
           node setup/test-release-smoke.mjs
 
+      - name: Logo library works (ships empty, refuses unclean SVGs and unconfirmed downloads, records fidelity and rights, blocks posting until a logo is approved)
+        run: node setup/test-logo-library.mjs
+
+      - name: Hashtag evidence works (own posts against their median, other accounts against their own, 3 posts from 2 accounts to rank, thin tags apart) and the publisher holds to 5 hashtags
+        run: node setup/test-hashtags.mjs
+
+      - name: Caption layout works (caption, up to 5 hashtags, keyword line, one blank line between; every mistake named; fix changes spacing only; keyword candidates)
+        run: node setup/test-caption.mjs
+
       - name: Score bar works (Gate C refuses a review under 90 out of 100, accepts 90 or more, records the owner's override)
         run: node setup/test-score-bar.mjs
 
@@ -75,6 +84,12 @@ jobs:
 
       - name: /kit-update updates the engine by itself (behind, current, linked, missing, failed installer)
         run: node setup/test-kit-update-engine.mjs
+
+      - name: Reaction scoring works (own-median ratios, weights, too few reels)
+        run: python3 template/.claude/skills/account-audit/engagement.py --selftest
+
+      - name: Scene styles are intact and a reel starts in each (fingerprints, kit scene, kit start --style)
+        run: node setup/test-scene-styles.mjs
 
       - name: New brand folder script works (copy, refuse existing, refuse inside the kit)
         shell: bash

@@ -47,7 +47,7 @@ A hook passes only if all eight are true. Check it on the draft's real frames at
 5. The claim lands at about 1.2 to 1.6 s, word by word, large and high contrast. Never at 0 s, never after 3 s.
 6. The first spoken word is within 0.5 s and is the subject, not filler.
 7. It works on mute (most people watch without sound).
-8. It is about the viewer's own account, work or problem, not about us or about AI in general.
+8. It is about the viewer's own account, work or problem, not about us or the topic in general.
 
 Loser patterns to reject: abstract background with no brand the viewer knows, a static card whose 0.5 s and 3 s frames look the same, a black or empty frame 0, small low-contrast text, a topic about "the future" or "me".
 

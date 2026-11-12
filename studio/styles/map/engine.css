@@ -1,0 +1,21 @@
+/* Map: satellite relief map, glowing overlays, outlined thumbnail type.
+   Layers are shown and hidden from JS only (no display:none classes). */
+#scene-root { background: #0A1E3F; }
+.mr-stage {
+  position: absolute; inset: 0; overflow: hidden; background: #0A1E3F; color: #FFFFFF;
+  font-family: Inter, "Noto Sans", "Segoe UI", Arial, sans-serif;
+}
+.mr-world { position: absolute; left: 0; top: 0; width: 1px; height: 1px; transform-origin: 0 0; }
+.mr-tiles, .mr-clouds { position: absolute; left: 0; top: 0; width: 1px; height: 1px; }
+.mr-tile { position: absolute; display: block; }
+.mr-cloud { position: absolute; left: 0; top: 0; display: block; transform-origin: 0 0; }
+.mr-vig {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 78% 72% at 50% 50%, rgba(4, 10, 24, 0) 52%, rgba(4, 10, 24, 0.5) 100%);
+}
+.mr-ov, .mr-hud { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+.mr-globe { position: absolute; inset: 0; pointer-events: none; }
+.mr-globe-layer { position: absolute; inset: 0; }
+.mr-globe-bg, .mr-globe-cv, .mr-globe-svg { position: absolute; left: 0; top: 0; display: block; }
+.mr-fade { position: absolute; inset: 0; background: #000000; opacity: 0; pointer-events: none; }
+.mr-flash { position: absolute; inset: 0; background: #FFFFFF; opacity: 0; pointer-events: none; }

@@ -1,0 +1,21 @@
+/* Paper Theatre: the craft-table world. Pieces are positioned and animated from engine.js. */
+.smp-world { position: absolute; inset: 0; overflow: hidden; background: #C7A06E; }
+.smp-cam, .smp-layer { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.smp-layer { pointer-events: none; }
+.smp-pc { pointer-events: none; }
+.smp-pi { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.smp-pi > svg { display: block; }
+.smp-text { pointer-events: none; }
+.smp-sheet { position: relative; }
+.smp-sheet-content { position: relative; }
+/* warm desk lamp from the top left and a soft vignette */
+.smp-light {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 60% at 26% 16%, rgba(255, 228, 176, 0.17), rgba(255, 228, 176, 0) 70%),
+    radial-gradient(ellipse 85% 85% at 50% 50%, rgba(40, 22, 6, 0) 62%, rgba(40, 22, 6, 0.28) 100%);
+}
+/* exposure flicker: opacity is set per stop-motion step */
+.smp-flicker { position: absolute; inset: 0; pointer-events: none; background: #FFF4DC; opacity: 0.02; }
+/* stable glyph rasters: without this, text looks slightly different after seeking back and forth */
+.smp-world text { text-rendering: geometricPrecision; }

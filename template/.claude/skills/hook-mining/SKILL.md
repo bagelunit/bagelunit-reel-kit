@@ -64,11 +64,11 @@ Swap **only**: the charged words - the verb, the intensifier, the noun carrying 
 Pull replacements from there, not from a thesaurus.
 
 ```
-proven:   "You're using Claude wrong"                 [contrarian · you're + wrong]
-  ✅      "You're prompting Claude backwards"          swapped the verb + the charge word
-  ✅      "You're building agents the slow way"        same skeleton, same tension
-  ❌      "Many people use Claude incorrectly"         psychology gone, flat English → slop
-  ❌      "You're using Claude wrong"                  verbatim copy → plagiarism, the platform buries it
+proven:   "You're kneading your dough wrong"           [contrarian · you're + wrong]
+  ✅      "You're proofing your dough backwards"       swapped the verb + the charge word
+  ✅      "You're baking your bread the slow way"      same skeleton, same tension
+  ❌      "Many people knead dough incorrectly"        psychology gone, flat English → slop
+  ❌      "You're kneading your dough wrong"           verbatim copy → plagiarism, the platform buries it
 ```
 
 Then hand the winners to **viral-hook-writer** to rank, or straight into **reel-scripter**.

@@ -1,0 +1,143 @@
+/* Anime look. Locations, the cast and the effects are SVG drawn by engine.js; this file styles the HTML
+   lettering (title cards, callouts, subtitles, stats, bubbles, chalk text). Local font stacks only.
+   No blend modes and no blurred shadows: outlines are hard text-shadows, so frames match after a seek. */
+html, body { background: #FDF6FF; }
+.an-film {
+  position: absolute; inset: 0; overflow: hidden; background: #FDF6FF; color: #1F1A3A;
+  font-family: "Segoe UI", "Helvetica Neue", Arial, "Noto Sans", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.an-shots, .an-shot { position: absolute; inset: 0; overflow: hidden; }
+.an-layer { position: absolute; left: 0; top: 0; display: block; overflow: visible; }
+.an-whtml { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; }
+.an-letter { position: absolute; inset: 0; }
+.an-letter > div { position: absolute; transform-origin: 50% 50%; }
+.an-flash { position: absolute; inset: 0; background: #FFFFFF; }
+.an-vign {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 48%, rgba(255, 248, 235, 0) 52%, rgba(255, 246, 228, 0.55) 78%, rgba(255, 244, 222, 0.92) 100%);
+}
+.an-line { white-space: nowrap; }
+.an-em { color: var(--em, #FF4F8B); }
+
+/* title card: slanted band, huge italic white lettering with an ink outline */
+.an-tc-band {
+  position: absolute; transform-origin: 0 50%; border: 6px solid #1F1A3A; box-sizing: border-box;
+  box-shadow: 12px 12px 0 #2B3567;
+}
+.an-tc-text {
+  position: absolute; text-align: center; font-weight: 900; font-style: italic; color: #FFFFFF; transform-origin: 50% 50%;
+  text-shadow: 4px 0 0 #1F1A3A, -4px 0 0 #1F1A3A, 0 4px 0 #1F1A3A, 0 -4px 0 #1F1A3A, 3px 3px 0 #1F1A3A, -3px -3px 0 #1F1A3A, 3px -3px 0 #1F1A3A, -3px 3px 0 #1F1A3A, 7px 7px 0 #1F1A3A;
+}
+.an-tc-text .an-line { text-align: center; }
+.an-tc-kick {
+  position: absolute; white-space: nowrap; font-weight: 900; letter-spacing: 0.06em; text-transform: uppercase; color: #FFFFFF;
+  background: #1F1A3A; padding: 0.1em 0.6em; transform-origin: 0 50%; box-shadow: 6px 6px 0 #FF4F8B;
+}
+.an-tc-sub { position: absolute; background: #FFFFFF; border: 5px solid #1F1A3A; box-sizing: border-box; transform: skewX(-10deg); }
+.an-tc-subin { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: 800; color: #1F1A3A; }
+
+/* giant reveal word */
+.an-big { transform-origin: 50% 50%; }
+.an-big-in {
+  text-align: center; font-weight: 900; font-style: italic; color: #FFFFFF; letter-spacing: -0.01em;
+  text-shadow: 7px 0 0 #1F1A3A, -7px 0 0 #1F1A3A, 0 7px 0 #1F1A3A, 0 -7px 0 #1F1A3A, 5px 5px 0 #1F1A3A, -5px -5px 0 #1F1A3A, 5px -5px 0 #1F1A3A, -5px 5px 0 #1F1A3A, 13px 13px 0 #FF4F8B;
+}
+.an-big-in .an-line { text-align: center; }
+
+/* slanted key-text callout */
+.an-co-box { position: absolute; background: #FFFFFF; border: 6px solid #1F1A3A; box-sizing: border-box; transform: skewX(-8deg); box-shadow: 12px 12px 0 #FF4F8B; }
+.an-co-text { position: absolute; font-weight: 900; color: #1F1A3A; }
+.an-co-icon { position: absolute; display: flex; align-items: center; justify-content: center; background: #FFF1F7; border-radius: 50%; box-shadow: 0 0 0 5px #1F1A3A; }
+.an-co-kick { position: absolute; white-space: nowrap; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; color: #FFFFFF; background: #FF4F8B; padding: 0.08em 0.6em; transform: skewX(-8deg); box-shadow: 0 0 0 4px #1F1A3A; }
+.an-icon { display: block; }
+
+/* subtitles: white with a hard ink outline */
+.an-subs { position: absolute; left: 0; top: 0; pointer-events: none; }
+.an-sub {
+  position: absolute; text-align: center; font-weight: 800; color: #FFFFFF;
+  text-shadow: 3px 0 0 #1F1A3A, -3px 0 0 #1F1A3A, 0 3px 0 #1F1A3A, 0 -3px 0 #1F1A3A, 2px 2px 0 #1F1A3A, -2px -2px 0 #1F1A3A, 2px -2px 0 #1F1A3A, -2px 2px 0 #1F1A3A, 4px 5px 0 #1F1A3A;
+}
+.an-sub .an-line { text-align: center; }
+.an-sub .an-em { color: #FFE14F; }
+
+/* name plate */
+.an-tag {
+  position: absolute; display: flex; align-items: center; justify-content: center; white-space: nowrap;
+  font-weight: 900; font-style: italic; color: #FFFFFF; border: 5px solid #1F1A3A; box-sizing: border-box;
+  box-shadow: 8px 8px 0 #1F1A3A; letter-spacing: 0.03em;
+  text-shadow: 3px 3px 0 #1F1A3A;
+}
+
+/* big stat */
+.an-stat-num {
+  position: absolute; text-align: center; white-space: nowrap; font-weight: 900; font-style: italic; color: #FFC93C; line-height: 1;
+  transform-origin: 50% 60%;
+  text-shadow: 6px 0 0 #1F1A3A, -6px 0 0 #1F1A3A, 0 6px 0 #1F1A3A, 0 -6px 0 #1F1A3A, 4px 4px 0 #1F1A3A, -4px -4px 0 #1F1A3A, 4px -4px 0 #1F1A3A, -4px 4px 0 #1F1A3A, 12px 12px 0 #FF4F8B;
+}
+.an-stat-label { position: absolute; background: #2B3567; border: 5px solid #1F1A3A; box-sizing: border-box; transform-origin: 50% 50%; box-shadow: 0 0 0 4px #FFFFFF; }
+.an-stat-lin { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: 900; color: #FFFFFF; }
+.an-stat-lin .an-em { color: #FFC93C; }
+
+/* step card */
+.an-step-num { position: absolute; background: #FF4F8B; border: 6px solid #1F1A3A; box-sizing: border-box; box-shadow: 10px 10px 0 #1F1A3A; transform-origin: 50% 50%; z-index: 2; }
+.an-step-numt {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 900; font-style: italic; color: #FFFFFF; line-height: 1;
+  text-shadow: 4px 0 0 #1F1A3A, -4px 0 0 #1F1A3A, 0 4px 0 #1F1A3A, 0 -4px 0 #1F1A3A, 6px 6px 0 #1F1A3A;
+}
+.an-step-label { position: absolute; background: #FFFFFF; border: 6px solid #1F1A3A; box-sizing: border-box; box-shadow: 10px 10px 0 #2B3567; }
+.an-step-text { position: absolute; font-weight: 900; color: #1F1A3A; }
+.an-step-icon { position: absolute; }
+
+/* progress pips */
+.an-pips { position: absolute; }
+.an-pip { position: absolute; top: 0; background: #FFFFFF; border: 5px solid #1F1A3A; box-sizing: border-box; transform: rotate(45deg); }
+.an-pip.an-on { background: #FF4F8B; }
+
+/* speech bubble */
+.an-bub-box { position: absolute; background: #FFFFFF; border: 6px solid #1F1A3A; box-sizing: border-box; border-radius: 48px; box-shadow: 10px 10px 0 rgba(31, 26, 58, 0.22); }
+.an-bub-tail { position: absolute; overflow: visible; }
+.an-bub-cover { position: absolute; background: #FFFFFF; }
+.an-bub-text { position: absolute; font-weight: 800; color: #B3AECF; }
+.an-bub-text .an-w.an-on { color: #1F1A3A; }
+.an-bub-text .an-em { color: #FFB3CF; }
+.an-bub-text .an-em.an-on { color: var(--em, #FF4F8B); }
+
+/* icon chip */
+.an-chip-c { position: absolute; display: flex; align-items: center; justify-content: center; background: #FFFFFF; border-radius: 50%; box-shadow: 0 0 0 6px #1F1A3A, 8px 8px 0 6px #FF4F8B; }
+.an-chip-l { position: absolute; display: flex; align-items: center; justify-content: center; white-space: nowrap; font-weight: 900; color: #FFFFFF; background: #2B3567; border: 4px solid #1F1A3A; box-sizing: border-box; transform: skewX(-8deg); }
+
+/* chalk on the classroom board (world units) */
+.an-chalk { position: absolute; color: #F4F1E6; font-weight: 800; }
+.an-chalk-in { position: absolute; left: 0; top: 0; }
+.an-chalk-title .an-chalk-in { position: relative; width: 100%; border-bottom: 4px solid rgba(244, 241, 230, 0.7); padding-bottom: 0.06em; }
+.an-chalk-title .an-line { text-align: center; }
+.an-chalk .an-em { color: #FFE08A; }
+.an-chalk-num { position: absolute; left: 0; display: flex; align-items: center; justify-content: center; border: 4px solid #FFB3CF; border-radius: 50%; box-sizing: border-box; color: #FFB3CF; font-weight: 900; }
+
+/* flashback captions */
+.an-memcap { position: absolute; background: rgba(255, 250, 240, 0.92); border-left: 10px solid #C9A46A; box-sizing: border-box; }
+.an-memcap-in { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding-left: 0.5em; font-weight: 900; font-style: italic; color: #5A4632; }
+.an-memkick { position: absolute; white-space: nowrap; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; color: #FFFFFF; background: #9C7C52; padding: 0.06em 0.6em; }
+.an-memline {
+  position: absolute; text-align: center; font-weight: 800; font-style: italic; color: #4A3826;
+  text-shadow: 3px 0 0 #FFF8EA, -3px 0 0 #FFF8EA, 0 3px 0 #FFF8EA, 0 -3px 0 #FFF8EA, 2px 2px 0 #FFF8EA, -2px -2px 0 #FFF8EA, 2px -2px 0 #FFF8EA, -2px 2px 0 #FFF8EA;
+}
+.an-memline .an-em { color: #B5652E; }
+
+/* sky montage captions and poem lines */
+.an-skycap {
+  position: absolute; font-weight: 900; font-style: italic; color: #FFFFFF; letter-spacing: 0.02em;
+  text-shadow: 4px 0 0 #1F1A3A, -4px 0 0 #1F1A3A, 0 4px 0 #1F1A3A, 0 -4px 0 #1F1A3A, 3px 3px 0 #1F1A3A, -3px -3px 0 #1F1A3A, 3px -3px 0 #1F1A3A, -3px 3px 0 #1F1A3A, 6px 7px 0 #1F1A3A;
+}
+.an-skysub { position: absolute; }
+.an-skysub-in { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding-left: 0.4em; font-weight: 800; color: #1F1A3A; background: rgba(255, 255, 255, 0.9); border-left: 8px solid #FF4F8B; }
+.an-skybar { position: absolute; background: #FF4F8B; transform-origin: 0 50%; box-shadow: 0 0 0 3px #1F1A3A; }
+.is-portrait .an-skysub-in { align-items: center; padding-left: 0; }
+.is-portrait .an-skybar { transform-origin: 50% 50%; }
+.an-poem {
+  position: absolute; text-align: center; font-weight: 800; font-style: italic; color: #FFFFFF;
+  text-shadow: 3px 0 0 #1F1A3A, -3px 0 0 #1F1A3A, 0 3px 0 #1F1A3A, 0 -3px 0 #1F1A3A, 2px 2px 0 #1F1A3A, -2px -2px 0 #1F1A3A, 2px -2px 0 #1F1A3A, -2px 2px 0 #1F1A3A, 4px 5px 0 #1F1A3A;
+}
+.an-poem .an-line { text-align: center; }
+.an-poem .an-em { color: #FFE14F; }

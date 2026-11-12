@@ -2,4 +2,6 @@
 
 {{ONE ASK: save, follow or comment}}
 
-{{3 to 5 hashtags}}
+{{3 to 5 hashtags on their own line, 5 at most}}
+
+{{8 to 15 search keyword phrases, comma separated, no # signs}}

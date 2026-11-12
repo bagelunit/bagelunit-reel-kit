@@ -308,7 +308,7 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
       if (/cancel/i.test(line)) { it.scheduledAt = null; it.scheduledVia = null; continue; }
       const elsewhere = /\b(tiktok|youtube|shorts|facebook|linkedin|threads|pinterest|twitter|x\.com)\b/i.test(line) && !/\binstagram\b|instagram\.com/i.test(line) && !/\bpublisher in\b/i.test(line);
       if (elsewhere) {                                           // a TikTok or Shorts post line, not the Instagram one
-        if (/\bposted on (facebook|threads)\b/i.test(line) && !it.postedElsewhereAt) it.postedElsewhereAt = parseWhen(stamp);   // the publisher's line: posted there
+        if (/\bposted on (facebook|threads|youtube|tiktok)\b/i.test(line) && !it.postedElsewhereAt) it.postedElsewhereAt = parseWhen(stamp);   // the publisher's line: posted there
         continue;
       }
       if (/\bposted\b/i.test(line) && !/\bnot posted\b/i.test(line)) {

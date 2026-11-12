@@ -1,0 +1,106 @@
+/* Icon Signal look. The room is SVG filled from these variables, so light / dark mode and
+   lights out are one class flip on .pg. Local fonts only. No blend modes, no blur filters. */
+html, body { background: #FFFFFF; }
+.pg {
+  --bg: #FFFFFF; --ink: #0A0A0A; --paper: #FFFFFF; --void: #0A0A0A; --accent: #E3151B; --yellow: #FFC400; --muted: #8C8C8C;
+  --glow: rgba(255, 196, 0, 0.30); --st-bg: #0A0A0A; --st-fg: #FFFFFF; --card: #FFFFFF; --card-ink: #0A0A0A;
+  position: absolute; inset: 0; overflow: hidden; background: var(--bg);
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", "Franklin Gothic Demi Cond", Oswald, "Roboto Condensed", "Liberation Sans Narrow", "Arial Narrow", "Arial Black", "Noto Sans", sans-serif;
+}
+.pg.pg-dark {
+  --bg: #060606; --ink: #F4F4F4; --paper: #060606; --void: #000000; --muted: #7A7A7A; --glow: rgba(255, 236, 170, 0.20);
+  --st-bg: #F4F4F4; --st-fg: #0A0A0A; --card: #111111; --card-ink: #F4F4F4;
+}
+.pg.pg-off { --bg: #0B0B0B; --ink: #1E1E1E; --paper: #0B0B0B; --void: #000000; --muted: #262626; --glow: rgba(0, 0, 0, 0); --st-bg: #F4F4F4; --st-fg: #0A0A0A; --card: #111111; --card-ink: #F4F4F4; }
+.pg.pg-dark.pg-off { --ink: #262626; }
+.pg.pg-beam { --bg: #000000; --paper: #000000; }
+.pg-shake { position: absolute; inset: 0; }
+.pg-world, .pg-ovsvg { position: absolute; left: 0; top: 0; display: block; overflow: visible; }
+.pg-ov, .pg-top { position: absolute; inset: 0; }
+.pf-i { fill: var(--ink); }
+.pf-p { fill: var(--paper); }
+.pf-a { fill: var(--accent); }
+.pf-y { fill: var(--yellow); }
+.pf-v { fill: var(--void); }
+.pf-m { fill: var(--muted); }
+.pf-g { fill: var(--glow); }
+.pf-bg { fill: var(--bg); }
+.pf-w { fill: #FFFFFF; }
+.pf-pb { fill: var(--paper); stroke: var(--ink); }
+.ps-i, .ps-p, .ps-a, .ps-m, .ps-w { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.ps-i { stroke: var(--ink); } .ps-p { stroke: var(--paper); } .ps-a { stroke: var(--accent); } .ps-m { stroke: var(--muted); } .ps-w { stroke: #FFFFFF; }
+.pg-acc .pf-i { fill: var(--accent); }
+.pg-acc .ps-i { stroke: var(--accent); }
+.pg-panel { stroke: var(--paper); stroke-width: 2.2; stroke-linejoin: round; }
+.pg-dtext { fill: var(--accent); font-family: Impact, "Arial Narrow Bold", "Arial Black", sans-serif; letter-spacing: 1px; }
+.pg-limb { fill: none; stroke: var(--ink); stroke-linecap: round; stroke-linejoin: round; }
+.pg-thin { stroke-width: 3.4px; }
+.pg-cattail { stroke-width: 6px; }
+.pg-torso { fill: var(--ink); stroke: var(--ink); stroke-width: 5px; stroke-linejoin: round; }
+.pg-void { --ink: var(--void); --paper: var(--void); }
+.pg-accent { --ink: var(--accent); }
+.pg-smile { fill: none; stroke: #FFFFFF; stroke-linecap: round; }
+.pg-floor { fill: var(--ink); }
+.pg-vig { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 48%, rgba(0, 0, 0, 0) 58%, rgba(0, 0, 0, 0.10) 100%); }
+.pg-dark .pg-vig, .pg-off .pg-vig, .pg-beam .pg-vig { background: radial-gradient(ellipse at 50% 48%, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.72) 100%); }
+.pg-black { position: absolute; inset: 0; background: #000; }
+.pg-flash { position: absolute; inset: 0; }
+
+/* stamps: condensed uppercase blocks; the key word gets the red block */
+.pg-stamp { position: absolute; left: 0; top: 0; display: flex; flex-direction: column; align-items: center; transform-origin: 50% 50%; white-space: nowrap; }
+.pg-sline { display: flex; flex-direction: row; justify-content: center; line-height: 1; }
+.pg-seg { display: block; color: var(--st-fg); background: var(--st-bg); text-transform: uppercase; letter-spacing: 0.01em; }
+.pg-seg.k { background: var(--accent); color: #FFFFFF; }
+.pg-stamp.c-red .pg-seg { background: var(--accent); color: #FFFFFF; }
+.pg-stamp.c-ink .pg-seg.k { background: var(--st-bg); color: var(--accent); }
+.pg-stamp.c-yellow .pg-seg { background: var(--yellow); color: #0A0A0A; }
+.pg-stamp.c-yellow .pg-seg.k { background: var(--accent); color: #FFFFFF; }
+.pg-kicker { background: var(--accent); color: #FFFFFF; text-transform: uppercase; letter-spacing: 0.06em; line-height: 1; }
+.pg-cap { position: absolute; left: 0; top: 0; text-transform: uppercase; line-height: 1.05; white-space: nowrap; text-align: center;
+  background: var(--card); color: var(--card-ink); border-style: solid; border-color: var(--card-ink); letter-spacing: 0.02em; }
+.pg-cap.c-ink { background: var(--st-bg); color: var(--st-fg); border-color: var(--st-bg); }
+.pg-cap.c-red { background: var(--accent); color: #FFFFFF; border-color: var(--accent); }
+.pg-cap.c-yellow { background: var(--yellow); color: #0A0A0A; border-color: #0A0A0A; }
+.pg-cap .k { color: var(--accent); }
+.pg-cap.c-ink .k { color: var(--accent); }
+.pg-cap.c-red .k { color: #0A0A0A; }
+.pg-clock { position: absolute; left: 0; top: 0; background: #0A0A0A; color: var(--accent); line-height: 1; white-space: nowrap; letter-spacing: 0.03em; }
+.pg-dark .pg-clock { box-shadow: 0 0 0 3px #3A3A3A; }
+.pg-clock .ap { color: #FFFFFF; }
+.pg-clock .bar { position: absolute; left: 0; bottom: 0; height: 10%; background: var(--accent); }
+.pg-card { position: absolute; left: 0; top: 0; background: var(--card); color: var(--card-ink); border-style: solid; border-color: var(--card-ink); box-sizing: border-box; }
+.pg-card .tab { position: absolute; left: 0; top: 0; background: var(--accent); color: #FFFFFF; line-height: 1; white-space: nowrap; letter-spacing: 0.04em; }
+.pg-card .txt { position: absolute; text-transform: uppercase; line-height: 1.02; }
+.pg-card .txt .k { color: var(--accent); }
+.pg-card svg { position: absolute; overflow: visible; }
+.pg-badge { position: absolute; left: 0; top: 0; border-radius: 50%; background: var(--accent); color: #FFFFFF; display: flex; align-items: center; justify-content: center; line-height: 1; }
+.pg-badge.c-ink { background: var(--st-bg); color: var(--st-fg); }
+.pg-mark-svg { position: absolute; left: 0; top: 0; overflow: visible; }
+.pg-label { position: absolute; left: 0; top: 0; background: var(--st-bg); color: var(--st-fg); text-transform: uppercase; white-space: nowrap; line-height: 1; }
+.pg-label .k { color: var(--accent); }
+.pg-phone { position: absolute; left: 0; top: 0; background: #0A0A0A; box-sizing: border-box; }
+.pg-phone .scr { position: absolute; background: #FFFFFF; overflow: hidden; }
+.pg-dark .pg-phone { box-shadow: 0 0 0 4px #444; }
+.pg-phone .sb { position: absolute; left: 0; right: 0; top: 0; display: flex; justify-content: space-between; color: #0A0A0A; }
+.pg-phone .lbl { position: absolute; left: 0; right: 0; text-align: center; color: var(--accent); letter-spacing: 0.06em; }
+.pg-phone .nm { position: absolute; left: 0; right: 0; text-align: center; color: #0A0A0A; text-transform: uppercase; line-height: 1; }
+.pg-phone .btn { position: absolute; border-radius: 50%; }
+.pg-phone .msg { position: absolute; text-transform: uppercase; line-height: 1.1; box-sizing: border-box; white-space: nowrap; }
+.pg-phone .msg.them { background: #E6E6E6; color: #0A0A0A; }
+.pg-phone .msg.me { background: var(--accent); color: #FFFFFF; }
+.pg-list { position: absolute; left: 0; top: 0; }
+.pg-row { position: absolute; left: 0; display: flex; align-items: center; box-sizing: border-box; background: var(--card); border-style: solid; border-color: var(--card-ink); }
+.pg-row .no { background: var(--st-bg); color: var(--st-fg); display: flex; align-items: center; justify-content: center; flex: none; align-self: stretch; }
+.pg-row .tx { text-transform: uppercase; white-space: nowrap; color: var(--card-ink); line-height: 1; }
+.pg-row .tx .k { color: var(--accent); }
+.pg-row svg { flex: none; overflow: visible; }
+.pg-row.bad .no { background: var(--accent); }
+.pg-tabhead { position: absolute; left: 0; top: 0; background: var(--accent); color: #FFFFFF; white-space: nowrap; line-height: 1; letter-spacing: 0.05em; }
+.pg-sting { position: absolute; inset: -80px; background: #000; overflow: hidden; } /* overscan so the shake never shows an edge */
+.pg-sting svg { position: absolute; left: 80px; top: 80px; overflow: visible; }
+.pg-beamfill { fill: rgba(255, 255, 255, 0.11); }
+.pg-darkpanel { --ink: #F4F4F4; --paper: #060606; --void: #000000; --bg: #060606; }
+/* paper keyline under every figure, so a silhouette stays readable in front of furniture */
+.pg-halo { fill: var(--paper); stroke: var(--paper); stroke-linejoin: round; stroke-linecap: round; }
+.pg-halo-limb { fill: none; stroke: var(--paper); stroke-linecap: round; stroke-linejoin: round; }
+.pg-armkey { fill: none; stroke: var(--paper); stroke-linecap: round; stroke-linejoin: round; }

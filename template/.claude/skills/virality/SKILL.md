@@ -2,127 +2,101 @@
 name: virality
 description: >
   Plan and review short-form videos (Instagram Reels, TikTok, YouTube Shorts) so they actually get
-  watched, with a first 3 seconds that does something unexpected. Use when the user wants a reel
-  planned so it gets watched, asks why a post flopped or got no views, or asks for /virality. Built
-  from a frame-by-frame study of one page's winning and flopping reels.
+  watched, with a first 3 seconds that does something unexpected. Works for any topic or niche. Use
+  when the user wants a reel planned so it gets watched, asks why a post flopped or got no views, or
+  asks for /virality.
 ---
 
 # Virality
 
-This skill comes from the record of one Instagram page: 262 posts, 3,503,488 views, 124,163 comments. It is one page in one niche, so treat every number as a hypothesis and test it against your own median.
+This skill is about how a short video earns its first 3 seconds. It works for any niche: cooking, fitness, money, travel, pets, software, a local shop, a craft. Nothing here depends on what the brand makes. The topic always comes from `brand/brand.json` -> `niche`, `brand/voice.md` and `brand/facts.md`, never from this file.
 
-> Figures here are unsourced and come from one account; treat them as hypotheses, test against this brand's own median (docs/hook-and-review-playbook.md), and never put them in a script or caption (house rule 1).
-
-It was not built from theory.
-It was built by putting our biggest winners and our worst flops side by side and studying the first 3 seconds of each, frame by frame.
-
-- On that page, June to August: 132 posts. Only 3 crossed 10,000 views.
-- September to October: 130 posts. 31 crossed 10,000 views. 9 crossed 100,000.
-
-Same account, same topic, same tools.
-What changed is everything in this file.
+> The rules below are patterns, not promises. Test each one against this brand's own median (`docs/hook-and-review-playbook.md`), and never put a figure from this file in a script or caption (house rule 1).
 
 ## Rule 1: The hook is the whole game
 
 Most viewers decide in the first 3 seconds.
 If nothing happens in those 3 seconds, nothing else you made matters.
 
-**In the first 3 seconds, something extraordinary has to happen on screen.**
+**In the first 3 seconds, something has to happen on screen.**
 Not a title card.
 Not a logo fading in.
 Not "Hi guys, today I want to talk about".
 An event the eye cannot ignore.
 
-### What our winners did in the first 3 seconds
+### What strong openings look like (illustrative, in different niches)
 
-Every one of these crossed 100,000 views.
-
-| Views | Frame 0 to 3s |
+| Niche | Frame 0 to 3s |
 |---|---|
-| 346,327 | The Claude logo + the Instagram logo = a fire emoji, then a laptop slides up. Words land one at a time: "This honestly doesn't make sense". |
-| 306,575 | "How to edit video with Claude" with an edit timeline scrubbing under it, then a giant "7" slams in: "So easy. Only seven." |
-| 277,424 | The Instagram and Claude logos joined by a line, a counter that reads 0 and starts climbing: "Don't post anything else on Instagram until…" |
-| 225,342 | The Instagram logo and Claude connected by a glowing cable, words building: "Connect Claude to your Instagram". |
-| 132,604 | A skill file wired to Claude, the claim builds word by word: "This Claude skill makes unlimited reels", a hand reaches in. |
-| 132,399 | Claude and Instagram side by side with a LIVE badge, a news headline bar slides up underneath. |
-| 101,571 | The Claude character rains down out of the sky as voxels, lifts a lighter, and the headline burns away. |
+| Home baking | A loaf is cut open and steam rolls out. The words build: "Why your bread is dense". |
+| Fitness | A rep is mid-air, the camera snaps to the bar path, a counter climbs: "Your squat is losing you 20%". |
+| Personal finance | A bank balance ticks down line by line as each subscription is crossed out: "Three charges you forgot". |
+| Travel | A map pin drops, a route draws itself across the screen: "Lisbon in 48 hours, no car". |
+| Pet care | A dog freezes at a closed treat jar, the lid pops: "Stop doing this at feeding time". |
+| Software or a tool | The real screen types the request, the result appears: "Do this in one click". |
 
-### What our flops did in the first 3 seconds
+### What weak openings look like
 
-Every one of these stayed under 1,000 views.
-
-| Views | Frame 0 to 3s |
-|---|---|
-| 279 | A pink sci-fi tunnel, then a static card: "2026: Claude writes code. 2028?" It never changes for 3 seconds. |
-| 306 | Same tunnel, static card: "$10 answer vs $10,000 answer. Same Claude." Nothing moves. |
-| 340 | Frame 0 is black. Then a dark grid: "This entire feed is 100% AI." It holds still. |
-| 383 | Frame 0 is almost empty dots. Green word chips: "YES, GENIUS, DO IT". |
-| 409 | Small red serif on a beige blur: "There are only 5 types of content". |
-| 519 | Small red serif: "Claude can plan 30 days of content". A counter is the only thing moving. |
-| 522 | "99% of Claude users don't know this" on a blank card, about a memory trick. |
-
-The same "99% of Claude users don't know this" hook flopped at 522 views and won at 35,834.
-The winner typed it live inside the real Claude app, then cut to the product doing it.
-The words were never the difference.
-What happened on screen was.
+- A still title card with small text.
+- An abstract background (tunnels, clouds, gradients) with nothing the viewer recognises.
+- A black or almost empty frame 0.
+- Thin, low-contrast text.
+- A hook about the brand, the maker or "the future", not about the viewer.
 
 ### The patterns
 
-**Winners:**
+**What tends to win:**
 
-1. **The platform and tool the viewer knows, on frame 0.** Five of our seven biggest reels opened on Claude and Instagram side by side, joined by a line, a plus sign or a cable. The viewer instantly knows what this is about, and that it is about their account. Use tool names as plain text; no third-party logos (CLAUDE.md rule 9). Show the real app screen or the name in your own type instead.
-2. **Something moves or happens on frame 0.** A counter climbs, a cable connects, a character drops in, a logo breaks, a headline burns. Never a still card.
+1. **Something the viewer already knows, on frame 0.** The real object, place, screen or problem from the brand's own world, so they know at once what this is about and that it is about them. Use plain text for other companies' names; no third-party logos (house rule 9).
+2. **Something moves or happens on frame 0.** A counter climbs, a pin drops, a loaf is cut, a price is crossed out. Never a still card.
 3. **The claim builds word by word, in sync with the voice**, big and high contrast, readable on mute.
-4. **It promises a result on the viewer's own account.** "Your Instagram", "edit video", "make reels", "don't post anything else until".
-5. **Curiosity or contrarian words.** "Doesn't make sense", "can't see your Instagram by default", "don't post anything else until", "99% don't know", "just broke Instagram". In the same two months, hooks with these words had a median of 6,950 views, against 4,352 without.
-6. **The real product appears fast.** The real Claude app, the real connector, the real Instagram.
+4. **It promises a result for the viewer's own situation.** Their kitchen, their budget, their dog, their trip, their work.
+5. **Curiosity or contrarian words.** "Stop doing this", "nobody tells you", "this is why", "the real reason".
+6. **The real thing appears fast.** The real product, place, food or screen, not a stand-in.
 
-**Losers:**
+**What tends to lose:**
 
-1. **Abstract backgrounds with no brand the viewer knows** (tunnels, space, clouds, gradients).
-2. **A static card.** The frames at 0.5s and 3s look the same.
-3. **An empty or black frame 0.**
-4. **Small, low-contrast text** (thin serif, pale colours).
-5. **About AI or Claude in general, the future, or "me"**, not about the viewer's account. "Claude took over my Instagram" and "2,000 messages to my leads" both flopped.
+1. Abstract backgrounds with nothing the viewer recognises.
+2. A static card. The frames at 0.5s and 3s look the same.
+3. An empty or black frame 0.
+4. Small, low-contrast text.
+5. Being about the maker, the topic in general or "the future" instead of the viewer's own situation.
 
 ### The checklist (every hook must pass all eight)
 
 1. **Frame 0 is already moving.** No fade-in, no black frame, no empty frame.
-2. **Frame 0 shows something the viewer instantly recognises** (the platform logo, the app, their problem), not abstract art.
+2. **Frame 0 shows something the viewer instantly recognises** (the object, the place, the screen, their problem), not abstract art.
 3. **The biggest element owns at least 40% of the frame** and moves from frame 1.
-4. **Something extraordinary happens before 3 seconds:** it explodes, burns, breaks, builds itself, collapses, or a number races and locks.
+4. **Something striking happens before 3 seconds:** it breaks, builds itself, collapses, opens, or a number races and locks.
 5. **The claim lands around 1.2 to 1.6 seconds**, word by word, big, high contrast. Never at 0, never after 3.
-6. **The first spoken word is within 0.5 seconds**, and it is the subject ("Business owners:", "Claude just…"), not filler.
+6. **The first spoken word is within 0.5 seconds**, and it is the subject, not filler.
 7. **It works on mute.**
-8. **It is about the viewer's account or business**, not about you or AI in general.
+8. **It is about the viewer's own situation**, not about you or the topic in general.
 
 If a hook does not pass all eight, rewrite it before writing anything else.
 
-## Rule 2: Talk about their thing, not your tool
+## Rule 2: Talk about their thing, not yours
 
-In the same two months, posts that named the viewer ("you", "your") in the first line had a median of 5,186 views, against 3,930 for those that did not.
-Our biggest posts were all about what happens to the viewer's own account.
+Name the viewer ("you", "your") in the first line, and say what happens in their own life.
 
-- Bad: "7 Claude tricks that feel illegal to know" (335 views).
-- Good: "Editing a video? Just tell Claude" (306,575 views).
+- Weak: "7 facts about sourdough".
+- Better: "Your sourdough is dense because of this one step".
 
 The viewer is the main character.
-The tool is the vehicle.
+The topic, the product or the tool is the vehicle.
 
 ## Rule 3: Every line is shown, never just said
 
 - The visual changes on every spoken line.
-- Each sentence gets its own mechanism on screen: a screen that types, a counter that climbs, a phone that receives a message, a character that walks to the next step.
+- Each sentence gets its own mechanism on screen: something that is made, moved, counted, opened or broken.
 - Nothing on screen is ever static. If two frames a second apart look the same, add motion.
 - Text appears word by word, in sync with the voice.
-- Show real proof: real screens, real numbers, real results. A fake number gets caught and kills trust.
-- With stock footage, pick the clip where something is visibly happening (a person reacting, celebrating, shocked), not a still scene. Search for the action or emotion ("woman jumping with joy"), not the noun ("woman"). Cut the person out and put the words behind them.
+- Show real proof: real footage, real numbers from `brand/facts.md`, real results. A fake number gets caught and kills trust.
+- With stock footage, pick the clip where something is visibly happening (a person reacting, celebrating, surprised), not a still scene. Search for the action or emotion, not the noun. Cut the person out and put the words behind them.
 
 ## Rule 4: Give them a reason to comment
 
-In the same two months, posts with a comment keyword in the first line had a median of 5,684 views, against 4,311 without.
-
-- A keyword ask ("Comment SETUP and I'll send you the setup") is allowed only if the word is listed in `brand.json` -> `cta.tested_keywords` (the DM auto-reply was tested from a second account). In a reel workspace a keyword CTA needs a tested keyword; otherwise end on a save or follow ask, per `cta.style`.
+- A keyword ask ("Comment GUIDE and I'll send it") is allowed only if the word is listed in `brand.json` -> `cta.tested_keywords` (the DM auto-reply was tested from a second account). In a reel workspace a keyword CTA needs a tested keyword; otherwise end on a save or follow ask, per `cta.style`.
 - The keyword must deliver something real in the DM. If you promise it, send it.
 - The link goes in the DM, never in a public comment.
 - Keep the reel short and put the depth in the caption.
@@ -133,28 +107,28 @@ The same hook framing twice in a row fatigues fast.
 Rotate between:
 
 - **Result first:** open on the outcome, then show how.
-- **Self-proving:** "Nobody filmed this video. It's me, Claude." The post proves the claim by existing.
-- **Contrarian:** "Stop paying an agency for Instagram."
-- **Pain first:** "Business owners: you're losing leads in your DMs every night."
-- **Something breaks:** "Claude just broke Instagram." The thing on screen literally breaks.
+- **Self-proving:** the video proves its own claim by existing or by showing the thing happen live.
+- **Contrarian:** go against the usual advice in the brand's niche.
+- **Pain first:** name the specific problem the viewer has right now.
+- **Something breaks:** the thing on screen literally fails, then gets fixed.
 
 ## How to use this skill
 
 When the user asks for a reel, a hook, or a script:
 
 0. In a reel workspace, ask the style first (Print, 3D, or Talking head) as one multiple-choice question, and pick one goal and one angle for the reel.
-1. Ask who it is for and what they should get. One sentence.
+1. Read `brand/brand.json` -> `niche` (topic and audience). If it is empty, ask who the video is for and what they should get, in one sentence.
 2. Write **three** hooks. For each, describe frame 0 and every half second up to 3 seconds, and check all eight points of the checklist.
 3. Pick the strongest and say why, naming the winning pattern it uses.
 4. Write the script line by line. Next to every line, write what happens on screen. No line without a visual.
 5. Write the comment keyword and the real thing the DM delivers.
 6. Write the caption: problem, solution, the steps, then the ask (a tested keyword, or save or follow).
-7. In a reel workspace: run /reel-factcheck on the script (and budget.py) before Gate A, and record the gates, goal and angle in `reels/<slug>/approvals.md`. Numbers from this file never go in a script or caption; only `brand/facts.md` ones do.
+7. In a reel workspace: run /reel-factcheck on the script (and budget.py) before Gate A, and record the gates, goal and angle in `reels/<slug>/approvals.md`. Numbers never go in a script or caption unless they are in `brand/facts.md`.
 
 When the user asks why a post flopped:
 
 1. Look at frame 0, 0.5s, 1s, 2s and 3s only.
-2. Compare against the loser patterns: abstract background, static card, empty frame 0, small text, about AI instead of the viewer.
+2. Compare against the weak patterns: abstract background, static card, empty frame 0, small text, about the maker instead of the viewer.
 3. Check Rules 2, 3 and 4.
 4. Give the one change that would have mattered most, then a rewritten hook that passes the checklist.
 
@@ -165,7 +139,7 @@ WHO IT'S FOR: ...
 HOOK (0-3s):
   0.0s  [what is on screen, already moving, recognisable]
   0.5s  [first spoken word] ...
-  1.2s  [the extraordinary event lands] + [the claim, word by word]
+  1.2s  [the striking event lands] + [the claim, word by word]
   3.0s  [transition into the body]
 CHECKLIST: 1 ✓ 2 ✓ 3 ✓ 4 ✓ 5 ✓ 6 ✓ 7 ✓ 8 ✓
 SCRIPT:

@@ -77,13 +77,11 @@ If a copy not installed by this repo is already at `~/.claude/skills/bagelunit-r
 
 Then ask Claude to **find you a voice**: it searches the ElevenLabs library, plays you samples and saves the one you pick.
 
-## 4. Claude Code plugins
+## 4. Claude Code plugin
 
 ```bash
 claude plugin marketplace add heygen-com/hyperframes
 claude plugin install hyperframes@hyperframes
-claude plugin marketplace add Jakeschincariol/instagram-agent-skill
-claude plugin install instagram-agent@instagram-agent-skill
 ```
 
 Turn off HyperFrames telemetry:

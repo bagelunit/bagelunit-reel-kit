@@ -1,6 +1,6 @@
 # The publisher: posting your approved reels on a schedule
 
-This folder is your brand's own publisher. It is a small program that runs on Cloudflare (a "Worker") and, at the time you choose, posts an approved reel on Instagram, and if you want also on your Facebook Page and on Threads. It can also answer comments that ask for something by keyword, with a public reply and a private message.
+This folder is your brand's own publisher. It is a small program that runs on Cloudflare (a "Worker") and, at the time you choose, posts an approved reel on Instagram, and everywhere else the brand is connected: your Facebook Page, Threads, YouTube (as a Short) and TikTok. It can also answer comments that ask for something by keyword, with a public reply and a private message.
 
 Nothing is posted until you say yes to that reel and its time, it starts in **dry run** (it pretends, and writes down what it would have sent), and only the exact files you approved at Gate C go out.
 
@@ -11,6 +11,9 @@ Nothing is posted until you say yes to that reel and its time, it starts in **dr
 - **Instagram:** reels (with your approved cover, or a frame of the video when there is no cover), trial reels, collaborators, a location, tagged people, an audio name, and also the same reel as a story. The publisher can also post single images, carousels (2 to 20 images and videos) and stories.
 - **Facebook Page:** the same reel as a Facebook Reel, with its own description.
 - **Threads:** a post for each reel, either the video itself or a short text with the link to the Instagram reel. You pick for each reel.
+- **YouTube Shorts:** the same video as a Short on your channel (title and description from `out/platforms/youtube.txt`, public by default, or `--youtube-privacy unlisted|private`).
+- **TikTok:** the same video as a draft in your TikTok inbox (you tap Post in the app, the default), or as a direct post (`--tiktok-mode direct`), which TikTok keeps private until it has audited your app.
+- **Everywhere by default:** once a reel is approved at Gate C, `schedule.mjs` sends it to every platform this publisher has connected, unless you name some with `--platforms` or the brand has a fixed list in `brand.json` -> `posting.platforms`. A platform that is not connected is left out and named in the summary.
 - **Comment replies (optional):** when someone comments a keyword you set up, it posts one public reply (never with a link) and sends one private message with the link. Every automatic message ends with a short line saying it is automated (see below).
 - **Mentions and messages:** it keeps a copy of mentions and messages for 90 days so the dashboard can show them. It never answers a message by itself.
 - **Back to the dashboard:** one command brings back what really went out (links, ids, errors), so the dashboard shows it.
@@ -25,6 +28,19 @@ Nothing for a normal brand, within Cloudflare's free amounts. One catch: Cloudfl
 - Free plan limits worth knowing: files up to 100 MB each (the command stops at 95 MB), and 5 scheduled triggers per Cloudflare account. Each brand's publisher uses one, so one free account runs up to 5 brands.
 
 Meta charges nothing for these APIs.
+
+## What YouTube and TikTok need
+
+| Platform | What you make | Secrets (sent by `setup.mjs secrets`) | Going live |
+| --- | --- | --- | --- |
+| YouTube Shorts | A Google Cloud project with the YouTube Data API v3, an OAuth client of type "Desktop app", the consent screen **External** (in Testing the sign-in ends after 7 days; In production, which needs a homepage and a privacy page, `docs/connect.md` step 6B and `placeholder-site.mjs`, keeps it), and a one-time sign-in (`node publisher/scripts/video-login.mjs youtube`); scope `youtube.upload` only | YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN | `PUBLISH_MODE_YOUTUBE = "live"` |
+| TikTok | A TikTok developer app with the Content Posting API and Login Kit (Desktop), the redirect `http://127.0.0.1:*/callback/`, and a one-time sign-in (`node publisher/scripts/video-login.mjs tiktok`); scope `video.upload` (and `video.publish` for direct posts) | TIKTOK_CLIENT_KEY, TIKTOK_CLIENT_SECRET, TIKTOK_REFRESH_TOKEN | `PUBLISH_MODE_TIKTOK = "live"` |
+
+Step by step, with every page: `docs/connect.md` steps 6B and 6C. Things to know:
+
+- **YouTube** uploads the video's bytes from the publisher's storage to YouTube's resumable upload address, so no public address is needed. A lost answer is never an upload twice: the publisher asks YouTube how far the upload got before sending anything again. Google's default quota is 100 uploads a day per project; the publisher counts its own and waits. A Short is a vertical or square video up to 3 minutes. A project left in "Testing" loses its sign-in after 7 days: put the consent screen In production (a brand with no website makes a placeholder one with `node publisher/scripts/placeholder-site.mjs`).
+- **TikTok** has two ways. A **draft** goes to your inbox and you post it in the app: the dashboard shows it as sent to the inbox, not as posted. A **direct post** posts by itself, but TikTok keeps everything an unaudited app posts private; `TIKTOK_AUDITED = "yes"` in `wrangler.toml` (only after TikTok's audit passed) lets a direct post be public, and until then a public one is refused when scheduled. Before a direct post the publisher asks TikTok what the account may choose and refuses a privacy level or length it does not offer. TikTok takes a cover as a frame time (`--thumb-offset`), not an image; AI-made reels can carry TikTok's and YouTube's AI label with `--ai-generated`. TikTok's tokens: access 2 hours, refresh 180 days, rotated on each refresh (the newest is kept).
+- Neither was tested against the live services by the kit's own tests. The first real use is a dry run, then one post you watch.
 
 ## What each platform needs from Meta
 
@@ -45,7 +61,7 @@ Things to know:
 
 - **Collaborators** work only with Unified Login (`API_SETUP = "unified"`). Up to 3, not on stories.
 - **Trial reels** are shown to people who do not follow you first. You decide in the Instagram app whether to share it with your followers. Facebook and Threads posts are always shown to followers.
-- **Video lengths:** an Instagram reel 3 seconds to 15 minutes, a story (or a reel shared to the story) 3 to 60 seconds, a Facebook Reel 3 to 90 seconds, a Threads video up to 5 minutes. The schedule script reads the video's length on your computer and the publisher reads it again from the uploaded copy, so a reel too long for a platform is refused before anything is scheduled, with the platform it is too long for. A Threads text post only links to the reel, so the length does not matter there.
+- **Video lengths:** an Instagram reel 3 seconds to 15 minutes, a story (or a reel shared to the story) 3 to 60 seconds, a Facebook Reel 3 to 90 seconds, a Threads video up to 5 minutes, a YouTube Short up to 3 minutes, a TikTok 3 seconds to 10 minutes. The schedule script reads the video's length on your computer and the publisher reads it again from the uploaded copy, so a reel too long for a platform is refused before anything is scheduled, with the platform it is too long for. A Threads text post only links to the reel, so the length does not matter there.
 - **Covers:** the approved cover (a JPEG of 8 MB at most) is the Instagram cover and, once the Facebook Reel is ready, the Facebook cover too. If Facebook refuses the cover, the reel stays posted with Facebook's own frame and `status` shows why.
 - **Limits Meta sets:** Instagram counts posts in a 24-hour window (the publisher asks Instagram how many are left before each post and waits if none are), Facebook allows 30 reels a day per Page, and Threads 250 posts a day. When a limit is reached the post waits for the next run instead of failing.
 - Until your Meta app passes Meta's review, it can only post for people with a role on the app (admins and testers). That is fine for your own accounts: `docs/connect.md` steps 2 to 4 add them.
@@ -90,8 +106,11 @@ node publisher/scripts/schedule.mjs reels/<slug> --from-plan
 
 Options:
 
-- `--platforms instagram,facebook,threads` (default: the list in `brand.json` -> `posting.platforms`, and Instagram alone when that is empty; the flag overrides it for one reel)
+- `--platforms instagram,facebook,threads,youtube,tiktok` (default: the list in `brand.json` -> `posting.platforms`, and when that is empty every platform the publisher has connected; the flag overrides it for one reel)
 - `--threads text` or `--threads video` (default video). Text posts the Threads text with the link to the Instagram reel, once Instagram has it.
+- `--youtube-privacy public|unlisted|private` (default public)
+- `--tiktok-mode draft|direct` (default: the brand's `TIKTOK_POST_MODE`, which starts as draft) and `--tiktok-privacy PUBLIC_TO_EVERYONE|MUTUAL_FOLLOW_FRIENDS|FOLLOWER_OF_CREATOR|SELF_ONLY` (direct posts only; private until TikTok has audited the app)
+- `--ai-generated` the reel is AI-made: sets YouTube's synthetic-media flag and TikTok's AI label
 - `--trial` a trial reel on Instagram
 - `--story` also share the reel to your Instagram story
 - `--collaborators name1,name2` (Unified Login only)
@@ -102,7 +121,7 @@ Options:
 
 If the publisher refuses the post after the files were uploaded, the command deletes them again. A file that is uploaded but never scheduled is deleted by the publisher within a day.
 
-The texts: Instagram uses `out/caption.txt`. Facebook and Threads use `out/platforms/facebook.txt` and `out/platforms/threads.txt` when they exist, and the caption otherwise. Threads allows 500 characters (an emoji counts as several), so a long caption needs its own `threads.txt`.
+The texts: Instagram uses `out/caption.txt`. Facebook, Threads, YouTube and TikTok use `out/platforms/facebook.txt`, `threads.txt`, `youtube.txt` and `tiktok.txt` when they exist (`/reel-repurpose` writes the last two), and the caption otherwise. `youtube.txt` is the title on its first line (100 characters at most) and the description after it; a caption's first line is used as the title when there is no file. TikTok allows 2,200 characters. Threads allows 500 characters (an emoji counts as several), so a long caption needs its own `threads.txt`.
 
 It writes one line under "## Posting" in the reel's `approvals.md`, which the dashboard reads:
 

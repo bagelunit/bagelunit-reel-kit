@@ -67,6 +67,12 @@ def main():
         fail(TOOL, 'no build/words.json yet (voice the script first)')
     seconds = words[-1]['e'] + 0.6
     mode_dir = KIT_ROOT / 'modes' / mode
+    if not mode_dir.is_dir() and (KIT_ROOT / 'styles' / mode / 'engine.js').is_file():
+        # local addition: a scene style draws with its engine's templates; the reel's own work is scenes.json (props, narration),
+        # not shot code, so lines and makers per second say nothing about it. Not a pass: the check does not apply.
+        print(f'effort check ({mode}): SKIPPED, it measures hand-written shot code and {mode} is a scene style (scenes.json drives the '
+              'style\'s templates). Judge the plan instead: kit scene <dir> plan, kit scene <dir> check, and look at the sheets.')
+        sys.exit(0)
 
     files = {f for pattern in SCENE_GLOBS for f in project.glob(pattern) if f.is_file()}
     files |= {project / name for name in (reel.get('scenes') or []) if (project / name).is_file()}

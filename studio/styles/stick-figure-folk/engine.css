@@ -1,0 +1,17 @@
+/* Stick Figure Folk look. Everything is drawn in SVG by engine.js; this only sets the paper,
+   the ruled-paper lines and the fallback lettering font (local fonts only). No blend modes or
+   filters, so frames stay identical after a seek. */
+html, body { background: #FBFBF7; }
+.sf {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 45%, #FDFDFA 0%, #FBFBF7 58%, #F2F2EB 100%);
+}
+.sf-bg, .sf-world { position: absolute; left: 0; top: 0; display: block; overflow: hidden; }
+.sf-rule { stroke: #A3B3C4; stroke-opacity: 0.32; stroke-width: 1.4px; }
+.sf-lined .sf-rule { stroke-opacity: 0.38; }
+.sf-fbtext {
+  font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", "Chalkboard SE", "Comic Neue", "Noto Sans", cursive;
+  font-weight: 600;
+}

@@ -1,0 +1,39 @@
+/* Brush Strokes: layout and type only. All painting happens in canvases (engine.js). */
+html, body { background: #1E150D; }
+#scene-root { background: #1E150D; }
+.ph { position: absolute; left: 0; top: 0; overflow: hidden; background: #1E150D; }
+.ph-view { position: absolute; overflow: hidden; }
+.ph-layer { position: absolute; left: 0; top: 0; width: 1px; height: 1px; transform-origin: 0 0; will-change: transform; }
+.ph-layer > canvas, .ph-layer > svg { position: absolute; display: block; }
+.ph-svg { overflow: visible; pointer-events: none; }
+.ph-fig, .ph-fx, .ph-varnish { position: absolute; left: 0; top: 0; display: block; pointer-events: none; }
+.ph-letterbox { position: absolute; inset: 0; pointer-events: none; }
+.ph-letterbox::before, .ph-letterbox::after { content: ""; position: absolute; left: 0; right: 0; height: var(--lb, 0px); background: #0C0805; }
+.ph-letterbox::before { top: 0; }
+.ph-letterbox::after { bottom: 0; }
+.ph-fade { position: absolute; inset: 0; pointer-events: none; }
+.ph-dim { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 46%, rgba(14, 8, 3, 0.62) 0%, rgba(10, 6, 2, 0.88) 100%); }
+.ph-ov, .ph-top { position: absolute; inset: 0; pointer-events: none; }
+.ph-o { position: absolute; }
+.ph-parch { position: absolute; display: block; }
+.ph-lines { position: absolute; text-align: center; white-space: nowrap; }
+.ph-line { white-space: nowrap; }
+.ph-banner .ph-lines { text-shadow: 0 1px 0 rgba(255, 246, 222, 0.55); }
+.ph-rule { position: absolute; background: linear-gradient(90deg, #8A6324, #E6C27A 50%, #8A6324); transform-origin: 0 50%; }
+.ph-plate .ph-rule { transform-origin: 50% 50%; }
+.ph-vs-band { position: absolute; opacity: 0.92; }
+.ph-vs-medal { position: absolute; }
+.ph-medal-c { position: absolute; display: block; }
+.ph-vs-text { position: absolute; text-align: center; font-family: "Times New Roman", Times, Georgia, serif; font-weight: 700; color: #2A1A0E; letter-spacing: 0.02em; text-shadow: 0 1px 0 rgba(255, 240, 200, 0.6); }
+.ph-quote .ph-lines { text-shadow: 0 0 18px rgba(0, 0, 0, 0.6); }
+.ph-qw { color: rgba(243, 230, 200, 0.22); }
+.ph-orn { position: absolute; transform-origin: 50% 50%; background:
+  linear-gradient(90deg, rgba(200, 150, 62, 0), #C8963E 30%, #C8963E 70%, rgba(200, 150, 62, 0)) center / 100% 2px no-repeat; }
+.ph-orn::after { content: ""; position: absolute; left: 50%; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; background: #C8963E; transform: rotate(45deg); }
+.ph-caption { background: linear-gradient(90deg, rgba(14, 8, 3, 0), rgba(14, 8, 3, 0.72) 14%, rgba(14, 8, 3, 0.72) 86%, rgba(14, 8, 3, 0)); }
+.ph-caption .ph-lines { text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7); }
+.ph-kicker .ph-lines, .ph-date .ph-lines { text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8); }
+.ph-sub .ph-lines { text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85); }
+.ph-krule { position: absolute; background: #C8963E; }
+.ph-stage { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; }
+.ph-band { background: linear-gradient(90deg, rgba(14, 8, 3, 0), rgba(14, 8, 3, 0.62) 18%, rgba(14, 8, 3, 0.62) 82%, rgba(14, 8, 3, 0)); }

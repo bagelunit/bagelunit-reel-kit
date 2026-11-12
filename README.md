@@ -6,6 +6,8 @@ Each person runs the kit on their own computer with their own Claude Code accoun
 
 > **Quick start** (when Node.js 22 or newer, Claude Code and, on a Mac, Homebrew are already installed; new to all this? begin at [Start here](#start-here-if-you-have-never-done-this-before)). 1) Download this kit. 2) In its folder run **`bash setup/install.sh`** (Windows: `node setup/install.mjs`), or let Claude Code run it with Message 1 below. 3) Open Claude Code there and type **`/brand-setup`** to make your brand's folder. 4) Open that folder and type **`/bagelunit-reels`** with your topic. Step by step: [Start here](#start-here-if-you-have-never-done-this-before).
 
+> **See what it makes:** [22 sample clips, 10 seconds each](docs/samples/README.md), one for every look: Print, 3D, Talking head and 19 scene styles.
+
 > **Every command in one place:** [COMMANDS.md](COMMANDS.md), also as a [PDF](docs/commands.pdf) and a [spreadsheet](docs/commands.csv).
 
 > **License.** Free to use, including for paid client work, under the [BagelUnit Reel Kit License](LICENSE). The videos you make are yours. Please do not resell, re-upload or repackage the kit.
@@ -176,7 +178,6 @@ Copyright (c) 2026 Susanoo Inc. See [LICENSE](LICENSE): use it, change it for yo
   - [opus-sound-layer](https://github.com/Bodila51/opus-sound-layer) (MIT), which downloads CC0 sounds from [Kenney](https://kenney.nl) and Freesound,
   - [earshot](https://github.com/Leonxlnx/earshot) (MIT),
   - [HyperFrames](https://github.com/heygen-com/hyperframes) (Apache-2.0) Claude Code plugin,
-  - [instagram-agent-skill](https://github.com/Jakeschincariol/instagram-agent-skill) (MIT) Claude Code plugin,
   - three.js (MIT) and Playwright (Apache-2.0) through `npm install`.
 
 These third-party tools are not ours; we only install and call them.

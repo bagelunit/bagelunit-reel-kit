@@ -25,14 +25,17 @@
 //   - A passing problem (rate limit, Meta down) is retried on the next runs; after 5 tries the platform fails.
 //   - Every step is written to the post's history, which GET /admin shows (without the secret addresses).
 import { instagramApi, facebookApi, threadsApi, makeBudget, OutOfBudget, GraphError, isUnified } from './graph.js';
+import { youtubeApi, tiktokApi } from './video-apis.js';
 import { LIMITS, checkText, checkLength, videoTargets } from './limits.js';
 import { r2Seconds } from './mp4.js';
 import * as instagram from './instagram.js';
 import * as facebook from './facebook.js';
 import * as threads from './threads.js';
+import * as youtube from './youtube.js';
+import * as tiktok from './tiktok.js';
 
-export const PLATFORMS = ['instagram', 'facebook', 'threads'];
-const MODULES = { instagram, instagram_story: instagram, facebook, threads };
+export const PLATFORMS = ['instagram', 'facebook', 'threads', 'youtube', 'tiktok'];
+const MODULES = { instagram, instagram_story: instagram, facebook, threads, youtube, tiktok };
 const FINAL = new Set(['published', 'failed', 'dry_run', 'cancelled']);
 const MAX_TRIES = 5;
 
@@ -49,6 +52,8 @@ export function configured(env, platform) {
   if (p === 'instagram') return Boolean(env.IG_USER_ID && env.IG_TOKEN);
   if (p === 'facebook') return Boolean(env.FB_PAGE_ID && env.FB_PAGE_TOKEN);
   if (p === 'threads') return Boolean(env.THREADS_USER_ID && env.THREADS_TOKEN);
+  if (p === 'youtube') return Boolean(env.YT_CLIENT_ID && env.YT_CLIENT_SECRET && env.YT_REFRESH_TOKEN);
+  if (p === 'tiktok') return Boolean(env.TIKTOK_CLIENT_KEY && env.TIKTOK_CLIENT_SECRET && env.TIKTOK_REFRESH_TOKEN);
   return false;
 }
 export function platformsView(env) {
@@ -132,8 +137,9 @@ export async function dropLease(env, id, owner) {
 
 // What GET /admin shows: never the secret media addresses.
 export function publicPost(p) {
-  const { media, base: _b, ...rest } = p;
-  return { ...rest, media: (media || []).map(({ token: _t, key: _k, ...m }) => m) };
+  const { media, base: _b, targets, ...rest } = p;
+  const hidden = ({ session_uri: _s, upload_url: _u, ...t }) => t;      // YouTube's and TikTok's upload addresses are secrets
+  return { ...rest, targets: Object.fromEntries(Object.entries(targets || {}).map(([k, t]) => [k, hidden(t)])), media: (media || []).map(({ token: _t, key: _k, ...m }) => m) };
 }
 
 // ---------- upload ----------
@@ -206,11 +212,14 @@ export async function sweepUploads(env, now = Date.now()) {
 // POST /admin/schedule  JSON:
 //   { kind: "reel" | "image" | "carousel" | "story",
 //     media: [{ key, sha256, role: "video" | "cover" | "item" }],      (from /admin/upload)
-//     platforms: ["instagram", "facebook", "threads"],
-//     text: { instagram, facebook, threads },
+//     platforms: ["instagram", "facebook", "threads", "youtube", "tiktok"],
+//     text: { instagram, facebook, threads, youtube (title on the first line, then the description), tiktok },
 //     at: "2026-11-10T09:00:00-05:00",
 //     options: { share_to_feed, trial, collaborators, location_id, user_tags, audio_name, thumb_offset,
-//                story, threads_mode: "video" | "text", link },
+//                story, threads_mode: "video" | "text", link,
+//                youtube_privacy: "public" | "unlisted" | "private", tiktok_mode: "draft" | "direct",
+//                tiktok_privacy: "PUBLIC_TO_EVERYONE" | "MUTUAL_FOLLOW_FRIENDS" | "FOLLOWER_OF_CREATOR" | "SELF_ONLY",
+//                ai_generated (YouTube's synthetic-media flag and TikTok's AI label) },
 //     reel, note }
 export async function schedulePost(env, data, origin, now = Date.now()) {
   const bad = (error) => ({ status: 400, body: { error } });
@@ -242,7 +251,7 @@ export async function schedulePost(env, data, origin, now = Date.now()) {
   // the platforms
   const platforms = [...new Set(Array.isArray(data.platforms) && data.platforms.length ? data.platforms : ['instagram'])];
   for (const p of platforms) if (!PLATFORMS.includes(p)) return bad(`unknown platform ${p}`);
-  if (kind !== 'reel' && platforms.some((p) => p !== 'instagram')) return bad('Facebook and Threads posting is for reels only');
+  if (kind !== 'reel' && platforms.some((p) => p !== 'instagram')) return bad('Facebook, Threads, YouTube and TikTok posting is for reels only');
   if (o.story && kind !== 'reel') return bad('--story shares a reel to the story; for a story on its own use kind "story"');
   if (o.story && !platforms.includes('instagram')) return bad('--story needs Instagram');
   const targets = [...platforms, ...(o.story ? ['instagram_story'] : [])];
@@ -259,10 +268,28 @@ export async function schedulePost(env, data, origin, now = Date.now()) {
   o.threads_mode = o.threads_mode === 'text' ? 'text' : 'video';
   if (platforms.includes('threads') && o.threads_mode === 'text' && !o.link && !platforms.includes('instagram')) return bad('a Threads text post links to the Instagram post: add instagram, give a link, or use video');
 
+  if (platforms.includes('youtube')) {
+    o.youtube_privacy = o.youtube_privacy || 'public';
+    if (!['public', 'unlisted', 'private'].includes(o.youtube_privacy)) return bad('youtube_privacy must be public, unlisted or private');
+  }
+  if (platforms.includes('tiktok')) {
+    o.tiktok_mode = o.tiktok_mode || (env.TIKTOK_POST_MODE === 'direct' ? 'direct' : 'draft');
+    if (!['draft', 'direct'].includes(o.tiktok_mode)) return bad('tiktok_mode must be draft or direct');
+    if (o.tiktok_mode === 'direct') {
+      const audited = env.TIKTOK_AUDITED === 'yes';
+      o.tiktok_privacy = o.tiktok_privacy || (audited ? 'PUBLIC_TO_EVERYONE' : 'SELF_ONLY');
+      if (!['PUBLIC_TO_EVERYONE', 'MUTUAL_FOLLOW_FRIENDS', 'FOLLOWER_OF_CREATOR', 'SELF_ONLY'].includes(o.tiktok_privacy)) return bad('tiktok_privacy must be PUBLIC_TO_EVERYONE, MUTUAL_FOLLOW_FRIENDS, FOLLOWER_OF_CREATOR or SELF_ONLY');
+      if (o.tiktok_privacy !== 'SELF_ONLY' && !audited) return bad('TikTok has not audited this app, so a direct post can only be private (SELF_ONLY). Use tiktok_mode "draft" (the owner posts it from the TikTok inbox), post it private, or set TIKTOK_AUDITED = "yes" in wrangler.toml once TikTok has passed the audit');
+    }
+    if (o.thumb_offset !== undefined && !Number.isInteger(Number(o.thumb_offset))) return bad('thumb_offset must be a whole number of milliseconds');
+  }
+
   // the video's length for every place it goes, and the cover's size (read from the stored copy, not taken on trust)
   const video = kind === 'story' ? media.find((m) => m.type === 'video') : videos[0];
+  let videoSeconds = null;
   if (video) {
-    const lengthProblems = checkLength(await r2Seconds(env.MEDIA, video.key), videoTargets({ kind, platforms, story: o.story, threadsMode: o.threads_mode }), video.name);
+    videoSeconds = await r2Seconds(env.MEDIA, video.key);
+    const lengthProblems = checkLength(videoSeconds, videoTargets({ kind, platforms, story: o.story, threadsMode: o.threads_mode }), video.name);
     if (lengthProblems.length) return bad(lengthProblems.join('; '));
   }
   for (const c of covers) {
@@ -282,7 +309,7 @@ export async function schedulePost(env, data, origin, now = Date.now()) {
   const all = new Set(Object.values(modes));
   const post = {
     id: hex(6), kind, status: 'scheduled', at: at.toISOString(), at_given: String(data.at), base: origin,
-    media, text, options: o, platforms, reel: String(data.reel || ''), note: String(data.note || ''),
+    media, text, options: o, platforms, video_seconds: videoSeconds, reel: String(data.reel || ''), note: String(data.note || ''),
     targets: Object.fromEntries(targets.map((p) => [p, { status: 'pending', mode: modes[p], tries: 0 }])),
     created: new Date(now).toISOString(), history: [],
   };
@@ -313,8 +340,8 @@ export async function cancelPost(env, id, now = Date.now()) {
   if (!(await takeLease(env, id, owner, now))) return { status: 409, body: { error: 'too late to cancel: the publisher is posting it right now. Check with status in a few minutes; if it went out, delete it in the app' } };
   try {
     const p = await getPost(env, id);
-    const started = Object.values(p.targets || {}).some((t) => !['pending', 'dry_run'].includes(t.status) || t.video_id || t.container_id || t.children?.length);
-    if (!['scheduled', 'dry_run'].includes(p.status) || started) return { status: 409, body: { error: `too late to cancel: the post is ${p.status}${started ? ' and was already sent to Meta' : ''}. If it went out, delete it in the app` } };
+    const started = Object.values(p.targets || {}).some((t) => !['pending', 'dry_run'].includes(t.status) || t.video_id || t.container_id || t.publish_id || t.session_uri || t.children?.length);
+    if (!['scheduled', 'dry_run'].includes(p.status) || started) return { status: 409, body: { error: `too late to cancel: the post is ${p.status}${started ? ' and was already sent to a platform' : ''}. If it went out, delete it in the app` } };
     if (!p.files_deleted) await cleanup(env, p);
     p.status = 'cancelled'; p.history.push({ at: new Date(now).toISOString(), event: 'cancelled' });
     for (const t of Object.values(p.targets)) if (t.status === 'pending') t.status = 'cancelled';
@@ -370,7 +397,7 @@ export async function runDue(env, fetchImpl = fetch, now = Date.now(), budget = 
   const idx = await readIndex(env);
   const due = idx.filter((r) => (r.status === 'scheduled' && Date.parse(r.at) <= now) || r.status === 'processing')
     .sort((a, b) => (a.at < b.at ? -1 : 1)).slice(0, max);
-  const apis = { instagram: instagramApi(env, fetchImpl, budget), facebook: facebookApi(env, fetchImpl, budget), threads: threadsApi(env, fetchImpl, budget) };
+  const apis = { instagram: instagramApi(env, fetchImpl, budget), facebook: facebookApi(env, fetchImpl, budget), threads: threadsApi(env, fetchImpl, budget), youtube: youtubeApi(env, fetchImpl, budget), tiktok: tiktokApi(env, fetchImpl, budget) };
   const runId = `run-${hex(4)}`;
   const done = [];
   for (const row of due) {
@@ -383,7 +410,7 @@ export async function runDue(env, fetchImpl = fetch, now = Date.now(), budget = 
       const stamp = new Date(now).toISOString();
       if (p.status === 'scheduled') { p.status = 'processing'; p.history.push({ at: stamp, event: 'due' }); }
       // Instagram first, so a Threads text post can link to the Instagram post in the same run.
-      for (const name of ['instagram', 'instagram_story', 'facebook', 'threads']) {
+      for (const name of ['instagram', 'instagram_story', 'facebook', 'threads', 'youtube', 'tiktok']) {
         const t = p.targets[name];
         if (!t || settled(t)) continue;
         const log = (event, extra = {}) => { p.history.push({ at: stamp, platform: name, event, ...extra }); };
@@ -391,7 +418,7 @@ export async function runDue(env, fetchImpl = fetch, now = Date.now(), budget = 
           const fake = (m) => `${p.base}/media/<secret>.${m.type === 'image' ? 'jpg' : 'mp4'}`;
           const why = t.mode !== 'live' ? 'it was scheduled in dry run; schedule a new post to post live' : 'the publisher is in dry run now';
           t.status = 'dry_run'; t.mode = 'dry_run';
-          log(`due in dry run (${why}): nothing sent`, { would_send: MODULES[name].describe(p, name, fake) });
+          log(`due in dry run (${why}): nothing sent`, { would_send: MODULES[name].describe(p, name, fake, env) });
           continue;
         }
         const c = {

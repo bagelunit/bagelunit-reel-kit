@@ -25,6 +25,7 @@ const ok = (m) => console.log('ok   ' + m);
 // takesReel: run by slug in both layouts and must find the reel. The rest need no reel folder (or need a render, a network or a key).
 const takesReel = {
   pace: [], effort: [], lint: [], facts: [], gate: ['check'], measure: [], predict: [], qa: [], host: ['--check'],
+  scene: ['plan'],   // on the smoke reel (print) it finds the reel, then says it is not a scene-style reel; setup/test-scene-styles.mjs tests the rest
 };
 const needsMore = ['start', 'frames', 'render', 'calibrate', 'sound', 'export', 'live', 'cover', 'organize', 'tidy'];   // covered by test-reel-folders.mjs, the sticker-host CI step, or need a render
 const help = spawnSync('node', [KIT], { encoding: 'utf8' }).stdout;

@@ -73,7 +73,7 @@ Two kit guides live in the kit's own folder, not in this copy: [the sticker host
 | `/reel-factcheck` | re-reads every source, before the script is approved and again on the final |
 | `/reel-review` | checks a draft or final and gives one verdict line |
 | `/reel-predict` | measures a reel, and estimates how it will hold viewers once 8 posted reels have numbers |
-| `/caption-and-hashtags` | caption, hashtags and first comment |
+| `/caption-and-hashtags` | caption, up to 5 hashtags picked from what worked, and a line of search keywords |
 | `/cover-thumbnail-brief` | the cover text and look |
 | `/reel-posting` | a posting card, scheduling, or setting up automatic posting step by step |
 | `/content-calendar` | your content calendar and dashboard: every reel from idea to posted, what needs you, the four agents, followers and trends; `plan` fills the next weeks after your yes, `days` sets your posting days, `host` lets you view it on your Wi-Fi or online (Netlify suggested), `connect instagram` and `connect telegram` add your numbers and a phone summary, `auto` refreshes it by itself (Mac, Windows, Linux) |

@@ -2,9 +2,9 @@
 name: reel-posting
 description: >
   Get an approved reel posted: a posting card for posting by hand, scheduling it through the kit's publisher
-  on Instagram, the Facebook Page and Threads, or setting up automatic posting for this brand step by step.
+  on Instagram, the Facebook Page, Threads, YouTube Shorts and TikTok, or setting up automatic posting for this brand step by step.
   Use when the user says "post this", "how do I post it", "schedule this reel", "post it on Tuesday", "post it
-  on Facebook / Threads too", "set up auto-posting", "post automatically", or after Gate C is approved.
+  on Facebook / Threads / YouTube / TikTok too", "set up auto-posting", "post automatically", or after Gate C is approved.
 user-invokable: true
 argument-hint: "[reel folder, e.g. reels/<slug>] [when]"
 metadata:
@@ -78,7 +78,7 @@ Only when the owner asks. Walk it one step at a time and keep a short checklist 
    `autopilot.post` to `true` and write the date in the `_note`.
 6. **Going live**, one platform at a time (`publisher/README.md`, "Dry run and going live", and `docs/connect.md`
    step 6, point 10): only after the owner's yes for that platform in this conversation, you set
-   `PUBLISH_MODE_INSTAGRAM` (or `_FACEBOOK`, `_THREADS`) to `"live"` in `publisher/wrangler.toml` and run
+   `PUBLISH_MODE_INSTAGRAM` (or `_FACEBOOK`, `_THREADS`, `_YOUTUBE`, `_TIKTOK`) to `"live"` in `publisher/wrangler.toml` and run
    `npx wrangler deploy` in the `publisher` folder, then `node publisher/scripts/setup.mjs check` to show it LIVE. If
    the platform was in dry run for more than about 50 days, first run `setup.mjs secrets --only IG_TOKEN` (or
    `THREADS_TOKEN`): the publisher does not renew tokens in dry run. Tell the owner the dry-run test stays a dry run
@@ -98,8 +98,10 @@ A/B test and goes out as a **trial reel**: Instagram shows it to non-followers f
 
 ## Route 3: scheduling one reel (after route 2 is set up)
 
-**Where it goes and when are the brand's standing choices, not a question for every reel.** Platforms: `brand.json` ->
-`posting.platforms` (for example Instagram, Facebook and Threads). Time: the reel's row in `brand/plan.md`
+**Once a reel is approved it goes everywhere the brand is connected, with no question per platform.** Platforms:
+`brand.json` -> `posting.platforms` when the owner fixed a list, otherwise every platform the publisher shows as
+connected (`schedule.mjs` reads that itself and names any it left out). **Where it goes and when are the brand's
+standing choices, not a question for every reel.** Time: the reel's row in `brand/plan.md`
 (the month is planned ahead, and `/content-calendar best-times` moves the times toward what works). Ask for them
 **once**, when route 2 is set up, and save them: the platforms with the owner's yes (only platforms `setup.mjs check`
 shows as connected, Instagram first), the times through `/content-calendar plan` or `days`. Never describe the
@@ -109,15 +111,22 @@ platforms and planned times.
 1. Run the Gate above. Then look for the standing choices:
    - **Both set** (`posting.platforms` is filled in, and the reel has a row in `brand/plan.md` with a date and a
      time): go to step 3 with `--from-plan`, no question yet.
-   - **Platforms missing:** ask once (one question block, multi-select: "Instagram" first, "Facebook Page",
-     "Threads", only the connected ones), then save the answer in `brand.json` -> `posting.platforms`. For Threads
+   - **Platforms missing:** the default is every connected platform, so there is nothing to ask. Only if the owner
+     wants fewer, ask once (multi-select: "Instagram" first, "Facebook Page", "Threads", "YouTube Shorts", "TikTok",
+     only the connected ones) and save the answer in `brand.json` -> `posting.platforms`. For Threads
      the default is the video; "a short text with the reel's link" is a per-reel choice (`--threads text`).
    - **No plan row, or the row has no time:** ask the time (question block with 2 or 3 suggested slots from
      `posting.times`, plus Other; the timezone if `brand.json` has none), then offer to add the row to `plan.md`.
-2. If `/reel-repurpose` has not written `out/platforms/facebook.txt` or `threads.txt`, say the caption is used
-   (Threads allows 500 characters; a longer caption needs its own `threads.txt`, written and humanized first).
+2. If `/reel-repurpose` has not written `out/platforms/facebook.txt`, `threads.txt`, `youtube.txt` or `tiktok.txt`,
+   say the caption is used (Threads allows 500 characters; YouTube's title, the caption's first line, must be 100 at
+   most, so a YouTube Short wants its own `youtube.txt`: title on the first line, then the description; TikTok allows
+   2,200). Run `/reel-repurpose <reel> tiktok shorts` first when they are missing and the platform is connected;
+   each text is written and humanized first.
+   Two things to say plainly in the summary: a **TikTok draft** is not posted, it waits in the owner's TikTok inbox
+   for a tap in the app (a direct post is private until TikTok has audited the app), and YouTube and TikTok have not
+   been used live yet, so the first real post is one the owner watches.
 3. Run the checks without sending anything:
-   `node publisher/scripts/schedule.mjs reels/<slug> --from-plan [--platforms <list>] [--threads text] [--trial] --preview`
+   `node publisher/scripts/schedule.mjs reels/<slug> --from-plan [--platforms <list>] [--threads text] [--trial] [--tiktok-mode draft|direct] [--youtube-privacy public|unlisted|private] [--ai-generated] --preview`
    (or `--at <ISO time with offset>` when there is no plan row; `--platforms` only overrides the brand's list for
    this one reel). Show its summary (it says DRY RUN or LIVE: this really posts, where the time and platforms came
    from, and the posting card), then ask **one question**: "Schedule it at <the summary's time> on <its platforms>?"

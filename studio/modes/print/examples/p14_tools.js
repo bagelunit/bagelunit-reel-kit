@@ -2,7 +2,7 @@
 // NOTE: reference code from a real reel. Word indices (wi(n)) refer to that reel's script; re-cue on your own words.json.
 // Through-object left in: powerStrip() (kit) and the ccWindow terminal.
 // assets not included: IMG.tools_av (avatar; lookups no-op when missing).
-// owner/browser-tools-mcp (48.2K ★, Apache-2.0, v1.4.0, 98,431 installs, published by Acme Inc.). Beats:
+// owner/page-tools-kit (48.2K ★, Apache-2.0, v1.4.0, 98,431 installs, published by Acme Inc.). Beats:
 //   dock → centre stage → the browser-tools plug swings in, hovers, SLAMS in on PLUGIN_DONE[3] → 4/4: a surge runs the whole strip
 //   → a pulse climbs the cable and powers up a real browser window (radial power-on from the cable entry) showing the repo's README
 //   (typed H1, 48.2K ★, Acme Inc., 98,431 installs, the real install command) → "eyes on a real browser": the tab navigates to
@@ -110,7 +110,7 @@ SC.tools = (() => {
     circle(K, x0 + 26, hy, 26, null, 'rgba(17,17,17,0.12)', 2);
     const f1 = gf(30, { color: '#6B6B6B' }), own = 'owner / ';
     text(K, own, x0 + 66, hy + 11, f1);
-    text(K, 'browser-tools-mcp', x0 + 66 + measure(K, own, f1), hy + 11, gf(30, { weight: 700 }));
+    text(K, 'page-tools-kit', x0 + 66 + measure(K, own, f1), hy + 11, gf(30, { weight: 700 }));
     const sp = E.outCubic(P(t, T_ON + 0.25, 1.05));
     BB.starPill(K, x + w - 40, hy, (52.7 * sp).toFixed(1) + 'K');
     const ty = y + 126;
@@ -147,7 +147,7 @@ SC.tools = (() => {
     text(K, 'Getting started', x0, by + 8, gf(30, { weight: 700 }));
     fillRR(K, x0, by + 32, w - 88, 118, 14, '#F3F1EC'); strokeRR(K, x0, by + 32, w - 88, 118, 14, 'rgba(17,17,17,0.08)', 2);
     text(K, 'claude mcp add browser-tools --scope user', x0 + 24, by + 80, mf(25));
-    text(K, '  npx browser-tools-mcp@latest', x0 + 24, by + 120, mf(25));
+    text(K, '  npx page-tools-kit@latest', x0 + 24, by + 120, mf(25));
     text(K, 'What your agent can do', x0, by + 212, gf(30, { weight: 700 }));
     let cx = x0, rowN = 0;
     ['console messages', 'network requests', 'screenshots', 'performance traces'].forEach((c, k) => {
@@ -410,7 +410,7 @@ SC.tools = (() => {
 
   // ── window frame ──
   function url(t) {
-    const A = 'github.com/owner/browser-tools-mcp', B = 'my-app.example.com';
+    const A = 'github.com/owner/page-tools-kit', B = 'my-app.example.com';
     if (t < T_NAV) return { s: A, sel: 0 };
     if (t < T_NAV + 0.1) return { s: A, sel: 1 };
     return { s: typedStr(B, t, T_NAV + 0.1, 90), sel: 0, typing: t < T_NAV + 0.1 + B.length / 90 };
@@ -430,7 +430,7 @@ SC.tools = (() => {
     const onB = t >= T_PAGEB - 0.1;
     if (onB) { fillRR(K, tx + 16, tt + 12, 22, 22, 6, C.ink); fillRR(K, tx + 23, tt + 19, 8, 8, 2, C.red); }
     else { K.save(); K.beginPath(); K.arc(tx + 27, tt + 23, 11, 0, TAU); K.clip(); coverImg(K, IMG.tools_av, tx + 16, tt + 12, 22, 22, { fy: 0.5 }); K.restore(); }
-    const ttl = onB ? 'my-app' : 'owner/browser-tools-mcp';
+    const ttl = onB ? 'my-app' : 'owner/page-tools-kit';
     K.save(); K.beginPath(); K.rect(tx + 44, tt, tw - 84, 40); K.clip(); text(K, ttl, tx + 48, tt + 30, gf(19, { color: G.ink })); K.restore();
     const ld = t >= T_NAV + 0.3 && t < T_PAGEB + 0.25;
     if (ld) { K.save(); K.translate(tx + tw - 26, tt + 22); K.rotate(t * 14); K.strokeStyle = C.red; K.lineWidth = 3; K.lineCap = 'round'; K.beginPath(); K.arc(0, 0, 8, 0, 4.2); K.stroke(); K.restore(); }

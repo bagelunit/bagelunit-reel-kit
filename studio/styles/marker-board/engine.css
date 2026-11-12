@@ -1,0 +1,21 @@
+/* Marker Board look. The board itself is drawn in SVG by engine.js; this only sets the paper,
+   the fallback lettering font (local fonts only) and keeps everything inside the frame. */
+html, body { background: #FBFBF8; }
+.wb {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 70%),
+    radial-gradient(ellipse at 50% 50%, #FBFBF8 55%, #EEEFEA 100%);
+}
+.wb.wb-cream { background: radial-gradient(ellipse at 50% 45%, #FBF6EA 55%, #EFE6D2 100%); }
+.wb.wb-grid { background: radial-gradient(ellipse at 50% 50%, #FBFBF8 55%, #EEF0F2 100%); }
+.wb-svg { position: absolute; left: 0; top: 0; display: block; overflow: hidden; }
+/* No mix-blend-mode on fills: it adds compositing layers and makes frames differ (invisibly) after a
+   seek. The blurred hand shadow still causes sub-level noise (PSNR above 70 dB), which is fine. */
+.wb-fbtext {
+  font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", "Noto Sans", "Chalkboard SE", cursive;
+  font-weight: 600;
+}
+.wb-hand { pointer-events: none; }

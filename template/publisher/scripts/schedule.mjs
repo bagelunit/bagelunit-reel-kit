@@ -4,8 +4,9 @@
 //
 //   node publisher/scripts/schedule.mjs <reel folder> --at 2026-11-10T09:00:00-05:00
 //        (or --from-plan: the date and time come from the reel's row in brand/plan.md, in brand.json -> posting.timezone)
-//        [--platforms instagram,facebook,threads] [--trial] [--threads text|video] [--collaborators a,b]
+//        [--platforms instagram,facebook,threads,youtube,tiktok] [--trial] [--threads text|video] [--collaborators a,b]
 //        [--location <id>] [--story] [--thumb-offset <ms>] [--no-feed] [--preview | --yes]
+//        [--youtube-privacy public|unlisted|private] [--tiktok-mode draft|direct] [--tiktok-privacy <level>] [--ai-generated]
 //        --preview runs every check and shows the summary, then stops: nothing is uploaded or scheduled.
 //   node publisher/scripts/schedule.mjs status
 //   node publisher/scripts/schedule.mjs cancel <post id>
@@ -18,12 +19,17 @@
 //     one) still have the fingerprints recorded there; it refuses otherwise;
 //   - the latest "Review:" line in approvals.md says "meets the bar" with 90/100 or more (the same bar as Gate C); it refuses
 //     a reel with no review or a lower score, unless the owner's override (--skip-review at Gate C) is on record;
+//   - every logo listed in the reel's reel.json "logos" is in brand/library/logos and is official or traced with approved rights
+//     (house rule 9: another company's mark is posted only once the owner has approved it);
 //   - the video's length fits every place it goes (Instagram reel 3 s to 15 min, story 3 to 60 s, Facebook Reel 3 to
-//     90 s, Threads video up to 5 min) and the cover is a JPEG of 8 MB at most;
-//   - the caption is there and fits each platform (out/caption.txt; out/platforms/facebook.txt and threads.txt are
-//     used for those platforms when they exist);
+//     90 s, Threads video up to 5 min, YouTube Short up to 3 min, TikTok 3 s to 10 min) and the cover is a JPEG of 8 MB at most;
+//   - the caption is there and fits each platform (out/caption.txt; out/platforms/facebook.txt, threads.txt, youtube.txt
+//     and tiktok.txt are used for those platforms when they exist; youtube.txt is the title on its first line, then the
+//     description, and without it the caption's first line is the title);
 //   - the time has a timezone and is in the future (with --from-plan: the plan row has a date and a time);
-//   - the platforms are --platforms, else brand.json -> posting.platforms (the brand's fixed list), else Instagram only;
+//   - the platforms are --platforms, else brand.json -> posting.platforms (the brand's fixed list), else EVERY platform
+//     the publisher has connected: an approved reel goes everywhere the brand is connected, without being asked again
+//     for each reel (a platform that is not connected is left out and named in the summary);
 //   - the publisher has each platform connected, and they are all in the same mode (all dry run or all live).
 // Then it shows a summary and needs the brand's handle typed (or --yes) before it uploads the video and cover (with
 // their SHA-256, which the publisher checks byte for byte) and schedules. If the publisher refuses the post, the
@@ -34,11 +40,12 @@ import path from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { parseArgs, readJSON, read, sha256File, findBrand, brandSlug, atHandle, stamp, lastGateC, reviewProblem, appendUnder, connection, admin, Plain, isMain, CONFIG_DIR, planSlot, zonedIso } from './lib.mjs';
 import { findReel, resolveReelArg } from './reels.mjs';
+import { logoProblems } from '../../.claude/skills/logo-library/logos.mjs';
 import { checkText, checkLength, videoTargets, LIMITS } from '../src/limits.js';
 import { fileSeconds } from '../src/mp4.js';
 
 const MAX_BYTES = 95 * 1024 * 1024;   // Cloudflare's free plan takes request bodies up to 100 MB
-const PLATFORMS = ['instagram', 'facebook', 'threads'];
+const PLATFORMS = ['instagram', 'facebook', 'threads', 'youtube', 'tiktok'];
 
 const list = (v) => (v && v !== true ? String(v).split(',').map((s) => s.trim()).filter(Boolean) : []);
 
@@ -60,6 +67,7 @@ export function checkReel(reelDir, args = {}, now = Date.now()) {
   else {
     const rp = reviewProblem(read(path.join(reel, 'approvals.md')));
     if (rp) problems.push(rp);
+    for (const lp of logoProblems(root, readJSON(path.join(reel, 'reel.json'), {}))) problems.push(lp);
     video = path.join(reel, 'out', gate.file);
     if (!fs.existsSync(video)) problems.push(`the approved file out/${gate.file} is missing`);
     else {
@@ -80,10 +88,14 @@ export function checkReel(reelDir, args = {}, now = Date.now()) {
   }
 
   // where and how
-  const given = list(args.platforms), brandList = Array.isArray(brand?.posting?.platforms) ? brand.posting.platforms.map((x) => String(x).trim().toLowerCase()).filter(Boolean) : [];
-  const platformsFrom = given.length ? 'flag' : brandList.length ? 'brand' : 'default';
-  const platforms = given.length ? given : brandList.length ? [...new Set(brandList)] : ['instagram'];
-  for (const p of platforms) if (!PLATFORMS.includes(p)) problems.push(`unknown platform "${p}"${platformsFrom === 'brand' ? ' in brand.json -> posting.platforms' : ''} (use instagram, facebook, threads)`);
+  const given = list(args.platforms).map((x) => x.toLowerCase()), brandList = Array.isArray(brand?.posting?.platforms) ? brand.posting.platforms.map((x) => String(x).trim().toLowerCase()).filter(Boolean) : [];
+  const platformsFrom = given.length ? 'flag' : brandList.length ? 'brand' : 'all';
+  // With nothing chosen the reel goes to every platform the publisher has connected (args._connected, read from the publisher by scheduleReel)
+  const wanted = given.length ? given : brandList.length ? [...new Set(brandList)] : PLATFORMS;
+  const platforms = platformsFrom === 'all' && Array.isArray(args._connected) ? wanted.filter((p) => args._connected.includes(p)) : wanted;
+  const skipped = platformsFrom === 'all' && Array.isArray(args._connected) ? wanted.filter((p) => !args._connected.includes(p)) : [];
+  if (platformsFrom === 'all' && Array.isArray(args._connected) && !platforms.length) problems.push('the publisher has no platform connected yet (see publisher/README.md)');
+  for (const p of platforms) if (!PLATFORMS.includes(p)) problems.push(`unknown platform "${p}"${platformsFrom === 'brand' ? ' in brand.json -> posting.platforms' : ''} (use ${PLATFORMS.join(', ')})`);
   const threadsMode = args.threads === 'text' ? 'text' : 'video';
   if (args.threads && !['text', 'video'].includes(args.threads)) problems.push('--threads takes text or video');
   if (platforms.includes('threads') && threadsMode === 'text' && !platforms.includes('instagram')) problems.push('a Threads text post links to the Instagram post: add instagram to --platforms or use --threads video');
@@ -93,6 +105,9 @@ export function checkReel(reelDir, args = {}, now = Date.now()) {
   if (collaborators.length > LIMITS.instagram.collaborators) problems.push(`up to ${LIMITS.instagram.collaborators} collaborators`);
   if (args.location && !/^\d+$/.test(String(args.location))) problems.push('--location takes the numeric id of a Facebook Page that has a location');
   if (args['thumb-offset'] !== undefined && !/^\d+$/.test(String(args['thumb-offset']))) problems.push('--thumb-offset takes milliseconds, e.g. 1500');
+  if (args['youtube-privacy'] !== undefined && !['public', 'unlisted', 'private'].includes(args['youtube-privacy'])) problems.push('--youtube-privacy takes public, unlisted or private');
+  if (args['tiktok-mode'] !== undefined && !['draft', 'direct'].includes(args['tiktok-mode'])) problems.push('--tiktok-mode takes draft or direct');
+  if (args['tiktok-privacy'] !== undefined && !['PUBLIC_TO_EVERYONE', 'MUTUAL_FOLLOW_FRIENDS', 'FOLLOWER_OF_CREATOR', 'SELF_ONLY'].includes(args['tiktok-privacy'])) problems.push('--tiktok-privacy takes PUBLIC_TO_EVERYONE, MUTUAL_FOLLOW_FRIENDS, FOLLOWER_OF_CREATOR or SELF_ONLY');
 
   // the video's length, for every place it goes
   let seconds = null;
@@ -109,7 +124,7 @@ export function checkReel(reelDir, args = {}, now = Date.now()) {
   if (!caption) problems.push('out/caption.txt is missing or empty');
   for (const p of platforms.filter((x) => PLATFORMS.includes(x))) {
     text[p] = p === 'instagram' ? caption : (own(p) || caption);
-    if (caption || p !== 'instagram') problems.push(...checkText(p, text[p]).map((m) => (p !== 'instagram' && !own(p) ? `${m} (it uses out/caption.txt; write out/platforms/${p}.txt for ${p})` : m)));
+    if (caption || p !== 'instagram') problems.push(...checkText(p, text[p]).map((m) => (p !== 'instagram' && !own(p) ? `${m} (it uses out/caption.txt; write out/platforms/${p}.txt for ${p}, or /reel-repurpose)` : m)));
   }
 
   // the time
@@ -136,11 +151,15 @@ export function checkReel(reelDir, args = {}, now = Date.now()) {
 
   return {
     problems: [...new Set(problems)], reel, root, brand, slug: brandSlug(root, brand), handle, postAllowed, gate, video, sha, cover, coverSha, seconds,
-    text, platforms, platformsFrom, fromPlan, at, atStr,
+    text, platforms, platformsFrom, skipped, fromPlan, at, atStr,
     options: {
       trial: args.trial === true, story: args.story === true, share_to_feed: args['no-feed'] !== true, threads_mode: threadsMode,
       ...(collaborators.length ? { collaborators } : {}), ...(args.location ? { location_id: String(args.location) } : {}),
       ...(args['thumb-offset'] !== undefined ? { thumb_offset: Number(args['thumb-offset']) } : {}),
+      ...(platforms.includes('youtube') && args['youtube-privacy'] ? { youtube_privacy: args['youtube-privacy'] } : {}),
+      ...(platforms.includes('tiktok') && args['tiktok-mode'] ? { tiktok_mode: args['tiktok-mode'] } : {}),
+      ...(platforms.includes('tiktok') && args['tiktok-privacy'] ? { tiktok_privacy: args['tiktok-privacy'] } : {}),
+      ...(args['ai-generated'] === true ? { ai_generated: true } : {}),
     },
   };
 }
@@ -158,6 +177,14 @@ export function checkPublisher(info, c) {
   return { problems, mode };
 }
 
+// What the TikTok post will be, in words: a draft the owner posts from the app, or a direct post and who can see it.
+export function tiktokLine(c, info) {
+  const direct = (c.options.tiktok_mode || info?.tiktok_post_mode || 'draft') === 'direct';
+  if (!direct) return 'a draft in the TikTok inbox: you tap the notification in the TikTok app to post it';
+  const audited = info?.tiktok_audited === true;
+  return `a direct post, ${c.options.tiktok_privacy || (audited ? 'PUBLIC_TO_EVERYONE' : 'SELF_ONLY (private until TikTok has audited the app)')}`;
+}
+
 export function summary(c, info, mode) {
   const tz = c.brand.posting?.timezone;
   let local = c.at.toString();
@@ -168,13 +195,16 @@ export function summary(c, info, mode) {
     `  video       out/${c.gate.file}  sha256 ${c.sha.slice(0, 12)} (matches Gate C)${c.seconds != null ? `, ${Math.round(c.seconds * 10) / 10} seconds` : ''}`,
     `  cover       ${c.cover ? `out/${c.gate.cover.file}  sha256 ${c.coverSha.slice(0, 12)} (matches Gate C)${c.platforms.includes('facebook') ? ', also set as the Facebook cover' : ''}` : `none approved: Instagram uses the frame at ${c.options.thumb_offset || 0} ms${c.platforms.includes('facebook') ? ', Facebook picks its own' : ''}`}`,
     `  time        ${local}  (${c.at.toISOString()})${c.fromPlan ? `  [from brand/plan.md: ${c.fromPlan.date} ${c.fromPlan.time}]` : ''}`,
-    `  platforms   ${c.platforms.join(', ')}${c.platformsFrom === 'brand' ? '  [from brand.json -> posting.platforms]' : ''}${c.options.story ? ', and the reel as an Instagram story' : ''}`,
+    `  platforms   ${c.platforms.join(', ')}${c.platformsFrom === 'brand' ? '  [from brand.json -> posting.platforms]' : c.platformsFrom === 'all' ? '  [every platform the publisher has connected]' : ''}${c.options.story ? ', and the reel as an Instagram story' : ''}`,
     `  mode        ${mode === 'live' ? 'LIVE: this really posts' : 'dry run: nothing is posted, the publisher records what it would send (it stays a dry run even if the publisher goes live before then)'}`,
   ];
   if (c.options.trial) lines.push('  trial       yes: Instagram shows it to non-followers first; you share it to followers in the app');
   if (c.options.trial && c.platforms.some((p) => p !== 'instagram')) lines.push('              (Facebook and Threads posts are shown to followers as usual)');
   if (c.options.collaborators) lines.push(`  collab      ${c.options.collaborators.map((x) => '@' + x).join(', ')}`);
   if (c.options.location_id) lines.push(`  location    ${c.options.location_id}`);
+  if (c.skipped?.length) lines.push(`  not connected  ${c.skipped.join(', ')} (left out: connect them in docs/connect.md to post there too)`);
+  if (c.platforms.includes('youtube')) lines.push(`  youtube     a Short, ${c.options.youtube_privacy || 'public'}; title: ${String(c.text.youtube || '').split('\n')[0].slice(0, 70)}`);
+  if (c.platforms.includes('tiktok')) lines.push(`  tiktok      ${tiktokLine(c, info)}`);
   if (c.platforms.includes('threads')) lines.push(`  threads     ${c.options.threads_mode === 'text' ? 'a text post with the Instagram link' : 'the video'}`);
   for (const p of c.platforms) lines.push(`  ${(p + ' text').padEnd(11)} ${c.text[p].split('\n')[0].slice(0, 90)}`);
   return lines.join('\n');
@@ -192,10 +222,16 @@ async function askHandle(handle) {
 
 // The whole flow. `confirm(handle)` returns what the person typed; tests pass their own, plus fetchImpl and configDir.
 export async function scheduleReel(reelDir, args, { fetchImpl = fetch, configDir = CONFIG_DIR, confirm = askHandle, log = console.log, now = Date.now() } = {}) {
-  const c = checkReel(reelDir, args, now);
+  let c = checkReel(reelDir, args, now);
+  const implicit = !list(args.platforms).length && !(Array.isArray(c.brand?.posting?.platforms) && c.brand.posting.platforms.length);
+  const conn = c.slug ? connection(c.slug, configDir) : null;
+  let info = null;
+  if (implicit && conn) {                                              // nothing chosen: every connected platform, so ask the publisher first
+    info = await admin(conn, 'GET', '/admin', { fetchImpl });
+    c = checkReel(reelDir, { ...args, _connected: Object.entries(info.platforms || {}).filter(([, v]) => v.configured).map(([k]) => k) }, now);
+  }
   if (c.problems.length) throw new Plain('Not scheduled:\n- ' + c.problems.join('\n- '));
-  const conn = connection(c.slug, configDir);
-  const info = await admin(conn, 'GET', '/admin', { fetchImpl });
+  info = info || await admin(conn, 'GET', '/admin', { fetchImpl });
   const pc = checkPublisher(info, c);
   if (pc.problems.length) throw new Plain('Not scheduled:\n- ' + pc.problems.join('\n- '));
   log(summary(c, info, pc.mode));

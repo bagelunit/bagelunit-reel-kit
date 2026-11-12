@@ -1,0 +1,22 @@
+/* Pixel World look. Everything is drawn by engine.js on one low-res canvas that is scaled up by a
+   whole number with hard pixel edges. The scanline overlay is static (its size is set inline from
+   the scale), so it never changes between frames. No blend modes, no filters. */
+html, body { background: #140f26; }
+.pq {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #0a0714;
+}
+.pq-cv {
+  position: absolute;
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+.pq-scan {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-repeat: repeat;
+}

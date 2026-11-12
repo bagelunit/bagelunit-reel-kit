@@ -13,6 +13,10 @@ The same facts are written to build/qa.json so a reviewer can read them.
   text       text size and safe zone, from build/text_boxes.json: [{"t0": s, "t1": s, "x": px, "y": px, "w": px, "h": px,
              "label": "..."}] on the 1080x1920 canvas. No other build file holds text boxes (build/motion_mask.json lists regions
              to ignore, not text), so without that file this check is SKIPPED, never PASS.
+             Scene-style reels (local addition): when there is no text_boxes.json but kit render wrote build/scene_boxes.json
+             (the resting boxes the style's engine reports through S.inspect, every drawn item, not only text), the safe zone
+             is checked on those boxes with the styles repo's 6 px slack; text size is not, since the engine reports boxes,
+             not font sizes. Modes never write scene_boxes.json, so nothing changes for them.
   sync       first word start in build/words.json vs the first audible sound in the final audio, within 80 ms
              (SKIPPED when words.json is missing). The audio may carry effects or music: read a WARN as "listen".
 """
@@ -26,6 +30,7 @@ SAFE = dict(top=250, bottom=450, side=60)        # px kept clear of text on a 10
 MIN_TEXT_H = 44                                    # a text box shorter than this is hard to read on a phone
 MIN_STILL = 0.5                                    # black or frozen for longer than this (s) is reported
 SYNC_LIMIT = 0.080
+SCENE_SLACK = 6                                    # px; scene-style boxes (S.inspect) get the styles repo tester's tolerance
 
 
 def newest_video(project, given):
@@ -164,7 +169,17 @@ def main():
 
     # text size and safe zone
     boxes = read_json(project / 'build' / 'text_boxes.json', None)
-    if not isinstance(boxes, list) or not boxes:
+    scene_boxes = read_json(project / 'build' / 'scene_boxes.json', None) if not isinstance(boxes, list) or not boxes else None
+    if isinstance(scene_boxes, list) and scene_boxes:
+        k, bad = SCENE_SLACK, []
+        for b in scene_boxes:
+            x, y, bw, bh = b.get('x', 0), b.get('y', 0), b.get('w', 0), b.get('h', 0)
+            if y < SAFE['top'] - k or y + bh > 1920 - SAFE['bottom'] + k or x < SAFE['side'] - k or x + bw > 1080 - SAFE['side'] + k:
+                bad.append(f'{b.get("t0", 0):.1f}s {b.get("kind", "")} "{str(b.get("label", ""))[:24]}" outside the safe zone')
+        add('text', 'FAIL' if bad else 'PASS', (f'{len(bad)} of {len(scene_boxes)} scene boxes: ' + '; '.join(bad[:6])) if bad
+            else f'{len(scene_boxes)} resting boxes from the scene engine (S.inspect) inside the safe zone; text size not measured for scene styles',
+            boxes=len(scene_boxes), bad=bad, source='build/scene_boxes.json')
+    elif not isinstance(boxes, list) or not boxes:
         add('text', 'SKIPPED', 'no text-box data (build/text_boxes.json is not written by kit render yet), so text size and safe zone were NOT checked')
     else:
         bad = []

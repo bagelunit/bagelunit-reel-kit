@@ -32,16 +32,16 @@ Write each version to `reels/<slug>/out/platforms/` (the reel's card on the dash
 
 ## TikTok (`tiktok.txt`)
 
-- Caption: the hook as the first line, one or two short lines of value, one call to action. Three to five hashtags at
+- Caption: the hook as the first line, one or two short lines of value, one call to action. Three to five hashtags in the caption (never in a comment) at
   the end (niche first, no generic ones like #fyp unless the owner asks).
 - A suggested on-screen text for TikTok's own text box only if the reel's first second has none.
-- The kit does not post to TikTok: the owner uploads the same mp4 from `out/`.
+- With TikTok connected on the brand's publisher (`docs/connect.md` step 6C), `/reel-posting` sends this file's caption with the approved mp4 (as a draft in the owner's TikTok inbox unless the brand uses direct posts). Without it, the owner uploads the same mp4 from `out/`.
 
 ## YouTube Shorts (`youtube.txt`)
 
-- Title: under 60 characters if possible (100 at most), the hook in plain words, no clickbait the video does not pay off.
-- Description: two or three lines, then `#Shorts` and two or three topic hashtags.
-- The owner uploads the same mp4 from `out/`.
+- The file is the title on its **first line** (under 60 characters if possible, 100 at most, the hook in plain words, no clickbait the video does not pay off), a blank line, then the description. The publisher reads it that way.
+- Description: two or three lines, then `#Shorts` and two or three topic hashtags. No `<` or `>` anywhere (YouTube refuses them).
+- With YouTube connected on the brand's publisher (`docs/connect.md` step 6B), `/reel-posting` posts it as a Short. Without it, the owner uploads the same mp4 from `out/`.
 
 ## The buttons check (TikTok and Shorts)
 

@@ -1,6 +1,6 @@
 # Setting things up on the web: Claude drives your browser
 
-Every part of the kit's setup that happens on a website (your ElevenLabs key, the sound packs, switching Instagram to a professional account, the Meta app, your Facebook Page and Threads, Cloudflare for the publisher, the Telegram bot, a host for the dashboard, the sticker host's image tool, Apify or Runway) is done by Claude in your own browser, with the **browser tool** (Claude in Chrome). You watch it work. Claude opens each page, clicks through the menus, fills in names and settings, and turns switches on. You do only three things: log in, copy a key into the file Claude opens for you, and click the last button when something is deleted.
+Every part of the kit's setup that happens on a website (your ElevenLabs key, the sound packs, switching Instagram to a professional account, the Meta app, your Facebook Page and Threads, a Google Cloud project for YouTube, a TikTok developer app, Cloudflare for the publisher, the Telegram bot, a host for the dashboard, the sticker host's image tool, Apify or Runway) is done by Claude in your own browser, with the **browser tool** (Claude in Chrome). You watch it work. Claude opens each page, clicks through the menus, fills in names and settings, and turns switches on. You do only three things: log in, copy a key into the file Claude opens for you, and click the last button when something is deleted.
 
 ## 1. Turn on the browser tool (once per computer)
 
@@ -36,7 +36,7 @@ If you would rather not, or your browser cannot run it, every guide in the kit s
 | --- | --- |
 | ElevenLabs account and key, the sound packs | `SETUP.md` in the kit's folder |
 | Your brand's website, logo, colours and Instagram profile, read for `/brand-setup` | `/brand-setup` |
-| Switching Instagram to a professional account, the Meta app, Facebook Page, Threads, making the app Live | `docs/connect.md` |
+| Switching Instagram to a professional account, the Meta app, Facebook Page, Threads, making the app Live, the Google Cloud project for YouTube Shorts, the TikTok developer app | `docs/connect.md` |
 | Cloudflare and the publisher | `docs/connect.md` step 6 |
 | Keyword replies (Meta's App Review) | `docs/connect.md` step 7 |
 | Telegram bot, Netlify or Cloudflare Pages | `docs/dashboard.md` |

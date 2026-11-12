@@ -1,0 +1,116 @@
+/* Mini Chronicle look. Scenery, the cast, maps and banners are SVG drawn by engine.js; this file styles the
+   HTML lettering (thumb text, date tags, chips, captions, bubbles, stamps). Local font stacks only. No blend
+   modes and no blurred shadows (hard offsets only), so frames are identical after a seek. --u is 1px at 1080. */
+html, body { background: #F3EAD6; }
+.chf {
+  position: absolute; inset: 0; overflow: hidden; background: #F3EAD6; color: #2B2A33;
+  font-family: "Arial Black", "Segoe UI", Arial, Helvetica, "Noto Sans", system-ui, sans-serif; font-weight: 900;
+  -webkit-font-smoothing: antialiased;
+}
+.chf-stage { position: absolute; inset: 0; transform-origin: 50% 50%; }
+.chs { position: absolute; inset: 0; overflow: hidden; transform-origin: 50% 50%; }
+.chv { position: absolute; overflow: hidden; }
+.chv-svg { position: absolute; left: 0; top: 0; display: block; overflow: visible; }
+.chv-html { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; }
+.chs-div { position: absolute; left: 0; top: 0; pointer-events: none; }
+.chf-fx { position: absolute; left: 0; top: 0; overflow: visible; }
+.chf-over { position: absolute; inset: 0; }
+.chf-flash { position: absolute; inset: 0; background: #FFFFFF; opacity: 0; pointer-events: none; }
+.chf-vig { position: absolute; inset: 0; opacity: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 45%, rgba(43, 42, 51, 0) 52%, rgba(43, 42, 51, 0.55) 100%); }
+.ch-line { white-space: nowrap; }
+
+/* thumb text: white chunky letters, thick ink outline, hard drop shadow, gold emphasis */
+.ch-thumb { position: absolute; transform-origin: 50% 60%; }
+.ch-thumb-t { position: absolute; text-align: center; letter-spacing: 0.01em; }
+.ch-thumb-t .ch-line { text-align: center; }
+.ch-thumb-fr { color: #FFFFFF; -webkit-text-stroke: var(--st) #2B2A33; paint-order: stroke fill; }
+.ch-thumb-fr .ch-em { color: #F5B82E; }
+.ch-thumb-sh { color: #2B2A33; -webkit-text-stroke: var(--st) #2B2A33; paint-order: stroke fill; }
+.ch-kicker {
+  position: absolute; transform: translateX(-50%); color: #FFF7E6; background: #D7263D; padding: 0 0.6em; border-radius: 0.3em;
+  white-space: nowrap; letter-spacing: 0.06em; line-height: 1.5; box-shadow: 0 0 0 calc(4 * var(--u)) #2B2A33, 0 calc(6 * var(--u)) 0 calc(4 * var(--u)) #2B2A33;
+}
+
+/* date tag: ink label with a red edge, cream letters */
+.ch-date {
+  position: absolute; box-sizing: border-box; text-align: center; white-space: nowrap; color: #FFF7E6; background: #2B2A33;
+  border-radius: calc(10 * var(--u)); letter-spacing: 0.08em; transform-origin: 50% 50%;
+  box-shadow: inset calc(12 * var(--u)) 0 0 #D7263D, 0 calc(7 * var(--u)) 0 rgba(43, 42, 51, 0.35);
+}
+
+/* chips: tags and nameplates */
+.ch-tag {
+  position: absolute; text-align: center; white-space: nowrap; color: #2B2A33; background: #F5B82E; border-radius: calc(12 * var(--u));
+  letter-spacing: 0.05em; box-shadow: 0 0 0 calc(4 * var(--u)) #2B2A33, 0 calc(6 * var(--u)) 0 calc(4 * var(--u)) #2B2A33; transform-origin: 50% 50%;
+}
+.ch-tag-dark { background: #2B2A33; color: #FFF7E6; }
+
+/* bottom caption */
+.ch-cap {
+  position: absolute; box-sizing: border-box; padding: calc(15 * var(--u)) calc(28 * var(--u)); text-align: center; color: #2B2A33;
+  background: #FFF7E6; border-radius: calc(18 * var(--u)); box-shadow: 0 0 0 calc(5 * var(--u)) #2B2A33, 0 calc(8 * var(--u)) 0 calc(5 * var(--u)) #2B2A33;
+}
+.ch-cap .ch-line { text-align: center; }
+.ch-cap .ch-em { color: #D7263D; }
+
+/* word captions */
+.ch-caps { position: absolute; left: 0; width: 100%; height: 0; }
+.ch-capg {
+  position: absolute; left: 50%; transform: translate(-50%, -50%); width: 92%; text-align: center; color: rgba(255, 255, 255, 0.85);
+  line-height: 1.12; -webkit-text-stroke: calc(10 * var(--u)) #2B2A33; paint-order: stroke fill;
+}
+.ch-capg .ch-said { color: #FFFFFF; }
+.ch-capg .ch-now { color: #F5B82E; }
+
+/* stat */
+.ch-stat { position: absolute; text-align: center; transform-origin: 50% 50%; }
+.ch-statn { line-height: 1.1; white-space: nowrap; -webkit-text-stroke: calc(12 * var(--u)) #2B2A33; paint-order: stroke fill; }
+.ch-statl { color: #2B2A33; letter-spacing: 0.06em; white-space: nowrap; }
+
+/* speech bubble (the shape is SVG, the text sits on top) */
+.ch-bubsvg { position: absolute; left: 0; top: 0; overflow: visible; }
+.ch-bub { position: absolute; transform-origin: 50% 50%; }
+.ch-bubt { position: absolute; color: #2B2A33; text-align: center; }
+.ch-bubt .ch-line { text-align: center; }
+.ch-bubt .ch-em { color: #D7263D; }
+
+/* rubber stamp */
+.ch-stamp {
+  position: absolute; box-sizing: border-box; border-style: solid; display: flex; align-items: center; justify-content: center;
+  text-align: center; letter-spacing: 0.04em; transform-origin: 50% 50%; background: rgba(255, 247, 230, 0.35);
+}
+.ch-stamp-in { outline: calc(4 * var(--u)) dashed; outline-offset: calc(10 * var(--u)); border-radius: calc(6 * var(--u)); }
+.ch-stamp .ch-line { text-align: center; }
+
+/* banner ribbon */
+.ch-banner {
+  position: absolute; background: #D7263D; color: #FFF7E6; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 0 calc(5 * var(--u)) #2B2A33, 0 calc(8 * var(--u)) 0 calc(5 * var(--u)) #2B2A33; border-radius: calc(8 * var(--u));
+}
+.ch-bant { text-align: center; letter-spacing: 0.04em; }
+.ch-bant .ch-em { color: #F5B82E; }
+
+/* versus rows: pictograms and counters */
+.ch-vicons { position: absolute; }
+.ch-vicons svg { transform-origin: 50% 90%; overflow: visible; }
+.ch-vnum { position: absolute; text-align: center; white-space: nowrap; color: #FFFFFF; -webkit-text-stroke: calc(10 * var(--u)) #2B2A33; paint-order: stroke fill; transform-origin: 50% 50%; }
+
+/* timeline cards: a date chip on a cream card */
+.ch-card {
+  position: absolute; box-sizing: border-box; background: #FFF7E6; border-radius: calc(18 * var(--u)); transform-origin: 50% 100%;
+  box-shadow: 0 0 0 calc(5 * var(--u)) #2B2A33, 0 calc(8 * var(--u)) 0 calc(5 * var(--u)) #2B2A33;
+}
+.ch-cardd {
+  position: absolute; left: 50%; transform: translateX(-50%) rotate(-3deg); padding: 0 0.55em; white-space: nowrap; color: #FFF7E6; background: #D7263D;
+  border-radius: calc(10 * var(--u)); letter-spacing: 0.06em; box-shadow: 0 0 0 calc(4 * var(--u)) #2B2A33;
+}
+.ch-cardt { position: absolute; text-align: center; color: #2B2A33; }
+.ch-cardt .ch-line { text-align: center; }
+.ch-cardt .ch-em { color: #D7263D; }
+
+/* reflective lines (aftermath) */
+.ch-refl { position: absolute; }
+.ch-refl-l { position: absolute; left: 0; text-align: center; color: #FFF7E6; -webkit-text-stroke: calc(9 * var(--u)) #2B2A33; paint-order: stroke fill; }
+.ch-refl-l .ch-line { text-align: center; }
+.ch-refl-l .ch-em { color: #F5B82E; }
+.ch-count { letter-spacing: 0.06em; }

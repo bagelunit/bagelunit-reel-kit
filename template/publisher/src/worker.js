@@ -2,7 +2,7 @@
 //
 // It does two jobs:
 //   1. Posting (publish.js): approved reels, images, carousels and stories go out at their scheduled time on
-//      Instagram, and reels also on the brand's Facebook Page and Threads when the owner asks.
+//      Instagram, and reels also on the brand's Facebook Page, Threads, YouTube (as a Short) and TikTok when the owner asks.
 //   2. Comment auto-replies (this file): Meta sends each new comment on the brand's posts to POST /webhook. A comment
 //      that matches a rule's keyword gets one link-free public reply and one private reply (a DM) with the resource.
 //      Comments that match no rule are left for a person. Mentions and messages are stored so the kit's dashboard
@@ -30,8 +30,10 @@
 //      max_nudges times. The check failing or answering nothing never sends the link.
 //
 // Bindings (wrangler.toml and secrets): KV, MEDIA (R2), APP_SECRET, VERIFY_TOKEN, ADMIN_KEY, IG_USER_ID, IG_TOKEN,
-// FB_PAGE_ID, FB_PAGE_TOKEN, THREADS_USER_ID, THREADS_TOKEN, and the vars BRAND, API_SETUP, MODE, PUBLISH_MODE,
-// PUBLISH_MODE_INSTAGRAM, PUBLISH_MODE_FACEBOOK, PUBLISH_MODE_THREADS, MAX_PER_HOUR, MAX_PER_RUN, GRAPH_VERSION,
+// FB_PAGE_ID, FB_PAGE_TOKEN, THREADS_USER_ID, THREADS_TOKEN, YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN,
+// TIKTOK_CLIENT_KEY, TIKTOK_CLIENT_SECRET, TIKTOK_REFRESH_TOKEN, and the vars BRAND, API_SETUP, MODE, PUBLISH_MODE,
+// PUBLISH_MODE_INSTAGRAM, PUBLISH_MODE_FACEBOOK, PUBLISH_MODE_THREADS, PUBLISH_MODE_YOUTUBE, PUBLISH_MODE_TIKTOK,
+// TIKTOK_POST_MODE, TIKTOK_AUDITED, YT_CATEGORY_ID, MAX_PER_HOUR, MAX_PER_RUN, GRAPH_VERSION,
 // DM_DISCLOSURE, and optionally FETCH_TIMEOUT_MS (25000) and INBOX_MAX (200). Secrets are never logged or shown.
 
 import { instagramApi, isUnified, refreshTokens } from './graph.js';
@@ -457,6 +459,8 @@ export default {
         rules: rules.map((r) => ({ name: r.name, keywords: r.words, tested: r.tested, scoped_to_media: r.media, require_follow: r.requireFollow })),
         disclosure: disclosureLine(await env.KV.get('rules').then((r) => JSON.parse(r || 'null')).catch(() => null), env),
         platforms: platformsView(env),
+        tiktok_post_mode: env.TIKTOK_POST_MODE === 'direct' ? 'direct' : 'draft',
+        tiktok_audited: env.TIKTOK_AUDITED === 'yes',
         token_refreshed_at: await env.KV.get('token_refreshed_at'),
         threads_token_refreshed_at: await env.KV.get('threads_token_refreshed_at'),
         posts: (await listPosts(env)).map(publicPost),

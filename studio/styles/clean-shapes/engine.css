@@ -1,0 +1,88 @@
+/* Clean Shapes look. Worlds and illustrations are SVG drawn by engine.js; this file sets the
+   text layer: heavy friendly type with hard coloured shadows (no blur, no blend modes, so frames stay
+   identical after a seek). Local font stacks only. */
+html, body { background: #1E1452; }
+.fv {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #1E1452;
+  font-family: Inter, "Noto Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.fv-svg { position: absolute; left: 0; top: 0; display: block; overflow: hidden; }
+.fv-ui { position: absolute; inset: 0; pointer-events: none; }
+.fv-ui > div { position: absolute; left: 0; top: 0; transform-origin: 50% 50%; }
+
+/* headline type */
+.fv-say {
+  color: #FFFFFF;
+  font-weight: 800;
+  text-align: center;
+  white-space: nowrap;
+  letter-spacing: -0.012em;
+  word-spacing: 0.07em;
+  text-shadow: 0 0.065em 0 rgba(18, 9, 64, 0.55);
+}
+.fv-light .fv-say, .fv-say.fv-outline {
+  text-shadow:
+    0 0.07em 0 #1C2E6E,
+    0.035em 0.035em 0 #1C2E6E, -0.035em 0.035em 0 #1C2E6E,
+    0.035em -0.03em 0 #1C2E6E, -0.035em -0.03em 0 #1C2E6E;
+}
+.fv-say.fv-noshadow { text-shadow: none; }
+.fv-line { display: block; }
+.fv-word { display: inline-block; transform-origin: 50% 75%; }
+.fv-em { color: #FFD43B; }
+
+/* label pills */
+.fv-tag {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  font-weight: 700;
+  line-height: 1.12;
+  color: #FFFFFF;
+  background: rgba(30, 18, 86, 0.62);
+  box-shadow: inset 0 0 0 0.06em rgba(255, 255, 255, 0.3), 0 0.12em 0 rgba(18, 9, 64, 0.35);
+}
+.fv-tag-light {
+  color: #1E1452;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0.12em 0 rgba(28, 46, 110, 0.35);
+}
+.fv-tag.fv-solid { box-shadow: 0 0.12em 0 rgba(18, 9, 64, 0.4); }
+.fv-tag .fv-em { color: #FFB800; }
+.fv-tag:not(.fv-tag-light):not(.fv-solid) .fv-em { color: #FFD43B; }
+.fv-dot { display: inline-block; flex: 0 0 auto; border-radius: 50%; }
+.fv-tagtext { display: inline-block; text-align: left; word-spacing: 0.07em; }
+
+/* giant numbers */
+.fv-big {
+  color: #FFD43B;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0.045em 0 rgba(18, 9, 64, 0.6);
+}
+.fv-light .fv-big {
+  text-shadow: 0 0.05em 0 #1C2E6E, 0.025em 0.025em 0 #1C2E6E, -0.025em 0.025em 0 #1C2E6E, 0.025em -0.02em 0 #1C2E6E, -0.025em -0.02em 0 #1C2E6E;
+}
+.fv-bignum { display: inline-block; text-align: center; }
+.fv-bigsuf { display: inline-block; margin-left: 0.05em; }
+.fv-bigsuf.fv-wordy { margin-left: 0.22em; }
+.fv-bigsuf.fv-wordy { color: #FFFFFF; font-weight: 800; letter-spacing: -0.01em; }
+
+/* VS badge */
+.fv-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #FF6B6B;
+  color: #FFFFFF;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  box-shadow: inset 0 0 0 0.12em #FFD43B, 0 0.14em 0 rgba(18, 9, 64, 0.45);
+  text-shadow: 0 0.06em 0 rgba(18, 9, 64, 0.4);
+}

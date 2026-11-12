@@ -10,6 +10,7 @@
 //       - <YYYY-MM-DD HH:MM> Posted on @<handle>: <instagram link>
 //       - <YYYY-MM-DD HH:MM> Posted on Facebook: <link>
 //       - <YYYY-MM-DD HH:MM> Posted on Threads: <link>
+//       - <YYYY-MM-DD HH:MM> Posted on YouTube: <link>   (TikTok: a link when it is public; a draft says it is waiting in the inbox)
 //   - for each automatic comment reply the Worker sent, one line in brand/inbox-log.md (the same shape the
 //     dashboard's comments.mjs writes), written once.
 // It only reads from the publisher; it never schedules, posts or sends anything.
@@ -55,8 +56,12 @@ export async function pull({ root, fetchImpl = fetch, configDir = CONFIG_DIR, lo
     const reelDir = p.reel ? findReel(root, p.reel) : null;
     const ap = reelDir ? path.join(reelDir, 'approvals.md') : null;
     if (!ap || !fs.existsSync(ap)) continue;
-    for (const [name, label] of [['instagram', `Posted on ${handle}`], ['facebook', 'Posted on Facebook'], ['threads', 'Posted on Threads']]) {
+    for (const [name, label] of [['instagram', `Posted on ${handle}`], ['facebook', 'Posted on Facebook'], ['threads', 'Posted on Threads'], ['youtube', 'Posted on YouTube'], ['tiktok', 'Posted on TikTok']]) {
       const t = p.targets[name];
+      if (name === 'tiktok' && t?.status === 'published' && t.draft && !read(ap).includes('TikTok inbox')) {
+        appendUnder(ap, 'Posting', `- ${stamp(t.published_at ? new Date(t.published_at) : new Date())} Sent to the TikTok inbox as a draft: waiting for the owner to post it from the TikTok app`);
+        added++; continue;
+      }
       if (t?.status !== 'published' || !t.permalink) continue;
       if (read(ap).includes(t.permalink)) continue;
       const when = t.published_at ? new Date(t.published_at) : new Date();

@@ -15,7 +15,7 @@ from pathlib import Path
 import sys
 import numpy as np
 
-from kitcore import resolve_reel, Flags, fail, grey_frames, load_words, read_json, reel_settings, spoken_between
+from kitcore import resolve_reel, Flags, KIT_ROOT, fail, grey_frames, load_words, read_json, reel_settings, spoken_between
 
 TOOL = 'pace'
 
@@ -180,7 +180,8 @@ def check_motion(project, video, mode, reel):
     else:
         print('  no still stretches ✓')
     passed = level >= min_energy and hits >= min_hits and still_frac <= still_share
-    print('PASS' if passed else f'BELOW THE BAR: see modes/{mode}/GUIDE.md (quality bar)')
+    guide = f'modes/{mode}/GUIDE.md (quality bar)' if (KIT_ROOT / 'modes' / mode).is_dir() else f'styles/{mode}/SKILL.md (a scene style: modes/MODE-RULES.md, "Scene styles")'
+    print('PASS' if passed else f'BELOW THE BAR: see {guide}')
     return 0 if passed else 3
 
 

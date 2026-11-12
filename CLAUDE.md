@@ -14,4 +14,4 @@ This folder is the kit's source, not a place to make reels.
 - **Commands reference:** when a skill or an engine command is added, renamed or changed, update the list in `setup/make-commands.mjs` and run `node setup/make-commands.mjs --pdf` (CI fails if a command has no entry or `COMMANDS.md` is stale). Rebuild the PDF at each release so its version number is current.
 - **Everything here is our own code.** Do not copy or keep outside material in the repo. Credit only the open-source parts the installer adds.
 - **Docs:** `docs/process.md`, `docs/avatar.md`, `docs/sound.md`, `docs/reference.md`, `docs/dashboard-design.md` (read before changing the content dashboard's look). No em dashes in anything written here.
-- **Never commit** keys, `.env` files, photos of people, avatar poses, client data, renders, audio or `node_modules`. Never change this repo's visibility.
+- **Never commit** keys, `.env` files, photos of people, avatar poses, client data, renders (except the small sample clips in `docs/samples/`), audio or `node_modules`. Never change this repo's visibility.

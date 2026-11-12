@@ -66,3 +66,49 @@ Every page understands three query switches: `?t=3.5` for a single frame, `?play
 - **Nothing from outside the kit:** no absolute paths, no tools that only exist on one machine, no personal handles, and no other company's brands, logos, footage, music or sound files.
 - **Output** is deterministic, 1080×1920, and respects the platform chrome: the bottom ~300 px and right ~120 px are covered by Instagram's and TikTok's own interface, so anything important stays above y ≈ 1400 and between x 60 and 1020.
 - **Readability:** one hero per beat, on-screen text of 40 px or more, and every state the viewer must read held for at least 0.4 s.
+
+## Scene styles
+
+Besides the three modes the kit offers the scene styles in `styles/` (local addition, 2026-11-12): looks like Stick Figure Folk, Map or Comic, written and tested in the separate `bagelunit-styles` repo and copied in by its sync script. `node tools/kit.mjs scene list` names them; `kit scene list <id>` shows one style's templates.
+
+**How they differ from a mode.** A mode is one page that draws the whole reel (`window.studio`, above). A scene style has no reel page: the reel is an ordered list of scenes, and each scene is its own self-contained page that `styles/_core/build-scene.mjs` builds from the shared runtime, the style's engine and ONE template with its props, the scene's narration and its slice of the word times. That page fills `window.__scene` instead of `window.studio`:
+
+| Field | What it holds |
+|---|---|
+| `ready` | a Promise that settles once the scene is built and drawn at 0 |
+| `seek(t)` | draws second `t` of the scene; depends on `t` alone, works backwards too |
+| `errors` | everything the runtime or the engine complained about |
+| `window.SceneStyle.inspect(t)` | optional: `[{kind, label, x, y, w, h, moving}]`, the screen boxes of what is drawn at `t`; the kit uses it for the safe-area checks |
+
+`kit render` renders each scene to its own mp4 with its slice of the voice (`build/scenes/NNN.mp4`), skips a scene whose page and voice slice did not change (content hash in `build/scenes/NNN.json`), joins the scenes without encoding the picture again, and puts the whole `audio/vo.mp3` (plus `reel.json` `"music"`, ducked under the voice at `"music_volume"`, default 0.18) under it at -14 LUFS. It writes `build/video.mp4` (1080x1920) and `build/draft.mp4` (540x960), where the modes' renders go, so `kit qa`, `kit pace`, `kit cover`, `kit export`, the gates and the publisher work as before. Scenes are hard cuts; a scene's transitions and motion are the engine's. `kit export` mixes the final sound with `tools/sound.py` as for every mode (the voice and `reel.json` `"music"`; scene styles publish no sound cues).
+
+**Folder layout** (never edit it here: `styles/README.md`):
+
+```
+styles/
+  STYLES.json      the registry: id, name, description, palette, fonts, formats, template ids, the styles repo version and sync date, a fingerprint per file
+  README.md        "edit in the styles repo, never here"
+  _core/           runtime.js, build-scene.mjs (used by the kit), render-scene.mjs, assemble.sh, playwright.mjs (the styles repo's own, kept for reference)
+  <id>/            engine.js, engine.css, meta.json, SKILL.md (art direction: read it first), docs.md (the drawing API for custom scenes), templates.json
+```
+
+A style appears in `kit start` as soon as it is in `STYLES.json` with `tall` among its formats and its `engine.js` is there.
+
+**The plan: `scenes.json`** in the reel folder, next to `reel.json` (`{style: "<id>", name, cta: {keyword}, seed?, tail?, music?, music_volume?}`) and `script.txt`:
+
+```json
+{ "scenes": [
+  { "template": "title-card", "props": { "title": "The *Universe*, briefly" }, "narration": "Chapter one. The universe, briefly." },
+  { "template": "figure-explains", "props": { "doodle": "sun", "label": "sunlight = all colours" }, "narration": "Sunlight looks white, but blue scatters the most." },
+  { "code": "scenes/03.js", "narration": "Cats or dogs? Science has no answer." }
+] }
+```
+
+- One scene per idea, in script order. `narration` is the exact words of `script.txt` that the scene covers; together the scenes cover the whole script.
+- `template` is one of the style's template ids, and `props` follow that template's `propsSchema` in `templates.json` (every prop has a default; unknown props are ignored and `kit scene <dir> plan` names them). `*word*` marks the accent word where the style supports it. `"code": "<file>"` instead of a template is the body of `function scene(V, S, root)` using the style's `docs.md` API.
+- Optional per scene: `id`, `seed`.
+- **No times are typed.** Each scene's start and end come from `build/words.json`: its narration is matched to the spoken words, and the cut between two scenes falls in the middle of the pause between them, on a frame. A scene whose words cannot be found (no voice yet, or narration that is not in the script) shares the time between its neighbours evenly. `kit scene <dir> plan` prints the times and how each was found, into `build/scene_times.json`. Scenes run best at 3 to 12 s.
+
+**Checks.** `kit scene <dir> check` builds every scene and reports `window.__scene.errors`, boxes outside the safe area (y 250 to 1470, x 60 to 1020 on 1080x1920, 6 px slack) and frames that change after seeking away and back, with four stills per scene and a sheet in `build/scenes/check/`. `kit render` keeps the resting `S.inspect` boxes on the reel's clock in `build/scene_boxes.json`, and `kit qa` checks the safe zone on them (text size is not measured for scene styles). `kit effort` does not apply (there is no shot code) and `kit lint` finds no shot data; `kit pace` measures the draft against the print bar.
+
+**Voice.** `tools/voice.py` voices `script.txt` exactly as for a mode (`reel.json` `"voice"` applies). `kit scene <dir> stand-in` makes a stand-in instead: a tone on each word with fake word times, no key and no credits, for previewing timing and for tests. It never replaces a real voice take, and `kit render` warns while it is in use.

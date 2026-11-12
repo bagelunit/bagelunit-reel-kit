@@ -25,7 +25,23 @@ const GROUPS = [
   ['Set up and keep up to date', 'Type these in Claude Code inside a brand folder.', [
     ['/brand-setup', 'Sets up the brand (name, handle, colours, logo, fonts, presenter, voice, call to action) or changes it later.', 'brand folder'],
     ['/sticker-host', 'Makes your sticker host, a cartoon of you or your mascot for Print reels: a base pose from one photo, then a starter 10, then any pose a reel needs (new, add <pose>, check <reel>, status).', 'brand folder'],
+    ['/logo-library', 'Adds and checks the logos and app icons your reels show: finds the brand\'s own artwork (it asks before downloading anything), records the rights, puts the SVG in a reel, and blocks posting a reel whose logos are not approved. The kit ships no logos.', 'brand folder'],
     ['/kit-update', 'Checks for a newer kit, shows what changed, updates this folder without touching your brand or reels, and updates the engine too.', 'brand folder'],
+  ]],
+  ['Instagram skills (research, writing, planning)', 'Ready-made Instagram skills in every brand folder.', [
+    ['/ig-audit', 'Post-mortem on what you posted: which reels worked, why, and what to stop making.', 'brand folder'],
+    ['/ig-caption', 'Writes the Instagram caption (first line, body, one ask, search terms, hashtags) and lints it.', 'brand folder'],
+    ['/ig-carousel', 'Builds a carousel: the cover, slide-by-slide copy and the 1080x1350 files.', 'brand folder'],
+    ['/ig-comment', 'Writes comments on other people\'s posts that read as a person with an opinion.', 'brand folder'],
+    ['/ig-dm', 'Writes DMs that get replies: keyword delivery, first message, collab pitch and follow-ups.', 'brand folder'],
+    ['/ig-human', 'Strips the machine fingerprint out of a draft (dashes, AI words) and scores how human it reads.', 'brand folder'],
+    ['/ig-plan', 'Builds the week: what to post, which format, when, and who to engage with.', 'brand folder'],
+    ['/ig-profile', 'Scores an Instagram profile out of 100 and rewrites the parts that lose points.', 'brand folder'],
+    ['/ig-reel', 'Writes a reel from a raw idea: hook options off 26 formulas, script, on-screen text and a timed beat sheet.', 'brand folder'],
+    ['/ig-repurpose', 'Turns one long asset (video, podcast, newsletter, call) into a week of reels and carousels.', 'brand folder'],
+    ['/ig-reply', 'Drafts replies to the comments under your own posts, worth-answering first.', 'brand folder'],
+    ['/ig-story', 'Writes the day\'s Stories: the frame-by-frame sequence and the one that moves people to DMs.', 'brand folder'],
+    ['/ig-viral', 'Finds the reels working in your niche, ranks them by how far each beat its own account, and builds a swipe file.', 'brand folder'],
   ]],
   ['Make a reel', 'The main command, plus the steps it uses. Claude picks the right one; you can also type it.', [
     ['/bagelunit-reels', 'Makes a reel: type it with your topic. Script, voice, animated shots, self-checks and the final mp4, with three approvals on the way.', 'brand folder'],
@@ -42,11 +58,11 @@ const GROUPS = [
     ['/reel-predict', 'Measures a reel and, once 8 or more posted reels have numbers, estimates where viewers may drop off.', 'brand folder'],
   ]],
   ['Finish and post', '', [
-    ['/caption-and-hashtags', 'Writes the caption, hashtags and first comment, using only cleared facts.', 'brand folder'],
+    ['/caption-and-hashtags', 'Writes the caption in three blocks: the caption, up to 5 hashtags picked from what has worked for you, and a line of search keywords. Uses only cleared facts.', 'brand folder'],
     ['/reel-loop', 'The self-improving loop: reads what your trial reels did (skip rate, watch time), says what to change, makes the next reel from it and takes it to you for approval, until one breaks out. Never posts by itself.', 'brand folder'],
     ['/cover-thumbnail-brief', 'Writes the cover text and the brief for a cover that stops the scroll.', 'brand folder'],
     ['/reel-repurpose', 'Turns an approved reel into its TikTok and YouTube Shorts versions (captions, titles, a check of where each app\'s buttons sit), a carousel and a blog post.', 'brand folder'],
-    ['/reel-posting', 'Gets an approved reel posted: a posting card for posting by hand, or scheduling it through the kit\'s publisher on Instagram, your Facebook Page and Threads (dry run first), and setting that up step by step.', 'brand folder'],
+    ['/reel-posting', 'Gets an approved reel posted: a posting card for posting by hand, or scheduling it through the kit\'s publisher on Instagram, your Facebook Page, Threads, YouTube Shorts and TikTok (dry run first), and setting that up step by step.', 'brand folder'],
     ['/content-calendar', 'Your content calendar and dashboard: every reel from idea to posted, what needs you, the four agents, followers and trends. Add plan to fill the next weeks, days to set your posting days and times (any number a day), how-often for a suggestion of how often to post from accounts like yours, what you can keep up and your own numbers, best-times for the hours to post at (from your own posts, when your audience is online and, as weak evidence, the winners of the accounts you track; it moves the times in the plan on your yes), competitors to track other accounts (what they post, what beats their own normal, what the winners share), ideas for post ideas drawn from what is working for them, host to view it on your Wi-Fi or online (Netlify suggested), connect instagram, connect facebook or connect threads for your numbers on each, connect telegram for a phone summary, auto to refresh by itself, all for every brand on one page. Posts nothing.', 'brand folder'],
   ]],
   ['Research and plan', '', [
@@ -63,7 +79,7 @@ const GROUPS = [
     ['/content-factory', 'The opt-in autopilot that runs the whole loop, one reel at a time, only as far as your permissions allow.', 'brand folder'],
   ]],
   ['Engine commands (Claude runs these for you)', 'node ~/.claude/skills/bagelunit-reels/tools/kit.mjs <command> reels/<slug>', [
-    ['kit start', 'Starts a new reel folder in a style (print, depth or talking). Only inside a set-up brand folder.', 'engine'],
+    ['kit start', 'Starts a new reel folder in a style (print, depth, talking, or one of the 19 scene styles). Only inside a set-up brand folder.', 'engine'],
     ['kit host', 'Links the brand\'s sticker host into the reel and names any pose the reel needs that the set does not have (--check).', 'engine'],
     ['kit frames', 'Takes still frames at chosen moments, plus a contact sheet, to look at before rendering.', 'engine'],
     ['kit render', 'Renders a half-size draft, or the final 1080x1920 video with --final.', 'engine'],
@@ -78,6 +94,7 @@ const GROUPS = [
     ['kit predict', 'Measured facts, plus a watch-time estimate once calibrated.', 'engine'],
     ['kit sound', 'Mixes the voice, effects and music.', 'engine'],
     ['kit export', 'Joins picture and sound into the finished mp4 for Instagram.', 'engine'],
+    ['kit scene', 'Scene styles (the 19 looks, for example stick-figure-folk, comic, map): list them, plan the scenes of a reel, check them, or make a preview voice that needs no key (list, plan, check, stand-in).', 'engine'],
     ['kit cover', 'Renders the reel\'s cover to out/cover.jpg at Meta\'s size, plus a sheet showing how it crops in the grid.', 'engine'],
     ['kit organize', 'Files your reel folders by post date (reels/2026/11 November/November 12/<slug>) or back to reels/<slug>. Shows the moves first; --apply does them.', 'engine'],
     ['kit tidy', 'Frees disk space in posted reels: removes build files and unapproved exports, keeps the words and the approved video. Shows the list first; --apply deletes.', 'engine'],
@@ -89,8 +106,7 @@ const GROUPS = [
     ['pull.mjs', 'Brings back what went out: links, errors and automatic replies, for the dashboard and the reel\'s Posting lines.', 'publisher'],
     ['forget.mjs', 'Deletes what the publisher kept about one person, when they ask.', 'publisher'],
   ]],
-  ['From the plugins the installer adds', '', [
-    ['/ig-*', 'The instagram-agent plugin: research, hooks, scripts, captions, plans, DMs and audits.', 'brand folder'],
+  ['From the plugin the installer adds', '', [
     ['/hyperframes', 'The HyperFrames plugin: an optional second engine (HTML scenes rendered to video).', 'brand folder'],
   ]],
 ];

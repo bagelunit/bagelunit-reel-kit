@@ -14,7 +14,7 @@
 //   --link            link studio/ into ~/.claude/skills/bagelunit-reels instead of copying it
 //                     (good if you will edit the kit or pull updates with git)
 //   --skip-packages   do not install ffmpeg, Python, git, uv and Whisper (--skip-brew is the same)
-//   --skip-plugins    do not add the Claude Code plugins (hyperframes, instagram-agent)
+//   --skip-plugins    do not add the Claude Code plugin (hyperframes)
 //   --skip-sound      do not set up opus-sound-layer and earshot (the real-sound step will not work)
 //   --earshot-mcp     also register earshot as a user-level MCP server in Claude Code
 //   --rebuild-sounds  rebuild the opus-sound-layer library even if it already exists
@@ -344,7 +344,7 @@ else {
 }
 
 // ---------------------------------------------------------------- 4. plugins + telemetry
-step('Claude Code plugins (hyperframes, instagram-agent)');
+step('Claude Code plugin (hyperframes)');
 if (F.skipPlugins) warn('skipped (--skip-plugins)');
 else if (!have('claude')) warn('the claude command was not found. Install Claude Code, then run this again (or add the plugins by hand, see SETUP.md).');
 else {
@@ -356,7 +356,6 @@ else {
     if (sh('claude', ['plugin', 'install', plugin]).status !== 0) warn(`could not install ${plugin}; add it by hand (see SETUP.md)`);
   };
   addPlugin('heygen-com/hyperframes', 'hyperframes@hyperframes');
-  addPlugin('Jakeschincariol/instagram-agent-skill', 'instagram-agent@instagram-agent-skill');
 }
 
 step('HyperFrames telemetry off');

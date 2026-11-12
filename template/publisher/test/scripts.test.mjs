@@ -20,7 +20,7 @@ const future = () => new Date(Date.now() + 3600e3).toISOString().replace('Z', '+
 const KEY = 'admin-key-for-tests';
 
 // A brand folder with one approved reel.
-function workspace({ post = true, approve = true, tamper = false, coverTamper = false, cover = true, caption = 'Save this for later. #reels', threads = null, handle = 'testbrand', seconds = 30, review = 'Review: meets the bar (92/100; weakest: the cover)' } = {}) {
+function workspace({ post = true, approve = true, tamper = false, coverTamper = false, cover = true, caption = 'Save this for later. #reels', threads = null, platformTexts = {}, handle = 'testbrand', seconds = 30, review = 'Review: meets the bar (92/100; weakest: the cover)' } = {}) {
   const ws = tmp('brand-');
   fs.mkdirSync(path.join(ws, 'brand')); fs.mkdirSync(path.join(ws, 'reels', 'r', 'out', 'platforms'), { recursive: true });
   fs.writeFileSync(path.join(ws, 'brand', 'brand.json'), JSON.stringify({ name: 'Test Brand', slug: 'testbrand', handle, autopilot: { post }, posting: { timezone: 'America/Toronto' } }));
@@ -34,6 +34,7 @@ function workspace({ post = true, approve = true, tamper = false, coverTamper = 
     : '# Approvals\n');
   if (caption !== null) fs.writeFileSync(path.join(out, 'caption.txt'), caption);
   if (threads) fs.writeFileSync(path.join(out, 'platforms', 'threads.txt'), threads);
+  for (const [k, v] of Object.entries(platformTexts)) fs.writeFileSync(path.join(out, 'platforms', `${k}.txt`), v);
   if (tamper) fs.writeFileSync(path.join(out, 'r.mp4'), mp4(seconds, { body: 'edited after approval' }));
   if (coverTamper) fs.writeFileSync(path.join(out, 'cover.jpg'), 'a different cover');
   const cfg = tmp('cfg-');
@@ -70,13 +71,19 @@ test('captions per platform, time, options', () => {
   assert.match(checkReel(workspace().reel, { at: '2020-01-01T09:00:00-05:00' }).problems.join(), /past/);
   assert.match(checkReel(workspace().reel, { at: future(), platforms: 'threads', threads: 'text' }).problems.join(), /links to the Instagram post/);
   assert.match(checkReel(workspace().reel, { at: future(), collaborators: 'a,b,c,d' }).problems.join(), /up to 3/);
-  assert.match(checkReel(workspace().reel, { at: future(), platforms: 'tiktok' }).problems.join(), /unknown platform/);
+  assert.match(checkReel(workspace().reel, { at: future(), platforms: 'myspace' }).problems.join(), /unknown platform "myspace".*instagram, facebook, threads, youtube, tiktok/);
+  // YouTube: the title is the first line and is at most 100 characters; TikTok's caption at most 2,200
+  assert.match(checkReel(workspace({ caption: 'x'.repeat(150) }).reel, { at: future(), platforms: 'youtube' }).problems.join(), /YouTube title is 150 characters.*platforms\/youtube\.txt/);
+  assert.deepEqual(checkReel(workspace({ caption: 'x'.repeat(150), platformTexts: { youtube: 'Short title\n\nthe body' } }).reel, { at: future(), platforms: 'youtube' }).problems, []);
+  assert.match(checkReel(workspace({ caption: 'x'.repeat(2300) }).reel, { at: future(), platforms: 'tiktok' }).problems.join(), /TikTok caption is 2300 characters; TikTok allows 2,200/);
 });
 
 test('the video length is checked for every place it goes', () => {
   const at = future();
   const long = workspace({ seconds: 120 }).reel;
-  assert.deepEqual(checkReel(long, { at }).problems, []);                                            // Instagram takes 2 minutes
+  assert.deepEqual(checkReel(long, { at, _connected: ['instagram', 'youtube', 'tiktok'] }).problems, []);   // Instagram, YouTube and TikTok take 2 minutes
+  assert.match(checkReel(long, { at }).problems.join(), /a Facebook Reel must be 3 to 90 seconds/);                // nothing chosen means every platform, Facebook included
+  assert.match(checkReel(workspace({ seconds: 200 }).reel, { at, platforms: 'youtube' }).problems.join(), /a YouTube Short must be up to 3 minutes/);
   assert.match(checkReel(long, { at, platforms: 'instagram,facebook' }).problems.join(), /out\/r\.mp4 is 120 seconds; a Facebook Reel must be 3 to 90 seconds \(leave facebook out/);
   assert.match(checkReel(long, { at, story: true }).problems.join(), /an Instagram story must be 3 to 60 seconds/);
   assert.deepEqual(checkReel(long, { at, platforms: 'instagram,threads', threads: 'text' }).problems, []);
@@ -104,6 +111,18 @@ test('review bar: a reel with no review or under 90/100 is refused, the owner\'s
   assert.doesNotMatch(w('Review: meets the bar (92/100; ok)'), /review/i);
   assert.match(w(null), /no review on record/);
   assert.match(w('Review: close (84/100; ok)'), /scores 84\/100/);
+});
+test('logo gate: a reel whose logos are missing, stand-ins or not approved is refused; approved official or traced ones pass', () => {
+  const w = workspace(); const root = path.dirname(path.dirname(w.reel));
+  const reg = (logos) => { fs.mkdirSync(path.join(root, 'brand', 'library', 'logos'), { recursive: true }); fs.writeFileSync(path.join(root, 'brand', 'library', 'logos', 'index.json'), JSON.stringify({ logos })); };
+  const uses = (ids) => fs.writeFileSync(path.join(w.reel, 'reel.json'), JSON.stringify({ style: 'print', logos: ids }));
+  const probs = () => checkReel(w.reel, { at: future() }).problems.join('\n');
+  assert.doesNotMatch(probs(), /logo/);                                                       // no reel.json logos: nothing to check
+  uses(['acme']); reg([]); assert.match(probs(), /logo "acme" is not in brand\/library\/logos/);
+  reg([{ id: 'acme', fidelity: 'official', rights: 'test-only' }]); assert.match(probs(), /logo "acme" is not approved for posting \(official, rights test-only\)/);
+  reg([{ id: 'acme', fidelity: 'approx', rights: 'approved' }]); assert.match(probs(), /not approved for posting \(approx, rights approved\)/);
+  reg([{ id: 'acme', fidelity: 'official', rights: 'approved' }]); assert.doesNotMatch(probs(), /logo/);
+  reg([{ id: 'acme', fidelity: 'traced', rights: 'approved' }]); assert.doesNotMatch(probs(), /logo/);
 });
 test('Gate C parsing: the latest record and its own cover', () => {
   const t = '## Gate C\n\n### 1\n- File: a.mp4 | sha256: aaaaaaaaaaaa\n- Cover: cover.jpg | sha256: cccccccccccc\n\n### 2\n- File: b.mp4 | sha256: bbbbbbbbbbbb\n- QA: PASS\n';
@@ -325,7 +344,7 @@ test('setup secrets: read from the token files, sent on stdin, never printed, ap
   assert.deepEqual(dry.skipped.filter((n) => ['ADMIN_KEY', 'VERIFY_TOKEN'].includes(n)), []);
   const r = sendSecrets({ slug: 'sb', configDir: cfg, run, log: (l) => out.push(l), pubDir: '/pub' });
   assert.deepEqual(r.sent, ['ADMIN_KEY', 'VERIFY_TOKEN', 'APP_SECRET', 'IG_USER_ID', 'IG_TOKEN', 'THREADS_USER_ID', 'THREADS_TOKEN']);
-  assert.deepEqual(r.skipped, ['FB_PAGE_ID', 'FB_PAGE_TOKEN']);                                // the Facebook check has not swapped the token yet
+  assert.deepEqual(r.skipped, ['FB_PAGE_ID', 'FB_PAGE_TOKEN', 'YT_CLIENT_ID', 'YT_CLIENT_SECRET', 'YT_REFRESH_TOKEN', 'TIKTOK_CLIENT_KEY', 'TIKTOK_CLIENT_SECRET', 'TIKTOK_REFRESH_TOKEN']);   // the Facebook check has not swapped the token yet; YouTube and TikTok are not connected
   assert.equal(calls.find((c) => c.name === 'IG_TOKEN').value, 'IGSECRETTOKEN1'); assert.equal(calls[0].cwd, '/pub');
   const pub = JSON.parse(fs.readFileSync(path.join(cfg, 'publisher-sb.json'), 'utf8'));
   assert.match(pub.admin_key, /^[0-9a-f]{64}$/); assert.match(pub.verify_token, /^[0-9a-f]{64}$/);
@@ -340,7 +359,7 @@ test('setup secrets: read from the token files, sent on stdin, never printed, ap
   // a wrangler failure is reported without the value
   const bad = []; sendSecrets({ slug: 'sb', configDir: cfg, only: ['IG_TOKEN'], run: (n, v) => ({ status: 1, stdout: '', stderr: `not logged in, value ${v}` }), log: (l) => bad.push(l), pubDir: '/pub' });
   assert.match(bad.join(), /IG_TOKEN\s+NOT sent: not logged in, value \*\*\*/);
-  assert.equal(secretPlan({ slug: 'sb', configDir: cfg, make: false }).rows.length, 9);
+  assert.equal(secretPlan({ slug: 'sb', configDir: cfg, make: false }).rows.length, 15);
 });
 
 test('setup --url saves the address next to the admin key', () => {
@@ -503,14 +522,19 @@ test('plan rows are read across weekly tables, and a reel finds its own row', ()
 
 test('posting.platforms is the default, --platforms overrides it, and a bad name is named', () => {
   const { ws, reel } = workspace();
-  assert.deepEqual(checkReel(reel, { at: future() }).platforms, ['instagram']);                       // no setting: Instagram only, as before
+  const all = ['instagram', 'facebook', 'threads', 'youtube', 'tiktok'];
+  assert.deepEqual(checkReel(reel, { at: future() }).platforms, all);                                  // no setting: every platform
+  assert.equal(checkReel(reel, { at: future() }).platformsFrom, 'all');
+  const narrowed = checkReel(reel, { at: future(), _connected: ['instagram', 'tiktok'] });              // ...that the publisher has connected
+  assert.deepEqual(narrowed.platforms, ['instagram', 'tiktok']); assert.deepEqual(narrowed.skipped, ['facebook', 'threads', 'youtube']);
+  assert.match(checkReel(reel, { at: future(), _connected: [] }).problems.join(), /no platform connected/);
   withBrand(ws, { posting: { platforms: ['instagram', 'facebook', 'threads'] } });
   const c = checkReel(reel, { at: future() });
   assert.deepEqual(c.platforms, ['instagram', 'facebook', 'threads']); assert.equal(c.platformsFrom, 'brand');
   assert.deepEqual(checkReel(reel, { at: future(), platforms: 'instagram' }).platforms, ['instagram']);
   assert.equal(checkReel(reel, { at: future(), platforms: 'instagram' }).platformsFrom, 'flag');
-  withBrand(ws, { posting: { platforms: ['instagram', 'tiktok'] } });
-  assert.match(checkReel(reel, { at: future() }).problems.join(), /unknown platform "tiktok" in brand.json -> posting.platforms/);
+  withBrand(ws, { posting: { platforms: ['instagram', 'myspace'] } });
+  assert.match(checkReel(reel, { at: future() }).problems.join(), /unknown platform "myspace" in brand.json -> posting.platforms/);
 });
 
 test('--from-plan takes the time from the reel\'s plan row, and refuses without one', () => {
@@ -552,4 +576,116 @@ test('scheduling with --from-plan and the brand platforms posts them, and the pr
   await scheduleReel(reel, { 'from-plan': true, yes: true }, { fetchImpl, configDir: cfg, log: quiet });
   assert.deepEqual(sent[0].platforms, ['instagram', 'facebook', 'threads']);
   assert.match(sent[0].at, new RegExp(`^${day}T16:00:00-0[45]:00$`));
+});
+
+// ---------- YouTube and TikTok: default to every connected platform, secrets, sign-in ----------
+const videoEnv = (x = {}) => env({
+  YT_CLIENT_ID: 'ytclient', YT_CLIENT_SECRET: 'ytsecret123', YT_REFRESH_TOKEN: 'ytrefresh123',
+  TIKTOK_CLIENT_KEY: 'ttkey', TIKTOK_CLIENT_SECRET: 'ttsecret123', TIKTOK_REFRESH_TOKEN: 'ttrefresh123', ...x,
+});
+
+test('schedule with no platforms goes to every connected platform, and says what a TikTok draft is', async () => {
+  const { reel, cfg } = workspace({ platformTexts: { youtube: 'A title for the Short\n\nWhat it is about' } });
+  const e = videoEnv({ PUBLISH_MODE: 'dry_run' });
+  const out = [];
+  const r = await scheduleReel(reel, { at: future(), yes: true }, { fetchImpl: workerFetch(e), configDir: cfg, log: (s) => out.push(s) });
+  const post = JSON.parse(await e.KV.get(`post:${r.id}`));
+  assert.deepEqual(post.platforms, ['instagram', 'facebook', 'threads', 'youtube', 'tiktok']);
+  const text = out.join('\n');
+  assert.match(text, /platforms   instagram, facebook, threads, youtube, tiktok  \[every platform the publisher has connected\]/);
+  assert.match(text, /youtube     a Short, public; title: A title for the Short/);
+  assert.match(text, /tiktok      a draft in the TikTok inbox: you tap the notification/);
+  assert.equal(post.text.youtube, 'A title for the Short\n\nWhat it is about'); assert.equal(post.text.tiktok, 'Save this for later. #reels');
+  assert.equal(post.options.tiktok_mode, 'draft'); assert.equal(post.options.youtube_privacy, 'public');
+
+  // a platform that is not connected is left out and named, not a reason to stop
+  const e2 = env({ PUBLISH_MODE: 'dry_run' }); const w2 = workspace();
+  const out2 = [];
+  const r2 = await scheduleReel(w2.reel, { at: future(), yes: true }, { fetchImpl: workerFetch(e2), configDir: w2.cfg, log: (s) => out2.push(s) });
+  assert.deepEqual(JSON.parse(await e2.KV.get(`post:${r2.id}`)).platforms, ['instagram', 'facebook', 'threads']);
+  assert.match(out2.join('\n'), /not connected  youtube, tiktok \(left out/);
+  // asking for one that is not connected still stops
+  await assert.rejects(scheduleReel(w2.reel, { at: future(), platforms: 'youtube', yes: true }, { fetchImpl: workerFetch(e2), configDir: w2.cfg, log: quiet }), /youtube is not connected on the publisher/);
+});
+
+test('schedule: YouTube and TikTok options reach the publisher; an unaudited public TikTok direct post is refused with the reason', async () => {
+  const { reel, cfg } = workspace();
+  const e = videoEnv({ PUBLISH_MODE: 'dry_run' });
+  const r = await scheduleReel(reel, { at: future(), yes: true, platforms: 'youtube,tiktok', 'youtube-privacy': 'unlisted', 'tiktok-mode': 'direct', 'ai-generated': true, 'thumb-offset': '1200' }, { fetchImpl: workerFetch(e), configDir: cfg, log: quiet });
+  const post = JSON.parse(await e.KV.get(`post:${r.id}`));
+  assert.deepEqual(post.options, { ...post.options, youtube_privacy: 'unlisted', tiktok_mode: 'direct', tiktok_privacy: 'SELF_ONLY', ai_generated: true, thumb_offset: 1200 });
+  const w2 = workspace();
+  await assert.rejects(scheduleReel(w2.reel, { at: future(), yes: true, platforms: 'tiktok', 'tiktok-mode': 'direct', 'tiktok-privacy': 'PUBLIC_TO_EVERYONE' }, { fetchImpl: workerFetch(e), configDir: w2.cfg, log: quiet }), /TikTok has not audited this app/);
+  assert.match(checkReel(workspace().reel, { at: future(), platforms: 'youtube', 'youtube-privacy': 'secret' }).problems.join(), /--youtube-privacy/);
+  assert.match(checkReel(workspace().reel, { at: future(), platforms: 'tiktok', 'tiktok-mode': 'maybe' }).problems.join(), /--tiktok-mode/);
+});
+
+test('setup secrets: the YouTube and TikTok values come from their files; a PASTE-... placeholder is never sent', () => {
+  const cfg = tmp('cfg-');
+  fs.writeFileSync(path.join(cfg, 'youtube-yt.json'), JSON.stringify({ client_id: 'YTID', client_secret: 'YTSECRETVALUE', refresh_token: 'YTREFRESHVALUE' }));
+  fs.writeFileSync(path.join(cfg, 'tiktok-yt.json'), JSON.stringify({ client_key: 'TTKEY', client_secret: 'PASTE-CLIENT-SECRET-HERE' }));
+  const calls = []; const out = [];
+  const r = sendSecrets({ slug: 'yt', configDir: cfg, only: ['YT_CLIENT_ID', 'YT_CLIENT_SECRET', 'YT_REFRESH_TOKEN', 'TIKTOK_CLIENT_KEY', 'TIKTOK_CLIENT_SECRET', 'TIKTOK_REFRESH_TOKEN'], run: (n, v) => { calls.push(n); return { status: 0, stdout: `ok ${v}`, stderr: '' }; }, log: (l) => out.push(l), pubDir: '/pub' });
+  assert.deepEqual(r.sent, ['YT_CLIENT_ID', 'YT_CLIENT_SECRET', 'YT_REFRESH_TOKEN', 'TIKTOK_CLIENT_KEY']);
+  assert.deepEqual(r.skipped, ['TIKTOK_CLIENT_SECRET', 'TIKTOK_REFRESH_TOKEN']);
+  assert.match(out.join('\n'), /TIKTOK_CLIENT_SECRET\s+skipped: nothing in .*PASTE-\.\.\. placeholder/);
+  assert.ok(!out.join('\n').includes('YTSECRETVALUE') && !out.join('\n').includes('YTREFRESHVALUE'));
+});
+
+test('video-login: makes the credentials file, then signs in on this computer and saves the refresh token without printing it', async () => {
+  const { login, authorizeUrl, readCredentials } = await import('../scripts/video-login.mjs');
+  const cfg = tmp('cfg-');
+  assert.throws(() => readCredentials('youtube', 'vl', cfg), /PASTE-\.\.\. in place of the client_id and client_secret/);
+  assert.ok(fs.existsSync(path.join(cfg, 'youtube-vl.json')));
+  assert.throws(() => readCredentials('youtube', 'vl', cfg), /still needs client_id and client_secret/);
+  // a Google "Desktop app" download is read as it is
+  fs.writeFileSync(path.join(cfg, 'youtube-vl.json'), JSON.stringify({ installed: { client_id: 'GID', client_secret: 'GSECRET123' } }));
+  const out = []; let tokenReq = null;
+  const fetchImpl = async (url, init) => { tokenReq = { url, body: Object.fromEntries(new URLSearchParams(init.body)) }; return new Response(JSON.stringify({ access_token: 'A', refresh_token: 'RT-SECRET-VALUE', scope: 'https://www.googleapis.com/auth/youtube.upload' })); };
+  // the "browser": reads the sign-in address, checks it, then comes back to the loopback address with a code
+  const open = async (url) => {
+    const u = new URL(url);
+    assert.equal(u.origin + u.pathname, 'https://accounts.google.com/o/oauth2/v2/auth');
+    assert.equal(u.searchParams.get('scope'), 'https://www.googleapis.com/auth/youtube.upload');
+    assert.equal(u.searchParams.get('access_type'), 'offline'); assert.equal(u.searchParams.get('code_challenge_method'), 'S256');
+    const back = new URL(u.searchParams.get('redirect_uri')); assert.equal(back.hostname, '127.0.0.1');
+    back.searchParams.set('code', 'CODE123'); back.searchParams.set('state', u.searchParams.get('state'));
+    await fetch(back);
+  };
+  await login('youtube', { slug: 'vl', configDir: cfg, fetchImpl, open: (u) => { open(u); }, log: (l) => out.push(l) });
+  assert.equal(tokenReq.url, 'https://oauth2.googleapis.com/token');
+  assert.equal(tokenReq.body.code, 'CODE123'); assert.equal(tokenReq.body.client_secret, 'GSECRET123'); assert.ok(tokenReq.body.code_verifier);
+  const saved = JSON.parse(fs.readFileSync(path.join(cfg, 'youtube-vl.json'), 'utf8'));
+  assert.deepEqual([saved.client_id, saved.client_secret, saved.refresh_token, saved.installed], ['GID', 'GSECRET123', 'RT-SECRET-VALUE', undefined]);
+  if (process.platform !== 'win32') assert.equal(fs.statSync(path.join(cfg, 'youtube-vl.json')).mode & 0o777, 0o600);
+  assert.ok(!out.join('\n').includes('RT-SECRET-VALUE') && !out.join('\n').includes('GSECRET123'));
+  assert.match(out.join('\n'), /setup\.mjs secrets --only YT_REFRESH_TOKEN/);
+
+  // TikTok: a different redirect path, comma-separated scopes, and the code challenge is the HEX of the SHA-256
+  fs.writeFileSync(path.join(cfg, 'tiktok-vl.json'), JSON.stringify({ client_key: 'TK', client_secret: 'TS123456' }));
+  const url = authorizeUrl('tiktok', { client_key: 'TK' }, { redirect: 'http://127.0.0.1:5000/callback/', state: 's', verifier: 'v'.repeat(50), direct: true });
+  const q = new URL(url).searchParams;
+  assert.equal(new URL(url).origin + new URL(url).pathname, 'https://www.tiktok.com/v2/auth/authorize/');
+  assert.equal(q.get('scope'), 'video.upload,video.publish'); assert.equal(q.get('client_key'), 'TK'); assert.match(q.get('code_challenge'), /^[0-9a-f]{64}$/);
+  assert.equal(new URL(authorizeUrl('tiktok', { client_key: 'TK' }, { redirect: 'r', state: 's', verifier: 'v'.repeat(50) })).searchParams.get('scope'), 'video.upload');
+  // a wrong state is refused, and nothing is saved
+  const evil = async (u) => { const b = new URL(new URL(u).searchParams.get('redirect_uri')); b.searchParams.set('code', 'X'); b.searchParams.set('state', 'wrong'); await fetch(b); };
+  await assert.rejects(login('tiktok', { slug: 'vl', configDir: cfg, fetchImpl, open: (u) => { evil(u); }, log: quiet }), /right "state"/);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(cfg, 'tiktok-vl.json'), 'utf8')).refresh_token, undefined);
+});
+
+test('placeholder-site: makes the two pages for a brand, escapes the text, refuses a used folder, a bad email or no name', async () => {
+  const { makeSite } = await import('../scripts/placeholder-site.mjs');
+  const out = path.join(tmp('site-'), 'new-site');
+  const r = makeSite({ out, name: 'Cake & Co "Bakes"', email: 'hello@cakeandco.example', now: new Date('2026-11-12T12:00:00Z') });
+  assert.deepEqual(r.files, ['index.html', 'privacy/index.html', 'style.css', 'wrangler.jsonc', '.assetsignore', 'README.md']);
+  const home = fs.readFileSync(path.join(out, 'index.html'), 'utf8'); const priv = fs.readFileSync(path.join(out, 'privacy', 'index.html'), 'utf8');
+  assert.match(home, /<h1>Cake &amp; Co &quot;Bakes&quot;<\/h1>/); assert.match(priv, /mailto:hello@cakeandco\.example/); assert.match(priv, /Last updated 12 November 2026/);
+  assert.ok(!/\{\{|bagelunit|susanoo/i.test(home + priv), 'no placeholder left, and nothing from any real brand');
+  assert.match(priv, /youtube\.upload/); assert.match(priv, /Limited Use/);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(out, 'wrangler.jsonc'), 'utf8')).name, 'cake-co-bakes-site');
+  assert.match(fs.readFileSync(path.join(out, '.assetsignore'), 'utf8'), /wrangler\.jsonc/);
+  assert.throws(() => makeSite({ out, name: 'X', email: 'a@b.co' }), /is not empty/);
+  assert.throws(() => makeSite({ out: path.join(tmp('site-'), 'a'), name: 'X', email: 'not-an-email' }), /--email takes/);
+  assert.throws(() => makeSite({ out: path.join(tmp('site-'), 'b'), name: ' ', email: 'a@b.co' }), /needs a name/);
 });

@@ -35,6 +35,13 @@
     "poses_dir": "",
     "notes": ""
   },
+  "niche": {
+    "_note": "What this brand's content is about, so every caption, hashtag and keyword is tailored to it. Filled in at /brand-setup or the first time /caption-and-hashtags runs, and only with the owner's confirmation. topic: a few words. audience: who watches. keywords: 3 to 8 phrases that audience types into search. tags: 1 or 2 steady hashtags the brand uses on every reel.",
+    "topic": "",
+    "audience": "",
+    "keywords": [],
+    "tags": []
+  },
   "voice": {
     "provider": "elevenlabs",
     "voice_id": "",

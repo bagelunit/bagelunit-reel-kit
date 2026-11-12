@@ -2,15 +2,15 @@
 // NOTE: reference code from a real reel. Word indices (wi(n)) refer to that reel's script; re-cue on your own words.json.
 // Through-object left in: learnCard() (kit).
 // assets not included: IMG.gh_light, IMG.gh_readme (repo page screenshots), IMG.vwnam_icon (plugin icon); lookups no-op when missing.
-// "It's called LearnMode, and it's in the official plugin directory."
-// Beats: the REAL repo page (github.com/owner/learn-mode) flies in as a browser window → "called": the page punches in on the
-// "learn-mode" title → "LearnMode": a red marker underline strikes under it (kick) → the page whip-pans right to the real Star button,
+// "It's called StudyKit, and it's in the official plugin directory."
+// Beats: the REAL repo page (github.com/owner/study-kit) flies in as a browser window → "called": the page punches in on the
+// "study-kit" title → "StudyKit": a red marker underline strikes under it (kick) → the page whip-pans right to the real Star button,
 // which lifts off the page (2.1k) with sparkles → "and it's in": the page fly-scrolls (zoom out, travel, zoom in) down the README to
 // the real line "Install from the built-in Plugin Directory" → "the official": a highlighter sweeps it and a red loop circles it
 // → a Claude Code terminal pushes up under the window (which recedes a step) and types the README's install line;
 // "@plugin-directory" types in red and a dashed leader ties it back to the circled words; an "Plugin Directory" tag
-// pops → Enter: "Installed learn-mode" with the real plugin icon → "directory": the window whips off left, the terminal collapses
-// into the icon, and the icon drops into the learning-mode card's "// learn-mode" header.
+// pops → Enter: "Installed study-kit" with the real plugin icon → "directory": the window whips off left, the terminal collapses
+// into the icon, and the icon drops into the learning-mode card's "// study-kit" header.
 // Hand-off: ≤ 4.60 and ≥ 7.34 are exactly learnCard(TC) + the presenter at PRESENTER_DOCK, camera identity. Helpers prefixed vn.
 (() => {
   (window.TOUR_ASSETS = window.TOUR_ASSETS || []).push(['vwnam_icon', 'assets/placeholder_icon.png']);
@@ -41,9 +41,9 @@
   const bhAt = t => lerp(860, 566, E.inOutCubic(inv(SCR0, SCR1, t)));
   const TX = 90, TY = 990, TW = 900, TH = 252;          // terminal
   const PAGE2 = 1588;                                   // gh_readme sits at page y + 1588 below gh_light
-  const L1 = '/plugin install', L2a = 'learn-mode', L2b = '@plugin-directory';
+  const L1 = '/plugin install', L2a = 'study-kit', L2b = '@plugin-directory';
   const MONO = (size, weight = 500) => ({ font: F.mono, weight, size });
-  const CARD_HDR = [TC.x + 24 + 64, TC.y + 34];         // where the icon lands (over "// learn-mode")
+  const CARD_HDR = [TC.x + 24 + 64, TC.y + 34];         // where the icon lands (over "// study-kit")
   const CW = 19.2;                                      // JetBrains Mono advance at 32 px
 
   // ── helpers ──
@@ -110,7 +110,7 @@
     K.save(); rr(K, 0, 0, WW, BAR + 20, 26); K.clip(); K.fillStyle = '#F1EFEA'; K.fillRect(0, 0, WW, BAR); K.restore();
     [0, 1, 2].forEach(i => circle(K, 34 + i * 30, BAR / 2, 9, i === 0 ? C.red : '#FFFFFF', C.ink, 2.5));
     fillRR(K, 140, 13, WW - 280, BAR - 26, (BAR - 26) / 2, '#FFFFFF'); strokeRR(K, 140, 13, WW - 280, BAR - 26, (BAR - 26) / 2, HAIR, 2);
-    text(K, 'github.com/owner/learn-mode', WW / 2, BAR / 2 + 8, Object.assign({ color: C.ink }, MONO(23, 500)));
+    text(K, 'github.com/owner/study-kit', WW / 2, BAR / 2 + 8, Object.assign({ color: C.ink }, MONO(23, 500)));
     // body: the real page, with motion ghosts while the page "camera" travels
     const c = cropAt(t), cp = cropAt(t - 0.025), k = WW / c.w;
     const vx = (c.cx - cp.cx) * k, vy = (c.cy - cp.cy) * k, sp = Math.hypot(vx, vy);
@@ -129,7 +129,7 @@
   // annotations pinned to the page (they move with the crop), body-local coords
   function pageMarks(K, t, c) {
     const k = WW / c.w;
-    // marker underline under "learn-mode" (title ink spans page x 129..305, y 395..425)
+    // marker underline under "study-kit" (title ink spans page x 129..305, y 395..425)
     const up = E.outCubic(clamp((t - UL0) / (UL1 - UL0)));
     if (up > 0 && t < SCR1) {
       const [x0, y0] = toLocal(c, 122, 446), [x1] = toLocal(c, 318, 446);
@@ -221,7 +221,7 @@
         const tx2 = 30 + ic + 18 + (1 - clamp(op)) * 30;
         circle(K, tx2 + 16, oy - 12, 16, C.red); check(K, tx2 + 16, oy - 11, 18, clamp((t - OUTL - 0.04) / 0.12), '#FFFFFF', 4);
         text(K, 'Installed', tx2 + 44, oy, Object.assign({ color: TFG, align: 'left' }, MONO(30, 700)));
-        text(K, 'learn-mode', tx2 + 44 + measure(K, 'Installed ', MONO(30, 700)), oy, Object.assign({ color: TRED, align: 'left' }, MONO(30, 700)));
+        text(K, 'study-kit', tx2 + 44 + measure(K, 'Installed ', MONO(30, 700)), oy, Object.assign({ color: TRED, align: 'left' }, MONO(30, 700)));
       });
     }
   }
@@ -261,7 +261,7 @@
     .key(EX0, { z: 1.055, fx: 470, fy: 1100 })
     .key(END - 0.04, { z: 1, fx: 540, fy: 960 }, E.inOutCubic);
 
-  kick(tVW + 0.04, 0.45, 0.35);   // the one punch: "LearnMode" underline strikes
+  kick(tVW + 0.04, 0.45, 0.35);   // the one punch: "StudyKit" underline strikes
 
   // what the presenter points at (scene coords)
   const FOC = Track({ x: 520, y: 760 })
@@ -287,7 +287,7 @@
   }
 
   SC.name = {
-    label: '// 02 — LearnMode', bg: 'light',
+    label: '// 02 — StudyKit', bg: 'light',
     cam(t) {
       if (t < BEG || t >= END) return { x: 0, y: 0, z: 1, r: 0 };
       const k = CAM.at(t);

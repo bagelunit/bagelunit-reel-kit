@@ -4,7 +4,7 @@ description: >
   Rewrite a script, caption or reply so it sounds like the person and not like AI, without changing what it
   says, and check it against the brand's banned characters and words. Use ONLY when the user asks to
   "humanize" or "make this sound less like AI", or by name (/humanizer). In a reel workspace the
-  instagram-agent plugin's /ig-human detector is the first pass; this is the rewrite and the brand check.
+  /ig-human detector is the first pass; this is the rewrite and the brand check.
 user-invokable: true
 argument-hint: "[text to rewrite, or a path to a script or caption]"
 metadata:

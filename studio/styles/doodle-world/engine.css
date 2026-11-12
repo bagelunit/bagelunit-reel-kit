@@ -1,0 +1,18 @@
+/* Doodle World engine look. Layout and motion live in engine.js; this file only sets the frame and layers.
+   No remote fonts, no blend modes, no blurred shadows. */
+#scene-root { background: #2B1A12; }
+.dw-root { position: absolute; left: 0; top: 0; overflow: hidden; background: #2B1A12; }
+.dw-defs { position: absolute; left: 0; top: 0; width: 0; height: 0; overflow: hidden; }
+.dw-scenes { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: #2B1A12; }
+.dw-scene { position: absolute; overflow: hidden; }
+.dw-layer { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.dw-canvas { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.dw-lsvg { position: absolute; left: 0; top: 0; }
+.dw-tint { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
+.dw-wx { position: absolute; left: 0; top: 0; pointer-events: none; }
+.dw-grain { position: absolute; left: 0; top: 0; pointer-events: none; }
+.dw-vignette { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 46%, rgba(43, 26, 18, 0) 58%, rgba(43, 20, 8, 0.34) 100%); }
+.dw-osvg { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+.dw-over { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
+.dw-root text { text-rendering: geometricPrecision; }

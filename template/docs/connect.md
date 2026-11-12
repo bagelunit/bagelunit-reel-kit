@@ -13,7 +13,7 @@ Set aside about an hour the first time. **Claude does the web steps in your brow
 | Facebook Page numbers | Your Page's followers and views, and each reel's plays, reach, watch time, likes, comments, shares | A Facebook Page | Free | 3 |
 | Threads numbers | Your Threads followers and profile views, and each post's views, likes, replies and reposts | A Threads profile | Free | 4 |
 | The dashboard sees it all | The numbers above on `brand/dashboard.html`, matched to each reel | Steps 2 to 4 | Free | 5 |
-| The publisher | Posts your approved reels at the time you chose, on Instagram, your Facebook Page and Threads, and answers keyword comments | A free Cloudflare account with R2 turned on (Cloudflare asks for a card for R2) | Free within Cloudflare's free amounts; use above them is billed to the card | 6 and 7 |
+| The publisher | Posts your approved reels at the time you chose, on Instagram, your Facebook Page, Threads, YouTube Shorts and TikTok, and answers keyword comments | A free Cloudflare account with R2 turned on (Cloudflare asks for a card for R2) | Free within Cloudflare's free amounts; use above them is billed to the card | 6, 6B, 6C and 7 |
 | Phone, online copy, daily refresh | A Telegram summary, the dashboard online, everything refreshed each morning | See `docs/dashboard.md` | Free (Cloudflare Pages with a login asks for a card, `docs/dashboard.md` section 4) | 8 |
 
 ## How it all stays in sync
@@ -43,7 +43,7 @@ Set aside about an hour the first time. **Claude does the web steps in your brow
 
 ### How a token gets into its file (used in every step)
 
-Each file is a tiny piece of text in curly brackets. `<slug>` is your brand's short name, from `brand/brand.json` -> `slug` (for example `bagelunit`).
+Each file is a tiny piece of text in curly brackets. `<slug>` is your brand's short name, from `brand/brand.json` -> `slug` (for example `mybrand`).
 
 **With the browser tool:** before the step that shows a token, Claude makes the file with everything filled in except the token (`PASTE-...` marks the spot), makes it readable by you only, and opens it in your text editor. Then it stops one click before Meta shows the token and names that button. You click it, copy the token, paste it over `PASTE-...`, save, and say "done". Claude does not look at that tab while the token shows. Ids that are not secret (a Page id, an app id) Claude fills in itself.
 
@@ -166,7 +166,7 @@ Each connection you said yes to is turned on in `brand/brand.json` -> `dashboard
   ```
 - **Read now, by hand:** `node .claude/skills/content-calendar/refresh.mjs --no-telegram` reads every connected account and redraws the page.
 
-## Step 6. The publisher: post on Instagram, Facebook and Threads at your time
+## Step 6. The publisher: post on Instagram, Facebook, Threads, YouTube and TikTok at your time
 
 The publisher is a small program the kit gives you (`publisher/` in your brand folder). It runs on Cloudflare's free plan, so it posts even when your computer is off. One publisher per brand; one free Cloudflare account runs up to 5 brands. Its own guide, `publisher/README.md`, explains every part; this is the path through it. Do steps 2 to 4 first: the publisher uses the same tokens.
 
@@ -200,6 +200,44 @@ The publisher is a small program the kit gives you (`publisher/` in your brand f
 **What a scheduled reel takes with it:** the approved video, the approved cover (`out/cover.jpg`, set as the Instagram cover and as the Facebook cover), the caption, and for Facebook and Threads the texts in `out/platforms/facebook.txt` and `threads.txt` when `/reel-repurpose` wrote them (Threads allows 500 characters). Each platform has its own video length: an Instagram reel 3 seconds to 15 minutes, a story 3 to 60 seconds, a Facebook Reel 3 to 90 seconds, a Threads video up to 5 minutes; a reel too long for one is refused with the reason before anything is uploaded. On Threads you pick per reel between the video and a short text with the link to the Instagram reel. A trial reel (shown to non-followers first) is the trial choice, which `/ab-hook-tester` uses. The publisher also checks Meta's daily limits before each post and waits instead of failing.
 
 **How it syncs back:** after each post, `node publisher/scripts/pull.mjs` (the daily refresh runs it for you) writes `brand/publisher.json` and adds the "Posted on ..." lines with links to the reel's `approvals.md`. The dashboard then shows the reel as Posted, the reel's card shows what happened on each platform, and a failed post shows under "Needs you" with Meta's reason.
+
+## Step 6B. YouTube Shorts (optional)
+
+The publisher can post the approved reel as a YouTube Short through YouTube's own API. YouTube needs a Google Cloud project of yours (free) and a one-time sign-in. Claude does every page in your browser (`docs/browser.md`); you log in, paste the two values into the file Claude opens, and click Allow.
+
+1. **Google Cloud project.** Claude opens console.cloud.google.com/projectcreate and makes a project (you log in; Google may ask for your password again). Then APIs & Services, Library, **YouTube Data API v3**, Enable.
+2. **The consent screen** (Google Auth Platform, Get started). App name and your support email, then the **audience**: choose **External**. Internal looks easier, but it only lets in accounts of the same Google Workspace organization as the Cloud project, and the YouTube channel is often on another account (Google then stops the sign-in with "Error 403: org_internal"). Add the contact email, then tick Google's API Services User Data Policy yourself (agreeing to terms is always your click, or your explicit yes to Claude). The scope needs no listing here: the sign-in asks for `youtube.upload` by itself.
+3. **The client.** Clients, Create client, application type **Desktop app**. Google shows the client id and secret in a dialog: copy each into the file in step 4 (you do this, Claude does not read that dialog).
+
+**Testing or production.** A new External app is in **Testing**: add the Google account that owns the channel as a **test user** (Audience, Test users), and know that Google ends the sign-in after **7 days**, after which step 5 has to be run again. To stop that, publish the app to **production** (Audience, Publish app). Google requires first, on the Branding page: the app name, support email, a **homepage URL** and a **privacy policy URL** (public pages on a domain you own, which also goes in Authorized domains). Your own brand's website and its privacy page do.
+
+**No website yet?** Make a two-page placeholder (a home page and a privacy policy) with `node publisher/scripts/placeholder-site.mjs ~/dev/<slug>-site --email <the contact address the privacy page will show>`. It writes plain HTML in a new folder outside the brand workspace, using the brand's name. **Read both pages first**: the privacy text is plain language about what the publisher really does, not legal advice, and the pages are public once deployed. With your yes, `cd` into that folder and run `npx wrangler deploy` (free on Cloudflare): it prints the address. Put the home page and `/privacy/` on Google's Branding page, and the address's domain (for a `workers.dev` address, everything after the first dot of the host, such as `<account>.workers.dev`) under Authorized domains. When the real site exists, change the two URLs.
+
+A sign-in made while the app was in Testing keeps its 7 days even after the app is published, so run step 5 again once it is in production. Production keeps the "Google hasn't verified this app" warning at sign-in (click Advanced, then continue); that is fine for your own channel (Google allows 100 users before verification). Publishing is public, so it is your decision, not Claude's.
+
+4. **The file.** `node publisher/scripts/video-login.mjs youtube` makes `~/.config/bagelunit-reels/youtube-<brand slug>.json` with `PASTE-...` words (or save Google's downloaded JSON there under that name). Paste the client id and secret in place of them (Claude opens the file for you and stops before the secret shows).
+5. **Sign in.** Run `node publisher/scripts/video-login.mjs youtube` again, and tell Claude to start it only when you are at the screen: it waits 5 minutes for you. It opens Google's page, you choose the channel's account (the one that owns it), click through the unverified-app warning and Allow, and the refresh token is written into the same file without being shown.
+6. **Send it.** `node publisher/scripts/setup.mjs secrets --only YT_CLIENT_ID,YT_CLIENT_SECRET,YT_REFRESH_TOKEN`, then `node publisher/scripts/setup.mjs check`: YouTube should read "connected, dry run".
+
+Limits to know: The first YouTube post is a dry run, then one post you watch. Google's default quota is **100 uploads a day** per project (each costs 1,600 of 10,000 daily units); the publisher counts its own and waits. A Short is a vertical or square video up to **3 minutes**. The reel's `out/platforms/youtube.txt` is the title on its first line and the description after it (`/reel-repurpose` writes it); `#Shorts` is added when missing. YouTube picks the frame for the thumbnail. Flag `--ai-generated` on a reel with an AI voice or avatar if YouTube's "altered or synthetic content" disclosure applies to it.
+
+## Step 6C. TikTok (optional)
+
+TikTok's Content Posting API needs a developer app of yours, and TikTok has its own approval steps. **Read this before starting:**
+
+- **Draft (the default).** The video lands in your TikTok inbox as a draft (`video.upload` scope) and you tap the notification, edit and post it in the app. It needs TikTok to approve your app for that scope, but not the audit.
+- **Direct post.** The publisher posts by itself (`video.publish` scope). Until TikTok has **audited** your app, everything it posts is **private** (TikTok's rule for unaudited clients); a public direct post is refused when you schedule it. After the audit passes, set `TIKTOK_AUDITED = "yes"` in `publisher/wrangler.toml` (and deploy). The audit is TikTok's decision and takes time.
+- TikTok's access token lasts 2 hours and its refresh token 180 days; each refresh can return a new refresh token, which the publisher keeps. A brand that posts nothing to TikTok for 180 days must sign in again.
+
+1. **The app.** developers.tiktok.com: Manage apps, Connect an app. Add the products **Content Posting API** and **Login Kit**, with Login Kit's platform set to **Desktop**. Add the scopes `video.upload` (and `video.publish` for direct post). While the app is in TikTok's sandbox, add your own TikTok account as a target user.
+2. **The redirect address.** Register `http://127.0.0.1:*/callback/` (TikTok allows a wildcard port on a loopback address for desktop apps).
+3. **The file.** `node publisher/scripts/video-login.mjs tiktok` makes `~/.config/bagelunit-reels/tiktok-<brand slug>.json` with `PASTE-...` words. Paste the app's client key and client secret in place of them (Claude opens the file and stops before the secret shows).
+4. **Sign in.** Run `node publisher/scripts/video-login.mjs tiktok` again (add `--direct` to also ask for `video.publish`). Sign in to TikTok and Allow; the refresh token is written into the file without being shown.
+5. **Send it.** `node publisher/scripts/setup.mjs secrets --only TIKTOK_CLIENT_KEY,TIKTOK_CLIENT_SECRET,TIKTOK_REFRESH_TOKEN`, then `check`.
+
+The caption is `out/platforms/tiktok.txt` (up to 2,200 characters) or the Instagram caption. TikTok takes a frame time for the cover (`--thumb-offset <ms>`), not an image. Videos up to 10 minutes go through the API; your own account's limit (3, 5 or 10 minutes) is read from TikTok before a direct post.
+
+The kit's tests use stand-ins for both platforms. YouTube's sign-in and a dry run have also been run against the real services; a live YouTube post and everything about TikTok have not. The first live check is a **dry run**, then one real post you watch (post the first YouTube one with `--youtube-privacy private`, look at it in YouTube Studio, then switch it public): nothing is posted until you set `PUBLISH_MODE_YOUTUBE` or `PUBLISH_MODE_TIKTOK` to `"live"`. While one platform is still in dry run and others are live, `schedule.mjs` refuses a reel that goes to both kinds ("different modes"): schedule the new platform alone with `--platforms youtube` until it is live too.
 
 ## Step 7. Comments: automatic keyword replies (optional)
 

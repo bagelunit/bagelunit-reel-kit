@@ -170,7 +170,7 @@ const CC_HISTORY = [
   [{ kind: 'cmd', txt: '/plugin install database@official-plugins' }, { kind: 'ok', txt: 'database connected · database tools ready' }],
   [{ kind: 'cmd', txt: '/plugin install deploy@official-plugins' }, { kind: 'ok', txt: 'deploy ready · "deploy my app"' }],
   [{ kind: 'cmd', txt: '/plugin install agent-crew' }, { kind: 'ok', txt: '19 agents ready · type "team"' }],
-  [{ kind: 'cmd', txt: 'claude mcp add browser-tools --scope user npx browser-tools-mcp@latest' }, { kind: 'ok', txt: 'browser-tools connected' }],
+  [{ kind: 'cmd', txt: 'claude mcp add browser-tools --scope user npx page-tools-kit@latest' }, { kind: 'ok', txt: 'browser-tools connected' }],
 ];
 const ccHistory = n => CC_HISTORY.slice(0, n).flat().map(l => Object.assign({ t0: -99 }, l));
 

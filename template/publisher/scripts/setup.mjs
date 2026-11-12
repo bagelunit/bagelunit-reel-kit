@@ -26,6 +26,10 @@
 //                             threads-<slug>.ids.json (the Threads check saves the id)
 //   FB_PAGE_ID, FB_PAGE_TOKEN facebook-<slug>.json "page_id", "access_token" (after the Facebook check). Only the
 //                             brand's own file: a Page token posts to one Page, so a shared facebook.json is not used.
+//   YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN   youtube-<slug>.json "client_id", "client_secret", "refresh_token"
+//                             (the owner pastes the first two, video-login.mjs youtube writes the third)
+//   TIKTOK_CLIENT_KEY, TIKTOK_CLIENT_SECRET, TIKTOK_REFRESH_TOKEN   tiktok-<slug>.json "client_key", "client_secret",
+//                             "refresh_token" (video-login.mjs tiktok writes the last)
 // Each value goes to `npx wrangler secret put <NAME>` on its standard input; wrangler's output is shown with the
 // value blanked out. A value that is still the PASTE-... placeholder of docs/connect.md is skipped, never sent.
 //
@@ -94,7 +98,9 @@ export function steps({ slug, apiSetup = 'instagram', kvReady = false, configDir
   step(`Only for keyword replies: the owner pastes the Meta app secret into ${file} as "app_secret" (App settings, Basic, App secret, Show). The browser tool opens that page and stops before Show.`);
   step(`Send the secrets to Cloudflare. It reads them from the token files in ${configDir}, makes ADMIN_KEY and VERIFY_TOKEN once (kept in ${file}), and never shows a value. Run it with --dry-run first to see what it will send:`,
     'node scripts/setup.mjs secrets --dry-run', 'node scripts/setup.mjs secrets',
-    `(it runs npx wrangler secret put ADMIN_KEY, VERIFY_TOKEN, APP_SECRET, IG_USER_ID, IG_TOKEN (${apiSetup === 'unified' ? 'the never-expiring Unified Login token' : 'the Instagram Login token'}), and FB_PAGE_ID, FB_PAGE_TOKEN, THREADS_USER_ID, THREADS_TOKEN when those are connected)`);
+    `(it runs npx wrangler secret put ADMIN_KEY, VERIFY_TOKEN, APP_SECRET, IG_USER_ID, IG_TOKEN (${apiSetup === 'unified' ? 'the never-expiring Unified Login token' : 'the Instagram Login token'}), and FB_PAGE_ID, FB_PAGE_TOKEN, THREADS_USER_ID, THREADS_TOKEN, YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN, TIKTOK_CLIENT_KEY, TIKTOK_CLIENT_SECRET, TIKTOK_REFRESH_TOKEN when those are connected)`);
+  step('Only for YouTube Shorts and TikTok: the one-time sign-in (docs/connect.md steps 6B and 6C). The owner signs in and says Allow in the browser; the refresh token goes into a file, never onto the screen, and the secrets command above sends it:',
+    'node scripts/video-login.mjs youtube', 'node scripts/video-login.mjs tiktok');
   step('Check it works (it shows each platform and its mode, never the key):', 'node scripts/setup.mjs check');
   step('Optional, keyword replies: the webhook in the Meta app (docs/connect.md step 7), turning on the notifications for this brand\'s Instagram account, and the rules:',
     'node scripts/setup.mjs subscribe --dry-run', 'node scripts/setup.mjs subscribe',
@@ -126,6 +132,7 @@ export function secretPlan({ slug, configDir = CONFIG_DIR, make = true }) {
   };
   const ig = account('instagram', 'ig_user_id'); const th = account('threads', 'user_id');
   const fb = readJSON(f('facebook'), {}) || {};
+  const yt = readJSON(f('youtube'), {}) || {}; const tt = readJSON(f('tiktok'), {}) || {};
   // a value still holding the PASTE-... placeholder is not a token: it is skipped and named, never sent
   const row = (name, value, from, why) => (isPlaceholder(value)
     ? { name, value: '', from, why: `it still holds the PASTE-... placeholder: paste the real value in ${from} first` }
@@ -142,6 +149,12 @@ export function secretPlan({ slug, configDir = CONFIG_DIR, make = true }) {
       row('FB_PAGE_TOKEN', fb.user_token ? '' : fb.access_token, f('facebook'), 'only for Facebook; run the Facebook check first'),
       row('THREADS_USER_ID', th.id, th.idFrom, `only for Threads; run the Threads check first (/content-calendar connect threads): it saves the id in ${th.idFrom}`),
       row('THREADS_TOKEN', th.cfg.app_secret ? '' : th.cfg.access_token, th.file, 'only for Threads; run the Threads check first'),
+      row('YT_CLIENT_ID', yt.client_id, f('youtube'), 'only for YouTube; docs/connect.md step 6B'),
+      row('YT_CLIENT_SECRET', yt.client_secret, f('youtube'), 'only for YouTube; docs/connect.md step 6B'),
+      row('YT_REFRESH_TOKEN', yt.refresh_token, f('youtube'), 'only for YouTube; run  node publisher/scripts/video-login.mjs youtube  first'),
+      row('TIKTOK_CLIENT_KEY', tt.client_key, f('tiktok'), 'only for TikTok; docs/connect.md step 6C'),
+      row('TIKTOK_CLIENT_SECRET', tt.client_secret, f('tiktok'), 'only for TikTok; docs/connect.md step 6C'),
+      row('TIKTOK_REFRESH_TOKEN', tt.refresh_token, f('tiktok'), 'only for TikTok; run  node publisher/scripts/video-login.mjs tiktok  first'),
     ],
   };
 }

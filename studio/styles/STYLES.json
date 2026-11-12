@@ -1,0 +1,796 @@
+{
+  "_note": "Written by sync-to-kit.mjs in the bagelunit-styles repo. Edit a style there and sync again; never edit the copies here.",
+  "source": "bagelunit-styles",
+  "version": "5730b9f",
+  "synced": "2026-11-12",
+  "format": "tall",
+  "size": [
+    1080,
+    1920
+  ],
+  "core": {
+    "version": "5730b9f",
+    "files": {
+      "runtime.js": "d5f059c201fd4635",
+      "build-scene.mjs": "e5ecd9bb233562b5",
+      "render-scene.mjs": "b0b578f21380a777",
+      "assemble.sh": "310a314a1160f5da",
+      "playwright.mjs": "71698da6b58ce99d"
+    }
+  },
+  "styles": [
+    {
+      "id": "anime",
+      "name": "Anime",
+      "description": "An original cel-shaded anime episode: a recurring cast with big sparkling eyes, hard two-tone shading and lip-sync, cut together with shot / reverse-shot, eye cut-ins, focus and speed lines, impact frames, power-up auras, sakura and painted cumulus skies, slanted title cards and eyecatch wipes. For hype explainers, stories, lessons and anything that deserves a dramatic reveal.",
+      "palette": {
+        "background": "#FDF6FF",
+        "foreground": "#1F1A3A",
+        "accent": "#FF4F8B",
+        "muted": "#6C6A9C"
+      },
+      "fonts": [
+        "\"Segoe UI\", \"Helvetica Neue\", Arial, \"Noto Sans\", system-ui, -apple-system, sans-serif"
+      ],
+      "formats": [
+        "wide",
+        "tall"
+      ],
+      "templates": [
+        "character-speaks",
+        "dialogue",
+        "dramatic-reveal",
+        "eyecatch-title",
+        "power-up-stat",
+        "training-montage-list",
+        "flashback",
+        "versus-battle",
+        "lesson-board",
+        "sky-montage",
+        "chibi-explainer"
+      ],
+      "version": "5730b9f",
+      "files": {
+        "engine.js": "04c8c97a3c299c03",
+        "engine.css": "43a1ec90b8819858",
+        "meta.json": "c677a6201a90d3ee",
+        "SKILL.md": "5a45868305e4f0ef",
+        "docs.md": "f2bda55a59a9d15a",
+        "templates.json": "9423fcd0e119ce84"
+      }
+    },
+    {
+      "id": "bedtime-story",
+      "name": "Bedtime Story",
+      "description": "A painted children's picture-book: soft watercolor washes that bloom and bleed into deckled cream paper, pen-and-wash characters who talk and gesture, book-set serif text inked as it is read, gentle parallax, page turns and drifting fireflies and leaves.",
+      "palette": {
+        "background": "#F4EAD5",
+        "foreground": "#3B2F2A",
+        "accent": "#D9734E",
+        "muted": "#7C8F6A"
+      },
+      "fonts": [
+        "\"Palatino Linotype\", \"Book Antiqua\", Palatino, Georgia, serif",
+        "Georgia, \"Times New Roman\", serif"
+      ],
+      "formats": [
+        "wide",
+        "tall"
+      ],
+      "templates": [
+        "story-page",
+        "title-page",
+        "character-dialogue",
+        "map-of-the-land",
+        "list-of-things",
+        "two-pages",
+        "number-painting",
+        "winding-path",
+        "quote-page",
+        "dream-sequence",
+        "the-end"
+      ],
+      "version": "5730b9f",
+      "files": {
+        "engine.js": "57c8988b0564d6ff",
+        "engine.css": "41d3987db241ff5b",
+        "meta.json": "77bed69655f810bb",
+        "SKILL.md": "c8e985f563a48c90",
+        "docs.md": "6859ef324c31adf6",
+        "templates.json": "f44efad954ed855a"
+      }
+    },
+    {
+      "id": "brush-strokes",
+      "name": "Brush Strokes",
+      "description": "Military-history storytelling in painterly digital oils: wide history-book battle paintings in warm parchment and golden light, with atmospheric smoke, canvas grain and brushy textures. Armies of many small soldiers in era presets (redcoats, bluecoats, legionaries, knights, samurai, musketeers and more) march, volley and charge; cannons fire, flags wave, cavalry gallops; generals argue over a candle-lit map table; tactical battle maps sweep manoeuvre arrows across parchment. Signature cream title banners in big dark serif caps, troop-count versus banners and place/date lower-thirds.",
+      "palette": {
+        "background": "#1E150D",
+        "foreground": "#F3E6C8",
+        "accent": "#C8963E",
+        "muted": "#9A845F"
+      },
+      "fonts": [
+        "\"Times New Roman\", Times, Georgia, serif",
+        "Georgia, \"Times New Roman\", Times, serif"
+      ],
+      "formats": [
+        "wide",
+        "tall"
+      ],
+      "templates": [
+        "battle-scene",
+        "general-council",
+        "battle-map",
+        "versus-numbers",
+        "march",
+        "siege",
+        "title-banner",
+        "portrait-of-commander",
+        "aftermath",
+        "timeline-of-campaign",
+        "quote-from-history"
+      ],
+      "version": "5730b9f",
+      "files": {
+        "engine.js": "938afbdde1e36fca",
+        "engine.css": "a52d4c3f41e130d0",
+        "meta.json": "375314f9e0840742",
+        "SKILL.md": "33a1095881be7e8f",
+        "docs.md": "7561cacc73666004",
+        "templates.json": "5497035cbcaa3525"
+      }
+    },
+    {
+      "id": "clean-shapes",
+      "name": "Clean Shapes",
+      "description": "Rich, colourful clean-shapes illustration that never stops moving: illustrated worlds, round bird mascots, planets, cells and molecules, liquid shape morphs, elastic pops and zooms from the cosmic to the microscopic. The premium science-explainer look.",
+      "palette": {
+        "background": "#1E1452",
+        "foreground": "#FFFFFF",
+        "accent": "#FFD43B",
+        "muted": "#C9C2EE"
+      },
+      "fonts": [
+        "Inter, \"Noto Sans\", system-ui, sans-serif"
+      ],
+      "formats": [
+        "wide",
+        "tall"
+      ],
+      "templates": [
+        "title-landscape",
+        "cosmic-zoom",
+        "micro-world",
+        "creature-explains",
+        "morph-sequence",
+        "scale-compare",
+        "population-grid",
+        "timeline-orbit",
+        "cause-effect",
+        "big-number-world",
+        "split-worlds",
+        "pillar-chart"
+      ],
+      "version": "5730b9f",
+      "files": {
+        "engine.js": "33bfaeeaa967acb3",
+        "engine.css": "f37f0dd14504dc12",
+        "meta.json": "4dd47657ebabf841",
+        "SKILL.md": "5c842697a5e7324e",
+        "docs.md": "dfb835fb3d653eb3",
+        "templates.json": "af806380a9f052e1"
+      }
+    },
+    {
+      "id": "comic",
+      "name": "Comic",
+      "description": "A living motion comic: inked panels with slanted gutters revealed in reading order, a camera that glides and crash-zooms between panels, a recurring inked cast who talk in speech balloons, yellow caption boxes, Ben-Day halftone shading and punchy 3D SFX lettering. For adventure-style explainers, history, science stories and anything that deserves a cliffhanger.",
+      "palette": {
+        "background": "#FBF5E6",
+        "foreground": "#15110E",
+        "accent": "#E23B2E",
+        "muted": "#FFD23F"
+      },
+      "fonts": [
+        "Inter, \"Noto Sans\", system-ui, sans-serif"
+      ],
+      "formats": [
+        "wide",
+        "tall"
+      ],
+      "templates": [
+        "splash-title",
+        "panel-sequence",
+        "dialogue-panels",
+        "big-reveal",
+        "versus",
+        "caption-narration",
+        "stat-burst",
+        "origin-story",
+        "close-up-reaction",
+        "page-turn-chapter",
+        "fact-panels"
+      ],
+      "version": "5730b9f",
+      "files": {
+        "engine.js": "ca635f509a55ad09",
+        "engine.css": "49503f6e1c132664",
+        "meta.json": "07765b57a36a3e45",
+        "SKILL.md": "2ba3800404c69b08",
+        "docs.md": "2260b99660abfa3d",
+        "templates.json": "4d5af53a132e83db"
+      }
+    },
+    {
+      "id": "doodle-world",
+      "name": "Doodle World",
+      "description": "Simple, scrappy hand-drawn doodle people with thick uneven outlines and big round eyes, dropped into richly painted, warm, textured worlds - firelit caves, savanna sunrises, snowy tundra, the Nile, Roman forums, medieval villages, far-future cities and a dying sun. Era outfits (cavemen, Egyptians, Romans, peasants, moderns, futurists), animals, deadpan reactions, chunky thumbnail headlines, labelled arrows, thermometers and year counters. The 'what did ancient humans actually do all day?' history-and-deep-time explainer look.",
+      "palette": {
+        "background": "#F3D9A6",
+        "foreground": "#2B1A12",
+        "accent": "#FFD400",
+        "muted": "#8C6B4F"
+      },
+      "fonts": [
+        "\"Luckiest Guy\", \"Bangers\", Impact, \"Arial Black\", \"Segoe UI Black\", \"Franklin Gothic Heavy\", sans-serif",
+        "\"Patrick Hand\", \"Segoe Print\", \"Comic Sans MS\", \"Chalkboard SE\", \"Comic Neue\", \"Noto Sans\", cursive"
+      ],
+      "formats": [
+        "wide",
+        "tall"
+      ],
+      "templates": [
+        "daily-life",
+        "what-if-time",
+        "survival-hack",
+        "versus-then-now",
+        "group-gathering",
+        "journey-trek",
+        "headline-thumb",
+        "mini-diagram",
+        "list-of-ways",
+        "reaction-close-up",
+        "timeline-eras"
+      ],
+      "version": "5730b9f",
+      "files": {
+        "engine.js": "d0fbbdbda5bd732a",
+        "engine.css": "dc3d88f77ea3160c",
+        "meta.json": "690096177624ac4c",
+        "SKILL.md": "e0e377c39dc16190",
+        "docs.md": "d02c247c2e304c26",
+        "templates.json": "07f7e74b702c107c"
+      }
+    },
+    {
+      "id": "dusty-archive",
+      "name": "Dusty Archive",
+      "description": "The prestige history-documentary look: a dark archive desk under a lamp where a slow pan-and-zoom camera drifts across sepia photographs with corner mounts, typewritten memos with redaction bars and stamps, newspaper front pages, parchment maps with routes inking between places, red-string evidence boards, handwritten letters, ledgers and film strips. Elegant serif lower-thirds, typed date stamps, lamp flicker, dust and film grain. For history, biography, true crime and investigative storytelling.",
+      "palette": {
+        "background": "#15110D",
+        "foreground": "#EDE3D0",
+        "accent": "#C8963E",
+        "muted": "#8C7F6A"
+      },
+      "fonts": [
+        "Georgia, \"Times New Roman\", Times, serif",
+        "\"Courier New\", Courier, monospace"
+      ],
+      "formats": [
+        "wide",
+        "tall"
+      ],
+      "templates": [
+        "photo-pan",
+        "newspaper-headline",
+        "map-route",
+        "document-reveal",
+        "timeline-ribbon",
+        "evidence-board",
+        "letter-excerpt",
+        "stat-ledger",
+        "chapter-title",
+        "then-vs-now",
+        "film-reel"
+      ],
+      "version": "5730b9f",
+      "files": {
+        "engine.js": "6ed6da22a98f326d",
+        "engine.css": "971151aef7dc5c0b",
+        "meta.json": "7bf5d1596e6bd95c",
+        "SKILL.md": "f4eb5916c7b399fd",
+        "docs.md": "87a90d54ccd2248b",
+        "templates.json": "9386ee53e0efa84a"
+      }
+    },
+    {
+      "id": "icon-signal",
+      "name": "Icon Signal",
+      "description": "Stark safety-sign pictogram art for survival-rule and creepy-protocol videos: solid black silhouette figures with round heads and no face, flat white backgrounds or pure black rooms, heavy outlines and one alarm colour - signal red (plus warning yellow). Bold condensed headline stamps slam onto the key spoken word (DON'T MOVE, CHECK THE DATE), numbered RULE cards, red arrows and circles, warning triangles, 2:00 AM clock stamps, flickering lights, flashlight cones, hard cuts and an uncanny visitor whose eyes show in the dark.",
+      "palette": {
+        "background": "#FFFFFF",
+        "foreground": "#0A0A0A",
+        "accent": "#E3151B",
+        "muted": "#8C8C8C"
+      },
+      "fonts": [
+        "Impact, Haettenschweiler, \"Arial Narrow Bold\", \"Franklin Gothic Demi Cond\", Oswald, \"Roboto Condensed\", \"Liberation Sans Narrow\", \"Arial Narrow\", \"Arial Black\", \"Noto Sans\", sans-serif"
+      ],
+      "formats": [
+        "wide",
+        "tall"
+      ],
+      "templates": [
+        "rule-scene",
+        "rule-card",
+        "do-dont",
+        "room-at-night",
+        "countdown-clock",
+        "object-warning",
+        "phone-screen",
+        "checklist-protocol",
+        "stinger-reveal",
+        "title-card",
+        "outcome-split"
+      ],
+      "version": "5730b9f",
+      "files": {
+        "engine.js": "9b92494df6d4a0c7",
+        "engine.css": "d52aa83dbd1ad852",
+        "meta.json": "2cd6af466c78f052",
+        "SKILL.md": "4a61c85bfe1e9dd5",
+        "docs.md": "c0204999a9e5b427",
+        "templates.json": "6022f545974ea8af"
+      }
+    },
+    {
+      "id": "inked-body",
+      "name": "Inked Body",
+      "description": "Black-and-white manga ink illustration for the science of strength: a lean white-spiky-haired athlete and a hulking rival drawn with brush contours and cross-hatching, exercise loops with effort shake and sweat, one red accent on the muscle, tendon or bone being discussed (red striations that pulse on the key word), orange shorts, handwritten labels with curved red arrows, rep counters, before/after transformations, x-ray limb cut-aways, speed lines, impact panels and ink-splash cuts. For fitness, calisthenics and body-science explainers.",
+      "palette": {
+        "background": "#FFFFFF",
+        "foreground": "#0B0B0B",
+        "accent": "#E8232A",
+        "muted": "#8A8A8A"
+      },
+      "fonts": [
+        "Impact, \"Arial Black\", \"Helvetica Neue\", Arial, \"Noto Sans\", sans-serif",
+        "\"Segoe Print\", \"Bradley Hand\", \"Comic Sans MS\", \"Chalkboard SE\", \"Comic Neue\", cursive"
+      ],
+      "formats": [
+        "wide",
+        "tall"
+      ],
+      "templates": [
+        "exercise-demo",
+        "anatomy-zoom",
+        "lean-vs-big",
+        "transformation",
+        "science-stat",
+        "routine-list",
+        "myth-vs-fact",
+        "form-check",
+        "effort-moment",
+        "title-card",
+        "progress-graph"
+      ],
+      "version": "5730b9f",
+      "files": {
+        "engine.js": "cbed7a450ba8f631",
+        "engine.css": "04718159275ea35b",
+        "meta.json": "e15bc7ea66494d85",
+        "SKILL.md": "b31f4159ac48f688",
+        "docs.md": "35a8b2108d9b8afe",
+        "templates.json": "984561c50c13f93d"
+      }
+    },
+    {
+      "id": "map",
+      "name": "Map",
+      "description": "The geography-discovery look: a hyper-saturated satellite-style relief map of a country or continent seen from above at a slight tilt (ochre deserts, green coasts, hillshaded ridges, glowing rivers, deep-blue ocean) with bold red curved arrows sweeping in, pulsing target rings, glowing highlight zones, pins, dotted routes, numbered markers, stat badges and huge thumbnail-style headlines with heavy black outlines. Slow push-ins and fly-tos between regions, clouds drifting over, a globe spin to the country. For geography, discovery, megaproject and 'insane facts' storytelling.",
+      "palette": {
+        "background": "#0A1E3F",
+        "foreground": "#FFFFFF",
+        "accent": "#FF2A1A",
+        "muted": "#9FB3CC"
+      },
+      "fonts": [
+        "Impact, \"Arial Narrow\", \"Helvetica Neue\", Inter, \"Noto Sans\", Arial, sans-serif",
+        "Inter, \"Noto Sans\", \"Segoe UI\", Arial, sans-serif"
+      ],
+      "formats": [
+        "wide",
+        "tall"
+      ],
+      "templates": [
+        "map-focus",
+        "hidden-discovery",
+        "fact-countdown",
+        "route-journey",
+        "compare-size",
+        "stat-on-map",
+        "headline-title",
+        "region-split",
+        "plan-blueprint",
+        "heat-zones",
+        "globe-spin"
+      ],
+      "version": "5730b9f",
+      "files": {
+        "engine.js": "e50f0e3a2242caa7",
+        "engine.css": "81d176aea9289693",
+        "meta.json": "16d0e39436a99f85",
+        "SKILL.md": "2569fc22f6c36f72",
+        "docs.md": "1e0447d1ed4835fd",
+        "templates.json": "14614a4a9b1a2c96"
+      }
+    },
+    {
+      "id": "marker-board",
+      "name": "Marker Board",
+      "description": "Classic whiteboard explainer - a real-looking hand with a marker draws every doodle, writes every word by hand and colours it in, while the camera travels across a big board.  The classic look for explainers, education, business and storytelling.",
+      "palette": {
+        "background": "#FBFBF8",
+        "foreground": "#1E2026",
+        "accent": "#D63B32",
+        "muted": "#8E949C"
+      },
+      "fonts": [
+        "\"Segoe Print\", \"Comic Sans MS\", \"Noto Sans\", cursive"
+      ],
+      "formats": [
+        "wide",
+        "tall"
+      ],
+      "templates": [
+        "draw-concept",
+        "mind-map",
+        "process-flow",
+        "list-with-doodles",
+        "before-after",
+        "stick-figure-folk-story",
+        "handwritten-quote",
+        "big-number",
+        "pan-board",
+        "simple-chart",
+        "title-board",
+        "timeline"
+      ],
+      "version": "5730b9f",
+      "files": {
+        "engine.js": "0a23da56a4209b15",
+        "engine.css": "a5c6936b0024d9bf",
+        "meta.json": "2873bdd335c3b240",
+        "SKILL.md": "ec30b29ac9f22cdd",
+        "docs.md": "c06547e57d2e73ff",
+        "templates.json": "c55d9e1b671f7d51"
+      }
+    },
+    {
+      "id": "mini-chronicle",
+      "name": "Mini Chronicle",
+      "description": "A soft 2D cartoon history channel: round-headed chibi archetypes in generic period uniforms (officer, soldier, sailor, pilot, diplomat, general, civilian, nurse, historian) with real flags, a stylised Europe map with fronts, arrows and red targets, letters that get no reply, split-screen two-sides framing, chunky thumbnail lettering and date tags. Told from both sides, with sweat drops and anger marks instead of anything graphic.",
+      "palette": {
+        "background": "#F3EAD6",
+        "foreground": "#2B2A33",
+        "accent": "#D7263D",
+        "muted": "#6B6878"
+      },
+      "fonts": [
+        "\"Arial Black\", \"Segoe UI\", Arial, Helvetica, \"Noto Sans\", system-ui, sans-serif"
+      ],
+      "formats": [
+        "wide",
+        "tall"
+      ],
+      "templates": [
+        "character-talks",
+        "two-sides",
+        "war-map",
+        "diplomacy-desk",
+        "headline-thumb",
+        "date-card",
+        "versus-forces",
+        "neutral-question",
+        "timeline-war",
+        "crowd-scene",
+        "aftermath-reflection"
+      ],
+      "version": "5730b9f",
+      "files": {
+        "engine.js": "25ecd1d6fb4ed111",
+        "engine.css": "cab97156f0931109",
+        "meta.json": "9565e44af30cc3d1",
+        "SKILL.md": "e75bc58df23cbf27",
+        "docs.md": "70a4a3c7cca74a20",
+        "templates.json": "63563b8c4b63a5d8"
+      }
+    },
+    {
+      "id": "origin-story",
+      "name": "Origin Story",
+      "description": "Hand-inked editorial caricatures of generic business archetypes - the suited founder, the engineer, the inventor, the hoodie techie, the investor - standing over a sweeping aerial empire of factories, campuses, ports and stores that grows as the company grows. Headline plates with the company name and year band, product sketches, growth charts, expansion maps, crisis storms and deal signings. For business-history and company-biography channels.",
+      "palette": {
+        "background": "#D8E4EA",
+        "foreground": "#2B2420",
+        "accent": "#C8503C",
+        "muted": "#7C7268"
+      },
+      "fonts": [
+        "\"Inter\", \"Noto Sans\", \"Arial Narrow\", \"Segoe UI\", Arial, sans-serif",
+        "Georgia, \"Noto Serif\", \"Times New Roman\", serif"
+      ],
+      "formats": [
+        "wide",
+        "tall"
+      ],
+      "templates": [
+        "founder-intro",
+        "origin-workshop",
+        "product-launch",
+        "expansion-map",
+        "revenue-chart",
+        "rivals",
+        "crisis-moment",
+        "factory-floor",
+        "era-chapter",
+        "deal-handshake",
+        "legacy-skyline"
+      ],
+      "version": "5730b9f",
+      "files": {
+        "engine.js": "ea07c22959b50f1e",
+        "engine.css": "85fc217f61faf131",
+        "meta.json": "691df4df115ab716",
+        "SKILL.md": "532438ff31dea304",
+        "docs.md": "a68b8a83a7d804e2",
+        "templates.json": "2ed6c4e3becdd0c8"
+      }
+    },
+    {
+      "id": "paper-theatre",
+      "name": "Paper Theatre",
+      "description": "Handmade cut-paper stop-motion: split-pin paper puppets that hop and talk, layered craft dioramas, torn edges, tape and pins - animated on threes with hand-placed boil.",
+      "palette": {
+        "background": "#C7A06E",
+        "foreground": "#2A211C",
+        "accent": "#D9472B",
+        "muted": "#F4EBD8"
+      },
+      "fonts": [
+        "\"Arial Black\", \"Archivo Black\", \"Noto Sans\", Inter, sans-serif",
+        "\"Trebuchet MS\", Verdana, \"Noto Sans\", sans-serif",
+        "\"Courier New\", \"Noto Sans Mono\", monospace"
+      ],
+      "formats": [
+        "wide",
+        "tall"
+      ],
+      "templates": [
+        "puppet-talks",
+        "diorama-scene",
+        "paper-list",
+        "cut-out-chart",
+        "pop-up-book",
+        "collage-title",
+        "before-after-flip",
+        "map-journey",
+        "stack-of-facts",
+        "paper-quote",
+        "clothesline-timeline"
+      ],
+      "version": "5730b9f",
+      "files": {
+        "engine.js": "37421497916f607b",
+        "engine.css": "e17361ac96a2a034",
+        "meta.json": "bd06767fb6abad58",
+        "SKILL.md": "082af59682bc2a34",
+        "docs.md": "9928a25cb4395109",
+        "templates.json": "21be397855bca239"
+      }
+    },
+    {
+      "id": "pixel-world",
+      "name": "Pixel World",
+      "description": "Your video becomes an original 16-bit video game - a hero and friends walk through side-scrolling pixel worlds, collect facts as power-ups, battle bosses, talk in RPG dialogue boxes and level up. Hand-made pixel sprites, parallax tilesets, a bitmap font, screen shake and particles.",
+      "palette": {
+        "background": "#140f26",
+        "foreground": "#f4f4e8",
+        "accent": "#f8d040",
+        "muted": "#8b8fa8"
+      },
+      "fonts": [
+        "\"Courier New\", ui-monospace, monospace"
+      ],
+      "formats": [
+        "wide",
+        "tall"
+      ],
+      "templates": [
+        "title-screen",
+        "level-walk",
+        "dialogue",
+        "boss-battle",
+        "inventory",
+        "world-map",
+        "level-up",
+        "choice-menu",
+        "quest-log",
+        "game-over",
+        "pixel-chart",
+        "high-scores"
+      ],
+      "version": "5730b9f",
+      "files": {
+        "engine.js": "52dcea480fb69e42",
+        "engine.css": "9f0d72ea98c1064c",
+        "meta.json": "1ff5d814e2a27691",
+        "SKILL.md": "3e93a684de198e31",
+        "docs.md": "363f0f2c87b5fa10",
+        "templates.json": "fb194b64a2d27e3f"
+      }
+    },
+    {
+      "id": "skyline-rush",
+      "name": "Skyline Rush",
+      "description": "A cinematic 3D aerial timelapse of a city growing over centuries - wild coast, fort, village, stone town, grid, factories and rail, early skyscrapers, modern glass skyline at golden hour - with a huge ticking year counter, era lower-thirds, district labels and population. For history-of-a-city, urban growth, infrastructure and 'then vs now' explainers.",
+      "palette": {
+        "background": "#15213A",
+        "foreground": "#FFFFFF",
+        "accent": "#F2A33A",
+        "muted": "#C9D3E6"
+      },
+      "fonts": [
+        "\"Inter\", \"Segoe UI\", \"Helvetica Neue\", Arial, \"Noto Sans\", system-ui, sans-serif"
+      ],
+      "formats": [
+        "wide",
+        "tall"
+      ],
+      "templates": [
+        "timelapse",
+        "era-snapshot",
+        "landmark-rise",
+        "before-after",
+        "district-growth",
+        "population-chart",
+        "disaster-rebuild",
+        "map-overlay",
+        "title-card",
+        "timeline-strip",
+        "skyline-compare"
+      ],
+      "version": "5730b9f",
+      "files": {
+        "engine.js": "edf28b2a56a2ac4c",
+        "engine.css": "ddcbb400ab1e2e1f",
+        "meta.json": "6aaee53d3e8f4e00",
+        "SKILL.md": "a51239afd58e242c",
+        "docs.md": "0790636be6291479",
+        "templates.json": "e0049f2559db3609"
+      }
+    },
+    {
+      "id": "stick-figure-folk",
+      "name": "Stick Figure Folk",
+      "description": "Minimal, witty hand-drawn stick-figure-folk comics - black wobbly pen lines on off-white paper, one accent colour and hand-lettered text. A small recurring cast walks, points, shrugs, panics and talks in sync with the voice next to deadpan doodles, hand-drawn graphs with sarcastic labels, labelled arrows and zooming scale comparisons. The science-and-philosophy webcomic explainer look.",
+      "palette": {
+        "background": "#FBFBF7",
+        "foreground": "#161616",
+        "accent": "#E4572E",
+        "muted": "#8A8A8A"
+      },
+      "fonts": [
+        "\"Segoe Print\", \"Bradley Hand\", \"Comic Sans MS\", \"Chalkboard SE\", \"Comic Neue\", \"Noto Sans\", cursive"
+      ],
+      "formats": [
+        "wide",
+        "tall"
+      ],
+      "templates": [
+        "figure-explains",
+        "conversation",
+        "hand-drawn-graph",
+        "labelled-diagram",
+        "scale-comparison",
+        "what-if",
+        "list-with-doodles",
+        "thought-experiment",
+        "title-card",
+        "timeline-squiggle",
+        "versus"
+      ],
+      "version": "5730b9f",
+      "files": {
+        "engine.js": "8a84cb82a7de79d1",
+        "engine.css": "4109a95196c7dba4",
+        "meta.json": "67b5f5711f858a53",
+        "SKILL.md": "dcf06ff0dec50ca0",
+        "docs.md": "27f5f9ab3b89d34c",
+        "templates.json": "f242a12547dddd8e"
+      }
+    },
+    {
+      "id": "tiny-cube-world",
+      "name": "Tiny Cube World",
+      "description": "A living 2.5D isometric diorama - floating islands, towns that grow, 3D bar charts, conveyor belts and data flowing between servers, with tiny people and cars everywhere. For economics, tech, cities, supply chains and how-things-work explainers.",
+      "palette": {
+        "background": "#E3EEF1",
+        "foreground": "#283050",
+        "accent": "#FF6F59",
+        "muted": "#5B6488"
+      },
+      "fonts": [
+        "\"Nunito\", \"Poppins\", \"Segoe UI Rounded\", Inter, \"Noto Sans\", \"Segoe UI\", system-ui, sans-serif"
+      ],
+      "formats": [
+        "wide",
+        "tall"
+      ],
+      "templates": [
+        "iso-title",
+        "city-grows",
+        "iso-bar-chart",
+        "stat-tower",
+        "process-line",
+        "network",
+        "island-map",
+        "zoom-into",
+        "compare-worlds",
+        "supply-chain",
+        "iso-donut",
+        "town-signs"
+      ],
+      "version": "5730b9f",
+      "files": {
+        "engine.js": "ac322f8c15ba4712",
+        "engine.css": "54b4c35de0eea605",
+        "meta.json": "b9f74f6523460323",
+        "SKILL.md": "6cfc448dbf08dbb1",
+        "docs.md": "3809da6dfa97751a",
+        "templates.json": "1b0be18015c4de2b"
+      }
+    },
+    {
+      "id": "toon-world",
+      "name": "Toon World",
+      "description": "A recurring cast of rigged 2D cartoon characters who act out your story - talking with lip-sync, waving, pointing, reacting and celebrating in illustrated parallax worlds, with speech bubbles, emotion marks, props and a moving camera. Like a modern animated explainer channel.",
+      "palette": {
+        "background": "#FFE3C2",
+        "foreground": "#2A2140",
+        "accent": "#FF7A59",
+        "muted": "#6E6482"
+      },
+      "fonts": [
+        "\"Baloo 2\", \"Fredoka\", \"Nunito\", \"Trebuchet MS\", \"Segoe UI\", Inter, \"Noto Sans\", system-ui, sans-serif"
+      ],
+      "formats": [
+        "wide",
+        "tall"
+      ],
+      "templates": [
+        "narrator-talks",
+        "dialogue",
+        "walk-and-talk",
+        "reaction",
+        "explain-with-board",
+        "idea-moment",
+        "compare-two",
+        "establishing-shot",
+        "crowd-stat",
+        "journey",
+        "title-card"
+      ],
+      "version": "5730b9f",
+      "files": {
+        "engine.js": "3a0e5a13cf7611c3",
+        "engine.css": "1bfc0abebd98ffa6",
+        "meta.json": "d310e4cb86c83266",
+        "SKILL.md": "f4e1ec5ac7c5b42b",
+        "docs.md": "16be552fc6d0f4cb",
+        "templates.json": "c31c7e2f1060cac0"
+      }
+    }
+  ]
+}

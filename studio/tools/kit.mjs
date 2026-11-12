@@ -8,9 +8,14 @@ import { spawn, spawnSync } from 'node:child_process';
 import { serve, SKILL } from './server.mjs';
 import { exclusive, openReel } from './session.mjs';
 import * as folders from './folders.mjs';
+import * as scenes from './scenes.mjs';
 
 const MODES_DIR = path.join(SKILL, 'modes');
 const MODES = fs.readdirSync(MODES_DIR).filter((m) => fs.existsSync(path.join(MODES_DIR, m, 'starter')));
+// local addition: scene styles come from styles/STYLES.json (synced from the styles repo), not from modes/; tools/scenes.mjs
+const SCENE_STYLES = scenes.sceneStyleIds(), STYLES = [...MODES, ...SCENE_STYLES];
+const isScene = (reel) => SCENE_STYLES.includes(reel.cfg.style);
+const styleList = () => `${MODES.join(', ')}${SCENE_STYLES.length ? `, or a scene style (${SCENE_STYLES.length}: ${SCENE_STYLES.join(', ')}; kit scene list)` : ''}`;
 const PY = os.platform() === 'win32' ? 'python' : 'python3';
 const NUMBER = /^-?\d+(\.\d+)?$/;
 
@@ -45,7 +50,7 @@ function reelAt(dir) {
   if (!dir) die('which reel? give its folder');
   const full = folders.resolveReelArg(dir), cfg = readJSON(path.join(full, 'reel.json'));   // a folder, reels/<slug> or the slug, flat or dated
   if (!cfg) die(`${full} has no reel.json, so it isn't a reel yet. Start one: node tools/kit.mjs start ${dir} --style print`);
-  if (!MODES.includes(cfg.style)) die(`reel.json asks for style "${cfg.style}", but the kit has: ${MODES.join(', ')}`);
+  if (!STYLES.includes(cfg.style)) die(`reel.json asks for style "${cfg.style}", but the kit has: ${styleList()}`);
   return { dir: full, cfg, name: cfg.name || path.basename(full) };
 }
 
@@ -73,7 +78,7 @@ function brandFolderOf(dir) {
 /* ── verbs ──────────────────────────────────────────────────────────────────────────────────────────────────────────── */
 function start() {
   const style = text('style') ?? 'print';
-  if (!MODES.includes(style)) die(`--style takes one of: ${MODES.join(', ')}`);
+  if (!STYLES.includes(style)) die(`--style takes one of: ${styleList()}`);
   if (!target) die('usage: kit start <dir> --style <style>');
   let dir = path.resolve(target);
   // a reel named reels/<slug> goes where the brand's layout says (brand.json "reels": {"layout": "dated"} files it under its post
@@ -98,6 +103,7 @@ function start() {
     if (!readJSON(path.join(home, 'brand', 'brand.json'), {}).name) die(`the brand in ${home} is not set up yet (brand.json has no name). Run /brand-setup in that folder first.`);
     if (!/-reels$/i.test(path.basename(home))) console.log(`note: brand folders are named <brand>-reels; this one is ${path.basename(home)}.`);
   }
+  if (SCENE_STYLES.includes(style)) { startScene(dir, style); return; }
   // local addition: never overwrite a file already in the folder (a script written before Gate A must survive)
   const starter = path.join(MODES_DIR, style, 'starter');
   const kept = fs.readdirSync(starter).filter(f => fs.existsSync(path.join(dir, f)));
@@ -113,6 +119,21 @@ function start() {
   if (kept.length) console.log(`kept what was already there (not replaced by the sample): ${kept.join(', ')}`);
   console.log(`next: ${next}`);
 }
+
+// local addition: a scene-style reel starts from a sample plan (the style's first three templates), never over files already there
+function startScene(dir, style) {
+  fs.mkdirSync(dir, { recursive: true });
+  const files = scenes.starterFiles(style), kept = Object.keys(files).filter((f) => fs.existsSync(path.join(dir, f)));
+  for (const [f, body] of Object.entries(files)) if (!kept.includes(f)) fs.writeFileSync(path.join(dir, f), typeof body === 'string' ? body : JSON.stringify(body, null, 2) + '\n');
+  for (const sub of ['build', 'audio', 'stills', 'out', 'assets']) fs.mkdirSync(path.join(dir, sub), { recursive: true });
+  const reel = applySavedLook({ ...readJSON(path.join(dir, 'reel.json'), {}), style, name: text('name') ?? path.basename(dir) }, style);
+  fs.writeFileSync(path.join(dir, 'reel.json'), JSON.stringify(reel, null, 2));
+  console.log(`new ${style} reel (scene style): ${dir}`);
+  if (kept.length) console.log(`kept what was already there (not replaced by the sample): ${kept.join(', ')}`);
+  console.log(`next: ${kept.includes('script.txt') ? 'check' : 'write'} script.txt, plan scenes.json (templates: kit scene list ${style}), then  ${PY} ${path.join(SKILL, 'tools', 'voice.py')} ${dir}  and  kit scene ${dir} plan`);
+}
+// scene-style work stops with the plain-words reason instead of a stack trace
+const sceneStep = async (job) => { try { return await job(); } catch (err) { die(err.message); } };
 
 // a grid of stills, 4 across, for looking at before any video exists
 function stillSheet(reel, files, folder) {
@@ -131,7 +152,8 @@ async function frames() {
   const folder = path.join(reel.dir, 'stills', text('out') ?? '');   // a builder may ask for its own folder, so nobody overwrites anybody
   fs.mkdirSync(folder, { recursive: true });
   await exclusive(async () => {
-    const view = await openReel(reel, { scale: num('scale', 0.5), query: flags.only ? `?only=${flags.only}` : '', page: text('page') ?? 'index.html', fail: die });
+    const view = isScene(reel) ? await sceneStep(() => scenes.openScenes(reel, { scale: num('scale', 0.5) }))
+      : await openReel(reel, { scale: num('scale', 0.5), query: flags.only ? `?only=${flags.only}` : '', page: text('page') ?? 'index.html', fail: die });
     const files = [];
     for (const t of moments) {
       const file = path.join(folder, `t${t.toFixed(2)}.jpg`);
@@ -154,6 +176,11 @@ function encoder({ fps, sub, w, h, final, out }) {
 
 async function render() {
   const reel = reelAt(target);
+  if (isScene(reel)) {   // local addition: scene by scene, unchanged scenes reused; writes build/video.mp4 and build/draft.mp4
+    if (flags.scene === true) die('--scene takes a scene number or id, e.g. --scene 2');
+    await exclusive(() => sceneStep(() => scenes.renderScenes(reel, { only: text('scene'), force: Boolean(flags.force) })));
+    return;
+  }
   const final = Boolean(flags.final), scale = num('scale', final ? 1 : 0.5), fps = num('fps', 30);
   const sub = num('blur', 1);   // --blur 2 blends two sub-frames: smoother pans, but text can double on punches
   const out = path.resolve(reel.dir, text('out') ?? (final ? 'build/video.mp4' : 'build/draft.mp4'));
@@ -208,7 +235,7 @@ async function cover() {
   fs.mkdirSync(path.join(reel.dir, 'build'), { recursive: true });
   const raw = path.join(reel.dir, 'build', 'cover-raw.jpg'), file = path.join(reel.dir, 'out', 'cover.jpg'), crops = path.join(reel.dir, 'build', 'cover-crops.jpg');
   await exclusive(async () => {
-    const view = await openReel(reel, { scale: 1, page: page ?? 'index.html', fail: die });
+    const view = isScene(reel) && !page ? await sceneStep(() => scenes.openScenes(reel, { scale: 1 })) : await openReel(reel, { scale: 1, page: page ?? 'index.html', fail: die });
     fs.writeFileSync(raw, await view.frameAt(at ?? 0, 0.95));
     await view.close();
   });
@@ -296,15 +323,27 @@ function tidy() {
 
 async function live() {
   const reel = reelAt(target);
+  if (isScene(reel)) die('a scene-style reel has no live page yet: look with  kit frames <dir> <t...>  or play build/scenes/NNN.mp4 after kit render');
   const { url } = await serve(reel.dir, reel.cfg.style, num('port', 0));
   console.log(`live: ${url}/index.html?play     one frame: ${url}/index.html?t=3.5     (Ctrl+C to stop)`);
 }
 
+// local addition: kit scene list [<style>] · kit scene <dir> plan|check|stand-in (tools/scenes.mjs)
+async function scene() {
+  if (target === 'list') return sceneStep(() => scenes.listStyles(loose[0]));
+  const reel = reelAt(target), action = loose[0] ?? 'plan';
+  if (!isScene(reel)) die(`${reel.name} is a ${reel.cfg.style} reel; kit scene works on scene-style reels (see kit scene list)`);
+  if (action === 'plan') return sceneStep(() => scenes.printPlan(reel));
+  if (action === 'check') return exclusive(() => sceneStep(() => scenes.checkScenes(reel, { only: text('only'), times: text('times')?.split(',') ?? null })));
+  if (action === 'stand-in') return sceneStep(() => scenes.standIn(reel, { pace: num('pace', 0.38), force: Boolean(flags.force) }));
+  die(`kit scene ${target} takes plan, check or stand-in (not "${action}")`);
+}
+
 const COMMANDS = {
-  start: [start, '<dir> --style print|depth|talking [--name n]', 'a new reel from that mode\'s starter'],
+  start: [start, '<dir> --style print|depth|talking|<scene style> [--name n]', 'a new reel from that mode\'s starter (a scene style: a sample scenes.json; kit scene list)'],
   frames: [frames, '<dir> 1.2 3.4 … [--scale 0.5] [--only <shot>] [--out <folder>] [--page other.html]',
     'stills → <dir>/stills[/<folder>]/ + sheet.jpg (--only presenter: the print presenter sheet)'],
-  render: [render, '<dir> [--final] [--from s --to s] [--fps 30] [--blur 2] [--out file]', 'half-size draft → build/draft.mp4 · --final (1080x1920) → build/video.mp4'],
+  render: [render, '<dir> [--final] [--from s --to s] [--fps 30] [--blur 2] [--out file]  |  scene style: <dir> [--scene n] [--force]', 'half-size draft → build/draft.mp4 · --final (1080x1920) → build/video.mp4 · a scene style renders each changed scene, joins them and writes both'],
   pace: [() => runPython('pace.py', [reelAt(target).dir, ...rest]), '<dir>', 'does it keep moving? a score and the still stretches'],
   effort: [() => runPython('effort.py', [reelAt(target).dir]), '<dir>', 'built for THIS script, or from ready-made pieces?'],
   lint: [() => runPython('lint.py', [reelAt(target).dir, ...rest]), '<dir> [video.mp4]', 'shot grammar: lengths, adjacent layouts, cuts on words, rhythm, first-frame motion'],
@@ -320,6 +359,8 @@ const COMMANDS = {
   cover: [cover, '<dir> [--page cover.html] [--at <seconds>]', 'the reel cover: out/cover.jpg (1080x1920 JPEG to Meta\'s cover rules) and build/cover-crops.jpg showing what the grid and a feed post crop'],
   organize: [organize, '[--layout dated|flat] [--apply]', 'file the brand\'s reel folders by post date (reels/2026/11 November/November 12/<slug>) or back to reels/<slug>; shows the moves first, --apply does them. Nothing else changes: plans, logs and numbers use the slug'],
   tidy: [tidy, '<reel>|--all [--audio] [--force] [--apply]', 'free disk space in finished (posted) reels: removes build/, stills/ and unapproved files in out/; keeps the script, approvals, caption, reel.json and the approved video and cover. --audio also removes the voice take (re-voicing costs credits). Shows the list first'],
+  scene: [scene, 'list [<style>]  |  <dir> plan|check|stand-in [--only n] [--times 20%,end] [--pace 0.38] [--force]',
+    'scene styles: list them and their templates; the plan with each scene\'s time from build/words.json; check every scene (errors, safe area, seeking) with stills in build/scenes/check/; a stand-in voice (a tone, fake word times, no key) for previews'],
   host: [host, '<dir> [--dir <poses folder>] [--check]', 'sticker host: link the brand\'s pose set into the reel, list every pose in reel.json, and name any pose the cues need that the set lacks'],
 };
 

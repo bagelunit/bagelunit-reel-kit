@@ -1,0 +1,54 @@
+/* Tiny Cube World look. The diorama is drawn on a canvas by engine.js; this file only sets the frame,
+   the local font stack and the DOM pieces (headline, caption chip, VS badge). Local fonts only. */
+.iso {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  font-family: "Nunito", "Poppins", "Segoe UI Rounded", Inter, "Noto Sans", "Segoe UI", system-ui, sans-serif;
+}
+.iso-canvas { position: absolute; left: 0; top: 0; display: block; }
+.iso-head { position: absolute; width: max-content; z-index: 2; }
+.iso-head-c { text-align: center; }
+.iso-kicker {
+  display: inline-block;
+  padding: 0.26em 0.85em 0.3em;
+  margin-bottom: 0.5em;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.iso-title { font-weight: 900; line-height: 1.08; letter-spacing: -0.01em; text-wrap: balance; }
+.iso-sub { font-weight: 700; line-height: 1.25; margin-top: 0.35em; text-wrap: balance; }
+.iso-caption {
+  position: absolute;
+  z-index: 2;
+  width: max-content;
+  padding: 0.42em 1em 0.48em;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 6px 18px rgba(20, 24, 56, 0.18);
+  font-weight: 800;
+  text-align: center;
+  text-wrap: balance;
+}
+.iso-badge {
+  position: absolute;
+  z-index: 3;
+  box-sizing: border-box;
+  border: 6px solid #fff;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 22px rgba(20, 24, 56, 0.25);
+}
+.iso-plate {
+  padding: 0.28em 0.75em 0.36em;
+  border-radius: 18px;
+  box-shadow: 0 6px 18px rgba(20, 24, 56, 0.16);
+}

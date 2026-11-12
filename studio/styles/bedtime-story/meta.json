@@ -1,0 +1,15 @@
+{
+  "id": "bedtime-story",
+  "name": "Bedtime Story",
+  "description": "A painted children's picture-book: soft watercolor washes that bloom and bleed into deckled cream paper, pen-and-wash characters who talk and gesture, book-set serif text inked as it is read, gentle parallax, page turns and drifting fireflies and leaves.",
+  "palette": {
+    "background": "#F4EAD5",
+    "foreground": "#3B2F2A",
+    "accent": "#D9734E",
+    "muted": "#7C8F6A"
+  },
+  "fonts": [
+    "\"Palatino Linotype\", \"Book Antiqua\", Palatino, Georgia, serif",
+    "Georgia, \"Times New Roman\", serif"
+  ]
+}

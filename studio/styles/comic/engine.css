@@ -1,0 +1,17 @@
+/* Comic engine look. Layout and motion live in engine.js; this file only sets the frame,
+   layers and the silhouette treatment. No remote fonts, no blend modes, no blurred shadows. */
+#scene-root { background: #FBF5E6; }
+.cb-root { position: absolute; left: 0; top: 0; overflow: hidden; background: #FBF5E6; font-family: Inter, "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+.cb-defs { position: absolute; left: 0; top: 0; width: 0; height: 0; overflow: hidden; }
+.cb-cam { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transform-origin: 0 0; }
+.cb-page { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.cb-psvg, .cb-flap { position: absolute; left: 0; top: 0; overflow: visible; }
+.cb-flap { z-index: 500; pointer-events: none; }
+.cb-screen { position: absolute; left: 0; top: 0; z-index: 600; overflow: visible; pointer-events: none; }
+.cb-print { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 700; pointer-events: none; }
+.cb-print svg { position: absolute; left: 0; top: 0; }
+.cb-root text { text-rendering: geometricPrecision; }
+/* silhouettes: the whole figure in ink, with glowing eyes */
+.cb-sil path, .cb-sil rect, .cb-sil circle, .cb-sil ellipse { fill: #15110E !important; stroke: #15110E !important; }
+.cb-sil .cb-glow { fill: none !important; stroke: #FFF6D8 !important; }
+.cb-sil .cb-mono { stroke: #E0B13A !important; fill: none !important; }

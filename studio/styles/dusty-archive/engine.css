@@ -1,0 +1,9 @@
+/* Dusty Archive (dusty-archive). Most of the look is painted into canvases by engine.js;
+   this sheet only sets the frame, the layers and the overlay type. Hide and show layers from JS. */
+#scene-root { background: #0A0806; }
+.ad-frame { position: absolute; overflow: hidden; background: #0A0806; }
+.ad-world, .ad-layer, .ad-item, .ad-inner { position: absolute; }
+.ad-item canvas, .ad-desk, .ad-film { display: block; }
+.ad-over { font-family: Georgia, "Times New Roman", Times, serif; color: #EDE3D0; }
+.ad-over div { text-rendering: geometricPrecision; -webkit-font-smoothing: antialiased; }
+.ad-world svg text { text-rendering: geometricPrecision; }

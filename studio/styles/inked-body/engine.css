@@ -1,0 +1,27 @@
+/* Inked Body: black-and-white manga ink with one red accent. Colours are variables on .ia,
+   set from engine.js (white page, black page, inverted impact frame). */
+.ia { position: absolute; inset: 0; overflow: hidden; background: #FFFFFF;
+  --bg: #FFFFFF; --pg: #0B0B0B; --ink: #0B0B0B; --fill: #FFFFFF; --rim: #FFFFFF; --soft: #D9D9D9;
+  --red: #E8232A; --redd: #8E0B12; --orange: #F2762E; }
+.ia-svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; }
+.ia-ui { position: absolute; inset: 0; pointer-events: none; }
+.ia text { font-kerning: normal; }
+.ia .k-s { stroke: var(--ink); }
+.ia .k-f { fill: var(--ink); }
+.ia .f-f { fill: var(--fill); }
+.ia .f-s { stroke: var(--fill); }
+.ia .p-s { stroke: var(--pg); }
+.ia .p-f { fill: var(--pg); }
+.ia .b-f { fill: var(--bg); }
+.ia .b-s { stroke: var(--bg); }
+.ia .r-s { stroke: var(--red); }
+.ia .r-f { fill: var(--red); }
+.ia .rd-s { stroke: var(--redd); }
+.ia .o-f { fill: var(--orange); }
+.ia .rim-s { stroke: var(--rim); }
+.ia .w-f { fill: #FFFFFF; }
+.ia .ink0-f { fill: #0B0B0B; }
+.ia .th-main { fill: #FFFFFF; stroke: #0B0B0B; paint-order: stroke fill; stroke-linejoin: round; }
+.ia .th-sh { fill: #0B0B0B; stroke: #0B0B0B; stroke-linejoin: round; }
+.ia .th-main .r-f { fill: var(--red); }
+.ia .s-f { fill: var(--soft); }

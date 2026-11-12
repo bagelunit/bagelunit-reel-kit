@@ -1,0 +1,87 @@
+/* Toon World look. Scenery and the cast are SVG drawn by engine.js; this file styles the HTML parts
+   (stickers, bubble text, boards, signs, captions). Local font stacks only. No blend modes, no blurred shadows
+   (hard offset shadows only, so frames are identical after a seek). Sizes scale with --u (1px at 1080). */
+html, body { background: #FFE3C2; }
+.ct {
+  position: absolute; inset: 0; overflow: hidden; background: #FFE3C2; color: #2A2140;
+  font-family: "Baloo 2", "Fredoka", "Nunito", "Trebuchet MS", "Segoe UI", Inter, "Noto Sans", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.ct-layer { position: absolute; left: 0; top: 0; display: block; overflow: visible; }
+.ct-whtml { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; }
+.ct-over { position: absolute; inset: 0; }
+.ct-line { white-space: nowrap; }
+
+/* speech, thought and shout bubbles: the shape is SVG (.ct-bshape), the text sits on top */
+.ct-bubble { position: absolute; left: 0; top: 0; }
+.ct-btext { position: absolute; font-weight: 800; text-align: left; }
+.ct-btext .ct-w { color: #B6AEC6; }
+.ct-btext .ct-w.ct-on { color: #2A2140; }
+.ct-btext .ct-w.ct-em { color: #FFC2AF; }
+.ct-btext .ct-w.ct-em.ct-on { color: #FF7A59; }
+.ct-b-shout .ct-btext .ct-w { color: #A08A3A; }
+.ct-b-shout .ct-btext .ct-w.ct-on { color: #2A2140; }
+.ct-b-thought .ct-btext .ct-w { color: #2A2140; }
+.ct-b-thought .ct-btext .ct-w.ct-em { color: #FF7A59; }
+.ct-bicon { position: absolute; }
+
+/* stickers: chunky tilted cards with a hard shadow */
+.ct-sticker { position: absolute; transform-origin: 50% 50%; }
+.ct-card {
+  position: absolute; inset: 0; border-radius: calc(26 * var(--u));
+  box-shadow: inset 0 0 0 calc(6 * var(--u)) #2A2140, 0 calc(10 * var(--u)) 0 #2A2140;
+}
+.ct-stext, .ct-ssub, .ct-spoint { position: absolute; font-weight: 900; }
+.ct-ssub { font-weight: 800; opacity: 0.82; }
+.ct-card .ct-sw.ct-em { color: var(--em); }
+.ct-spoint { height: auto; }
+.ct-sdot { position: absolute; left: 0; border-radius: 50%; background: var(--em); box-shadow: 0 0 0 calc(3 * var(--u)) #2A2140; }
+.ct-sptext { position: absolute; top: 0; font-weight: 800; }
+.ct-sicon { position: absolute; }
+.ct-kicker {
+  position: absolute; color: #FFFFFF; font-weight: 900; padding: 0 0.7em; border-radius: 999px; white-space: nowrap;
+  letter-spacing: 0.03em; text-transform: uppercase; box-shadow: 0 0 0 calc(4 * var(--u)) #2A2140; z-index: 2;
+}
+
+/* boards (world units: the layer is scaled by the camera) */
+.ct-board { position: absolute; transform-origin: 50% 100%; }
+.ct-bface { position: absolute; inset: 0; box-sizing: border-box; border-radius: 16px; }
+.ct-bk-whiteboard .ct-bface { background: #FFFFFF; border: 14px solid #D5DCE8; box-shadow: 0 0 0 4px #2A2140, 0 10px 0 4px rgba(42, 33, 64, 0.18); }
+.ct-bk-screen .ct-bface { background: #22304E; border: 16px solid #2A2140; border-radius: 20px; box-shadow: 0 10px 0 0 rgba(42, 33, 64, 0.22); }
+.ct-bk-chalk .ct-bface { background: #2F5D50; border: 14px solid #B07A4A; border-radius: 10px; box-shadow: 0 0 0 4px #2A2140, 0 10px 0 4px rgba(42, 33, 64, 0.18); }
+.ct-bleg { position: absolute; top: 88%; width: 14px; background: #8E97A8; border-radius: 7px; box-shadow: 0 0 0 3px #2A2140; }
+.ct-bk-chalk .ct-bleg { background: #8A5A3B; }
+.ct-bpole { position: absolute; left: 50%; top: 100%; width: 26px; margin-left: -13px; background: #4A4560; }
+.ct-bpole::after { content: ""; position: absolute; left: -60px; bottom: 0; width: 146px; height: 16px; border-radius: 8px; background: #4A4560; }
+.ct-btitle { position: absolute; text-align: center; font-weight: 900; }
+.ct-btitle .ct-line { text-align: center; }
+.ct-bul { position: absolute; height: 7px; border-radius: 4px; }
+.ct-brow { position: absolute; }
+.ct-bbadge { position: absolute; left: 0; border-radius: 50%; text-align: center; font-weight: 900; box-shadow: 0 0 0 4px #2A2140; }
+.ct-btxt { position: absolute; font-weight: 800; }
+.ct-bw.ct-em { color: var(--em); }
+.ct-bbar { position: absolute; border-radius: 10px 10px 0 0; box-shadow: inset 0 0 0 4px #2A2140; }
+.ct-bval, .ct-blab { position: absolute; text-align: center; font-weight: 900; white-space: nowrap; }
+.ct-blab .ct-line { text-align: center; }
+.ct-baxis { position: absolute; height: 5px; border-radius: 3px; }
+.ct-bline { position: absolute; overflow: visible; }
+.ct-bbig, .ct-bcap { position: absolute; text-align: center; font-weight: 900; }
+.ct-bbig .ct-line, .ct-bcap .ct-line { text-align: center; }
+.ct-bcap { font-weight: 800; }
+.ct-bicon2 { position: absolute; }
+
+/* journey signposts */
+.ct-sign { position: absolute; width: 14px; background: #8A5A3B; border-radius: 4px; box-shadow: 0 0 0 3px #2A2140; }
+.ct-signb { position: absolute; background: #FFF1DC; border-radius: 14px; box-shadow: 0 0 0 4px #2A2140, 0 8px 0 4px #2A2140; transform-origin: 50% 100%; }
+.ct-signt { position: absolute; color: #2A2140; font-weight: 900; }
+.ct-signi { position: absolute; left: 10px; top: 17px; }
+.ct-signn { position: absolute; right: -16px; top: -18px; width: 38px; height: 38px; border-radius: 50%; background: #FF7A59; color: #FFFFFF; font-weight: 900; font-size: 24px; line-height: 38px; text-align: center; box-shadow: 0 0 0 3px #2A2140; }
+
+/* kinetic captions */
+.ct-captions { position: absolute; text-align: center; }
+.ct-cap {
+  display: inline-block; font-weight: 900; color: rgba(255, 255, 255, 0.82); line-height: 1.15;
+  -webkit-text-stroke: calc(9 * var(--u)) #2A2140; paint-order: stroke fill;
+}
+.ct-cap .ct-said { color: #FFFFFF; }
+.ct-cap .ct-now { color: #FFE066; }
