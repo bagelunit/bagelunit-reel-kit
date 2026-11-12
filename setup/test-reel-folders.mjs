@@ -156,5 +156,6 @@ assert.ok(fs.existsSync(path.join(root, 'reels', 'dated-one', 'script.txt')) && 
 assert.ok(!fs.existsSync(path.join(root, 'reels', '2026')), 'empty date folders removed');
 assert.equal(T.reelsLayout(root), 'flat');
 
+process.chdir(os.tmpdir());                                          // Windows cannot delete the folder it is standing in
 fs.rmSync(path.dirname(root), { recursive: true, force: true });
 console.log('reel folders: ok');
