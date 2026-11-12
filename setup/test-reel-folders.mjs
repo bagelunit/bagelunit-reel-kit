@@ -137,7 +137,7 @@ assert.ok(!fs.existsSync(path.join(root, 'reels', 'dated-one')), 'no second date
 const d1 = T.findReel(root, 'dated-one');
 for (const f of ['build/v.mp4', 'stills/a.jpg', 'out/dated-one.mp4', 'out/dated-one-old.mp4', 'out/caption.txt', 'audio/vo.mp3']) { fs.mkdirSync(path.dirname(path.join(d1, f)), { recursive: true }); fs.writeFileSync(path.join(d1, f), 'x'.repeat(2000)); }
 const dry = run('tidy', 'dated-one');
-assert.match(dry.stdout, /would remove\s+build/); assert.match(dry.stdout, /would remove\s+out\/dated-one-old\.mp4/);
+assert.match(dry.stdout, /would remove\s+build/); assert.match(dry.stdout, /would remove\s+out[\\/]dated-one-old\.mp4/);
 assert.ok(!/out\/dated-one\.mp4|caption|audio/.test(dry.stdout.replace(/Kept:.*/, '')), 'keeps the approved file, caption and (by default) the voice take');
 assert.ok(fs.existsSync(path.join(d1, 'build')), 'dry run deletes nothing');
 const unposted = run('tidy', 'flat-one');
