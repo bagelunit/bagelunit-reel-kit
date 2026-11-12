@@ -7,7 +7,7 @@ By default a person posts every reel (house rule 11). If the brand owner wants a
 These rules from `CLAUDE.md` still apply, whichever way you connect it:
 
 - `brand.json` -> `autopilot.post` is `true`, turned on by the brand owner with the date (section 3b), before anything is posted live. It starts `false`. The one exception is the test: with the kit's publisher in dry run on every platform the reel goes to, a reel can be scheduled without it, because a dry run posts nothing.
-- Only a reel that passed Gate C goes out, and only the exact file that was approved. `kit gate <reel> check` must print MATCH: a file changed after approval is not posted.
+- Only a reel that passed Gate C goes out, and only the exact file that was approved. `kit gate <reel> check` must print MATCH: a file changed after approval is not posted. The latest review in `approvals.md` must also say "meets the bar" with 90/100 or more (the same bar as Gate C): the scheduler refuses a reel with no review or a lower score. Only the owner's `--skip-review "reason"` at Gate C, which is written into the record, gets past it.
 - The owner says yes to each reel's time slot. Scheduling is a yes per reel, not a standing permission.
 - The caption is the approved `out/caption.txt`, with only cleared facts (rule 1).
 - Claude never logs in, never handles a token or password, and never starts a scheduled job by itself.

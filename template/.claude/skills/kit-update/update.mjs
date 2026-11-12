@@ -4,6 +4,7 @@
 //   node .claude/skills/kit-update/update.mjs check              which version is out, and what changed (reads one public file)
 //   node .claude/skills/kit-update/update.mjs get                download that kit version into ~/.bagelunit-reel-kit/<version>/
 //   node .claude/skills/kit-update/update.mjs preview            show what would change in this workspace (changes nothing)
+//   node .claude/skills/kit-update/update.mjs now                everything in one go: what changed, update this workspace, update the engine (what /kit-update runs)
 //   node .claude/skills/kit-update/update.mjs apply              update this workspace (old files kept as *.bak-<date>), then the engine
 //   node .claude/skills/kit-update/update.mjs engine             update only the engine (the installed /bagelunit-reels), if it is behind
 // The engine is updated by `apply` itself when it is older than the kit (once per computer: a second workspace finds it current).
@@ -113,10 +114,56 @@ export function updateEngine(kit, version, { skills = path.join(os.homedir(), '.
   let have = 'unknown'; try { have = fs.readFileSync(path.join(target, '.bagelunit-reel-kit'), 'utf8').split('\n')[1]?.trim() || 'unknown'; } catch {}
   if (kitV && have !== 'unknown' && cmp(kitV, have) <= 0) { log(`The engine is already on ${have}.`); return false; }
   log(`Updating the engine (${have === 'unknown' ? 'an older version' : have} to ${kitV || 'the newest'}) with the kit's installer...`);
-  const r = run(process.execPath, [installer, '--skip-packages', '--skip-plugins', '--skip-sound'], { stdio: 'inherit' });
-  if (r.status !== 0) { log(`The engine update did not finish. Run it yourself and read what it says: node "${installer}"`); return false; }
+  // the installer's own report is for a first install ("fix: make an ElevenLabs key...", "Next: type /brand-setup"); an update shows it only when it fails
+  const r = run(process.execPath, [installer, '--skip-packages', '--skip-plugins', '--skip-sound'], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  if (r.status !== 0) {
+    const said = `${r.stdout || ''}${r.stderr || ''}`.trim().split('\n').slice(-15).join('\n');
+    if (said) log(said);
+    log(`The engine update did not finish. Run it yourself and read what it says: node "${installer}"`); return false;
+  }
   log('The engine is updated. Restart Claude Code so the new engine and skills load.');
   return true;
+}
+
+
+// Where the installed engine (~/.claude/skills/bagelunit-reels) stands: { state: 'missing' | 'linked' | 'ok', version }.
+// The version is 'unknown' for an engine installed before the marker held one. Also used by the session-start notice.
+export function engineState(skills = path.join(os.homedir(), '.claude', 'skills')) {
+  const target = path.join(skills, 'bagelunit-reels');
+  let st = null; try { st = fs.lstatSync(target); } catch {}
+  if (!st) return { state: 'missing', version: null };
+  if (st.isSymbolicLink()) return { state: 'linked', version: null };
+  let version = 'unknown'; try { version = fs.readFileSync(path.join(target, '.bagelunit-reel-kit'), 'utf8').split('\n')[1]?.trim() || 'unknown'; } catch {}
+  return { state: 'ok', version };
+}
+
+// What the session-start notice says about versions, or ''. No network for the engine check (the engine against this
+// workspace); once a day it reads the public VERSION file on GitHub (3 seconds at most, never fails the session) and
+// says when a newer kit is out. Turn the online check off with "updates": { "check": false } in brand/brand.json.
+export async function versionNote(root, { skills, now = Date.now(), fetchLatest = null } = {}) {
+  const mine = (() => { try { return fs.readFileSync(path.join(root, '.kit-version'), 'utf8').trim(); } catch { return ''; } })();
+  if (!mine) return '';
+  const lines = [];
+  const eng = engineState(skills);
+  if (eng.state === 'ok' && (eng.version === 'unknown' || cmp(mine, eng.version) > 0))
+    lines.push(`The engine (/bagelunit-reels) is on ${eng.version === 'unknown' ? 'an older version' : eng.version}, behind this workspace (${mine}). Fixes in the newer kit do not work until it is updated: tell the owner in one line and offer to run  node .claude/skills/kit-update/update.mjs engine  (then Claude Code must be restarted).`);
+  let cfg = {}; try { cfg = JSON.parse(fs.readFileSync(path.join(root, 'brand', 'brand.json'), 'utf8')); } catch {}
+  if (cfg.updates?.check !== false) {
+    const cacheFile = path.join(root, '.cache', 'kit-latest.json');
+    let c = null; try { c = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch {}
+    if (!c || !(now - c.at < 24 * 3600 * 1000)) {
+      let v = null;
+      try {
+        v = fetchLatest ? await fetchLatest() : (await (await fetch(`https://raw.githubusercontent.com/${REPO}/main/VERSION`, { signal: AbortSignal.timeout(3000) })).text()).trim();
+        if (!/^\d+\.\d+\.\d+$/.test(v || '')) v = null;
+      } catch { v = null; }
+      c = { at: now, version: v || c?.version || null };
+      try { fs.mkdirSync(path.dirname(cacheFile), { recursive: true }); fs.writeFileSync(cacheFile, JSON.stringify(c)); } catch {}
+    }
+    if (c.version && cmp(c.version, mine) > 0)
+      lines.push(`A newer BagelUnit Reel Kit is out: ${c.version} (this workspace is on ${mine}). Tell the owner in one line to type /kit-update, which shows what changed and updates the workspace and the engine in one go.`);
+  }
+  return lines.join('\n');
 }
 
 async function main() {
@@ -127,6 +174,22 @@ async function main() {
     if (v !== 'local copy' && mine !== 'unknown' && cmp(v, mine) <= 0) { console.log(`UP TO DATE: this workspace is on ${mine}, the newest is ${v}.`); return; }
     console.log(`NEWER: ${v} is out; this workspace is on ${mine}.`);
     console.log('Next: "get" downloads it, "preview" shows what would change here, "apply" updates this workspace.');
+    return;
+  }
+  if (cmd === 'now') {
+    const version = opt('from') ? 'local' : await latest();
+    const eng = engineState();
+    const wsBehind = Boolean(opt('from')) || mine === 'unknown' || cmp(version, mine) > 0;
+    const engBehind = eng.state === 'ok' && !args.includes('--no-engine') && (version === 'local' || eng.version === 'unknown' || cmp(version, eng.version) > 0);
+    if (!wsBehind && !engBehind) { console.log(`UP TO DATE: this workspace is on ${mine}, the newest is ${version}${eng.state === 'ok' ? `, the engine is on ${eng.version}` : ''}.`); return; }
+    const kit = await getKit(version);
+    if (wsBehind) {
+      for (const b of whatChanged(kit, mine)) console.log(b + '\n');
+      process.stdout.write(sync(kit, true));
+      console.log('');
+    }
+    if (args.includes('--no-engine')) console.log('The engine was not touched (--no-engine). Update it later: node .claude/skills/kit-update/update.mjs engine');
+    else updateEngine(kit, version);
     return;
   }
   const version = opt('from') ? 'local' : await latest();
@@ -145,7 +208,7 @@ async function main() {
     return;
   }
   if (cmd === 'engine') { updateEngine(kit, version); return; }
-  fail(`Unknown command "${cmd}". Use check, get, preview, apply or engine.`);
+  fail(`Unknown command "${cmd}". Use check, get, preview, now, apply or engine.`);
 }
 
 import { fileURLToPath } from 'node:url';

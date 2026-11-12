@@ -22,6 +22,9 @@ connected a publisher and said yes to that reel's time (CLAUDE.md rule 11).
 
 1. The reel passed Gate C: `approvals.md` has a Gate C record, and `kit gate <reel> check` prints MATCH. If it
    prints CHANGED SINCE APPROVAL, stop: the file was edited after approval and needs Gate C again.
+   Its latest review must say "meets the bar" with 90/100 or more too: the scheduler refuses a reel with no review
+   or a lower one. Run /reel-review, fix what it names and rebuild; do not edit the number. Only the owner overrides
+   it, at Gate C, with `--skip-review "reason"`.
 2. `out/caption.txt` exists and passed `/humanizer`; the cover (`out/cover.jpg`) exists.
 3. Read `brand/brand.json` -> `autopilot.post` and `posting.method` to know which route this brand uses.
 

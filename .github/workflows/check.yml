@@ -29,8 +29,11 @@ jobs:
           t="$(tr -d '[:space:]' < template/.kit-version)"
           test "$v" = "$t" || { echo "VERSION ($v) and template/.kit-version ($t) differ"; exit 1; }
           grep -q "^## $v " CHANGELOG.md || { echo "CHANGELOG.md has no entry for $v"; exit 1; }
+          top="$(grep -m1 '^## ' CHANGELOG.md | awk '{print $2}')"
+          test "$top" = "$v" || { echo "the newest CHANGELOG.md entry is $top but VERSION is $v: one release, one entry, newest first"; exit 1; }
+          test "$(grep -c "^## $v " CHANGELOG.md)" = 1 || { echo "CHANGELOG.md has more than one entry for $v"; exit 1; }
 
-      - name: Safety scan (secrets, private files, banned names, em dashes)
+      - name: Safety scan (secrets, private files, personal paths, em dashes)
         run: node setup/scan-repo.mjs
 
       - name: Installer syntax and help
@@ -58,6 +61,9 @@ jobs:
 
       - name: Reel folders by date work (lookup in JS and Python, dashboard, organize, start, tidy)
         run: node setup/test-reel-folders.mjs
+
+      - name: Release smoke (a new brand in both folder layouts: every reel command finds the reel by its slug; no hand-built reel paths; every engine command is known)
+        run: node setup/test-release-smoke.mjs
 
       - name: Score bar works (Gate C refuses a review under 90 out of 100, accepts 90 or more, records the owner's override)
         run: node setup/test-score-bar.mjs

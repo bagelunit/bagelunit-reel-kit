@@ -16,6 +16,8 @@
 //     runs before turning posting on (docs/auto-post.md);
 //   - the reel has a Gate C record in approvals.md, and out/<file>.mp4 AND the approved cover (when Gate C recorded
 //     one) still have the fingerprints recorded there; it refuses otherwise;
+//   - the latest "Review:" line in approvals.md says "meets the bar" with 90/100 or more (the same bar as Gate C); it refuses
+//     a reel with no review or a lower score, unless the owner's override (--skip-review at Gate C) is on record;
 //   - the video's length fits every place it goes (Instagram reel 3 s to 15 min, story 3 to 60 s, Facebook Reel 3 to
 //     90 s, Threads video up to 5 min) and the cover is a JPEG of 8 MB at most;
 //   - the caption is there and fits each platform (out/caption.txt; out/platforms/facebook.txt and threads.txt are
@@ -30,7 +32,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createInterface } from 'node:readline/promises';
-import { parseArgs, readJSON, read, sha256File, findBrand, brandSlug, atHandle, stamp, lastGateC, appendUnder, connection, admin, Plain, isMain, CONFIG_DIR, planSlot, zonedIso } from './lib.mjs';
+import { parseArgs, readJSON, read, sha256File, findBrand, brandSlug, atHandle, stamp, lastGateC, reviewProblem, appendUnder, connection, admin, Plain, isMain, CONFIG_DIR, planSlot, zonedIso } from './lib.mjs';
 import { findReel, resolveReelArg } from './reels.mjs';
 import { checkText, checkLength, videoTargets, LIMITS } from '../src/limits.js';
 import { fileSeconds } from '../src/mp4.js';
@@ -56,6 +58,8 @@ export function checkReel(reelDir, args = {}, now = Date.now()) {
   let video = null, sha = null, cover = null, coverSha = null;
   if (!gate) problems.push('no Gate C record in approvals.md: the final needs the approver\'s yes first (kit gate <reel> record --gate C)');
   else {
+    const rp = reviewProblem(read(path.join(reel, 'approvals.md')));
+    if (rp) problems.push(rp);
     video = path.join(reel, 'out', gate.file);
     if (!fs.existsSync(video)) problems.push(`the approved file out/${gate.file} is missing`);
     else {

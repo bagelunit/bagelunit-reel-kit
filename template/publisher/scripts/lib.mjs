@@ -74,6 +74,27 @@ export function lastGateC(text) {
   return { file: last[1].trim(), sha12: last[2], cover: cover ? { file: cover[1].trim(), sha12: cover[2] } : null };
 }
 
+// The review bar: a reel is scheduled only if its latest "Review:" line in approvals.md says "meets the bar" with a score of 90 or
+// more out of 100 (the older "4.5/5" scale counts too). The same rule as Gate C in the engine (tools/kitcore.py review_score), so a
+// reel cannot reach the publisher by a route that skips the review. The owner's override (kit gate ... --skip-review "reason") writes
+// "REVIEW BELOW THE BAR: reason" into the Gate C record, and that is accepted. Returns the problem as a sentence, or '' when fine.
+export const MIN_REVIEW_SCORE = 90;
+export function reviewScore(line) {
+  const m = String(line || '').match(/\((\d+(?:\.\d+)?)\s*\/\s*(100|5)\b/);
+  return m ? Math.round(Number(m[1]) * 1000 / Number(m[2])) / 10 : null;
+}
+export function reviewProblem(text) {
+  const files = [...String(text || '').matchAll(/^- File: .+? \| sha256: [0-9a-f]{12}/gm)];
+  if (files.length && /REVIEW BELOW THE BAR:/.test(String(text).slice(files.at(-1).index))) return '';
+  const reviews = [...String(text || '').matchAll(/^\s*(?:[-*]\s*)?(Review:.*)$/gm)].map((m) => m[1].trim());
+  const last = reviews.at(-1);
+  if (!last) return `no review on record: run /reel-review and fix what it names until it reaches ${MIN_REVIEW_SCORE}/100 (the owner can override at Gate C with --skip-review "reason")`;
+  const score = reviewScore(last);
+  if (score === null) return `the latest review line has no score: write it as "Review: meets the bar (92/100; ...)" after /reel-review`;
+  if (score < MIN_REVIEW_SCORE || !/meets the bar/i.test(last)) return `the latest review scores ${score}/100 and a reel needs ${MIN_REVIEW_SCORE} or more: fix what the review named, rebuild, run /reel-review again (the owner can override at Gate C with --skip-review "reason")`;
+  return '';
+}
+
 // Add one line at the end of a "## <heading>" section, making the section when it is missing.
 export function appendUnder(file, heading, line) {
   const text = read(file);

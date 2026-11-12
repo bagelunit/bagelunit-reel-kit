@@ -160,7 +160,7 @@ The full process, with its three approval gates, is in [docs/process.md](docs/pr
 | `setup/sync-template.mjs` | Keeps copies current (runs on Mac, Windows and Linux; `sync-template.sh` is a launcher): with no argument it refreshes a generic copy-from folder if you keep one (set its path in `REEL_TEMPLATE_HOME`; otherwise it does nothing); with a brand workspace path it shows (then with `--apply` performs) an update of that workspace's kit files without touching its `brand/` or `reels/`. |
 | `docs/` | `process.md` (the full loop), `avatar.md` (the sticker host), `sound.md` (the real-sound step), `reference.md` (the kit's method: what to post, how a reel is made, the rules). |
 | `COMMANDS.md`, `docs/commands.pdf`, `docs/commands.csv` | Every command and what it does, made from one list by `setup/make-commands.mjs`. |
-| `setup/scan-repo.mjs` | A safety scan run on every push: keys, private files, banned names, personal paths, em dashes. |
+| `setup/scan-repo.mjs` | A safety scan run on every push: keys, private files, personal paths, em dashes. |
 | `SETUP.md` | Setup by hand, step by step, and common snags. |
 
 **Settings and keys** live in `~/.config/bagelunit-reels/` on each computer, never in the repo. Upgrading from an install made before the rename? `setup/install.sh` copies your old settings folder over once and tells you which old skill folder to remove.

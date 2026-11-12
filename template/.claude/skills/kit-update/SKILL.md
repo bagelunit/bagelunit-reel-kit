@@ -21,23 +21,31 @@ brand's data (`brand/` values, `reels/`): it adds new settings and missing start
 
 ## Steps
 
-1. **Check:** `node .claude/skills/kit-update/update.mjs check`. If it says UP TO DATE, say so in one line and stop.
-2. **Show what changed:** run `preview`. It downloads the kit (into `~/.bagelunit-reel-kit/<version>/`, once) and
-   prints the changelog entries since this workspace's version, then the list of files that would be added or
-   replaced and the settings `brand.json` would gain. Summarise in plain words: what is new for this brand, and
-   which files get replaced. If the owner changed `CLAUDE.md` or a skill for this brand only, warn that the change
-   will be replaced (a `.bak-<date>` copy is kept) and offer to move it into `CLAUDE.local.md` (rules for this
-   brand only; Claude Code reads it automatically and updates never touch it) instead of re-applying it.
-3. **Ask** (question block): "Update this workspace (Recommended)", "Not now".
-4. **Apply:** `node .claude/skills/kit-update/update.mjs apply`. Report what changed in two or three lines.
-5. **The engine** (`/bagelunit-reels`) is updated once per computer, and `apply` does it by itself when it is older
-   than the kit: it runs the kit's installer (without the program, plugin and sound-library steps) and prints
-   "The engine is updated" or why it did not. Do not ask the owner a question about it. Report the line, and tell
-   the owner to restart Claude Code so the new engine and skills load. A linked engine (installed with `--link`)
-   follows its kit folder and is left alone. If it says the update did not finish, show the owner the command it
-   printed and what the installer said. `--no-engine` skips it; `update.mjs engine` runs only this step.
-6. **Other workspaces** (other brands on this computer): offer to update each one the same way, one at a time,
-   with `--workspace <folder>`.
+One question, one command. The session-start note ("A newer BagelUnit Reel Kit is out" or "the engine is behind")
+is what usually brings the owner here.
+
+1. **Check:** `node .claude/skills/kit-update/update.mjs check`. If it says UP TO DATE, say so in one line, run
+   `node .claude/skills/kit-update/update.mjs now` anyway if the session-start note said the engine is behind (it
+   updates only the engine), and stop.
+2. **Ask once** (question block): "Update now (Recommended)", "Show me what changed first", "Not now". On "show me",
+   run `preview` (downloads the kit once into `~/.bagelunit-reel-kit/<version>/`, prints the changelog entries since
+   this workspace's version and the files that would be added or replaced), summarise it in plain words, then ask
+   again.
+3. **Update:** `node .claude/skills/kit-update/update.mjs now`. It prints what changed, updates this workspace
+   (every replaced file is kept next to the new one as `<name>.bak-<date>`, and `brand/` values and `reels/` are
+   never touched), then updates the engine (`/bagelunit-reels`) when it is older than the kit by running the kit's
+   installer without the program, plugin and sound-library steps. Report it in two or three lines. If the owner
+   changed `CLAUDE.md` or a skill for this brand only, say that the change was replaced (the `.bak` copy is kept) and
+   offer to move it into `CLAUDE.local.md` (rules for this brand only; updates never touch it).
+4. **Restart:** if it printed "The engine is updated", tell the owner to restart Claude Code so the new engine and
+   skills load. A linked engine (installed with `--link`) follows its kit folder and is left alone. If it says the
+   engine update did not finish, show the command it printed and what the installer said. `--no-engine` skips the
+   engine; `update.mjs engine` runs only that step.
+5. **Other workspaces** (other brands on this computer): offer to update each one the same way, one at a time, with
+   `--workspace <folder>`. The engine is already current by then, so only the workspace changes.
+
+The once-a-day check for a newer kit reads one public file on GitHub (the newest version number) and nothing else. To
+turn it off, set `"updates": { "check": false }` in `brand/brand.json`.
 
 ## If something fails
 

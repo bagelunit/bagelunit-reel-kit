@@ -2,6 +2,18 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.21.0 (2026-11-11)
+
+**One step to update, a review bar the scheduler enforces, and tighter release checks.** All of this is one release.
+
+- **Updating is one step.** `/kit-update` now checks, asks once, and runs `update.mjs now`: it shows what changed, updates the workspace, then updates the engine, and the installer's own report stays hidden unless it fails. When a session opens, the notice says if the engine is behind the workspace, and once a day it reads the newest version number from GitHub (one public file, 3 seconds at most, never fails the session) and says when a newer kit is out. Turn that check off with `"updates": { "check": false }` in `brand/brand.json`.
+- **The scheduler refuses a reel with no passing review.** The latest `Review:` line in `approvals.md` must say "meets the bar" with 90/100 or more (the older 4.5/5 scale counts as 90), the same bar as Gate C, so a reel cannot reach the publisher by a route that skips the review. Only the owner's `--skip-review "reason"` at Gate C, which is written into the record, gets past it.
+- **Tighter release checks.** A new smoke test makes a brand folder in both layouts (flat and dated) and runs every reel command by its slug, fails if any tool builds a reel path by hand, and fails if a new engine command is not on its list. CI also fails when the newest CHANGELOG entry is not the current `VERSION`, or an entry appears twice.
+- **Everything here is our own code.** The safety scan no longer carries a list of names to block, and the repo rules say so in one line.
+- Tests: `setup/test-release-smoke.mjs`, `setup/test-kit-update-engine.mjs` (now also the session notice) and the publisher tests.
+
+To update a workspace, run `/kit-update` (this version arrives through the previous `/kit-update`, which can already update the engine). From then on it is one step.
+
 ## 1.20.0 (2026-11-11)
 
 **`/kit-update` updates the engine by itself.** Before, it updated the workspace and then asked whether to update the engine too, which left the engine behind whenever the answer was "later" or the installer was never run (the Gate C score check and the dated-folder fixes live in the engine).

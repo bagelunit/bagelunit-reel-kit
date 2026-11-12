@@ -5,7 +5,7 @@ import path from 'node:path';
 import { checkReel, scheduleReel, postingLine, cancel, status } from '../scripts/schedule.mjs';
 import { pull } from '../scripts/pull.mjs';
 import { followCheck, writeToml, steps, check, names, sendSecrets, saveUrl, secretPlan, subscribe, loginOf } from '../scripts/setup.mjs';
-import { lastGateC, appendUnder, parseArgs, sha256File, connection, Plain, isMain, zonedIso, planRows, planSlot } from '../scripts/lib.mjs';
+import { lastGateC, reviewScore, reviewProblem, appendUnder, parseArgs, sha256File, connection, Plain, isMain, zonedIso, planRows, planSlot } from '../scripts/lib.mjs';
 import { forget } from '../scripts/forget.mjs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -20,7 +20,7 @@ const future = () => new Date(Date.now() + 3600e3).toISOString().replace('Z', '+
 const KEY = 'admin-key-for-tests';
 
 // A brand folder with one approved reel.
-function workspace({ post = true, approve = true, tamper = false, coverTamper = false, cover = true, caption = 'Save this for later. #reels', threads = null, handle = 'testbrand', seconds = 30 } = {}) {
+function workspace({ post = true, approve = true, tamper = false, coverTamper = false, cover = true, caption = 'Save this for later. #reels', threads = null, handle = 'testbrand', seconds = 30, review = 'Review: meets the bar (92/100; weakest: the cover)' } = {}) {
   const ws = tmp('brand-');
   fs.mkdirSync(path.join(ws, 'brand')); fs.mkdirSync(path.join(ws, 'reels', 'r', 'out', 'platforms'), { recursive: true });
   fs.writeFileSync(path.join(ws, 'brand', 'brand.json'), JSON.stringify({ name: 'Test Brand', slug: 'testbrand', handle, autopilot: { post }, posting: { timezone: 'America/Toronto' } }));
@@ -30,7 +30,7 @@ function workspace({ post = true, approve = true, tamper = false, coverTamper = 
   const v = sha256File(path.join(out, 'r.mp4')).slice(0, 12);
   const c = cover ? sha256File(path.join(out, 'cover.jpg')).slice(0, 12) : null;
   fs.writeFileSync(path.join(ws, 'reels', 'r', 'approvals.md'), approve
-    ? `# Approvals\n\n## Gate A\n\n- 2026-11-01 10:00 Gate A (script) approved\n\n## Gate C\n\n### 2026-11-08 10:00\n- File: r.mp4 | sha256: ${v}\n${c ? `- Cover: cover.jpg | sha256: ${c}\n` : ''}- QA: PASS\n`
+    ? `# Approvals\n\n## Gate A\n\n- 2026-11-01 10:00 Gate A (script) approved\n\n## Gate C\n\n### 2026-11-08 10:00\n- File: r.mp4 | sha256: ${v}\n${c ? `- Cover: cover.jpg | sha256: ${c}\n` : ''}- QA: PASS\n${review ? `- ${review}\n` : ''}`
     : '# Approvals\n');
   if (caption !== null) fs.writeFileSync(path.join(out, 'caption.txt'), caption);
   if (threads) fs.writeFileSync(path.join(out, 'platforms', 'threads.txt'), threads);
@@ -83,6 +83,27 @@ test('the video length is checked for every place it goes', () => {
   assert.match(checkReel(workspace({ seconds: 2 }).reel, { at }).problems.join(), /an Instagram reel must be 3 seconds to 15 minutes/);
   const c = checkReel(workspace({ seconds: 42.5 }).reel, { at, platforms: 'instagram,facebook' });
   assert.deepEqual(c.problems, []); assert.equal(c.seconds, 42.5);
+});
+test('review bar: a reel with no review or under 90/100 is refused, the owner\'s recorded override is accepted', () => {
+  assert.equal(reviewScore('Review: meets the bar (92/100; weakest: x)'), 92);
+  assert.equal(reviewScore('Review: close (4.3/5; weakest: x)'), 86);
+  assert.equal(reviewScore('Review: meets the bar'), null);
+  const T = (review, extra = '') => `## Gate C\n\n### t\n- File: r.mp4 | sha256: aaaaaaaaaaaa\n${review ? `- ${review}\n` : ''}${extra}`;
+  assert.equal(reviewProblem(T('Review: meets the bar (90/100; ok)')), '');
+  assert.equal(reviewProblem(T('Review: meets the bar (4.5/5; ok)')), '');                      // the older scale: 4.5 out of 5 is 90
+  assert.match(reviewProblem(T(null)), /no review on record/);
+  assert.match(reviewProblem(T('Review: close (89/100; ok)')), /scores 89\/100 .* 90 or more/);
+  assert.match(reviewProblem(T('Review: close (95/100; says close)')), /scores 95\/100/);       // the verdict words must say "meets the bar" too
+  assert.match(reviewProblem(T('Review: meets the bar')), /no score/);
+  assert.match(reviewProblem(T('Review: close (60/100; x)')), /--skip-review/);
+  assert.equal(reviewProblem(T('Review: close (60/100; x)', '- REVIEW BELOW THE BAR: owner wants it out today (latest: close)\n')), '');
+  // an old override does not cover a later Gate C
+  assert.match(reviewProblem(T('Review: close (60/100; x)', '- REVIEW BELOW THE BAR: old\n\n### t2\n- File: r.mp4 | sha256: bbbbbbbbbbbb\n- Review: close (60/100; x)\n')), /scores 60/);
+  // through checkReel: the fixtures carry a 92 review; take it away, or lower it
+  const w = (review) => checkReel(workspace({ review }).reel, { at: future() }).problems.join();
+  assert.doesNotMatch(w('Review: meets the bar (92/100; ok)'), /review/i);
+  assert.match(w(null), /no review on record/);
+  assert.match(w('Review: close (84/100; ok)'), /scores 84\/100/);
 });
 test('Gate C parsing: the latest record and its own cover', () => {
   const t = '## Gate C\n\n### 1\n- File: a.mp4 | sha256: aaaaaaaaaaaa\n- Cover: cover.jpg | sha256: cccccccccccc\n\n### 2\n- File: b.mp4 | sha256: bbbbbbbbbbbb\n- QA: PASS\n';

@@ -61,5 +61,42 @@ assert.equal(updateEngine(fakeKit, '1.19.0', { skills, run: runner(), log }), fa
 const src = fs.readFileSync(path.join(kit, 'setup', 'install.mjs'), 'utf8');
 assert.match(src, /MARKER\), new Date\(\)\.toISOString\(\)\.slice\(0, 10\) \+ '\\n' \+ KIT_VERSION/);
 
+
+// ── the session-start version note (versionNote) and engineState ──────────────────────────────────────────────────────
+{
+  const { versionNote, engineState } = await import(pathToFileURL(path.join(kit, 'template', '.claude', 'skills', 'kit-update', 'update.mjs')).href);
+  const ws = path.join(tmp, 'ws'); fs.mkdirSync(path.join(ws, 'brand'), { recursive: true });
+  fs.writeFileSync(path.join(ws, 'brand', 'brand.json'), '{}'); fs.writeFileSync(path.join(ws, '.kit-version'), '1.20.0\n');
+  const NOW = Date.UTC(2026, 10, 12);
+  let fetches = 0; const latest = (v) => async () => { fetches++; return v; };
+  const empty = path.join(tmp, 'empty-skills');
+  assert.equal(engineState(empty).state, 'missing');
+
+  // engine behind the workspace, and no newer kit
+  fs.rmSync(engine, { recursive: true, force: true }); marker('1.19.0');
+  let n = await versionNote(ws, { skills, now: NOW, fetchLatest: latest('1.20.0') });
+  assert.match(n, /engine \(\/bagelunit-reels\) is on 1\.19\.0, behind this workspace \(1\.20\.0\)/); assert.match(n, /update\.mjs engine/); assert.ok(!/newer BagelUnit/.test(n));
+  // an engine with only a date in its marker counts as behind
+  fs.writeFileSync(path.join(engine, '.bagelunit-reel-kit'), '2026-11-01\n');
+  assert.match(await versionNote(ws, { skills, now: NOW, fetchLatest: latest('1.20.0') }), /an older version/);
+  // engine current, kit current: nothing to say (the fetch is cached for a day)
+  marker('1.20.0'); fetches = 0;
+  assert.equal(await versionNote(ws, { skills, now: NOW + 3600e3, fetchLatest: latest('1.20.0') }), ''); assert.equal(fetches, 0, 'one online check a day');
+  // a day later a newer kit is out
+  n = await versionNote(ws, { skills, now: NOW + 25 * 3600e3, fetchLatest: latest('1.21.0') });
+  assert.match(n, /newer BagelUnit Reel Kit is out: 1\.21\.0 \(this workspace is on 1\.20\.0\).*\/kit-update/); assert.equal(fetches, 1);
+  // offline: the last known answer stays, the session is never failed
+  n = await versionNote(ws, { skills, now: NOW + 50 * 3600e3, fetchLatest: async () => { throw new Error('offline'); } });
+  assert.match(n, /1\.21\.0/);
+  // switched off in brand.json: no online check at all
+  fs.writeFileSync(path.join(ws, 'brand', 'brand.json'), JSON.stringify({ updates: { check: false } })); fs.rmSync(path.join(ws, '.cache'), { recursive: true, force: true }); fetches = 0;
+  assert.equal(await versionNote(ws, { skills, now: NOW + 99 * 3600e3, fetchLatest: latest('9.9.9') }), ''); assert.equal(fetches, 0);
+  // a linked engine and a missing engine are never called behind
+  fs.rmSync(engine, { recursive: true, force: true }); fs.symlinkSync(fakeKit, engine, 'dir');
+  assert.equal(await versionNote(ws, { skills, now: NOW, fetchLatest: latest('1.20.0') }), '');
+  assert.equal(await versionNote(ws, { skills: empty, now: NOW, fetchLatest: latest('1.20.0') }), '');
+  console.log('ok   session-start version note');
+}
+
 fs.rmSync(tmp, { recursive: true, force: true });
 console.log('kit update engine: ok');
