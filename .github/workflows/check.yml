@@ -56,6 +56,9 @@ jobs:
       - name: Competitor tracking works (fake Meta, file import, the 3x rule, the dashboard section)
         run: node setup/test-competitors.mjs
 
+      - name: Watch section and approved-reel previews work (own title, players, preview index, Wi-Fi ranges, online copy off and on)
+        run: node setup/test-watch-previews.mjs
+
       - name: Best posting times work (not enough data, own hours, audience hours, apply moves only unscheduled rows, autopilot.retime)
         run: node setup/test-best-times.mjs
 

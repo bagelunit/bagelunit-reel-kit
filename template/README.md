@@ -28,6 +28,7 @@ Two kit guides live in the kit's own folder, not in this copy: [the sticker host
 | `facts.md` | the only claims, numbers and results a reel may state (the owner confirms each one) |
 | `plan.md` | the planned reels, one row each with a date (`/content-calendar plan` fills it after your yes) |
 | `calendar.md`, `dashboard.html` | your content calendar and dashboard, remade each time you type `/content-calendar` |
+| `watch.json` | the pages the dashboard's watch section follows and what is new there (`/content-calendar watch`; rename the section any time) |
 | `followers.csv`, `instagram.json` | once you connect Instagram: one follower count a day (your growth history) and every post's latest numbers |
 | `log.md` | one row per posted reel: hook, first line, goal, angle, review verdict |
 | `tests.md` | one row per finished A/B test: what won and the lesson |
@@ -76,7 +77,7 @@ Two kit guides live in the kit's own folder, not in this copy: [the sticker host
 | `/caption-and-hashtags` | caption, up to 5 hashtags picked from what worked, and a line of search keywords |
 | `/cover-thumbnail-brief` | the cover text and look |
 | `/reel-posting` | a posting card, scheduling, or setting up automatic posting step by step |
-| `/content-calendar` | your content calendar and dashboard: every reel from idea to posted, what needs you, the four agents, followers and trends; `plan` fills the next weeks after your yes, `days` sets your posting days, `host` lets you view it on your Wi-Fi or online (Netlify suggested), `connect instagram` and `connect telegram` add your numbers and a phone summary, `auto` refreshes it by itself (Mac, Windows, Linux) |
+| `/content-calendar` | your content calendar and dashboard: every reel from idea to posted, what needs you, the four agents, followers and trends; click a reel on the calendar to watch its approved video; `plan` fills the next weeks after your yes, `days` sets your posting days, `watch` follows the news pages and release notes you pick, `host` lets you view it on your Wi-Fi or online (Netlify suggested), `connect instagram` and `connect telegram` add your numbers and a phone summary, `auto` refreshes it by itself (Mac, Windows, Linux) |
 | `/analytics-readout` | explains your numbers in plain words |
 | `/comment-responder` | sets up a comment auto-reply and DM step by step (off until tested) |
 | `/content-factory` | the opt-in autopilot that runs the whole loop (off by default) |

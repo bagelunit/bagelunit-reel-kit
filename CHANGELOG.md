@@ -24,6 +24,12 @@ Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. T
 - **Web setup done for you.** Claude does each setup step on a website in your browser; you log in, paste secrets into the file it opens and click the last Delete.
 - **One-step updates.** `/kit-update` shows what changed, updates the workspace and then the engine.
 
+**Added since the first release (still 1.0.0)**
+
+- **Watch a reel from the calendar.** Click a reel on its day and its card plays the approved final, with its cover, so you can see exactly what goes out then. Every reel past the last approval (approved, scheduled or posted) has it, and calendar entries with a video carry a play mark. It plays on this computer and on the live Wi-Fi view; the online copy leaves the videos out unless you turn on `dashboard.previews_online`, which uploads small copies of the reels that are not posted yet.
+- **A watch section you name yourself.** A dashboard section for the news pages, release notes, changelogs or industry bodies you follow, and what is new on them. It is called "News watch" until you rename it (`/content-calendar watch rename`). `/content-calendar watch add` picks the pages (their own official ones, you confirm each), `/content-calendar watch` reads them. Each item is a lead, not a fact, until you add it to `brand/facts.md`. The daily refresh only redraws it.
+- To get both in an existing brand folder: `/kit-update`.
+
 **Safe by default.** Nothing posts, sends or scrapes without your permission, only facts you have cleared appear in a video, and keys, renders, audio and photos of people stay out of the repo.
 
 **To start:** run `bash setup/install.sh` (Windows: `node setup/install.mjs`), then type `/brand-setup`.

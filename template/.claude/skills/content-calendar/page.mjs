@@ -39,6 +39,8 @@ const ICON = {
   arrow: 'M5 12h14M13 6l6 6-6 6',
   check: 'M5 12.5l4.5 4.5L19 7.5',
   flag: 'M5 21V4M5 4h11l-2 4 2 4H5',
+  eye: 'M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+  play: 'M7 4.5v15l12-7.5z',
 };
 const icon = (name, cls = 'ic') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICON[name]}"/></svg>`;
 const label = (name, text, extra = '') => `<div class="label${extra}"><span class="chip">${icon(name)}</span>${esc(text)}</div>`;
@@ -260,6 +262,7 @@ ${GATE[k] ? `<span class="gate-mark" title="${esc(GATE[k])}: you approve here">$
       planned: keyOf(it.plannedAt), scheduled: it.scheduledAt ? { d: keyOf(it.scheduledAt), t: M.timeOf(it.scheduledAt), via: it.scheduledVia, dry: !!it.dryRun } : null,
       posted: it.postedAt ? { d: keyOf(it.postedAt), t: it.postedHasTime ? M.timeOf(it.postedAt) : '', link: safeUrl(it.media?.permalink) || safeUrl(it.permalink) } : null,
       file: it.file ? { name: it.file, state: it.fileState } : null,
+      preview: it.preview ? { local: it.preview.local, poster: it.preview.localPoster } : null,
       nums: it.nums ? { views: it.nums.views, reach: it.nums.reach, eng: rate(it.nums), watch: it.nums.watch, skip: it.nums.skip, likes: it.nums.likes, comments: it.nums.comments, saves: it.nums.saves, shares: it.nums.shares, source: it.nums.source } : null,
       needs: M.attention.filter((a) => a.it === it).map((a) => ({ p: a.p, what: a.what })),
       next: NEXT_FULL[it.stage], cmd: CMD(it), files: it.files || [], history: it.history || [],
@@ -371,6 +374,29 @@ ${M.flow.slowest && M.flow.slowest.days >= 1 ? `<p class="foot">Reels wait longe
   const SRC = { meta: 'Meta', apify: 'Apify', file: 'A file' };
   const cmdLine = (c) => `<div class="cmd-line"><code>${esc(c)}</code><button type="button" class="copy" data-copy="${esc(c)}">Copy</button></div>`;
   const igLink = (h) => `<a class="ig" href="https://www.instagram.com/${encodeURIComponent(h)}/" target="_blank" rel="noopener" aria-label="Open @${esc(h)} on Instagram">${icon('arrow')}</a>`;
+  // the watch section (watch-model.mjs): sources the brand follows and the newest items seen there; its name is the
+  // brand's own (brand/watch.json -> title, "News watch" until renamed)
+  const W = M.watch;
+  const watchHtml = (() => {
+    const head = (aside) => `<div class="sec-head" data-reveal>${label('eye', W.title)}<span class="aside">${aside}</span></div>`;
+    if (!W.any) return `<section class="wrap" id="watch" aria-label="${esc(W.title)}">${head('Sources you follow, and what is new there')}
+  <div class="panel" data-reveal><p class="empty">Nothing watched yet. Name the pages you want followed (news, release notes, changelogs, trade press, a regulator) and Claude reads them when you ask, then lists what is new. Rename this section any time.</p>${cmdLine('/content-calendar watch add')}</div></section>`;
+    const ST = { new: 'new', checked: 'read', cleared: 'cleared', planned: 'planned', used: 'used', skip: 'skipped' };
+    const itemLi = (i, n) => `<li><span class="n">${String(n + 1).padStart(2, '0')}</span><div class="wb"><div class="wt"><b>${i.url ? `<a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(clip(i.title, 100))}</a>` : esc(clip(i.title, 100))}</b> <span class="prio ${i.status === 'new' ? 'soon' : ''}">${esc(ST[i.status] || i.status)}</span></div><span class="foot">${[esc(i.group), i.date && esc(M.pretty(i.date)), i.reel && `reel ${esc(i.reel)}`].filter(Boolean).join(' · ')}</span>${i.note ? `<p class="foot">${esc(clip(i.note, 190))}</p>` : ''}</div></li>`;
+    const fresh = W.fresh.slice(0, 12);
+    const freshHtml = fresh.length ? `<ol class="wins">${fresh.map(itemLi).join('')}</ol>${W.fresh.length > 12 ? `<p class="foot">${W.fresh.length - 12} more in brand/watch.json.</p>` : ''}`
+      : `<p class="empty">Nothing new in the last ${W.freshDays} days.</p>`;
+    const srcHtml = W.groups.map((g) => `<div class="w-g"><h4>${esc(g.name)}</h4><p class="foot">${g.sources.map((x) => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.label)}</a>`).join(' · ') || 'No source yet'}</p></div>`).join('');
+    const word = (n, w, ws) => `${n} ${n === 1 ? w : ws}`;
+    return `<section class="wrap" id="watch" aria-label="${esc(W.title)}">
+  ${head(`${word(W.counts.groups, W.word, W.words)} · ${word(W.counts.sources, 'page', 'pages')} · ${W.counts.fresh} new in ${W.freshDays} days${W.updated ? ` · read ${esc(M.pretty(W.updated))}` : ''}`)}
+  <div class="twin" data-reveal-group>
+    <div class="panel"><h3>Newest</h3>${freshHtml}<p class="foot">Leads, not facts: a claim goes in a script only after it is checked on its own page and added to brand/facts.md.</p>${cmdLine('/content-calendar watch')}</div>
+    <div class="panel"><h3>What we watch</h3><div class="w-grid">${srcHtml}</div></div>
+  </div>
+</section>`;
+  })();
+
   const competitorsHtml = (() => {
     if (!CP || !CP.any) return `<section class="wrap" id="competitors" aria-label="Competitors"${pfIn('all instagram')}>
   <div class="sec-head" data-reveal>${label('grid', 'Competitors')}<span class="aside">Who you watch, and what is working for them</span></div>
@@ -425,7 +451,7 @@ ${CP.accounts.map(trow).join('')}</tbody></table></div>` : '<p class="empty">Not
 ${opt.length ? `<p class="opt-label">Optional</p><ol class="steps opt">${opt.map((x, i) => step(x, core.length + i)).join('')}</ol>` : ''}
 </div></section>` : '';
   return `<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow"><meta name="bu-previews" content="local">
 <title>${esc(M.name)} · content dashboard</title>
 <style>
 ${fonts}
@@ -604,6 +630,17 @@ table.comp .sub{display:block;margin:3px 0 0;font-size:11.5px;font-weight:400} t
 .wt{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:14px} .wt .ratio{font:800 20px/1 var(--sans);color:var(--accent-text)}
 .feed,.gaps{list-style:none;margin:0;padding:0;display:grid;gap:12px} .feed p{margin:3px 0 0;font-size:14px} .feed .foot{display:inline;margin:0} .gaps .foot{display:inline;margin:0 0 0 6px}
 .ideas .cmd-line{margin-top:8px}
+/* the approved final in the reel's card, upright like the phone it is for; the calendar marks reels that have one */
+.pv-fig{margin:0;position:relative;aspect-ratio:9/16;background:var(--navy);border:1px solid var(--line-strong);box-shadow:var(--shadow);overflow:hidden}
+.pv-fig video{display:block;width:100%;height:100%;object-fit:contain;background:var(--navy)}
+.pv-off{display:none;margin:0;position:absolute;inset:0;padding:18px;place-content:center;text-align:center;font-size:12.5px;line-height:1.5;color:var(--navy-body)}
+video[data-pv-off],video.pv-gone{display:none} video[data-pv-off]+.pv-off,video.pv-gone+.pv-off{display:grid}
+.dr-pv{max-width:240px} .dr-pv .pv-fig{box-shadow:none}
+.pv-mark{width:11px;height:11px;flex:none;fill:currentColor;stroke:none;vertical-align:-1px;margin-right:4px} .cc-kind .pv-mark{margin:0 3px 0 0}
+@media (max-width:620px){.dr-pv{max-width:none} .ev .pv-mark{display:none}}
+/* the watch section */
+.w-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px} .w-g h4{margin:0 0 4px;font-size:14px} .w-g .foot{margin:0;line-height:1.7}
+#watch .wb a{color:inherit;text-underline-offset:2px} #watch .w-g a{color:var(--accent-text);text-underline-offset:2px} #watch .panel>.cmd-line{margin-top:12px}
 
 /* calendar */
 .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--mute);margin:0 0 14px}
@@ -965,6 +1002,7 @@ ${M.setupOpen && !S.measured && !S.posted && !PFS.length ? '' : `<div class="wra
   <div data-reveal><div class="sec-head">${label('clock', 'Next 14 days')}<span class="aside">${open14} open slot${open14 === 1 ? '' : 's'} in these 14 days</span></div>${agendaHtml}</div>
 </div></section>
 
+
 <section class="band" id="agents" aria-labelledby="agents-title"><div class="wrap">
   <div class="band-top">
     <div data-reveal>${label('loop', 'Your agents')}<h2 id="agents-title">Your content team</h2>
@@ -995,6 +1033,8 @@ ${M.setupOpen && !S.measured && !S.posted && !PFS.length ? '' : `<div class="wra
 </section>
 
 ${competitorsHtml}
+
+${watchHtml}
 
 <section class="wrap" id="calendar" aria-label="Calendar">
   <div class="sec-head" data-reveal>${label('cal', 'Calendar')}<span class="aside">${M.postDays.length ? `Posting days: ${esc(M.postDays.map((d) => d[0].toUpperCase() + d.slice(1)).join(', '))}${M.postTimes.length > 1 ? `, ${M.postTimes.length} times a day (${esc(timesText(M.postTimes))})` : M.postTime ? ` at ${esc(M.postTime)}` : ''}` : 'Set posting days with /content-calendar days'}</span></div>

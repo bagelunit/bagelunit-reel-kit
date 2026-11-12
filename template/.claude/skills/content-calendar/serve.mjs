@@ -15,6 +15,7 @@ import crypto from 'node:crypto';
 import { brandRoot } from './lib.mjs';
 import { build } from './calendar.mjs';
 import { queuePublish } from './host.mjs';
+import { resolve as previewFile, send as sendFile, rewrite as previewsFor } from './previews.mjs';
 
 const args = process.argv.slice(2);
 const root = brandRoot(args.find((a, i) => !a.startsWith('--') && args[i - 1] !== '--port'));
@@ -66,9 +67,14 @@ http.createServer((req, res) => {
     let html;
     try { html = fs.readFileSync(page, 'utf8'); }
     catch { res.writeHead(503, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'Retry-After': '5' }); return res.end('The dashboard is being drawn. Reload in a few seconds.'); }
-    html = html.replace(/<a href="(?!https?:)[^"]*">([^<]*)<\/a>/g, '$1').replace('</body>', `${live}</body>`);
+    html = previewsFor(html.replace(/<a href="(?!https?:)[^"]*">([^<]*)<\/a>/g, '$1'), 'served').replace('</body>', `${live}</body>`);
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex', 'Referrer-Policy': 'no-referrer' });
     return res.end(html);
+  }
+  // an approved reel's final and cover, for the page's players (only reels listed in .cache/previews.json)
+  if (url.pathname.startsWith(`${base}/preview/`) && ['GET', 'HEAD'].includes(req.method)) {
+    const f = previewFile(root, url.pathname.slice(base.length + 9));
+    if (f) return sendFile(req, res, f);
   }
   res.writeHead(404, { 'Content-Type': 'text/plain' }); res.end('Not here.');
 }).listen(port, '0.0.0.0', () => {

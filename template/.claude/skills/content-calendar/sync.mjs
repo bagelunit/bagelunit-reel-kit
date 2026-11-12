@@ -25,7 +25,7 @@ function stamp() {
   let newest = 0, count = 0;
   const look = (f) => { try { const st = fs.statSync(f); count++; if (st.mtimeMs > newest) newest = st.mtimeMs; } catch {} };
   const brand = path.join(root, 'brand');
-  for (const f of ['brand.json', 'plan.md', 'log.md', 'insights.csv', 'swipe.md', 'stats.md', 'instagram.json', 'followers.csv', 'tests.md', 'host/host.json', 'facebook.json', 'threads.json', 'publisher.json', 'inbox-log.md']) look(path.join(brand, f));
+  for (const f of ['brand.json', 'plan.md', 'log.md', 'insights.csv', 'swipe.md', 'stats.md', 'instagram.json', 'followers.csv', 'tests.md', 'host/host.json', 'facebook.json', 'threads.json', 'publisher.json', 'inbox-log.md', 'watch.json']) look(path.join(brand, f));
   look(path.join(root, '.cache', 'refresh-status.json'));
   const names = listReels(root);
   for (const { dir: d } of names) {

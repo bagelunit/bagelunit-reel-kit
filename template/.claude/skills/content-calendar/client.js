@@ -15,6 +15,19 @@
   const local = location.protocol === 'file:';
   const safe = (u) => { const s = String(u == null ? '' : u).trim(); return /^https:\/\/[^\s"'<>\\]+$/i.test(s) ? s : ''; };   // only https links to posts (page.mjs checks too)
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // where the approved finals play from (previews.mjs): the reel's own file here, preview/<id>.mp4 on the Wi-Fi view and
+  // online (online only for the reels that were uploaded)
+  const PVM = document.querySelector('meta[name="bu-previews"]'), PV_MODE = PVM ? PVM.content : 'local';
+  const PV_UP = new Set(((PVM && PVM.dataset.ids) || '').split(' ').filter(Boolean));
+  const pvSrc = (it, poster) => {
+    if (!it.preview || (poster && !it.preview.poster)) return '';
+    if (PV_MODE === 'local') return poster ? it.preview.poster : it.preview.local;
+    const id = encodeURIComponent(it.id);
+    return PV_MODE === 'served' || PV_UP.has(id) ? 'preview/' + id + (poster ? '.jpg' : '.mp4') : '';
+  };
+  // a video that cannot load (moved, or not uploaded) says where to watch it instead of showing a black box; one plays at a time
+  document.addEventListener('error', (e) => { if (e.target && e.target.tagName === 'VIDEO') e.target.classList.add('pv-gone'); }, true);
+  document.addEventListener('play', (e) => { if (e.target && e.target.tagName === 'VIDEO') document.querySelectorAll('video').forEach((v) => { if (v !== e.target && !v.paused) v.pause(); }); }, true);
   const esc = (v) => (window.CSS && CSS.escape ? CSS.escape(v) : String(v).replace(/"/g, '\\"'));
 
   /* ── shared state, kept for this tab across redraws ──────────────────────────────────────────────────────── */
@@ -72,8 +85,11 @@
   let renderCal = () => {};
   if (cal) {
     const body = $('#cal-body', cal), title = $('#cal-title', cal);
-    const ev = (e) => '<button type="button" class="ev ' + e.k + dimCls(e.id) + '" data-open="' + h(e.id) + '" title="' + h((byId.get(e.id) || {}).title + ' · ' + kindText(e)) + '">' + (e.t ? '<b>' + h(e.t) + '</b> ' : '') + '<span>' + h((byId.get(e.id) || {}).title) + '</span></button>';
-    const card = (e) => { const it = byId.get(e.id) || {}; return '<button type="button" class="calcard ' + e.k + dimCls(e.id) + '" data-open="' + h(e.id) + '"><span class="cc-time">' + (e.t ? h(e.t) : 'Any time') + '</span><b>' + h(it.title) + '</b><span class="cc-kind"><i class="sw ' + e.k + '"></i>' + h(kindText(e)) + '</span></button>'; };
+    // a reel whose approved final can be watched carries a play mark; its card plays it
+    const PLAY = '<svg class="ic pv-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>';
+    const hasPv = (id) => !!(byId.get(id) || {}).preview;
+    const ev = (e) => '<button type="button" class="ev ' + e.k + dimCls(e.id) + '" data-open="' + h(e.id) + '" title="' + h((byId.get(e.id) || {}).title + ' · ' + kindText(e) + (hasPv(e.id) ? ' · video to watch' : '')) + '">' + (hasPv(e.id) ? PLAY : '') + (e.t ? '<b>' + h(e.t) + '</b> ' : '') + '<span>' + h((byId.get(e.id) || {}).title) + '</span>' + (hasPv(e.id) ? '<span class="sr">, video to watch</span>' : '') + '</button>';
+    const card = (e) => { const it = byId.get(e.id) || {}; return '<button type="button" class="calcard ' + e.k + dimCls(e.id) + '" data-open="' + h(e.id) + '"><span class="cc-time">' + (e.t ? h(e.t) : 'Any time') + '</span><b>' + h(it.title) + '</b><span class="cc-kind"><i class="sw ' + e.k + '"></i>' + h(kindText(e)) + (it.preview ? ' · ' + PLAY + 'Watch' : '') + '</span></button>'; };
     function month() {
       const first = state.cur.slice(0, 8) + '01', m = parse(first).getUTCMonth();
       const last = add(addMonths(first, 1), -1), end = add(monday(last), 6);
@@ -241,6 +257,9 @@
       + '<p class="track-label">Stage ' + (idx + 1) + ' of ' + D.stages.length + ' · <b>' + h(STAGE_NAME[it.stage]) + '</b></p><ol class="track" aria-label="Stage">' + D.stages.map((s, i) => '<li class="' + (i < idx ? 'done' : i === idx ? 'now' : '') + '"' + (i === idx ? ' aria-current="step"' : '') + '><i></i><span>' + h(s.n) + '</span></li>').join('') + '</ol>'
       + (it.needs.length ? '<div class="dr-needs">' + it.needs.map((x) => '<p><span class="prio ' + ['', 'now', 'soon', 'later'][x.p] + '">' + PRIO[x.p] + '</span>' + withCmd(x.what) + '</p>').join('') + '</div>' : '')
       + '<div class="dr-next"><span class="kicker">Next step</span><p>' + h(it.next) + '</p><div class="cmdrow"><code>' + h(it.cmd) + '</code><button type="button" class="copy" data-copy="' + h(it.cmd) + '">Copy</button></div><small>Paste it into Claude Code, opened in this brand folder.</small></div>'
+      + (it.preview ? (() => { const src = pvSrc(it), poster = pvSrc(it, true); return '<div class="dr-sec dr-pv"><span class="kicker">Final video' + (it.stage === 'posted' ? '' : ', as approved') + '</span><figure class="pv-fig">'
+          + '<video controls playsinline preload="' + (poster ? 'none' : 'metadata') + '"' + (src ? ' src="' + h(src) + '"' : ' data-pv-off') + (poster ? ' poster="' + h(poster) + '"' : '') + ' aria-label="Final video"></video>'
+          + '<p class="pv-off">Plays on this computer and on your Wi-Fi view. To watch it online too, turn on online previews (docs/dashboard.md).</p></figure></div>'; })() : '')
       + '<dl class="facts">' + fact('Planned', it.planned ? dateText(it.planned) + goDay(it.planned) : '')
       + fact('Scheduled', it.scheduled ? dateText(it.scheduled.d, it.scheduled.t) + ' · ' + h(it.scheduled.via) + (it.scheduled.dry ? ' <span class="down">dry run</span>' : '') + (it.schedPlatforms ? ' · ' + h(it.schedPlatforms.map((x) => x[0].toUpperCase() + x.slice(1)).join(', ')) : '') + goDay(it.scheduled.d) : '')
       + fact('Posted', it.posted ? dateText(it.posted.d, it.posted.t) + (safe(it.posted.link) ? ' · <a href="' + h(safe(it.posted.link)) + '" target="_blank" rel="noopener">Open on Instagram</a>' : '') + goDay(it.posted.d) : '')
@@ -282,7 +301,7 @@
   const closeCard = () => { if (dlg && dlg.open) dlg.close(); };
   const gotoDay = (k) => { if (!cal) return; state.cur = k; state.view = 'day'; localStorage.setItem('bu-cal-view', 'day'); closeCard(); renderCal(true); save(); const c = $('#calendar'); if (c) c.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); };
   if (dlg) {
-    dlg.addEventListener('close', () => { state.open = null; clearHash(); paintSelection(); });
+    dlg.addEventListener('close', () => { $$('video', cb).forEach((v) => v.pause()); state.open = null; clearHash(); paintSelection(); });
     dlg.addEventListener('cancel', clearHash);
     dlg.addEventListener('click', (e) => {
       if (e.target === dlg || e.target.closest('[data-close]')) return closeCard();

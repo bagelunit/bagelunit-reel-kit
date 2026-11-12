@@ -7,6 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { loadCompetitors } from './competitors-model.mjs';
+import { loadWatch } from './watch-model.mjs';
 
 /* ── files and settings ────────────────────────────────────────────────────────────────────────────────────── */
 export const read = (p) => { try { return fs.readFileSync(p, 'utf8'); } catch { return ''; } };
@@ -326,6 +327,14 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
       it.logged = logged; it.goal = logged.goal; it.angle = logged.angle;
     }
     it.stage = it.postedAt ? 'posted' : it.scheduledAt ? 'scheduled' : passed('C') ? 'c' : passed('B') ? 'b' : passed('A') ? 'a' : script.trim() ? 'script' : 'idea';
+    // the approved final to watch on the dashboard (Gate C passed): paths relative to brand/dashboard.html; serve.mjs and
+    // host.mjs swap them for their own preview/ addresses (previews.mjs)
+    if (it.file && it.fileState !== 'missing' && ['c', 'scheduled', 'posted'].includes(it.stage)) {
+      const video = path.join(dir, 'out', it.file), cover = ['cover.jpg', 'cover.png'].find((f) => fs.existsSync(path.join(dir, 'out', f)));
+      let size = 0, at = 0; try { const st = fs.statSync(video); size = st.size; at = Math.round(st.mtimeMs); } catch {}
+      if (size) it.preview = { video, poster: cover ? path.join(dir, 'out', cover) : null, size, at,
+        local: `../reels/${encRel(rel || name)}/out/${encRel(it.file)}`, localPoster: cover ? `../reels/${encRel(rel || name)}/out/${cover}` : '' };
+    }
     // for the reel's card on the dashboard: its record, its words and its files
     it.id = name;
     it.script = script.trim().slice(0, 1600);
@@ -787,8 +796,11 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
     own: { followers: followersNow, median: median(ownViews.slice(0, 12).map((x) => x.v)), perWeek: ownViews.length >= 3 ? Math.round((ownViews.filter((x) => now - x.at <= 28 * 864e5).length / 4) * 10) / 10 : null },
   });
 
+  // the watch section (brand/watch.json)
+  const watch = loadWatch(root, { now: now.getTime() });
+
   return {
-    competitors,
+    competitors, watch,
     setup, setupOpen, tests, mix, others, publisher, series, flow, costs, library, audience, stories: igStories, inbox,
     root, brand, slug, name: str(brand.name) || path.basename(root).replace(/-reels$/, ''), handle: str(brand.handle),
     accent: /^#[0-9a-f]{3,8}$/i.test(str(brand.colors?.accent)) ? brand.colors.accent : '#E4572E',

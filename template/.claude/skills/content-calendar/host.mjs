@@ -13,6 +13,8 @@
 // The key is made by this script when run by hand (/content-calendar host) and saved in brand.json; a background upload
 // never edits brand.json (if no key is there yet it keeps one in .cache/path-key, which the next run by hand moves over).
 // The page tells search engines to stay away, and links to files on this computer are removed from the online copy.
+// Reel videos go online only with dashboard.previews_online true: small copies of the approved, not yet posted reels
+// (previews.mjs), so each card plays its reel there too.
 //
 // Keeping it current: after each redraw (sync.mjs, serve.mjs) queuePublish() checks whether the page really changed
 // (its clock is ignored), and if so starts at most one quiet background waiter, which uploads no more often than
@@ -28,6 +30,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { brandRoot, readJSON, writeStatus, writeAtomic } from './lib.mjs';
 import { build } from './calendar.mjs';
+import { readIndex, onlineCopies, rewrite as previewsFor } from './previews.mjs';
 
 const ONLINE = ['netlify', 'cloudflare', 'folder'];
 const WIN = process.platform === 'win32';
@@ -72,7 +75,9 @@ export function privateUrl(root) {
 function fingerprint(root) {
   try {
     const html = fs.readFileSync(path.join(root, 'brand', 'dashboard.html'), 'utf8').replace(/<time\b[^>]*>[\s\S]*?<\/time>/g, '');
-    return crypto.createHash('sha256').update(html).digest('hex');
+    // with online previews on, a new final (same page, other video) is a change too
+    const videos = settings(root).previews_online === true ? JSON.stringify(Object.entries(readIndex(root)).filter(([, e]) => e.ready).map(([id, e]) => [id, e.size, e.at])) : '';
+    return crypto.createHash('sha256').update(html).update(videos).digest('hex');
   } catch { return null; }
 }
 
@@ -80,7 +85,19 @@ export function site(root) {
   const out = path.join(root, '.cache', 'site'), key = pathKey(root);
   fs.rmSync(out, { recursive: true, force: true });
   fs.mkdirSync(path.join(out, key), { recursive: true });
-  const html = fs.readFileSync(path.join(root, 'brand', 'dashboard.html'), 'utf8').replace(/<a href="(?!https?:)[^"]*">([^<]*)<\/a>/g, '$1');
+  // approved reels to watch: small copies, only with dashboard.previews_online on (they are not posted yet)
+  const uploaded = new Set();
+  if (settings(root).previews_online === true) {
+    const pdir = path.join(out, key, 'preview');
+    fs.mkdirSync(pdir, { recursive: true });
+    for (const p of onlineCopies(root, { log: (m) => console.log(m) })) {
+      const name = encodeURIComponent(p.id);
+      fs.copyFileSync(p.video, path.join(pdir, `${name}.mp4`));
+      if (p.poster) fs.copyFileSync(p.poster, path.join(pdir, `${name}.jpg`));
+      uploaded.add(p.id);
+    }
+  }
+  const html = previewsFor(fs.readFileSync(path.join(root, 'brand', 'dashboard.html'), 'utf8').replace(/<a href="(?!https?:)[^"]*">([^<]*)<\/a>/g, '$1'), 'online', uploaded);
   fs.writeFileSync(path.join(out, key, 'index.html'), html);
   fs.writeFileSync(path.join(out, 'index.html'), '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow"><title>Nothing here</title></head><body></body></html>\n');
   fs.writeFileSync(path.join(out, 'robots.txt'), 'User-agent: *\nDisallow: /\n');

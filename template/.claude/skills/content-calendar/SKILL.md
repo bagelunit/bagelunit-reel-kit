@@ -9,9 +9,11 @@ description: >
   pipeline", "how are my reels doing", "connect my Instagram stats", "connect Facebook", "connect Threads", "send it to my phone", "refresh every day",
   "put the dashboard online", "host my dashboard", "see it on my phone", "how often should I post", "how many
   reels a week", "posting frequency", "track my competitors", "what are my competitors posting", "competitor
-  dashboard", "what's working for them" or "post ideas from my competitors".
+  dashboard", "what's working for them", "post ideas from my competitors", "watch these sources", "what's new in my
+  niche", "follow these news pages", "rename the watch section", "watch my reel on the dashboard" or "preview the
+  scheduled reels".
 user-invokable: true
-argument-hint: "[plan | days | how-often | best-times | competitors | ideas | host | connect instagram | connect facebook | connect threads | connect telegram | auto | all | off]"
+argument-hint: "[plan | days | how-often | best-times | competitors | ideas | watch | host | connect instagram | connect facebook | connect threads | connect telegram | auto | all | off]"
 metadata:
   author: BagelUnit
   version: "2.0.0"
@@ -41,6 +43,8 @@ Ask every choice with a question block (AskUserQuestion), the recommended option
 | `brand/research/<username>.csv`, `brand/research/accounts.json` | other accounts' posts and their followers, written by `research.mjs competitor` (read by `how-often.mjs` and `/account-audit`) |
 | `brand/competitors.json` | the accounts the owner watches: handle and tag (`niche`, `adjacent`, `big`), written by `competitors.mjs add` |
 | `brand/research/history.csv` | one line a day per competitor from `competitors.mjs sync` (date, handle, followers, posts read, median views, source): the only record of their growth |
+| `brand/watch.json` | the watch section: its `title` (the owner's own name for it, "News watch" until renamed), `group_word` (what one group is called, "source" by default), `fresh_days` (default 14), `updated`, and `groups`, each with a `name`, its `sources` (label, https url, kind, checked date) and the `items` seen there (date, title, url, status `new`, `checked`, `cleared`, `planned`, `used` or `skip`, the reel that used it, a note); written by `/content-calendar watch`, read only by the page (`watch-model.mjs`) |
+| `.cache/previews.json` | written by `calendar.mjs` each run: the approved finals the Wi-Fi view and the online copy may play, and where they are on this computer (never in the page; `previews.mjs`) |
 | `brand/ideas.md` | post ideas drafted from the competitors' winners: Date, Idea, Hook, Based on, Goal, Angle, Status (`suggested`, `planned`, `rejected`); written by `/content-calendar ideas` |
 | `brand/how-often.json` | written by `how-often.mjs`: the suggested posting pace and why; the Planner panel shows it |
 | `brand/best-times.json` | written by `best-times.mjs`: the suggested posting times and why (the brand's own hours, the audience's online hours, optionally the competitors' winners); the Planner panel shows it |
@@ -84,6 +88,14 @@ When the owner asks how to use it, say this in two lines and point to `docs/dash
 - **Time and cost:** median days from start to posted, which step reels wait longest at, and voice credits this
   month (from the engine's `build/voice-log.jsonl`; older reels are estimated from the script and marked so).
 - **The reel card:** also its series, A/B version, timeline, voice cost, new stickers and other-platform versions.
+- **Watch the reel:** a reel past Gate C (approved, scheduled or posted) plays its approved final, with its cover, at the
+  top of its card, so the owner can click a day in the calendar, open the reel and watch what goes out then. Calendar
+  entries with a video carry a play mark ("Watch" in the week and day views). On this computer the card plays the file in
+  `reels/<slug>/out/`; on the Wi-Fi view `serve.mjs` streams it from its private address; online only with
+  `dashboard.previews_online` on (see host below), otherwise the card says where to watch it. A final that changed after
+  Gate C still plays, and the card says it needs Gate C again.
+- **The watch section** (after Competitors): what is new on the pages the brand follows (`brand/watch.json`), each with
+  its status, and the pages themselves. Its name is the brand's own. See `watch` below.
 - **Agent lights** go by real changes (`.cache/agent-events.json`), not by when a file was saved.
 - **Colours:** the brand's accent is darkened where needed so text and lines stay readable, whatever colour it is.
 
@@ -220,6 +232,29 @@ Claude's step (no script writes ideas). It turns the competitors' winners into t
    sets its Status to `planned`; `/content-calendar ideas reject <n>` sets `rejected` with the owner's reason in
    "Idea" so the next draft learns from it. Accepting never starts a reel: that is `/bagelunit-reels`.
 
+## /content-calendar watch: sources the brand follows
+
+The page's watch section. Its default name is "News watch"; the owner renames it (an AI brand's "AI watch", a bakery's
+"Bakery news") and it changes everywhere. Claude reads the sources only when the owner asks; the daily refresh redraws
+the section and never reads the web. Nothing in it is a cleared fact (house rule 1).
+
+- **`watch add`**: ask what the brand wants to follow (question block: "News and announcements in my niche", "Release
+  notes or changelogs of tools I talk about", "A regulator or industry body", Other) and the section's name ("News watch
+  (Recommended)", a name from the niche such as "AI watch", Other). Find each one's own official pages (its news page,
+  release notes, changelog, official feed; never a reposting site or an aggregator) and show them as a table with what
+  each one is; write only the ones the owner confirms into `brand/watch.json`, grouped by who publishes them (`groups`,
+  `name`, `sources` with `label`, `url` (https only), `kind`: `news`, `notes`, `github`, `feed` or `other`). Set `title`,
+  and `group_word` when "source" does not fit ("platform", "company", "supplier").
+- **`watch`** (no more words): read each source page once with the project's web tool, public pages only, never logged in
+  and no scraping service (house rule 7). Add what is new since its `checked` date as items: `date` (the date the page
+  gives), `title` (its own headline), `url` (the item's own page), `status` `new`, and a one-line `note` of what it says,
+  marked as unchecked. Never change an item's words to make it sound bigger. Update each source's `checked` and the file's
+  `updated`, then redraw (`calendar.mjs`) and say in chat what is new, newest first, with a reel idea where one fits.
+- **Statuses:** `new` (seen), `checked` (Claude read the item's own page), `cleared` (the owner added the claim to
+  `brand/facts.md`), `planned` (a row in `brand/plan.md`), `used` (in a reel; set `reel` to its slug), `skip`. Only a
+  `cleared` item's claim may go in a script, and only as `facts.md` words it.
+- **`watch rename <name>`** sets `title`; **`watch remove <name>`** removes a group after the owner's yes.
+
 ## /content-calendar plan: fill the next weeks
 
 The Planner. It fills `brand/plan.md`; it never starts, schedules or posts a reel.
@@ -267,7 +302,11 @@ The page goes online at `<dashboard.url>/<dashboard.path_key>/` (the key is made
 online copy follows changes: after each redraw the hook queues a background upload, at most every
 `dashboard.publish_every` minutes (default 15, 0 = only on the refresh). Ask the owner (question block) "Keep the online
 copy current as you work (Recommended)" or "Only with the daily refresh" and set `publish_every` to 15 or 0. The
-Telegram summary links to `dashboard.url`. The online copy drops links to files on this computer, but it holds each reel's hook, script and caption and, with Instagram connected, other people's waiting comments (usernames and text) and tagged posts: say so when the owner picks a host.
+Telegram summary links to `dashboard.url`. Reels on the online copy: the card plays a reel's approved final on this
+computer and on the Wi-Fi view; online it plays only with `dashboard.previews_online` set to true, which uploads a small
+copy (540 wide, made with ffmpeg, kept in `.cache/previews/`) of each reel that is approved or scheduled and not posted
+yet. Ask (question block) "Keep reel previews off the online copy (Recommended)" or "Show reel previews online too",
+saying that this puts unposted reels on the host, behind the same login and private address. The online copy drops links to files on this computer, but it holds each reel's hook, script and caption and, with Instagram connected, other people's waiting comments (usernames and text) and tagged posts: say so when the owner picks a host.
 
 ## /content-calendar connect instagram: the brand's own numbers
 

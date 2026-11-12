@@ -54,6 +54,11 @@ A brand owner checking in once or twice a day, on a laptop or on a phone after t
 - The brand's own row sits first in the table, tinted. The 3x rule and the hook-shape guess are labelled as rules of thumb on the page.
 - Ideas show a Copy button for the command that accepts them; the page changes nothing itself.
 
+## Watching a reel, and the watch section
+
+- A reel past Gate C plays its approved final at the top of its card (`client.js` `cardHtml`, `pvSrc`); calendar entries that have one carry a play mark with words for screen readers. The page holds no video: `lib.mjs` gives each reel its paths relative to `brand/dashboard.html`, `calendar.mjs` writes `.cache/previews.json` (where the files are, never in the page), and `previews.mjs` rewrites only `<meta name="bu-previews">` for the Wi-Fi view (`serve.mjs` streams `preview/<id>.mp4` with ranges, listed reels only) and the online copy (small ffmpeg copies, only with `dashboard.previews_online`). A video that cannot load says where to watch it instead of a black box. One video plays at a time.
+- The watch section (`watch-model.mjs`, `brand/watch.json`) sits after Competitors. Its title is the brand's own; nothing in the kit names a niche. Items are leads: each shows its status as a word, and the panel says they are not cleared facts.
+
 ## Build rules
 
 - One self-contained HTML file: fonts as data, no network requests, no libraries. The same file is used locally, on the Wi-Fi server and online.

@@ -10,6 +10,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { load, brandRoot, stageName, STAGES, NEXT, fmt, pct, signed, rate, registerBrand, writeAtomic, validDay, timesText, slotsByDay } from './lib.mjs';
+import { writeIndex } from './previews.mjs';
 import { html } from './page.mjs';
 export { html };
 
@@ -77,6 +78,7 @@ export function build(root, opts = {}) {
     M = load(root, opts);
     writeAtomic(path.join(root, 'brand', 'calendar.md'), markdown(M));
     writeAtomic(path.join(root, 'brand', 'dashboard.html'), html(M));
+    writeIndex(root, M);                                        // the approved finals the Wi-Fi view and the online copy may play
   } catch (e) {
     const msg = String(e?.message || e).split(root).join('<brand folder>').replace(/\s+/g, ' ').slice(0, 300);
     if (!opts.today) { try { writeAtomic(ERROR_LOG(root), `${new Date().toISOString()} ${msg}\n`); } catch {} }
