@@ -107,7 +107,7 @@ Run on every reel; Claude runs them at the approvals.
 
 | Command | What it does |
 |---|---|
-| `kit start` | Starts a new reel folder in a style (print, depth, talking, or one of the 19 scene styles). Only inside a set-up brand folder. |
+| `kit start` | Starts a new reel folder in a style (print, depth, talking, or one of the 20 scene styles). Only inside a set-up brand folder. |
 | `kit host` | Links the brand's sticker host into the reel and names any pose the reel needs that the set does not have (--check). |
 | `kit frames` | Takes still frames at chosen moments, plus a contact sheet, to look at before rendering. |
 | `kit render` | Renders a half-size draft, or the final 1080x1920 video with --final. |
@@ -122,7 +122,7 @@ Run on every reel; Claude runs them at the approvals.
 | `kit predict` | Measured facts, plus a watch-time estimate once calibrated. |
 | `kit sound` | Mixes the voice, effects and music. |
 | `kit export` | Joins picture and sound into the finished mp4 for Instagram. |
-| `kit scene` | Scene styles (the 19 looks, for example stick-figure-folk, comic, map): list them, plan the scenes of a reel, check them, or make a preview voice that needs no key (list, plan, check, stand-in). |
+| `kit scene` | Scene styles (the 20 looks, for example stick-figure-folk, comic, map, deep-zoom): list them, plan the scenes of a reel, check them, or make a preview voice that needs no key (list, plan, check, stand-in). |
 | `kit cover` | Renders the reel's cover to out/cover.jpg at Meta's size, plus a sheet showing how it crops in the grid. |
 | `kit organize` | Files your reel folders by post date (reels/2026/11 November/November 12/<slug>) or back to reels/<slug>. Shows the moves first; --apply does them. |
 | `kit tidy` | Frees disk space in posted reels: removes build files and unapproved exports, keeps the words and the approved video. Shows the list first; --apply deletes. |
@@ -134,7 +134,7 @@ Run on every reel; Claude runs them at the approvals.
 
 | Command | What it does |
 |---|---|
-| `setup.mjs` | Writes the publisher's settings for this brand and prints the steps in order; secrets sends the tokens from your token files to Cloudflare without showing them (--dry-run first); subscribe asks Meta to send this account's comments and messages to the publisher, for keyword replies (--dry-run first); --url saves its address; check shows each platform and whether it is live. |
+| `setup.mjs` | Writes the publisher's settings for this brand and prints the steps in order; deploy puts it online (it first counts the cron triggers other workers already use on the Cloudflare account, and tries once more on "This Worker does not exist"); secrets sends the tokens from your token files to Cloudflare without showing them (--dry-run first); subscribe asks Meta to send this account's comments and messages to the publisher, for keyword replies (--dry-run first); --url saves its address; check shows each platform and whether it is live. |
 | `schedule.mjs` | Schedules an approved reel on the platforms in brand.json posting.platforms (Instagram only when empty; --platforms overrides it for one reel), at --at or, with --from-plan, at the time in the reel's plan.md row (--preview checks without uploading); status lists posts and comment replies; cancel <id> stops one. |
 | `pull.mjs` | Brings back what went out: links, errors and automatic replies, for the dashboard and the reel's Posting lines. |
 | `forget.mjs` | Deletes what the publisher kept about one person, when they ask. |

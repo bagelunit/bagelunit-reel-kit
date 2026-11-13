@@ -1,0 +1,1732 @@
+[
+  {
+    "id": "hero-object",
+    "name": "Hero Object",
+    "description": "One 3D object lit in a dark studio (glossy or translucent material, soft key light, cool rim, floor shadow, bokeh), with a slow camera move and a lower-third title. Optional caption attached to the object with a fine leader line. The opening shot of a zoom: start from something the viewer can hold.",
+    "propsSchema": {
+      "type": "object",
+      "properties": {
+        "object": {
+          "type": "string",
+          "description": "The object",
+          "enum": [
+            "ice-cube",
+            "glass-cube",
+            "sphere",
+            "drop",
+            "crystal",
+            "gem",
+            "coin",
+            "cylinder",
+            "skate-blade",
+            "boot-sole",
+            "snowflake"
+          ]
+        },
+        "material": {
+          "type": "string",
+          "description": "Material (default fits the object: ice-cube ice, glass-cube glass, drop water, coin metal, boot-sole rubber)",
+          "enum": [
+            "ice",
+            "glass",
+            "water",
+            "metal",
+            "matte",
+            "rubber"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "description": "Lower-third title in bold caps, 2 to 7 words. Wrap the key word(s) in *asterisks*: they become the big line."
+        },
+        "subtitle": {
+          "type": "string",
+          "description": "Optional muted line under the title (10 words or fewer)"
+        },
+        "kicker": {
+          "type": "string",
+          "description": "Optional tiny upper-case line above the title, e.g. \"Part 1\""
+        },
+        "caption": {
+          "type": "string",
+          "description": "Optional short label attached to the object with a leader line (2 to 5 words)"
+        },
+        "captionSub": {
+          "type": "string",
+          "description": "Optional second line of the caption (a value or unit)"
+        },
+        "camera": {
+          "type": "string",
+          "description": "Camera move",
+          "enum": [
+            "orbit",
+            "push-in",
+            "pull-out",
+            "dolly-left",
+            "dolly-right"
+          ]
+        },
+        "keyword": {
+          "type": "string",
+          "description": "Optional word from the narration this element lands on (defaults to its label words)"
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "The citation, e.g. \"Physical Review Letters, 2025\""
+            },
+            "sub": {
+              "type": "string",
+              "description": "Optional second line, e.g. the authors"
+            },
+            "keyword": {
+              "type": "string",
+              "description": "Word on which the box appears (default: 30 % into the scene)"
+            },
+            "corner": {
+              "type": "string",
+              "description": "Corner (default auto: the free one)",
+              "enum": [
+                "auto",
+                "bottom-right",
+                "bottom-left",
+                "top-right",
+                "top-left"
+              ]
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "object"
+      ],
+      "additionalProperties": false
+    },
+    "exampleProps": {
+      "object": "ice-cube",
+      "material": "ice",
+      "title": "Why is ice *slippery*?",
+      "subtitle": "Start with something you can hold",
+      "caption": "Frozen water",
+      "camera": "orbit",
+      "keyword": "frozen"
+    },
+    "exampleNarration": "Start with something ordinary, a cube of frozen water. Pick it up and it slides right out of your fingers. Why is ice so slippery?"
+  },
+  {
+    "id": "scale-dive",
+    "name": "Scale Dive",
+    "description": "The signature shot: one continuous camera dive through 2 to 6 nested levels, outermost first (object, crystal lattice, molecule, atom, nucleus, quarks, or the liquid-like surface layer). Each level arrives on its spoken label with a lower-third (index, label, scale note); dust streams past during each dive. reverse: true plays the same list zooming OUT, for the \"zoom back out\" ending.",
+    "propsSchema": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Optional headline shown before the first dive (7 words or fewer)"
+        },
+        "levels": {
+          "type": "array",
+          "description": "2 to 6 levels, outermost first. Each label should be spoken in the narration in visiting order (innermost first when reverse is true).",
+          "items": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "description": "What this level shows",
+                "enum": [
+                  "object",
+                  "crystal-lattice",
+                  "molecule",
+                  "atom",
+                  "nucleus",
+                  "quarks",
+                  "surface-layer"
+                ]
+              },
+              "object": {
+                "type": "string",
+                "description": "For kind \"object\": which object",
+                "enum": [
+                  "ice-cube",
+                  "glass-cube",
+                  "sphere",
+                  "drop",
+                  "crystal",
+                  "gem",
+                  "coin",
+                  "cylinder",
+                  "skate-blade",
+                  "boot-sole",
+                  "snowflake"
+                ]
+              },
+              "material": {
+                "type": "string",
+                "description": "For kind \"object\": material",
+                "enum": [
+                  "ice",
+                  "glass",
+                  "water",
+                  "metal",
+                  "matte",
+                  "rubber"
+                ]
+              },
+              "label": {
+                "type": "string",
+                "description": "Short label, 1 to 3 words, spoken in the narration"
+              },
+              "note": {
+                "type": "string",
+                "description": "Optional scale note, e.g. \"centimetres\" or \"a tenth of a nanometre\""
+              },
+              "keyword": {
+                "type": "string",
+                "description": "Optional word from the narration this element lands on (defaults to its label words)"
+              }
+            },
+            "required": [
+              "kind",
+              "label"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "reverse": {
+          "type": "boolean",
+          "description": "Zoom out through the same list (innermost to outermost)"
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "The citation, e.g. \"Physical Review Letters, 2025\""
+            },
+            "sub": {
+              "type": "string",
+              "description": "Optional second line, e.g. the authors"
+            },
+            "keyword": {
+              "type": "string",
+              "description": "Word on which the box appears (default: 30 % into the scene)"
+            },
+            "corner": {
+              "type": "string",
+              "description": "Corner (default auto: the free one)",
+              "enum": [
+                "auto",
+                "bottom-right",
+                "bottom-left",
+                "top-right",
+                "top-left"
+              ]
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "levels"
+      ],
+      "additionalProperties": false
+    },
+    "exampleProps": {
+      "levels": [
+        {
+          "kind": "object",
+          "object": "ice-cube",
+          "label": "Ice cube",
+          "note": "centimetres"
+        },
+        {
+          "kind": "crystal-lattice",
+          "label": "Crystal",
+          "note": "nanometres"
+        },
+        {
+          "kind": "molecule",
+          "label": "Water molecule",
+          "note": "H2O"
+        },
+        {
+          "kind": "atom",
+          "label": "Oxygen atom",
+          "note": "about a tenth of a nanometre"
+        },
+        {
+          "kind": "nucleus",
+          "label": "Nucleus",
+          "note": "femtometres"
+        }
+      ]
+    },
+    "exampleNarration": "Zoom into the ice cube. Inside is a crystal, a repeating stack of water molecules. Each water molecule holds one oxygen atom, and at its centre sits a tiny nucleus."
+  },
+  {
+    "id": "crystal-lattice",
+    "name": "Crystal Lattice",
+    "description": "Hexagonal ice in 3D: ball-and-stick water molecules (red oxygen, white hydrogen) linked by dashed hydrogen bonds, building in layer by layer on its keyword. Options: highlight the top or bottom layer, let the top layers turn disordered and liquid-like at a keyword, slide a skate blade, boot sole or ball across the surface, and up to 4 labels with leader lines.",
+    "propsSchema": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Optional headline in bold caps (7 words or fewer); *words* in asterisks become the big line"
+        },
+        "keyword": {
+          "type": "string",
+          "description": "Word the lattice finishes building on"
+        },
+        "layers": {
+          "type": "number",
+          "description": "Bilayers of ice, 2 to 4 (default 3)",
+          "minimum": 2,
+          "maximum": 4
+        },
+        "highlight": {
+          "type": "string",
+          "description": "Glow one layer and dim the rest",
+          "enum": [
+            "none",
+            "top",
+            "bottom"
+          ]
+        },
+        "disorder": {
+          "type": "number",
+          "description": "0 to 1: how far the top layers break up into a liquid-like layer (0 = perfect crystal)",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "disorderKeyword": {
+          "type": "string",
+          "description": "Word on which the top layers start to break up"
+        },
+        "disorderLayers": {
+          "type": "number",
+          "description": "How many top bilayers break up, 1 or 2",
+          "minimum": 1,
+          "maximum": 2
+        },
+        "slider": {
+          "type": "string",
+          "description": "Optional object pressing or sliding on the surface",
+          "enum": [
+            "none",
+            "boot-sole",
+            "skate-blade",
+            "ball"
+          ]
+        },
+        "sliderKeyword": {
+          "type": "string",
+          "description": "Word on which the slider arrives"
+        },
+        "hbonds": {
+          "type": "boolean",
+          "description": "Show hydrogen bonds as dashed lines (default true)"
+        },
+        "labels": {
+          "type": "array",
+          "description": "Up to 4 labels with leader lines",
+          "items": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "2 to 4 words"
+              },
+              "sub": {
+                "type": "string",
+                "description": "Optional second line"
+              },
+              "target": {
+                "type": "string",
+                "description": "What the leader line points at",
+                "enum": [
+                  "molecule",
+                  "oxygen",
+                  "hydrogen",
+                  "bond",
+                  "hydrogen-bond",
+                  "top-layer",
+                  "bottom-layer",
+                  "surface",
+                  "liquid-layer",
+                  "slider"
+                ]
+              },
+              "keyword": {
+                "type": "string",
+                "description": "Optional word from the narration this element lands on (defaults to its label words)"
+              }
+            },
+            "required": [
+              "text"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "The citation, e.g. \"Physical Review Letters, 2025\""
+            },
+            "sub": {
+              "type": "string",
+              "description": "Optional second line, e.g. the authors"
+            },
+            "keyword": {
+              "type": "string",
+              "description": "Word on which the box appears (default: 30 % into the scene)"
+            },
+            "corner": {
+              "type": "string",
+              "description": "Corner (default auto: the free one)",
+              "enum": [
+                "auto",
+                "bottom-right",
+                "bottom-left",
+                "top-right",
+                "top-left"
+              ]
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "exampleProps": {
+      "title": "The *surface* is different",
+      "keyword": "lattice",
+      "highlight": "top",
+      "disorder": 0.8,
+      "disorderKeyword": "loosen",
+      "slider": "skate-blade",
+      "sliderKeyword": "blade",
+      "labels": [
+        {
+          "text": "Hydrogen bond",
+          "target": "hydrogen-bond",
+          "keyword": "hydrogen"
+        },
+        {
+          "text": "Liquid-like layer",
+          "target": "liquid-layer",
+          "keyword": "loosen"
+        }
+      ]
+    },
+    "exampleNarration": "Inside, the molecules lock into a hexagonal lattice, held together by hydrogen bonds. But at the top, the molecules loosen into a thin, liquid-like layer, and the blade glides over it."
+  },
+  {
+    "id": "molecule",
+    "name": "Molecule",
+    "description": "One ball-and-stick molecule, large and slowly swaying in the studio. Presets (water with its 104.5 degree angle, carbon dioxide, methane, ammonia, oxygen, hydrogen) or your own atoms list. Options: partial-charge glow (coral = slightly negative, ice blue = slightly positive) with delta signs, a dipole arrow, the bond angle, and up to 4 labels.",
+    "propsSchema": {
+      "type": "object",
+      "properties": {
+        "preset": {
+          "type": "string",
+          "description": "Molecule preset (ignored when atoms is given)",
+          "enum": [
+            "water",
+            "carbon-dioxide",
+            "methane",
+            "ammonia",
+            "oxygen",
+            "hydrogen"
+          ]
+        },
+        "atoms": {
+          "type": "array",
+          "description": "Optional custom molecule: up to 24 atoms. The first atom is the centre when no coordinates are given.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "element": {
+                "type": "string",
+                "description": "Element symbol: H, C, N, O, F, P, S, Cl, Na"
+              },
+              "x": {
+                "type": "number",
+                "description": "Angstrom"
+              },
+              "y": {
+                "type": "number",
+                "description": "Angstrom"
+              },
+              "z": {
+                "type": "number",
+                "description": "Angstrom"
+              }
+            },
+            "required": [
+              "element"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "bonds": {
+          "type": "array",
+          "description": "Optional pairs of atom indices; default: bonds by distance",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        },
+        "title": {
+          "type": "string",
+          "description": "Optional headline (7 words or fewer)"
+        },
+        "charges": {
+          "type": "boolean",
+          "description": "Show partial charges (coral glow and delta minus on oxygen or nitrogen, ice glow and delta plus on hydrogen)"
+        },
+        "chargeKeyword": {
+          "type": "string",
+          "description": "Word on which the charges appear"
+        },
+        "dipole": {
+          "type": "boolean",
+          "description": "Show a dipole arrow beside the molecule"
+        },
+        "dipoleKeyword": {
+          "type": "string",
+          "description": "Word on which the arrow grows"
+        },
+        "showAngle": {
+          "type": "boolean",
+          "description": "Water only: draw the H-O-H angle with its value"
+        },
+        "angleKeyword": {
+          "type": "string",
+          "description": "Word on which the angle draws"
+        },
+        "angleLabel": {
+          "type": "string",
+          "description": "Angle text (default 104.5\u00b0)"
+        },
+        "labels": {
+          "type": "array",
+          "description": "Up to 4 labels with leader lines",
+          "items": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "1 to 4 words"
+              },
+              "sub": {
+                "type": "string",
+                "description": "Optional second line"
+              },
+              "target": {
+                "type": "string",
+                "description": "oxygen, hydrogen, carbon, nitrogen, bond, molecule, dipole, or an atom index as text"
+              },
+              "keyword": {
+                "type": "string",
+                "description": "Optional word from the narration this element lands on (defaults to its label words)"
+              }
+            },
+            "required": [
+              "text"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "The citation, e.g. \"Physical Review Letters, 2025\""
+            },
+            "sub": {
+              "type": "string",
+              "description": "Optional second line, e.g. the authors"
+            },
+            "keyword": {
+              "type": "string",
+              "description": "Word on which the box appears (default: 30 % into the scene)"
+            },
+            "corner": {
+              "type": "string",
+              "description": "Corner (default auto: the free one)",
+              "enum": [
+                "auto",
+                "bottom-right",
+                "bottom-left",
+                "top-right",
+                "top-left"
+              ]
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "exampleProps": {
+      "preset": "water",
+      "title": "One *water* molecule",
+      "charges": true,
+      "chargeKeyword": "negative",
+      "dipole": true,
+      "dipoleKeyword": "dipole",
+      "showAngle": true,
+      "angleKeyword": "angle",
+      "labels": [
+        {
+          "text": "Oxygen",
+          "target": "oxygen",
+          "keyword": "oxygen"
+        },
+        {
+          "text": "Hydrogen",
+          "target": "hydrogen",
+          "keyword": "hydrogens"
+        }
+      ]
+    },
+    "exampleNarration": "Here is one water molecule. An oxygen atom holds two hydrogens at a wide angle. The oxygen end is slightly negative, the hydrogen end slightly positive, so the whole molecule is a tiny dipole."
+  },
+  {
+    "id": "particle-field",
+    "name": "Particle Field",
+    "description": "Many small glossy spheres (or tiny water molecules) behaving like matter at the molecular scale: roll (a loose layer rolling over a packed one, like ball bearings), jitter (thermal vibration that grows on the keyword), flow, settle (disordered to ordered) or scatter (ordered to disordered). Optional slab surface and up to 3 labels.",
+    "propsSchema": {
+      "type": "object",
+      "properties": {
+        "behaviour": {
+          "type": "string",
+          "description": "What the particles do",
+          "enum": [
+            "roll",
+            "jitter",
+            "flow",
+            "settle",
+            "scatter"
+          ]
+        },
+        "particle": {
+          "type": "string",
+          "description": "sphere (default) or water (tiny ball-and-stick molecules)",
+          "enum": [
+            "sphere",
+            "water"
+          ]
+        },
+        "count": {
+          "type": "number",
+          "description": "20 to 200 (default about 100)",
+          "minimum": 20,
+          "maximum": 200
+        },
+        "material": {
+          "type": "string",
+          "description": "Particle material (default pale glossy ceramic)",
+          "enum": [
+            "ice",
+            "glass",
+            "water",
+            "metal",
+            "matte",
+            "rubber"
+          ]
+        },
+        "surface": {
+          "type": "string",
+          "description": "Slab under the particles (default ice for roll, settle and scatter)",
+          "enum": [
+            "none",
+            "ice",
+            "glass",
+            "metal",
+            "matte"
+          ]
+        },
+        "keyword": {
+          "type": "string",
+          "description": "Word on which the behaviour starts or speeds up"
+        },
+        "title": {
+          "type": "string",
+          "description": "Optional headline (7 words or fewer)"
+        },
+        "labels": {
+          "type": "array",
+          "description": "Up to 3 labels with leader lines",
+          "items": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "2 to 4 words"
+              },
+              "sub": {
+                "type": "string",
+                "description": "Optional second line"
+              },
+              "target": {
+                "type": "string",
+                "description": "What it points at",
+                "enum": [
+                  "particles",
+                  "surface",
+                  "left",
+                  "right",
+                  "top"
+                ]
+              },
+              "keyword": {
+                "type": "string",
+                "description": "Optional word from the narration this element lands on (defaults to its label words)"
+              }
+            },
+            "required": [
+              "text"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "The citation, e.g. \"Physical Review Letters, 2025\""
+            },
+            "sub": {
+              "type": "string",
+              "description": "Optional second line, e.g. the authors"
+            },
+            "keyword": {
+              "type": "string",
+              "description": "Word on which the box appears (default: 30 % into the scene)"
+            },
+            "corner": {
+              "type": "string",
+              "description": "Corner (default auto: the free one)",
+              "enum": [
+                "auto",
+                "bottom-right",
+                "bottom-left",
+                "top-right",
+                "top-left"
+              ]
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "behaviour"
+      ],
+      "additionalProperties": false
+    },
+    "exampleProps": {
+      "behaviour": "roll",
+      "surface": "ice",
+      "title": "Like tiny *ball bearings*",
+      "keyword": "roll",
+      "labels": [
+        {
+          "text": "Loose molecules",
+          "target": "particles",
+          "keyword": "loose"
+        },
+        {
+          "text": "Solid ice",
+          "target": "surface",
+          "keyword": "solid"
+        }
+      ]
+    },
+    "exampleNarration": "The loose molecules on top can roll over the solid ice below, a little like ball bearings under your feet."
+  },
+  {
+    "id": "split-compare",
+    "name": "Split Compare",
+    "description": "Two studio vignettes side by side (stacked in tall), each a slowly turning 3D object with a title and up to 2 points, divided by a fine light line. For contrasts: solid versus liquid, before versus after, this material versus that one.",
+    "propsSchema": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Optional headline over both sides (bold caps)"
+        },
+        "left": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "description": "2 to 5 words"
+            },
+            "points": {
+              "type": "array",
+              "description": "Up to 2 short points (6 words or fewer each)",
+              "items": {
+                "type": "string"
+              }
+            },
+            "object": {
+              "type": "string",
+              "description": "Object shown",
+              "enum": [
+                "ice-cube",
+                "glass-cube",
+                "sphere",
+                "drop",
+                "crystal",
+                "gem",
+                "coin",
+                "cylinder",
+                "skate-blade",
+                "boot-sole",
+                "snowflake"
+              ]
+            },
+            "material": {
+              "type": "string",
+              "description": "Material",
+              "enum": [
+                "ice",
+                "glass",
+                "water",
+                "metal",
+                "matte",
+                "rubber"
+              ]
+            },
+            "keyword": {
+              "type": "string",
+              "description": "Optional word from the narration this element lands on (defaults to its label words)"
+            }
+          },
+          "required": [
+            "title"
+          ],
+          "additionalProperties": false
+        },
+        "right": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "description": "2 to 5 words"
+            },
+            "points": {
+              "type": "array",
+              "description": "Up to 2 short points (6 words or fewer each)",
+              "items": {
+                "type": "string"
+              }
+            },
+            "object": {
+              "type": "string",
+              "description": "Object shown",
+              "enum": [
+                "ice-cube",
+                "glass-cube",
+                "sphere",
+                "drop",
+                "crystal",
+                "gem",
+                "coin",
+                "cylinder",
+                "skate-blade",
+                "boot-sole",
+                "snowflake"
+              ]
+            },
+            "material": {
+              "type": "string",
+              "description": "Material",
+              "enum": [
+                "ice",
+                "glass",
+                "water",
+                "metal",
+                "matte",
+                "rubber"
+              ]
+            },
+            "keyword": {
+              "type": "string",
+              "description": "Optional word from the narration this element lands on (defaults to its label words)"
+            }
+          },
+          "required": [
+            "title"
+          ],
+          "additionalProperties": false
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "The citation, e.g. \"Physical Review Letters, 2025\""
+            },
+            "sub": {
+              "type": "string",
+              "description": "Optional second line, e.g. the authors"
+            },
+            "keyword": {
+              "type": "string",
+              "description": "Word on which the box appears (default: 30 % into the scene)"
+            },
+            "corner": {
+              "type": "string",
+              "description": "Corner (default auto: the free one)",
+              "enum": [
+                "auto",
+                "bottom-right",
+                "bottom-left",
+                "top-right",
+                "top-left"
+              ]
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "left",
+        "right"
+      ],
+      "additionalProperties": false
+    },
+    "exampleProps": {
+      "left": {
+        "title": "Ice",
+        "points": [
+          "Molecules locked in a lattice",
+          "Open structure, less dense"
+        ],
+        "object": "ice-cube"
+      },
+      "right": {
+        "title": "Liquid water",
+        "points": [
+          "Molecules tumble freely",
+          "Packed closer, so ice floats"
+        ],
+        "object": "drop"
+      }
+    },
+    "exampleNarration": "Compare the two. In ice, molecules are locked in an open lattice. In liquid water they tumble past each other, packed closer together, which is why ice floats."
+  },
+  {
+    "id": "big-number",
+    "name": "Big Number",
+    "description": "One large, heavy numeral counting to its value on the keyword (decimals, a true minus sign for negative values, a unit or word suffix), a label under it and a kicker above, over a slow, dimmed 3D object.",
+    "propsSchema": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "number",
+          "description": "The number (negative values get a minus sign)"
+        },
+        "decimals": {
+          "type": "number",
+          "description": "Decimal places (default from the value)",
+          "minimum": 0,
+          "maximum": 4
+        },
+        "from": {
+          "type": "number",
+          "description": "Count from this value (default 0)"
+        },
+        "prefix": {
+          "type": "string",
+          "description": "Optional prefix, e.g. \"~\" or \"$\""
+        },
+        "suffix": {
+          "type": "string",
+          "description": "Optional unit or word, e.g. \"\u00b0C\", \"%\", \" km\", \" billion\""
+        },
+        "label": {
+          "type": "string",
+          "description": "What the number means (12 words or fewer)"
+        },
+        "kicker": {
+          "type": "string",
+          "description": "Optional tiny upper-case line above the number"
+        },
+        "object": {
+          "type": "string",
+          "description": "Object behind the number",
+          "enum": [
+            "ice-cube",
+            "glass-cube",
+            "sphere",
+            "drop",
+            "crystal",
+            "gem",
+            "coin",
+            "cylinder",
+            "skate-blade",
+            "boot-sole",
+            "snowflake"
+          ]
+        },
+        "material": {
+          "type": "string",
+          "description": "Material of that object",
+          "enum": [
+            "ice",
+            "glass",
+            "water",
+            "metal",
+            "matte",
+            "rubber"
+          ]
+        },
+        "keyword": {
+          "type": "string",
+          "description": "Word the count lands on"
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "The citation, e.g. \"Physical Review Letters, 2025\""
+            },
+            "sub": {
+              "type": "string",
+              "description": "Optional second line, e.g. the authors"
+            },
+            "keyword": {
+              "type": "string",
+              "description": "Word on which the box appears (default: 30 % into the scene)"
+            },
+            "corner": {
+              "type": "string",
+              "description": "Corner (default auto: the free one)",
+              "enum": [
+                "auto",
+                "bottom-right",
+                "bottom-left",
+                "top-right",
+                "top-left"
+              ]
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "exampleProps": {
+      "value": -273.15,
+      "decimals": 2,
+      "suffix": "\u00b0C",
+      "label": "Absolute zero, the coldest anything can be",
+      "kicker": "The floor of temperature",
+      "object": "snowflake",
+      "keyword": "zero"
+    },
+    "exampleNarration": "Nothing can get colder than minus two hundred seventy three point one five degrees Celsius, absolute zero."
+  },
+  {
+    "id": "data-bars",
+    "name": "Data Bars",
+    "description": "2 to 6 translucent ice bars in perspective, growing from a glass zero plane, each landing on its spoken label. Negative values hang downward from the zero line. Value labels at the bar ends, category labels at the zero line, optional highlighted bar and a small source note.",
+    "propsSchema": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Optional headline (7 words or fewer)"
+        },
+        "unit": {
+          "type": "string",
+          "description": "Unit after each value, e.g. \"\u00b0C\", \"%\", \"km\""
+        },
+        "decimals": {
+          "type": "number",
+          "description": "Decimal places (default from the values)",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "highlight": {
+          "type": [
+            "string",
+            "integer"
+          ],
+          "description": "Label (or 0-based index) of the bar to highlight"
+        },
+        "bars": {
+          "type": "array",
+          "description": "2 to 6 bars, in spoken order",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string",
+                "description": "1 to 3 words, spoken"
+              },
+              "value": {
+                "type": "number",
+                "description": "Value (may be negative)"
+              },
+              "keyword": {
+                "type": "string",
+                "description": "Optional word from the narration this element lands on (defaults to its label words)"
+              }
+            },
+            "required": [
+              "label",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "note": {
+          "type": "string",
+          "description": "Optional small source or condition note (bottom right)"
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "The citation, e.g. \"Physical Review Letters, 2025\""
+            },
+            "sub": {
+              "type": "string",
+              "description": "Optional second line, e.g. the authors"
+            },
+            "keyword": {
+              "type": "string",
+              "description": "Word on which the box appears (default: 30 % into the scene)"
+            },
+            "corner": {
+              "type": "string",
+              "description": "Corner (default auto: the free one)",
+              "enum": [
+                "auto",
+                "bottom-right",
+                "bottom-left",
+                "top-right",
+                "top-left"
+              ]
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "bars"
+      ],
+      "additionalProperties": false
+    },
+    "exampleProps": {
+      "title": "Melting points",
+      "unit": "\u00b0C",
+      "decimals": 1,
+      "highlight": "Water",
+      "bars": [
+        {
+          "label": "Gallium",
+          "value": 29.8
+        },
+        {
+          "label": "Water",
+          "value": 0
+        },
+        {
+          "label": "Seawater",
+          "value": -1.9
+        },
+        {
+          "label": "Mercury",
+          "value": -38.8
+        }
+      ],
+      "note": "Approximate, at sea-level pressure"
+    },
+    "exampleNarration": "Melting points cover a wide range. Gallium melts at about thirty degrees, water at zero, seawater just below, and mercury near minus thirty nine."
+  },
+  {
+    "id": "timeline",
+    "name": "Timeline",
+    "description": "2 to 6 dated events along a receding rail of light. A pulse travels the rail and each event node lights up as its date is spoken, with the date and a short label on a fine leader line.",
+    "propsSchema": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Optional headline (7 words or fewer)"
+        },
+        "events": {
+          "type": "array",
+          "description": "2 to 6 events in order",
+          "items": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string",
+                "description": "Year or short date"
+              },
+              "label": {
+                "type": "string",
+                "description": "What happened, 6 words or fewer"
+              },
+              "keyword": {
+                "type": "string",
+                "description": "Optional word from the narration this element lands on (defaults to its label words)"
+              }
+            },
+            "required": [
+              "date"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "The citation, e.g. \"Physical Review Letters, 2025\""
+            },
+            "sub": {
+              "type": "string",
+              "description": "Optional second line, e.g. the authors"
+            },
+            "keyword": {
+              "type": "string",
+              "description": "Word on which the box appears (default: 30 % into the scene)"
+            },
+            "corner": {
+              "type": "string",
+              "description": "Corner (default auto: the free one)",
+              "enum": [
+                "auto",
+                "bottom-right",
+                "bottom-left",
+                "top-right",
+                "top-left"
+              ]
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "events"
+      ],
+      "additionalProperties": false
+    },
+    "exampleProps": {
+      "title": "A slippery *history*",
+      "events": [
+        {
+          "date": "1850",
+          "label": "A liquid film is proposed"
+        },
+        {
+          "date": "1886",
+          "label": "Pressure melting is suggested"
+        },
+        {
+          "date": "1939",
+          "label": "Friction heating is measured"
+        },
+        {
+          "date": "Today",
+          "label": "The surface is studied directly"
+        }
+      ]
+    },
+    "exampleNarration": "In 1850 a liquid film on ice was first proposed. In 1886 came pressure melting. In 1939, friction heating. Today the surface layer is studied directly."
+  },
+  {
+    "id": "title-card",
+    "name": "Title Card",
+    "description": "Chapter card in bold documentary caps: a small kicker, a heavy title (the *emphasised* words become the big line) and a subtitle, over a slow, dimmed 3D backdrop (an object, the ice lattice or a water molecule). No accent lines.",
+    "propsSchema": {
+      "type": "object",
+      "properties": {
+        "kicker": {
+          "type": "string",
+          "description": "Optional tiny upper-case line, e.g. \"Chapter 2\""
+        },
+        "title": {
+          "type": "string",
+          "description": "2 to 6 words; *words* in asterisks become the big, heaviest line"
+        },
+        "subtitle": {
+          "type": "string",
+          "description": "Optional muted line (12 words or fewer)"
+        },
+        "backdrop": {
+          "type": "string",
+          "description": "3D backdrop (default ice-cube)",
+          "enum": [
+            "ice-cube",
+            "glass-cube",
+            "sphere",
+            "drop",
+            "crystal",
+            "gem",
+            "coin",
+            "cylinder",
+            "skate-blade",
+            "boot-sole",
+            "snowflake",
+            "lattice",
+            "molecule"
+          ]
+        },
+        "material": {
+          "type": "string",
+          "description": "Material for an object backdrop",
+          "enum": [
+            "ice",
+            "glass",
+            "water",
+            "metal",
+            "matte",
+            "rubber"
+          ]
+        },
+        "keyword": {
+          "type": "string",
+          "description": "Optional word from the narration this element lands on (defaults to its label words)"
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "The citation, e.g. \"Physical Review Letters, 2025\""
+            },
+            "sub": {
+              "type": "string",
+              "description": "Optional second line, e.g. the authors"
+            },
+            "keyword": {
+              "type": "string",
+              "description": "Word on which the box appears (default: 30 % into the scene)"
+            },
+            "corner": {
+              "type": "string",
+              "description": "Corner (default auto: the free one)",
+              "enum": [
+                "auto",
+                "bottom-right",
+                "bottom-left",
+                "top-right",
+                "top-left"
+              ]
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "exampleProps": {
+      "kicker": "Chapter 2",
+      "title": "Into the *crystal*",
+      "subtitle": "Where water stops flowing and starts stacking",
+      "backdrop": "lattice"
+    },
+    "exampleNarration": "Chapter two. Into the crystal, where water stops flowing and starts stacking."
+  },
+  {
+    "id": "quote-card",
+    "name": "Quote Card",
+    "description": "A short quote, cinematic and minimal: a heavy quote mark, bold caps revealed word by word with the voice, and the attribution, over drifting out-of-focus dust and a slow light sweep.",
+    "propsSchema": {
+      "type": "object",
+      "properties": {
+        "quote": {
+          "type": "string",
+          "description": "The quote, 30 words or fewer"
+        },
+        "author": {
+          "type": "string",
+          "description": "Who said or wrote it (no invented quotes from real people)"
+        },
+        "role": {
+          "type": "string",
+          "description": "Optional muted line under the author"
+        },
+        "keyword": {
+          "type": "string",
+          "description": "Word the quote starts on"
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "The citation, e.g. \"Physical Review Letters, 2025\""
+            },
+            "sub": {
+              "type": "string",
+              "description": "Optional second line, e.g. the authors"
+            },
+            "keyword": {
+              "type": "string",
+              "description": "Word on which the box appears (default: 30 % into the scene)"
+            },
+            "corner": {
+              "type": "string",
+              "description": "Corner (default auto: the free one)",
+              "enum": [
+                "auto",
+                "bottom-right",
+                "bottom-left",
+                "top-right",
+                "top-left"
+              ]
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "quote"
+      ],
+      "additionalProperties": false
+    },
+    "exampleProps": {
+      "quote": "Everything slippery has a *story* written in its surface.",
+      "author": "A lab notebook",
+      "role": "Entry twelve",
+      "source": {
+        "text": "Physical Review Letters, 2025",
+        "sub": "Atila, Sukhomlinov, Muser",
+        "keyword": "surface"
+      }
+    },
+    "exampleNarration": "Everything slippery has a story written in its surface."
+  },
+  {
+    "id": "cause-chain",
+    "name": "Cause Chain",
+    "description": "2 to 5 steps, each a small turning 3D object with a label (and an optional note), linked by light paths that draw from one step to the next as each step is spoken. In a row in wide, a zigzag column in tall.",
+    "propsSchema": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Optional headline (7 words or fewer)"
+        },
+        "steps": {
+          "type": "array",
+          "description": "2 to 5 steps in order",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string",
+                "description": "2 to 5 words, spoken"
+              },
+              "note": {
+                "type": "string",
+                "description": "Optional muted line"
+              },
+              "object": {
+                "type": "string",
+                "description": "Object for this step",
+                "enum": [
+                  "ice-cube",
+                  "glass-cube",
+                  "sphere",
+                  "drop",
+                  "crystal",
+                  "gem",
+                  "coin",
+                  "cylinder",
+                  "skate-blade",
+                  "boot-sole",
+                  "snowflake"
+                ]
+              },
+              "material": {
+                "type": "string",
+                "description": "Material",
+                "enum": [
+                  "ice",
+                  "glass",
+                  "water",
+                  "metal",
+                  "matte",
+                  "rubber"
+                ]
+              },
+              "keyword": {
+                "type": "string",
+                "description": "Optional word from the narration this element lands on (defaults to its label words)"
+              }
+            },
+            "required": [
+              "label"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "The citation, e.g. \"Physical Review Letters, 2025\""
+            },
+            "sub": {
+              "type": "string",
+              "description": "Optional second line, e.g. the authors"
+            },
+            "keyword": {
+              "type": "string",
+              "description": "Word on which the box appears (default: 30 % into the scene)"
+            },
+            "corner": {
+              "type": "string",
+              "description": "Corner (default auto: the free one)",
+              "enum": [
+                "auto",
+                "bottom-right",
+                "bottom-left",
+                "top-right",
+                "top-left"
+              ]
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "steps"
+      ],
+      "additionalProperties": false
+    },
+    "exampleProps": {
+      "steps": [
+        {
+          "label": "Blade presses down",
+          "object": "skate-blade"
+        },
+        {
+          "label": "Surface molecules loosen",
+          "object": "crystal"
+        },
+        {
+          "label": "A thin water layer",
+          "object": "drop"
+        },
+        {
+          "label": "The skater glides",
+          "object": "sphere",
+          "material": "glass"
+        }
+      ]
+    },
+    "exampleNarration": "The blade presses down, the surface molecules loosen, a thin water layer forms, and the skater glides."
+  },
+  {
+    "id": "thumbnail",
+    "name": "Thumbnail",
+    "description": "A single dramatic still for the video thumbnail (render one frame at 1280x720 from wide; tall also works). A big hero lit with a strong backlight and rim (an object, the ice lattice with an optional boot sole or skate blade pressing on it, or a molecule), 2 to 4 words of very large bold caps with a dark outline and backing, readable at 320 px wide, and an optional coral X strike or arrow on one word or on the hero. No accent bars.",
+    "propsSchema": {
+      "type": "object",
+      "properties": {
+        "hero": {
+          "type": "string",
+          "description": "Main subject",
+          "enum": [
+            "ice-cube",
+            "glass-cube",
+            "sphere",
+            "drop",
+            "crystal",
+            "gem",
+            "coin",
+            "cylinder",
+            "skate-blade",
+            "boot-sole",
+            "snowflake",
+            "crystal-lattice",
+            "molecule"
+          ]
+        },
+        "material": {
+          "type": "string",
+          "description": "Material for an object hero",
+          "enum": [
+            "ice",
+            "glass",
+            "water",
+            "metal",
+            "matte",
+            "rubber"
+          ]
+        },
+        "slider": {
+          "type": "string",
+          "description": "With hero crystal-lattice: an object pressing on the surface",
+          "enum": [
+            "none",
+            "boot-sole",
+            "skate-blade"
+          ]
+        },
+        "preset": {
+          "type": "string",
+          "description": "With hero molecule: the preset (default water)"
+        },
+        "text": {
+          "type": "string",
+          "description": "2 to 4 words; *words* in asterisks become the biggest line"
+        },
+        "side": {
+          "type": "string",
+          "description": "Where the words go (wide): left (default) or right",
+          "enum": [
+            "left",
+            "right"
+          ]
+        },
+        "mark": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "description": "X strike or arrow",
+              "enum": [
+                "x",
+                "arrow"
+              ]
+            },
+            "target": {
+              "type": "string",
+              "description": "What it marks",
+              "enum": [
+                "word",
+                "object"
+              ]
+            },
+            "word": {
+              "type": "integer",
+              "description": "0-based index of the word to mark"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "The citation, e.g. \"Physical Review Letters, 2025\""
+            },
+            "sub": {
+              "type": "string",
+              "description": "Optional second line, e.g. the authors"
+            },
+            "keyword": {
+              "type": "string",
+              "description": "Word on which the box appears (default: 30 % into the scene)"
+            },
+            "corner": {
+              "type": "string",
+              "description": "Corner (default auto: the free one)",
+              "enum": [
+                "auto",
+                "bottom-right",
+                "bottom-left",
+                "top-right",
+                "top-left"
+              ]
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "hero",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "exampleProps": {
+      "hero": "crystal-lattice",
+      "slider": "boot-sole",
+      "text": "Not *pressure*",
+      "mark": {
+        "type": "x",
+        "target": "word",
+        "word": 1
+      }
+    },
+    "exampleNarration": "Why ice is slippery. It is not the pressure."
+  }
+]

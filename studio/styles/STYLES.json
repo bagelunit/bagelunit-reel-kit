@@ -1,15 +1,15 @@
 {
   "_note": "Written by sync-to-kit.mjs in the bagelunit-styles repo. Edit a style there and sync again; never edit the copies here.",
   "source": "bagelunit-styles",
-  "version": "287a8f3",
-  "synced": "2026-11-12",
+  "version": "1d9e151",
+  "synced": "2026-11-13",
   "format": "tall",
   "size": [
     1080,
     1920
   ],
   "core": {
-    "version": "287a8f3",
+    "version": "1d9e151",
     "files": {
       "runtime.js": "d5f059c201fd4635",
       "build-scene.mjs": "e5ecd9bb233562b5",
@@ -49,7 +49,7 @@
         "sky-montage",
         "chibi-explainer"
       ],
-      "version": "5730b9f",
+      "version": "1d9e151",
       "files": {
         "engine.js": "04c8c97a3c299c03",
         "engine.css": "43a1ec90b8819858",
@@ -90,7 +90,7 @@
         "dream-sequence",
         "the-end"
       ],
-      "version": "5730b9f",
+      "version": "1d9e151",
       "files": {
         "engine.js": "57c8988b0564d6ff",
         "engine.css": "41d3987db241ff5b",
@@ -131,7 +131,7 @@
         "timeline-of-campaign",
         "quote-from-history"
       ],
-      "version": "5730b9f",
+      "version": "1d9e151",
       "files": {
         "engine.js": "938afbdde1e36fca",
         "engine.css": "a52d4c3f41e130d0",
@@ -172,7 +172,7 @@
         "split-worlds",
         "pillar-chart"
       ],
-      "version": "5730b9f",
+      "version": "1d9e151",
       "files": {
         "engine.js": "33bfaeeaa967acb3",
         "engine.css": "f37f0dd14504dc12",
@@ -212,7 +212,7 @@
         "page-turn-chapter",
         "fact-panels"
       ],
-      "version": "5730b9f",
+      "version": "1d9e151",
       "files": {
         "engine.js": "ca635f509a55ad09",
         "engine.css": "49503f6e1c132664",
@@ -220,6 +220,48 @@
         "SKILL.md": "2ba3800404c69b08",
         "docs.md": "2260b99660abfa3d",
         "templates.json": "4d5af53a132e83db"
+      }
+    },
+    {
+      "id": "deep-zoom",
+      "name": "Deep Zoom",
+      "description": "Cinematic macro-photography look for science explainers: glossy and translucent 3D objects (ice, glass, water, metal) lit in a near-black studio, shallow depth of field, slow weighty camera moves and seamless dives from an everyday object down to crystals, molecules, atoms and quarks. Adult, premium, documentary-grade.",
+      "palette": {
+        "background": "#06080E",
+        "foreground": "#EAF2F8",
+        "accent": "#7FD8FF",
+        "muted": "#8DA2B8"
+      },
+      "fonts": [
+        "Inter, \"Helvetica Neue\", Helvetica, \"Avenir Next\", system-ui, Arial, sans-serif"
+      ],
+      "formats": [
+        "wide",
+        "tall"
+      ],
+      "templates": [
+        "hero-object",
+        "scale-dive",
+        "crystal-lattice",
+        "molecule",
+        "particle-field",
+        "split-compare",
+        "big-number",
+        "data-bars",
+        "timeline",
+        "title-card",
+        "quote-card",
+        "cause-chain",
+        "thumbnail"
+      ],
+      "version": "1d9e151",
+      "files": {
+        "engine.js": "0738ce149652b20d",
+        "engine.css": "666a552392c4c28f",
+        "meta.json": "d56765a6b7be8c21",
+        "SKILL.md": "3797941c585b18c3",
+        "docs.md": "abf94dd782593899",
+        "templates.json": "7623900df9f3a6f9"
       }
     },
     {
@@ -253,7 +295,7 @@
         "reaction-close-up",
         "timeline-eras"
       ],
-      "version": "5730b9f",
+      "version": "1d9e151",
       "files": {
         "engine.js": "d0fbbdbda5bd732a",
         "engine.css": "dc3d88f77ea3160c",
@@ -294,7 +336,7 @@
         "then-vs-now",
         "film-reel"
       ],
-      "version": "5730b9f",
+      "version": "1d9e151",
       "files": {
         "engine.js": "6ed6da22a98f326d",
         "engine.css": "971151aef7dc5c0b",
@@ -334,7 +376,7 @@
         "title-card",
         "outcome-split"
       ],
-      "version": "5730b9f",
+      "version": "1d9e151",
       "files": {
         "engine.js": "9b92494df6d4a0c7",
         "engine.css": "d52aa83dbd1ad852",
@@ -375,7 +417,7 @@
         "title-card",
         "progress-graph"
       ],
-      "version": "5730b9f",
+      "version": "1d9e151",
       "files": {
         "engine.js": "cbed7a450ba8f631",
         "engine.css": "04718159275ea35b",
@@ -416,7 +458,7 @@
         "heat-zones",
         "globe-spin"
       ],
-      "version": "5730b9f",
+      "version": "1d9e151",
       "files": {
         "engine.js": "e50f0e3a2242caa7",
         "engine.css": "81d176aea9289693",
@@ -457,7 +499,7 @@
         "title-board",
         "timeline"
       ],
-      "version": "5730b9f",
+      "version": "1d9e151",
       "files": {
         "engine.js": "0a23da56a4209b15",
         "engine.css": "a5c6936b0024d9bf",
@@ -497,7 +539,7 @@
         "crowd-scene",
         "aftermath-reflection"
       ],
-      "version": "5730b9f",
+      "version": "1d9e151",
       "files": {
         "engine.js": "25ecd1d6fb4ed111",
         "engine.css": "cab97156f0931109",
@@ -538,7 +580,7 @@
         "deal-handshake",
         "legacy-skyline"
       ],
-      "version": "5730b9f",
+      "version": "1d9e151",
       "files": {
         "engine.js": "ea07c22959b50f1e",
         "engine.css": "85fc217f61faf131",
@@ -580,7 +622,7 @@
         "paper-quote",
         "clothesline-timeline"
       ],
-      "version": "5730b9f",
+      "version": "1d9e151",
       "files": {
         "engine.js": "37421497916f607b",
         "engine.css": "e17361ac96a2a034",
@@ -621,7 +663,7 @@
         "pixel-chart",
         "high-scores"
       ],
-      "version": "5730b9f",
+      "version": "1d9e151",
       "files": {
         "engine.js": "52dcea480fb69e42",
         "engine.css": "9f0d72ea98c1064c",
@@ -661,7 +703,7 @@
         "timeline-strip",
         "skyline-compare"
       ],
-      "version": "5730b9f",
+      "version": "1d9e151",
       "files": {
         "engine.js": "edf28b2a56a2ac4c",
         "engine.css": "ddcbb400ab1e2e1f",
@@ -701,7 +743,7 @@
         "timeline-squiggle",
         "versus"
       ],
-      "version": "5730b9f",
+      "version": "1d9e151",
       "files": {
         "engine.js": "8a84cb82a7de79d1",
         "engine.css": "4109a95196c7dba4",
@@ -742,7 +784,7 @@
         "iso-donut",
         "town-signs"
       ],
-      "version": "5730b9f",
+      "version": "1d9e151",
       "files": {
         "engine.js": "ac322f8c15ba4712",
         "engine.css": "54b4c35de0eea605",
@@ -782,7 +824,7 @@
         "journey",
         "title-card"
       ],
-      "version": "287a8f3",
+      "version": "1d9e151",
       "files": {
         "engine.js": "7aeea25559881356",
         "engine.css": "1bfc0abebd98ffa6",

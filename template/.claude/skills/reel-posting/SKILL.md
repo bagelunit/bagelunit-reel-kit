@@ -64,7 +64,10 @@ Only when the owner asks. Walk it one step at a time and keep a short checklist 
    first), then the commands it prints, in order: `npx wrangler login` (it opens Cloudflare in the
    browser: the owner logs in, you click Allow), the KV storage (`npx wrangler kv namespace create <slug>-kv`), turning
    on R2 (it needs a checkout with a card even on the free plan: say so, ask, and stop at the payment form for the
-   owner; "Not now" ends the publisher setup here), the R2 bucket, `npx wrangler deploy`, `setup.mjs --url
+   owner; "Not now" ends the publisher setup here), the R2 bucket, `node publisher/scripts/setup.mjs deploy` (it counts the cron triggers other workers already
+   use on the Cloudflare account and stops before the free plan's 5; tell the owner its line as it is, and use
+   `--anyway` only after the owner says the account is on Workers Paid; it tries once more by itself on "This Worker
+   does not exist", code 10007), `setup.mjs --url
    <address>`, `setup.mjs secrets --dry-run`, then `setup.mjs secrets` (it moves every token from the owner's files to
    Cloudflare without showing it; never use `wrangler secret put` with a value yourself, and never ask for a token).
    Then `node publisher/scripts/setup.mjs check`. Record `posting.method` = "publisher". Then ask **once** where every reel

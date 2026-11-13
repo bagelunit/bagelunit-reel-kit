@@ -498,8 +498,8 @@ export default {
   },
 
   // One cron (every 5 minutes): due posts, then the token refresh when one is due (about weekly, at most one try a
-  // day, and never while the platforms that use the token are all in dry run; graph.js). One trigger per brand keeps
-  // within the free plan's 5 cron triggers per account.
+  // day, and never while the platforms that use the token are all in dry run; graph.js). One trigger per brand: the free
+  // plan's 5 cron triggers per account are shared by every worker on the account, so setup.mjs deploy counts them first.
   async scheduled(event, env, ctx) {
     ctx.waitUntil((async () => {
       const r = await runDue(env).catch((e) => { console.log('publish error', e.message); return []; });

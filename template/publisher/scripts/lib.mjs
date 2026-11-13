@@ -13,8 +13,44 @@ import { fileURLToPath } from 'node:url';
 import { folderSlug } from './reels.mjs';
 
 export const CONFIG_DIR = path.join(os.homedir(), '.config', 'bagelunit-reels');
+// The BagelUnit Video Kit keeps its YouTube sign-ins here (youtube-<slug>.json, the same format as this kit's).
+export const VIDEO_CONFIG_DIR = process.env.BAGELUNIT_VIDEO_CONFIG || path.join(os.homedir(), '.config', 'bagelunit-video');
+// The Video Kit's folder next to a given config folder: the real one for the real folder, a sibling for a test's.
+export const videoConfigFor = (configDir) => (configDir === CONFIG_DIR ? VIDEO_CONFIG_DIR : path.join(path.dirname(configDir), 'bagelunit-video'));
 
 export class Plain extends Error {}           // an error whose message is safe to show (never holds the key)
+
+// ---------- YouTube sign-ins: upload only ----------
+// The publisher sends the YouTube refresh token to Cloudflare, so the token it sends may only upload. The Video Kit's
+// sign-in also asks for youtube.force-ssl (captions, playlists, edits: the whole channel), and such a token never leaves
+// this computer through the publisher. A file's "scope" is Google's answer: scopes separated by spaces (or commas).
+export const YT_UPLOAD_SCOPE = 'https://www.googleapis.com/auth/youtube.upload';
+export const YT_UPLOAD_ONLY_LINE = 'run  node publisher/scripts/video-login.mjs youtube  for an upload-only sign-in';
+export const scopeList = (s) => String(s || '').split(/[\s,]+/).map((x) => x.trim()).filter(Boolean)
+  .map((x) => (/^https?:\/\//.test(x) ? x : `https://www.googleapis.com/auth/${x}`));
+// The scopes in a credentials file beyond youtube.upload ([] when it is upload-only).
+export const extraYoutubeScopes = (cfg) => scopeList(cfg?.scope).filter((x) => x !== YT_UPLOAD_SCOPE);
+// Which YouTube file the publisher uses: the brand's own youtube-<slug>.json, or, when that is missing or holds no
+// refresh token yet, the Video Kit's file of the same slug, used only when its scope says upload and nothing else.
+// `refused` is the one plain line to show when the file holds more than upload; the token is then never sent.
+export function youtubeCredentials(slug, configDir = CONFIG_DIR, videoDir = videoConfigFor(configDir)) {
+  const own = path.join(configDir, `youtube-${slug}.json`);
+  const video = path.join(videoDir, `youtube-${slug}.json`);
+  const ownCfg = readJSON(own, null);
+  const hasToken = (c) => c && c.refresh_token && !/^PASTE-/i.test(String(c.refresh_token).trim());
+  const pick = (file, cfg, from) => {
+    const extra = extraYoutubeScopes(cfg);
+    const unknown = from === 'video' && !scopeList(cfg.scope).length;     // the Video Kit's file must say upload-only
+    const refused = extra.length || unknown
+      ? `${file} ${unknown ? 'does not say which permissions it holds' : `holds more than uploading (${extra.map((x) => x.replace('https://www.googleapis.com/auth/', '')).join(', ')})`}, so its YouTube token is not sent to Cloudflare: ${YT_UPLOAD_ONLY_LINE}`
+      : null;
+    return { file, cfg, from, refused };
+  };
+  if (hasToken(ownCfg)) return pick(own, ownCfg, 'reels');
+  const videoCfg = readJSON(video, null);
+  if (hasToken(videoCfg)) return pick(video, videoCfg, 'video');
+  return { file: own, cfg: ownCfg || {}, from: 'reels', refused: ownCfg ? pick(own, ownCfg, 'reels').refused : null };
+}
 
 // Is this file the script node was asked to run? Both paths are resolved through symlinks first, so a script run
 // through a linked folder (or a path with a symlink in it) still runs.

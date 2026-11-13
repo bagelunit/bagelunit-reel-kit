@@ -4,7 +4,8 @@
 // refresh token and writes that into a file in ~/.config/bagelunit-reels/, readable by the owner only. It never prints
 // a token or a secret, and nothing is typed into a terminal. Node 22, no packages.
 //
-//   node publisher/scripts/video-login.mjs youtube            YouTube Shorts (scope youtube.upload only)
+//   node publisher/scripts/video-login.mjs youtube            YouTube Shorts (scope youtube.upload only: the publisher
+//                                                             sends this token to Cloudflare, so it may only upload)
 //   node publisher/scripts/video-login.mjs tiktok [--direct]  TikTok drafts (scope video.upload); --direct also asks
 //                                                             for video.publish (a direct post, which needs TikTok's
 //                                                             approval of the app for that scope)
@@ -12,7 +13,9 @@
 // Before it can work, the owner's own app has to exist (docs/connect.md steps 6B and 6C) and its client id and secret are
 // in the file this script makes if it is missing, youtube-<slug>.json or tiktok-<slug>.json, in place of the PASTE-...
 // words (Claude opens the file; the owner pastes; docs/browser.md). A Google "Desktop app" credentials file saved as
-// youtube-<slug>.json is read as it is.
+// youtube-<slug>.json is read as it is. With no client id and secret of its own, the YouTube sign-in takes them from the
+// BagelUnit Video Kit's ~/.config/bagelunit-video/youtube-<slug>.json (the same Google project), never its token: the
+// Video Kit's sign-in may also manage the channel, and this one asks for upload only and is saved in this kit's file.
 //
 // YouTube: authorization-code flow with PKCE on a loopback address (Google's "installed app" flow), access_type=offline
 //   and prompt=consent so Google returns a refresh token. Google keeps it only while the project is "In production" on
@@ -25,7 +28,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
-import { parseArgs, readJSON, findBrand, brandSlug, Plain, isMain, CONFIG_DIR } from './lib.mjs';
+import { parseArgs, readJSON, findBrand, brandSlug, Plain, isMain, CONFIG_DIR, videoConfigFor, extraYoutubeScopes, YT_UPLOAD_SCOPE } from './lib.mjs';
 
 const writePrivate = (file, data) => { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, JSON.stringify(data, null, 2) + '\n', { mode: 0o600 }); try { fs.chmodSync(file, 0o600); } catch {} };
 const isPlaceholder = (v) => !v || /^PASTE-/i.test(String(v).trim());
@@ -34,7 +37,7 @@ export const PROVIDERS = {
   youtube: {
     label: 'YouTube', fields: ['client_id', 'client_secret'],
     authUrl: 'https://accounts.google.com/o/oauth2/v2/auth', tokenUrl: 'https://oauth2.googleapis.com/token',
-    redirectPath: '/', scopes: () => ['https://www.googleapis.com/auth/youtube.upload'],
+    redirectPath: '/', scopes: () => [YT_UPLOAD_SCOPE],
     challenge: (v) => createHash('sha256').update(v).digest('base64url'),
     authParams: (c, p) => ({ client_id: c.client_id, access_type: 'offline', prompt: 'consent', ...p }),
     tokenBody: (c, code, redirect, verifier) => ({ client_id: c.client_id, client_secret: c.client_secret, code, redirect_uri: redirect, grant_type: 'authorization_code', code_verifier: verifier }),
@@ -52,16 +55,22 @@ export const PROVIDERS = {
 };
 
 // The credentials file: made with PASTE-... words when missing. A Google credentials download ({"installed": {...}}) is flattened.
-export function readCredentials(provider, slug, configDir = CONFIG_DIR) {
+const flatten = (cfg) => { const inner = cfg && (cfg.installed || cfg.web); return inner ? { ...cfg, client_id: inner.client_id, client_secret: inner.client_secret, installed: undefined, web: undefined } : cfg; };
+export function readCredentials(provider, slug, configDir = CONFIG_DIR, videoDir = videoConfigFor(configDir)) {
   const P = PROVIDERS[provider];
   const file = path.join(configDir, `${provider}-${slug}.json`);
   let cfg = readJSON(file, null);
+  // YouTube: no client of its own yet, but the Video Kit has one for this slug: take its client id and secret only
+  if (provider === 'youtube' && (!cfg || P.fields.some((f) => isPlaceholder(flatten(cfg)[f])))) {
+    const vfile = path.join(videoDir, `youtube-${slug}.json`);
+    const v = flatten(readJSON(vfile, null));
+    if (v && !P.fields.some((f) => isPlaceholder(v[f]))) return { file, cfg: { ...(cfg || {}), client_id: v.client_id, client_secret: v.client_secret, refresh_token: undefined, scope: undefined }, clientFrom: vfile };
+  }
   if (!cfg) {
     writePrivate(file, Object.fromEntries(P.fields.map((f) => [f, `PASTE-${f.toUpperCase().replace(/_/g, '-')}-HERE`])));
     throw new Plain(`Made ${file} with PASTE-... in place of the ${P.fields.join(' and ')}. ${P.help} Paste them in that file (Claude opens it for you), then run this again.`);
   }
-  const inner = cfg.installed || cfg.web;
-  if (inner) cfg = { ...cfg, client_id: inner.client_id, client_secret: inner.client_secret, installed: undefined, web: undefined };
+  cfg = flatten(cfg);
   const missing = P.fields.filter((f) => isPlaceholder(cfg[f]));
   if (missing.length) throw new Plain(`${file} still needs ${missing.join(' and ')} (it holds the PASTE-... words or nothing). ${P.help}`);
   return { file, cfg };
@@ -97,10 +106,11 @@ const openBrowser = (url) => {
   try { spawn(cmd, args, { stdio: 'ignore', detached: true }).on('error', () => {}).unref(); } catch {}
 };
 
-export async function login(provider, { slug, configDir = CONFIG_DIR, fetchImpl = fetch, open = openBrowser, log = console.log, direct = false, timeoutMs } = {}) {
+export async function login(provider, { slug, configDir = CONFIG_DIR, videoDir = videoConfigFor(configDir), fetchImpl = fetch, open = openBrowser, log = console.log, direct = false, timeoutMs } = {}) {
   const P = PROVIDERS[provider];
   if (!P) throw new Plain('say youtube or tiktok');
-  const { file, cfg } = readCredentials(provider, slug, configDir);
+  const { file, cfg, clientFrom } = readCredentials(provider, slug, configDir, videoDir);
+  if (clientFrom) log(`Using the client id and secret from the Video Kit's ${clientFrom} (the same Google project). This sign-in asks for upload only and is saved in ${file}; the Video Kit's file is not changed.`);
   const verifier = randomBytes(48).toString('base64url');
   const state = randomBytes(16).toString('hex');
   let redirect = '';
@@ -123,6 +133,8 @@ export async function login(provider, { slug, configDir = CONFIG_DIR, fetchImpl 
     const why = hide(data.error_description || (typeof data.error === 'string' ? data.error : data.error?.message) || (data.access_token ? `${P.label} sent no refresh token (the sign-in must ask for offline access; remove the app at myaccount.google.com/permissions and try again)` : `HTTP ${res.status}`));
     throw new Plain(`${P.label} did not finish the sign-in: ${why}`);
   }
+  // the publisher sends this token to Cloudflare: a YouTube token that can do more than upload is not kept
+  if (provider === 'youtube' && extraYoutubeScopes(data).length) throw new Plain(`Google gave this sign-in more than uploading (${extraYoutubeScopes(data).map((x) => x.replace('https://www.googleapis.com/auth/', '')).join(', ')}), so nothing was saved. Remove the app at myaccount.google.com/permissions, then run  node publisher/scripts/video-login.mjs youtube  again for an upload-only sign-in`);
   const out = { ...cfg, refresh_token: data.refresh_token, scope: data.scope || P.scopes(direct).join(','), signed_in_at: new Date().toISOString() };
   if (provider === 'tiktok' && data.open_id) out.open_id = data.open_id;
   delete out.installed; delete out.web;

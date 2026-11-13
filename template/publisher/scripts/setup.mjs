@@ -6,6 +6,9 @@
 //   node publisher/scripts/setup.mjs [--api-setup instagram|unified]   write wrangler.toml (once) and show the steps
 //   node publisher/scripts/setup.mjs --kv-id <id>                       put the KV namespace id into wrangler.toml
 //   node publisher/scripts/setup.mjs secrets [--dry-run] [--only A,B]   send the secrets to Cloudflare (see below)
+//   node publisher/scripts/setup.mjs deploy [--anyway]                  put the publisher online (npx wrangler deploy): counts
+//                                                                       the cron triggers already on the Cloudflare account
+//                                                                       first, and tries once more on "This Worker does not exist"
 //   node publisher/scripts/setup.mjs --url <https://...workers.dev>     save the publisher's address for the kit
 //   node publisher/scripts/setup.mjs check                              ask the deployed publisher if it is working
 //   node publisher/scripts/setup.mjs subscribe [--dry-run]              turn on Meta's comment and message notifications
@@ -27,7 +30,11 @@
 //   FB_PAGE_ID, FB_PAGE_TOKEN facebook-<slug>.json "page_id", "access_token" (after the Facebook check). Only the
 //                             brand's own file: a Page token posts to one Page, so a shared facebook.json is not used.
 //   YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN   youtube-<slug>.json "client_id", "client_secret", "refresh_token"
-//                             (the owner pastes the first two, video-login.mjs youtube writes the third)
+//                             (the owner pastes the first two, video-login.mjs youtube writes the third). When the
+//                             brand's own file is missing or has no token yet, the BagelUnit Video Kit's
+//                             ~/.config/bagelunit-video/youtube-<slug>.json is used, but only when its "scope" is
+//                             youtube.upload alone. A file (either folder) that holds youtube.force-ssl or any other
+//                             scope beyond upload is never sent: Cloudflare only ever holds a token that can upload.
 //   TIKTOK_CLIENT_KEY, TIKTOK_CLIENT_SECRET, TIKTOK_REFRESH_TOKEN   tiktok-<slug>.json "client_key", "client_secret",
 //                             "refresh_token" (video-login.mjs tiktok writes the last)
 // Each value goes to `npx wrangler secret put <NAME>` on its standard input; wrangler's output is shown with the
@@ -40,7 +47,7 @@ import { randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseArgs, readJSON, findBrand, brandSlug, connection, admin, Plain, isMain, CONFIG_DIR } from './lib.mjs';
+import { parseArgs, readJSON, findBrand, brandSlug, connection, admin, Plain, isMain, CONFIG_DIR, videoConfigFor, youtubeCredentials } from './lib.mjs';
 
 const writePrivate = (file, data) => { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, JSON.stringify(data, null, 2) + '\n', { mode: 0o600 }); try { fs.chmodSync(file, 0o600); } catch {} };
 
@@ -93,7 +100,7 @@ export function steps({ slug, apiSetup = 'instagram', kvReady = false, configDir
   if (!kvReady) step('Make the storage for posts and replies, then put the id it prints into wrangler.toml:', `npx wrangler kv namespace create ${n.kv}`, 'node scripts/setup.mjs --kv-id <the id it printed>');
   step('Turn on R2, the file storage, once per Cloudflare account (free up to 10 GB a month, but Cloudflare asks for a card and bills use above the free amount). In the Cloudflare dashboard: Storage & databases, R2, Overview. Claude (with the browser tool) opens it and stops at the payment form; the owner enters the card and confirms, or stops here.');
   step('Make the storage for the video files:', `npx wrangler r2 bucket create ${n.bucket}`);
-  step('Put the publisher online (it needs to exist before it can hold secrets). It prints its address (https://...workers.dev):', 'npx wrangler deploy');
+  step('Put the publisher online (it needs to exist before it can hold secrets). It first counts the cron triggers already used on the Cloudflare account (the free plan allows 5 for all its workers together, and this publisher needs 1), then runs npx wrangler deploy and prints the address (https://...workers.dev):', 'node scripts/setup.mjs deploy');
   step(`Save that address for the kit (it goes into ${file} next to the admin key):`, 'node scripts/setup.mjs --url <the address deploy printed>');
   step(`Only for keyword replies: the owner pastes the Meta app secret into ${file} as "app_secret" (App settings, Basic, App secret, Show). The browser tool opens that page and stops before Show.`);
   step(`Send the secrets to Cloudflare. It reads them from the token files in ${configDir}, makes ADMIN_KEY and VERIFY_TOKEN once (kept in ${file}), and never shows a value. Run it with --dry-run first to see what it will send:`,
@@ -110,7 +117,7 @@ export function steps({ slug, apiSetup = 'instagram', kvReady = false, configDir
 
 // ---------- secrets ----------
 // Which secrets can be sent and from where. Values are only read here, never returned to a caller that prints.
-export function secretPlan({ slug, configDir = CONFIG_DIR, make = true }) {
+export function secretPlan({ slug, configDir = CONFIG_DIR, videoDir = videoConfigFor(configDir), make = true }) {
   const f = (name) => path.join(configDir, `${name}-${slug}.json`);
   const pubFile = f('publisher');
   const pub = readJSON(pubFile, {}) || {};
@@ -132,11 +139,17 @@ export function secretPlan({ slug, configDir = CONFIG_DIR, make = true }) {
   };
   const ig = account('instagram', 'ig_user_id'); const th = account('threads', 'user_id');
   const fb = readJSON(f('facebook'), {}) || {};
-  const yt = readJSON(f('youtube'), {}) || {}; const tt = readJSON(f('tiktok'), {}) || {};
+  // YouTube: the brand's own file, or the Video Kit's when it is upload-only (lib.mjs youtubeCredentials)
+  const ytc = youtubeCredentials(slug, configDir, videoDir); const yt = ytc.cfg || {};
+  const tt = readJSON(f('tiktok'), {}) || {};
   // a value still holding the PASTE-... placeholder is not a token: it is skipped and named, never sent
   const row = (name, value, from, why) => (isPlaceholder(value)
     ? { name, value: '', from, why: `it still holds the PASTE-... placeholder: paste the real value in ${from} first` }
     : { name, value: value ? String(value) : '', from, why });
+  // a YouTube file that can do more than upload is refused: none of its three values goes to Cloudflare
+  const ytRow = (name, value, why) => (ytc.refused && value && !isPlaceholder(value)
+    ? { name, value: '', from: ytc.file, why, refused: ytc.refused }
+    : row(name, value, ytc.file, why));
   return {
     made, pubFile,
     rows: [
@@ -149,9 +162,9 @@ export function secretPlan({ slug, configDir = CONFIG_DIR, make = true }) {
       row('FB_PAGE_TOKEN', fb.user_token ? '' : fb.access_token, f('facebook'), 'only for Facebook; run the Facebook check first'),
       row('THREADS_USER_ID', th.id, th.idFrom, `only for Threads; run the Threads check first (/content-calendar connect threads): it saves the id in ${th.idFrom}`),
       row('THREADS_TOKEN', th.cfg.app_secret ? '' : th.cfg.access_token, th.file, 'only for Threads; run the Threads check first'),
-      row('YT_CLIENT_ID', yt.client_id, f('youtube'), 'only for YouTube; docs/connect.md step 6B'),
-      row('YT_CLIENT_SECRET', yt.client_secret, f('youtube'), 'only for YouTube; docs/connect.md step 6B'),
-      row('YT_REFRESH_TOKEN', yt.refresh_token, f('youtube'), 'only for YouTube; run  node publisher/scripts/video-login.mjs youtube  first'),
+      ytRow('YT_CLIENT_ID', yt.client_id, 'only for YouTube; docs/connect.md step 6B'),
+      ytRow('YT_CLIENT_SECRET', yt.client_secret, 'only for YouTube; docs/connect.md step 6B'),
+      ytRow('YT_REFRESH_TOKEN', yt.refresh_token, 'only for YouTube; run  node publisher/scripts/video-login.mjs youtube  first'),
       row('TIKTOK_CLIENT_KEY', tt.client_key, f('tiktok'), 'only for TikTok; docs/connect.md step 6C'),
       row('TIKTOK_CLIENT_SECRET', tt.client_secret, f('tiktok'), 'only for TikTok; docs/connect.md step 6C'),
       row('TIKTOK_REFRESH_TOKEN', tt.refresh_token, f('tiktok'), 'only for TikTok; run  node publisher/scripts/video-login.mjs tiktok  first'),
@@ -162,16 +175,23 @@ export function secretPlan({ slug, configDir = CONFIG_DIR, make = true }) {
 const runWrangler = (name, value, cwd) => spawnSync('npx', ['wrangler', 'secret', 'put', name], { cwd, input: value, encoding: 'utf8', shell: process.platform === 'win32' });
 
 // Send each available secret through wrangler's standard input. `run` is replaceable for tests.
-export function sendSecrets({ slug, configDir = CONFIG_DIR, pubDir = PUB, only = null, dryRun = false, run = runWrangler, log = console.log }) {
-  const plan = secretPlan({ slug, configDir, make: !dryRun });
+export function sendSecrets({ slug, configDir = CONFIG_DIR, videoDir = videoConfigFor(configDir), pubDir = PUB, only = null, dryRun = false, run = runWrangler, log = console.log }) {
+  const plan = secretPlan({ slug, configDir, videoDir, make: !dryRun });
   const want = only ? new Set(only) : null;
   for (const k of plan.made) log(`Made ${k.toUpperCase()} and kept it in ${plan.pubFile} (readable by you only).`);
-  const sent = [], skipped = [], failed = [];
+  const sent = [], skipped = [], failed = [], refused = [];
+  let refusedSaid = false;
   for (const r of plan.rows) {
     if (want && !want.has(r.name)) continue;
+    if (r.refused) {
+      refused.push(r.name);
+      log(`  ${r.name.padEnd(16)} ${dryRun ? 'would NOT be sent' : 'NOT sent'}: ${refusedSaid ? 'the same YouTube file' : r.refused}`);
+      refusedSaid = true; continue;
+    }
     if (!r.value && dryRun && /^made by this script/.test(r.why)) { log(`  ${r.name.padEnd(16)} would be made now (kept in ${r.from}) and sent`); continue; }
     if (!r.value) { skipped.push(r.name); log(`  ${r.name.padEnd(16)} skipped: nothing in ${r.from} yet (${r.why})`); continue; }
     if (dryRun) { log(`  ${r.name.padEnd(16)} would be sent, from ${r.from}`); continue; }
+    if (r.name === 'YT_REFRESH_TOKEN' && path.dirname(r.from) !== configDir) log(`  (YouTube: this brand has no sign-in of its own, so the Video Kit's upload-only ${r.from} is used)`);
     const res = run(r.name, r.value, pubDir);
     const out = `${res.stdout || ''}${res.stderr || ''}`.split(r.value).join('***').trim().split('\n').filter(Boolean).slice(-2).join(' / ');
     if (res.status === 0) { sent.push(r.name); log(`  ${r.name.padEnd(16)} sent to Cloudflare`); }
@@ -182,7 +202,92 @@ export function sendSecrets({ slug, configDir = CONFIG_DIR, pubDir = PUB, only =
     const pub = readJSON(plan.pubFile, {}); delete pub.app_secret; writePrivate(plan.pubFile, pub);
     log(`Removed the app secret from ${plan.pubFile}: Cloudflare has it now.`);
   }
-  return { sent, skipped, failed };
+  return { sent, skipped, failed, refused };
+}
+
+// ---------- deploy: count the account's cron triggers, then npx wrangler deploy ----------
+// Cloudflare's free plan allows 5 cron triggers per account, for all its workers together (not 5 per brand: other
+// workers on the same account use them too). Before deploying, this counts the triggers already in use with the
+// Cloudflare login wrangler already has (wrangler whoami --json for the account, wrangler auth token --json for the
+// token, then Cloudflare's API: the account's workers and each one's schedules). The token stays in this process, goes
+// in the Authorization header only and is blanked from any message; nothing new is asked of the owner. When it cannot
+// count (not logged in, several accounts, no answer), it says so and deploys anyway, so a cron limit error is explained.
+// The first deploy of a new worker can fail with "This Worker does not exist" (code 10007) while Cloudflare is still
+// making it; a second deploy works, so that one error is tried once more after a short wait.
+export const FREE_CRON_LIMIT = 5;
+const CF_API = 'https://api.cloudflare.com/client/v4';
+export const cronsIn = (toml) => { const m = /^\s*crons\s*=\s*\[([^\]]*)\]/m.exec(toml || ''); return m ? (m[1].match(/"[^"]*"|'[^']*'/g) || []).length : 0; };
+const tomlValue = (toml, key) => (new RegExp(`^\\s*${key}\\s*=\\s*"([^"]+)"`, 'm').exec(toml || '') || [])[1] || null;
+const jsonIn = (text) => { const s = String(text || ''); const i = s.indexOf('{'); if (i < 0) return null; try { return JSON.parse(s.slice(i, s.lastIndexOf('}') + 1)); } catch { return null; } };
+const runWranglerArgs = (args, cwd) => spawnSync('npx', ['wrangler', ...args], { cwd, encoding: 'utf8', shell: process.platform === 'win32' });
+export const DOES_NOT_EXIST = /\b10007\b|This Worker does not exist/i;
+
+export async function countCrons({ pubDir = PUB, toml, run = runWranglerArgs, fetchImpl = fetch, env = process.env }) {
+  const mine = tomlValue(toml, 'name');
+  const who = jsonIn(run(['whoami', '--json'], pubDir).stdout);
+  if (!who || who.loggedIn === false) return { known: false, why: 'not logged in to Cloudflare yet (npx wrangler login)' };
+  const accounts = Array.isArray(who.accounts) ? who.accounts : [];
+  const accountId = env.CLOUDFLARE_ACCOUNT_ID || tomlValue(toml, 'account_id') || (accounts.length === 1 ? accounts[0].id : null);
+  if (!accountId) return { known: false, why: `this Cloudflare login has ${accounts.length} accounts and wrangler.toml does not say which one (account_id)` };
+  const auth = jsonIn(run(['auth', 'token', '--json'], pubDir).stdout) || {};
+  const secret = String(auth.token || auth.key || '');
+  if (!secret) return { known: false, why: 'wrangler did not hand over its Cloudflare login' };
+  const headers = auth.type === 'api_key' ? { 'X-Auth-Key': secret, 'X-Auth-Email': String(auth.email || '') } : { Authorization: `Bearer ${secret}` };
+  const hide = (s) => String(s).split(secret).join('***');
+  const get = async (p) => {
+    const res = await fetchImpl(`${CF_API}${p}`, { headers, signal: AbortSignal.timeout(20000) });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok || body.success === false) throw new Error(hide(body.errors?.[0]?.message || `HTTP ${res.status}`));
+    return body.result;
+  };
+  try {
+    const scripts = (await get(`/accounts/${accountId}/workers/scripts`)) || [];
+    const byWorker = [];
+    for (const s of scripts) {
+      const name = s.id || s.name; if (!name) continue;
+      const r = await get(`/accounts/${accountId}/workers/scripts/${encodeURIComponent(name)}/schedules`);
+      const n = (r?.schedules || []).length;
+      if (n) byWorker.push({ name, crons: n });
+    }
+    const others = byWorker.filter((w) => w.name !== mine);
+    return { known: true, accountId, byWorker, others, used: others.reduce((t, w) => t + w.crons, 0), mine: byWorker.find((w) => w.name === mine)?.crons || 0 };
+  } catch (e) { return { known: false, why: `Cloudflare did not answer (${hide(e?.cause?.code || e?.message || 'network error')})` }; }
+}
+
+export async function deploy({ pubDir = PUB, run = runWranglerArgs, fetchImpl = fetch, env = process.env, anyway = false, log = console.log, retryWait = 5000 }) {
+  const file = path.join(pubDir, 'wrangler.toml');
+  if (!fs.existsSync(file)) throw new Plain('there is no publisher/wrangler.toml yet: run  node publisher/scripts/setup.mjs  first (it writes it)');
+  const toml = fs.readFileSync(file, 'utf8');
+  if (toml.includes(PLACEHOLDER)) throw new Plain('wrangler.toml still has no KV id: make the storage first (npx wrangler kv namespace create <slug>-kv, then node scripts/setup.mjs --kv-id <id>)');
+  const need = cronsIn(toml);
+  const c = await countCrons({ pubDir, toml, run, fetchImpl, env });
+  if (c.known) {
+    const total = c.used + need;
+    const list = c.others.length ? ` (${c.others.map((w) => `${w.name} ${w.crons}`).join(', ')})` : '';
+    log(`Cron triggers on this Cloudflare account: ${c.used} in use by other workers${list}; this publisher needs ${need}. That makes ${total} of the free plan's ${FREE_CRON_LIMIT}.`);
+    if (total > FREE_CRON_LIMIT && !anyway) {
+      log(`That is over the free plan's ${FREE_CRON_LIMIT} cron triggers per account, so Cloudflare would refuse this deploy on the free plan. Nothing was deployed. Free a trigger (take the cron off a worker you no longer need, or delete that worker in the Cloudflare dashboard), or move the account to Workers Paid. On Workers Paid, run  node scripts/setup.mjs deploy --anyway.`);
+      return { deployed: false, capped: true, crons: c };
+    }
+  } else {
+    log(`Could not count the cron triggers already on this Cloudflare account: ${c.why}. The free plan allows ${FREE_CRON_LIMIT} for all the account's workers together and this publisher needs ${need}; if the deploy fails with a cron trigger limit, that is why.`);
+  }
+  const once = () => { const r = run(['deploy'], pubDir); return { ...r, out: `${r.stdout || ''}${r.stderr || ''}`.trim() }; };
+  let res = once(); let tries = 1;
+  if (res.status !== 0 && DOES_NOT_EXIST.test(res.out)) {
+    log(`Cloudflare answered "This Worker does not exist" (code 10007). That happens on the first deploy of a new worker while Cloudflare is still making it: trying once more in ${Math.round(retryWait / 1000)} seconds.`);
+    await new Promise((r) => setTimeout(r, retryWait));
+    res = once(); tries = 2;
+  }
+  if (res.out) log(res.out);
+  if (res.status !== 0) {
+    const last = res.out.split('\n').filter(Boolean).slice(-3).join(' / ') || res.error?.message || 'wrangler failed';
+    if (/cron/i.test(res.out) && /limit|exceed|maximum/i.test(res.out)) throw new Plain(`the deploy was refused: the account has no cron trigger left (the free plan allows ${FREE_CRON_LIMIT} for all its workers together). Free one or move to Workers Paid, then run this again. Cloudflare said: ${last}`);
+    throw new Plain(`npx wrangler deploy did not finish${tries > 1 ? ' (tried twice)' : ''}: ${last}`);
+  }
+  const url = (/https:\/\/[^\s"']+\.workers\.dev/.exec(res.out) || [])[0] || null;
+  log(url ? `The publisher is online at ${url}. Next: node scripts/setup.mjs --url ${url}` : 'The publisher is online. Next: node scripts/setup.mjs --url <the address deploy printed>');
+  return { deployed: true, tries, url, crons: c };
 }
 
 // ---------- subscribe: Meta's notifications for this brand's Instagram account ----------
@@ -273,12 +378,13 @@ async function main() {
   const slug = brandSlug(root, readJSON(path.join(root, 'brand', 'brand.json'), {}));
   if (args._[0] === 'check') return check({ root, settle: 15000 });
   if (args._[0] === 'follow-check') { await followCheck({ root, id: args._[1] || null }); return; }
+  if (args._[0] === 'deploy') { const r = await deploy({ anyway: args.anyway === true }); if (!r.deployed) process.exitCode = 1; return; }
   if (args._[0] === 'subscribe') { await subscribe({ slug, dryRun: args['dry-run'] === true }); return; }
   if (args._[0] === 'secrets') {
     const only = typeof args.only === 'string' ? args.only.split(',').map((x) => x.trim().toUpperCase()).filter(Boolean) : null;
     const r = sendSecrets({ slug, only, dryRun: args['dry-run'] === true });
-    if (args['dry-run'] !== true) console.log(`${r.sent.length} sent${r.skipped.length ? `, ${r.skipped.length} skipped` : ''}${r.failed.length ? `, ${r.failed.length} NOT sent (run npx wrangler login, then this again)` : ''}. Each secret is live as soon as it is sent.`);
-    if (r.failed.length) process.exitCode = 1;
+    if (args['dry-run'] !== true) console.log(`${r.sent.length} sent${r.skipped.length ? `, ${r.skipped.length} skipped` : ''}${r.failed.length ? `, ${r.failed.length} NOT sent (run npx wrangler login, then this again)` : ''}${r.refused.length ? `, ${r.refused.length} refused (YouTube: the sign-in can do more than upload)` : ''}. Each secret is live as soon as it is sent.`);
+    if (r.failed.length || r.refused.length) process.exitCode = 1;
     return;
   }
   if (typeof args.url === 'string') { console.log(`Saved the publisher's address in ${saveUrl({ slug, url: args.url })}.`); return; }

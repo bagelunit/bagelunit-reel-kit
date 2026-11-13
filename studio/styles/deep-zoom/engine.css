@@ -1,0 +1,12 @@
+/* Deep Zoom look. Everything (3D, labels, type, grain) is painted by engine.js into one canvas per scene,
+   so frames stay identical after a seek. This file only sets the stage colour and the canvas box.
+   Local font stacks only (Inter, then Helvetica Neue and system fallbacks). */
+html, body { background: #06080E; }
+.dz {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #06080E;
+  font-family: Inter, "Helvetica Neue", Helvetica, "Avenir Next", system-ui, Arial, sans-serif;
+}
+.dz-canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; }

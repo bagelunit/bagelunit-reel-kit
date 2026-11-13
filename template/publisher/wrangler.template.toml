@@ -22,7 +22,9 @@ compatibility_date = "2026-11-01"
 workers_dev = true
 
 # One trigger, every 5 minutes: due posts, then the token refresh when one is due (about weekly).
-# The free plan allows 5 cron triggers per Cloudflare account, so one per brand leaves room for 5 brands.
+# The free plan allows 5 cron triggers per Cloudflare account, shared by every worker on that account (not only the
+# kit's publishers), so how many brands fit depends on what else runs there. node scripts/setup.mjs deploy counts the
+# triggers already in use before deploying and says so when this one would go over.
 [triggers]
 crons = ["*/5 * * * *"]
 

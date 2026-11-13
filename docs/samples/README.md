@@ -1,6 +1,6 @@
 # Sample clips
 
-One 10-second sample of each of the 22 looks, so you can see what a reel in each one looks like before you pick. Every clip is silent, made-up content (a bakery tip, a growing town, an invented company), with no real people or brands. Click a picture to open its video.
+One 10-second sample of each of the 23 looks, so you can see what a reel in each one looks like before you pick. Every clip is silent, made-up content (a bakery tip, a growing town, an invented company), with no real people or brands. Click a picture to open its video.
 
 To make a reel in any of them: `/brand-setup` once, then `/bagelunit-reels`, and pick the look when it asks. For a scene style, `kit scene list` shows its scene templates and `kit start reels/<slug> --style <id>` starts one.
 
@@ -28,5 +28,6 @@ To make a reel in any of them: `/brand-setup` once, then `/bagelunit-reels`, and
 | **Paper Theatre** | `paper-theatre` | [![Paper Theatre](20-paper-theatre.jpg)](20-paper-theatre.mp4) | Paper cut-outs on a stage: clotheslines, curtains and pop-ups. |
 | **Bedtime Story** | `bedtime-story` | [![Bedtime Story](21-bedtime-story.jpg)](21-bedtime-story.mp4) | A painted picture-book look with page turns. |
 | **Marker Board** | `marker-board` | [![Marker Board](22-marker-board.jpg)](22-marker-board.mp4) | A whiteboard drawn live with markers, before and after. |
+| **Deep Zoom** | `deep-zoom` | [![Deep Zoom](23-deep-zoom.jpg)](23-deep-zoom.mp4) | Cinematic 3D science documentary: glossy objects in a dark studio and dives from an ice cube down to crystals, molecules and atoms. |
 
-The Print, 3D and Talking head clips are built with the kit's own starter reels. The other 19 are each one scene from that look's own templates.
+The Print, 3D and Talking head clips are built with the kit's own starter reels. The other 20 are each one scene from that look's own templates (Deep Zoom's scale dive is played at about 1.5 times its speed to fit in 10 seconds).

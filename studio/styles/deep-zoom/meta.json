@@ -1,0 +1,15 @@
+{
+  "id": "deep-zoom",
+  "name": "Deep Zoom",
+  "description": "Cinematic macro-photography look for science explainers: glossy and translucent 3D objects (ice, glass, water, metal) lit in a near-black studio, shallow depth of field, slow weighty camera moves and seamless dives from an everyday object down to crystals, molecules, atoms and quarks. Adult, premium, documentary-grade.",
+  "palette": {
+    "background": "#06080E",
+    "foreground": "#EAF2F8",
+    "accent": "#7FD8FF",
+    "muted": "#8DA2B8"
+  },
+  "fonts": [
+    "Inter, \"Helvetica Neue\", Helvetica, \"Avenir Next\", system-ui, Arial, sans-serif"
+  ],
+  "formats": ["wide", "tall"]
+}

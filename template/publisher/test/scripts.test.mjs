@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { checkReel, scheduleReel, postingLine, cancel, status } from '../scripts/schedule.mjs';
 import { pull } from '../scripts/pull.mjs';
-import { followCheck, writeToml, steps, check, names, sendSecrets, saveUrl, secretPlan, subscribe, loginOf } from '../scripts/setup.mjs';
+import { followCheck, writeToml, steps, check, names, sendSecrets, saveUrl, secretPlan, subscribe, loginOf, deploy, countCrons, cronsIn, FREE_CRON_LIMIT } from '../scripts/setup.mjs';
 import { lastGateC, reviewScore, reviewProblem, appendUnder, parseArgs, sha256File, connection, Plain, isMain, zonedIso, planRows, planSlot } from '../scripts/lib.mjs';
 import { forget } from '../scripts/forget.mjs';
 import { spawnSync } from 'node:child_process';
@@ -271,8 +271,8 @@ test('setup: writes wrangler.toml once from the template, fills the KV id, print
   assert.equal(writeToml({ slug: 'my-brand', pubDir: pub }).wrote, null);                // never overwritten
   assert.match(fs.readFileSync(r.file, 'utf8'), /PUBLISH_MODE_INSTAGRAM = "live"/);
   const s = steps({ slug: 'my-brand', configDir: '/cfg' });
-  for (const cmd of ['npx wrangler login', 'npx wrangler kv namespace create my-brand-kv', 'Storage & databases, R2, Overview', 'npx wrangler r2 bucket create my-brand-reels', 'node scripts/setup.mjs subscribe', 'node scripts/setup.mjs secrets --dry-run', 'node scripts/setup.mjs secrets', 'npx wrangler deploy', 'node scripts/setup.mjs --url', path.join('/cfg', 'publisher-my-brand.json'), 'node scripts/setup.mjs check']) assert.ok(s.includes(cmd), cmd);
-  assert.ok(s.indexOf('npx wrangler deploy') < s.indexOf('setup.mjs secrets'), 'the Worker exists before secrets are sent');
+  for (const cmd of ['npx wrangler login', 'npx wrangler kv namespace create my-brand-kv', 'Storage & databases, R2, Overview', 'npx wrangler r2 bucket create my-brand-reels', 'node scripts/setup.mjs subscribe', 'node scripts/setup.mjs secrets --dry-run', 'node scripts/setup.mjs secrets', 'node scripts/setup.mjs deploy', 'cron triggers', 'node scripts/setup.mjs --url', path.join('/cfg', 'publisher-my-brand.json'), 'node scripts/setup.mjs check']) assert.ok(s.includes(cmd), cmd);
+  assert.ok(s.indexOf('setup.mjs deploy') < s.indexOf('setup.mjs secrets'), 'the Worker exists before secrets are sent');
   assert.ok(!/\n\s*\n\s*\n/.test(s), 'no stray blank lines');
   assert.ok(!steps({ slug: 'b', kvReady: true }).includes('kv namespace create'));
   assert.equal(names('x').worker, 'x-publisher'); assert.equal(names('x').kv, 'x-kv');
@@ -630,6 +630,151 @@ test('setup secrets: the YouTube and TikTok values come from their files; a PAST
   assert.deepEqual(r.skipped, ['TIKTOK_CLIENT_SECRET', 'TIKTOK_REFRESH_TOKEN']);
   assert.match(out.join('\n'), /TIKTOK_CLIENT_SECRET\s+skipped: nothing in .*PASTE-\.\.\. placeholder/);
   assert.ok(!out.join('\n').includes('YTSECRETVALUE') && !out.join('\n').includes('YTREFRESHVALUE'));
+});
+
+// ---------- YouTube: only an upload-only sign-in goes to Cloudflare, and the Video Kit's file is a fallback ----------
+const UP = 'https://www.googleapis.com/auth/youtube.upload';
+const SSL = 'https://www.googleapis.com/auth/youtube.force-ssl';
+const ytDirs = () => { const base = tmp('yt-'); const cfg = path.join(base, 'bagelunit-reels'); const video = path.join(base, 'bagelunit-video'); fs.mkdirSync(cfg); fs.mkdirSync(video); return { cfg, video }; };
+const YT = ['YT_CLIENT_ID', 'YT_CLIENT_SECRET', 'YT_REFRESH_TOKEN'];
+const sendYT = (cfg, video, slug = 'yt', dryRun = false) => { const calls = []; const out = []; const r = sendSecrets({ slug, configDir: cfg, videoDir: video, only: YT, dryRun, run: (n, v) => { calls.push([n, v]); return { status: 0, stdout: 'ok', stderr: '' }; }, log: (l) => out.push(l), pubDir: '/pub' }); return { r, calls, out: out.join('\n') }; };
+
+test('setup secrets, YouTube: the Video Kit\'s file is used when the brand has none, but only when it is upload-only', () => {
+  // no file of its own: the Video Kit's upload-only sign-in is sent, and the log says where it came from
+  let d = ytDirs();
+  fs.writeFileSync(path.join(d.video, 'youtube-yt.json'), JSON.stringify({ client_id: 'VID', client_secret: 'VSECRET1', refresh_token: 'VREFRESH1', scope: UP }));
+  let x = sendYT(d.cfg, d.video);
+  assert.deepEqual(x.r.sent, YT); assert.deepEqual(x.calls.map((c) => c[1]), ['VID', 'VSECRET1', 'VREFRESH1']);
+  assert.match(x.out, /Video Kit's upload-only .*bagelunit-video.*youtube-yt\.json/);
+  assert.ok(!x.out.includes('VSECRET1') && !x.out.includes('VREFRESH1'));
+  // the default folder for a test's config folder is its sibling, never the real ~/.config/bagelunit-video
+  assert.equal(secretPlan({ slug: 'yt', configDir: d.cfg, make: false }).rows.find((r) => r.name === 'YT_REFRESH_TOKEN').value, 'VREFRESH1');
+  // the Video Kit's full sign-in (upload + force-ssl, its default) is never sent: one plain line says what to run
+  d = ytDirs();
+  fs.writeFileSync(path.join(d.video, 'youtube-yt.json'), JSON.stringify({ client_id: 'VID', client_secret: 'VSECRET1', refresh_token: 'VREFRESH1', scope: `${UP} ${SSL}` }));
+  x = sendYT(d.cfg, d.video);
+  assert.deepEqual(x.calls, []); assert.deepEqual(x.r.refused, YT); assert.deepEqual(x.r.sent, []);
+  assert.match(x.out, /YT_CLIENT_ID\s+NOT sent: .*holds more than uploading \(youtube\.force-ssl\).*node publisher\/scripts\/video-login\.mjs youtube {2}for an upload-only sign-in/);
+  assert.equal(x.out.match(/video-login\.mjs youtube/g).length, 1, 'the line is said once, not three times');
+  assert.match(sendYT(d.cfg, d.video, 'yt', true).out, /YT_REFRESH_TOKEN\s+would NOT be sent/);
+  // a Video Kit file that does not say its scope is not trusted either
+  fs.writeFileSync(path.join(d.video, 'youtube-yt.json'), JSON.stringify({ client_id: 'VID', client_secret: 'VSECRET1', refresh_token: 'VREFRESH1' }));
+  assert.match(sendYT(d.cfg, d.video).out, /does not say which permissions it holds/);
+  // the brand's own file wins; a copy of the full sign-in in this kit's folder is refused the same way
+  fs.writeFileSync(path.join(d.video, 'youtube-yt.json'), JSON.stringify({ client_id: 'VID', client_secret: 'VSECRET1', refresh_token: 'VREFRESH1', scope: UP }));
+  fs.writeFileSync(path.join(d.cfg, 'youtube-yt.json'), JSON.stringify({ client_id: 'OWN', client_secret: 'OSECRET1', refresh_token: 'OREFRESH1', scope: `${UP},${SSL}` }));
+  x = sendYT(d.cfg, d.video);
+  assert.deepEqual(x.calls, []); assert.match(x.out, /bagelunit-reels.*youtube-yt\.json holds more than uploading/);
+  fs.writeFileSync(path.join(d.cfg, 'youtube-yt.json'), JSON.stringify({ client_id: 'OWN', client_secret: 'OSECRET1', refresh_token: 'OREFRESH1', scope: UP }));
+  x = sendYT(d.cfg, d.video);
+  assert.deepEqual(x.calls.map((c) => c[1]), ['OWN', 'OSECRET1', 'OREFRESH1']); assert.ok(!/Video Kit/.test(x.out));
+  // an own file with no token yet (the PASTE-... file video-login made) falls back to the Video Kit's upload-only one
+  fs.writeFileSync(path.join(d.cfg, 'youtube-yt.json'), JSON.stringify({ client_id: 'PASTE-CLIENT-ID-HERE', client_secret: 'PASTE-CLIENT-SECRET-HERE' }));
+  assert.deepEqual(sendYT(d.cfg, d.video).calls.map((c) => c[1]), ['VID', 'VSECRET1', 'VREFRESH1']);
+  // the older own file with no "scope" field (made by this kit's upload-only sign-in) keeps working
+  fs.writeFileSync(path.join(d.cfg, 'youtube-yt.json'), JSON.stringify({ client_id: 'OWN', client_secret: 'OSECRET1', refresh_token: 'OREFRESH1' }));
+  assert.deepEqual(sendYT(d.cfg, d.video).r.sent, YT);
+});
+
+test('video-login, YouTube: asks for youtube.upload only, borrows only the Video Kit\'s client, and keeps no token that can do more', async () => {
+  const { login, readCredentials } = await import('../scripts/video-login.mjs');
+  const d = ytDirs();
+  fs.writeFileSync(path.join(d.video, 'youtube-vk.json'), JSON.stringify({ client_id: 'VID', client_secret: 'VSECRET1', refresh_token: 'VREFRESH1', scope: `${UP} ${SSL}` }));
+  const c = readCredentials('youtube', 'vk', d.cfg, d.video);
+  assert.equal(c.cfg.client_id, 'VID'); assert.equal(c.cfg.refresh_token, undefined); assert.match(c.clientFrom, /bagelunit-video/);
+  assert.equal(c.file, path.join(d.cfg, 'youtube-vk.json'));
+  const sign = (scope) => {
+    let asked = null;
+    const fetchImpl = async () => new Response(JSON.stringify({ access_token: 'A', refresh_token: 'NEW-REFRESH-1', scope }));
+    const open = async (url) => { const u = new URL(url); asked = u.searchParams.get('scope'); const b = new URL(u.searchParams.get('redirect_uri')); b.searchParams.set('code', 'C'); b.searchParams.set('state', u.searchParams.get('state')); await fetch(b); };
+    const out = [];
+    return { p: login('youtube', { slug: 'vk', configDir: d.cfg, videoDir: d.video, fetchImpl, open: (u) => { open(u); }, log: (l) => out.push(l) }), asked: () => asked, out };
+  };
+  // Google answering with more than upload: nothing is saved
+  let s = sign(`${UP} ${SSL}`);
+  await assert.rejects(s.p, /more than uploading \(youtube\.force-ssl\), so nothing was saved/);
+  assert.equal(s.asked(), UP);
+  assert.ok(!fs.existsSync(path.join(d.cfg, 'youtube-vk.json')));
+  // the upload-only answer is saved in this kit's file; the Video Kit's file is left as it was
+  s = sign(UP); await s.p;
+  const saved = JSON.parse(fs.readFileSync(path.join(d.cfg, 'youtube-vk.json'), 'utf8'));
+  assert.deepEqual([saved.client_id, saved.client_secret, saved.refresh_token, saved.scope], ['VID', 'VSECRET1', 'NEW-REFRESH-1', UP]);
+  assert.match(s.out.join('\n'), /client id and secret from the Video Kit's/);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(d.video, 'youtube-vk.json'), 'utf8')).refresh_token, 'VREFRESH1');
+  assert.deepEqual(sendYT(d.cfg, d.video, 'vk').r.sent, YT);
+});
+
+// ---------- deploy: the account's cron triggers first, one more try on 10007 ----------
+const fakeWrangler = ({ who = { loggedIn: true, accounts: [{ id: 'acc1', name: 'A' }] }, token = { type: 'oauth', token: 'CF-OAUTH-SECRET' }, deploys = [{ status: 0, stdout: 'Deployed my-brand-publisher\n  https://my-brand-publisher.you.workers.dev\n', stderr: '' }] } = {}) => {
+  const calls = []; let n = 0;
+  const run = (args) => {
+    calls.push(args.join(' '));
+    if (args[0] === 'whoami') return who ? { status: 0, stdout: JSON.stringify(who) } : { status: 1, stdout: '{"loggedIn":false}' };
+    if (args[0] === 'auth') return { status: 0, stdout: JSON.stringify(token) };
+    if (args[0] === 'deploy') return deploys[Math.min(n++, deploys.length - 1)];
+    return { status: 1, stdout: '' };
+  };
+  return { run, calls };
+};
+const cfApi = (workers) => { const seen = []; const f = async (url, init) => { seen.push({ url, auth: init.headers.Authorization }); const u = new URL(url); const m = u.pathname.match(/\/scripts\/([^/]+)\/schedules$/); if (m) return new Response(JSON.stringify({ success: true, result: { schedules: Array.from({ length: workers[decodeURIComponent(m[1])] || 0 }, () => ({ cron: '*/5 * * * *' })) } })); if (/\/workers\/scripts$/.test(u.pathname)) return new Response(JSON.stringify({ success: true, result: Object.keys(workers).map((id) => ({ id })) })); return new Response('{}', { status: 404 }); }; f.seen = seen; return f; };
+const pubWithToml = () => { const pub = tmp('pub-'); fs.copyFileSync(new URL('../wrangler.template.toml', import.meta.url), path.join(pub, 'wrangler.template.toml')); writeToml({ slug: 'my-brand', pubDir: pub, kvId: 'a'.repeat(32) }); return pub; };
+
+test('deploy: counts the cron triggers other workers use on the account and stops before the free plan\'s cap', async () => {
+  const pub = pubWithToml();
+  assert.equal(cronsIn(fs.readFileSync(path.join(pub, 'wrangler.toml'), 'utf8')), 1);
+  assert.equal(FREE_CRON_LIMIT, 5);
+  // 4 used by other workers (this publisher's own trigger is not counted twice on a redeploy): 5 of 5, it deploys
+  let w = fakeWrangler(); let out = [];
+  let fetchImpl = cfApi({ 'other-a': 2, 'other-b': 2, 'no-cron': 0, 'my-brand-publisher': 1 });
+  let r = await deploy({ pubDir: pub, run: w.run, fetchImpl, env: {}, log: (l) => out.push(l), retryWait: 0 });
+  assert.equal(r.deployed, true); assert.equal(r.crons.used, 4); assert.equal(r.crons.mine, 1);
+  assert.match(out.join('\n'), /4 in use by other workers \(other-a 2, other-b 2\); this publisher needs 1\. That makes 5 of the free plan's 5/);
+  assert.match(out.join('\n'), /Next: node scripts\/setup\.mjs --url https:\/\/my-brand-publisher\.you\.workers\.dev/);
+  assert.ok(fetchImpl.seen.every((s) => s.auth === 'Bearer CF-OAUTH-SECRET') && fetchImpl.seen[0].url.includes('/accounts/acc1/workers/scripts'));
+  assert.ok(!out.join('\n').includes('CF-OAUTH-SECRET'));
+  // 5 used by others: nothing is deployed, and it says why in plain words; --anyway (Workers Paid) deploys
+  w = fakeWrangler(); out = [];
+  fetchImpl = cfApi({ 'a': 3, 'b': 2 });
+  r = await deploy({ pubDir: pub, run: w.run, fetchImpl, env: {}, log: (l) => out.push(l), retryWait: 0 });
+  assert.equal(r.deployed, false); assert.equal(r.capped, true); assert.ok(!w.calls.includes('deploy'));
+  assert.match(out.join('\n'), /That makes 6 of the free plan's 5\..*\n.*over the free plan's 5 cron triggers per account.*Nothing was deployed.*deploy --anyway/);
+  r = await deploy({ pubDir: pub, run: w.run, fetchImpl, env: {}, anyway: true, log: () => {}, retryWait: 0 });
+  assert.equal(r.deployed, true);
+  // the account comes from wrangler.toml or CLOUDFLARE_ACCOUNT_ID when the login has several
+  const two = { loggedIn: true, accounts: [{ id: 'acc1' }, { id: 'acc2' }] };
+  assert.match((await countCrons({ toml: 'name = "x"', run: fakeWrangler({ who: two }).run, fetchImpl: cfApi({}), env: {} })).why, /2 accounts .*account_id/);
+  assert.equal((await countCrons({ toml: 'name = "x"', run: fakeWrangler({ who: two }).run, fetchImpl: cfApi({ y: 1 }), env: { CLOUDFLARE_ACCOUNT_ID: 'acc2' } })).accountId, 'acc2');
+});
+
+test('deploy: when it cannot count it says so and deploys; "This Worker does not exist" (10007) is tried once more, other errors are not', async () => {
+  const pub = pubWithToml();
+  // not logged in: a plain warning, then the deploy
+  let w = fakeWrangler({ who: null }); let out = [];
+  let r = await deploy({ pubDir: pub, run: w.run, fetchImpl: cfApi({}), env: {}, log: (l) => out.push(l), retryWait: 0 });
+  assert.equal(r.deployed, true); assert.match(out.join('\n'), /Could not count the cron triggers .*not logged in.*allows 5 for all the account's workers together/);
+  // Cloudflare refusing the API call (a token without the permission): a warning with the token blanked out
+  const failing = async () => new Response(JSON.stringify({ success: false, errors: [{ message: 'Authentication error CF-OAUTH-SECRET' }] }), { status: 403 });
+  out = []; await deploy({ pubDir: pub, run: fakeWrangler().run, fetchImpl: failing, env: {}, log: (l) => out.push(l), retryWait: 0 });
+  assert.match(out.join('\n'), /Cloudflare did not answer \(Authentication error \*\*\*\)/); assert.ok(!out.join('\n').includes('CF-OAUTH-SECRET'));
+  // 10007 on the first deploy of a new worker, then fine
+  const missing = { status: 1, stdout: '', stderr: '✘ [ERROR] A request to the Cloudflare API failed. This Worker does not exist on your account. [code: 10007]' };
+  const ok = { status: 0, stdout: 'Uploaded\n https://my-brand-publisher.you.workers.dev', stderr: '' };
+  w = fakeWrangler({ deploys: [missing, ok] }); out = [];
+  r = await deploy({ pubDir: pub, run: w.run, fetchImpl: cfApi({}), env: {}, log: (l) => out.push(l), retryWait: 0 });
+  assert.equal(r.deployed, true); assert.equal(r.tries, 2); assert.equal(w.calls.filter((c) => c === 'deploy').length, 2);
+  assert.match(out.join('\n'), /This Worker does not exist" \(code 10007\).*trying once more/);
+  // 10007 twice: it stops after the second try
+  w = fakeWrangler({ deploys: [missing, missing, ok] });
+  await assert.rejects(deploy({ pubDir: pub, run: w.run, fetchImpl: cfApi({}), env: {}, log: () => {}, retryWait: 0 }), /did not finish \(tried twice\)/);
+  assert.equal(w.calls.filter((c) => c === 'deploy').length, 2);
+  // any other error is not retried; a cron limit error is explained
+  w = fakeWrangler({ deploys: [{ status: 1, stdout: '', stderr: 'You have exceeded the limit of 5 cron triggers. [code: 100125]' }] });
+  await assert.rejects(deploy({ pubDir: pub, run: w.run, fetchImpl: cfApi({}), env: {}, log: () => {}, retryWait: 0 }), /no cron trigger left \(the free plan allows 5 for all its workers together\)/);
+  assert.equal(w.calls.filter((c) => c === 'deploy').length, 1);
+  // no wrangler.toml, or no KV id yet: it says what to run first
+  await assert.rejects(deploy({ pubDir: tmp('pub-'), run: w.run, log: () => {} }), /run {2}node publisher\/scripts\/setup\.mjs {2}first/);
+  const p2 = tmp('pub-'); fs.copyFileSync(new URL('../wrangler.template.toml', import.meta.url), path.join(p2, 'wrangler.template.toml')); writeToml({ slug: 's', pubDir: p2 });
+  await assert.rejects(deploy({ pubDir: p2, run: w.run, log: () => {} }), /no KV id/);
 });
 
 test('video-login: makes the credentials file, then signs in on this computer and saves the refresh token without printing it', async () => {
