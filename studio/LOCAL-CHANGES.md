@@ -59,3 +59,9 @@
    - `tools/effort.py`: SKIPPED (exit 0) for a scene style, which has no shot code to count. `tools/pace.py`: the "below the bar" line points to `styles/<id>/SKILL.md` for a scene style instead of a missing `modes/<id>/GUIDE.md`; the bar itself is print's.
    - `modes/MODE-RULES.md` section "Scene styles"; `KIT.md` section B (the style question offers a scene style) and NEW section S; the Map lists `scenes.mjs` and `styles/`.
    - Tests: NEW `setup/test-scene-styles.mjs` (no key, no network; renders when a browser is available); `setup/test-release-smoke.mjs` knows `kit scene`.
+36. 2026-11-12 · Changing the voice's tempo or pause length no longer pays for the voice again:
+   - `tools/voice.py` `record()`: the paid-request fingerprint holds only what is paid for (the words, the provider and the
+     voice settings). `--speed` and `--gap` are applied to the saved take afterwards in `main()`, so a new value re-cuts it
+     for free. A take recorded before this change (its fingerprint also held speed and gap) is reused at the same settings
+     and its marker moved to the new fingerprint, so no existing reel pays twice.
+   - Found by the BagelUnit Video Kit, which voices long videos at x1.0 instead of the reel x1.15.

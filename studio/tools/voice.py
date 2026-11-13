@@ -174,11 +174,19 @@ def record(project, flags, opts, provider, take, saved):
 
     # credit guard: the same request again costs nothing; an unconfirmed one is not resent without --force
     keys = ('model', 'voice_id', 'stability', 'similarity', 'style', 'language', 'openai_model', 'openai_voice', 'instructions')
-    request = {'text': text, 'provider': provider, 'speed': float(flags.get('speed', opts['speed'])), 'gap': float(flags.get('gap', opts['gap'])),
-               **{k: opts.get(k) for k in keys}}
+    # what is paid for is the take: the words and the voice settings. The tempo and the pause length are applied to the take
+    # afterwards (main), so changing them re-cuts the saved take for free instead of paying for the same words again.
+    request = {'text': text, 'provider': provider, **{k: opts.get(k) for k in keys}}
     outputs = [take, saved] + ([take.parent / 'align.json'] if provider == 'elevenlabs' else [])
     marks, h = Markers(project, TOOL), digest(request)
     state = marks.state('voice', h, flags.on('force'))
+    if state == 'run' and not flags.on('force'):
+        # a take recorded before this change carries a fingerprint that also held the tempo and the pause length; at the same
+        # settings it is the same take, so it is reused and its record moved to the new fingerprint (never paid for twice)
+        legacy = digest({**request, 'speed': float(flags.get('speed', opts['speed'])), 'gap': float(flags.get('gap', opts['gap']))})
+        if marks.state('voice', legacy) == 'reuse':
+            marks.done('voice', h, outputs)
+            state = 'reuse'
     if state == 'reuse':
         marks.reused()
         return json.loads(saved.read_text(encoding='utf-8'))
