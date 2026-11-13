@@ -71,6 +71,14 @@ All actor methods return the actor (chainable). `at` = start time (s).
  - chunky tilted key-text card in screen space (x/y are 0–1 fractions of the frame). `*word*` highlights.
 - `S.captions({ text?, top?, chunk? })` - lower-third kinetic captions from `V.words`.
 
+## Your own characters
+- `S.defineCharacter(id, cd)` registers a character from scene code; then `S.character(id, ...)` works like the built-in cast
+  (all poses, expressions, emotes and the automatic lip-sync). `id`: lowercase letters, digits or `-`; the six built-in ids
+  cannot be replaced. `cd` uses the built-in fields: `skin, hair, shirt, pants, shoe` (colours), `hairStyle`
+  (`bun|quiff|long|flattop|spiky|curly`), `top` (`tee|hoodie|blouse|polo|stripe`), `sleeve` (`short|long`), `beard`,
+  `glasses` (`true`/`"round"` or `"square"`), `broad`, `kid`, `shorts`, `hairTop`. Missing fields come from maya.
+  Call it before `S.character`. Example: `S.defineCharacter("host", { skin: "#E8914A", hair: "#2B1D17", hairStyle: "curly", beard: true, top: "hoodie", shirt: "#1E1C22", pants: "#6B6E78", shoe: "#F3EFE6", sleeve: "long" });`
+
 ## Props & boards
 - `S.prop(name, { x, y, size = 1.2, at, until, float, spin, front })` - world prop that pops in.
   Props (`S.propNames`): `laptop, phone, coffee, book, money, coin, lightbulb, globe, rocket, clock,

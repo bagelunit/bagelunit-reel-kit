@@ -930,6 +930,7 @@
       if (st_ === "bun") return C(-r * 0.12, -r * 1.1, r * 0.5, h, o) + E(-r * 0.04, -r * 0.3, r * 1.12, r * 0.94, h, o);
       if (st_ === "long") return P(p("M-1.1r -0.3r C-1.28r -1.36r 1.28r -1.36r 1.1r -0.3r L1.22r 2.25r Q0 2.6r -1.22r 2.25r Z"), h, o);
       if (st_ === "quiff" || st_ === "spiky") return E(0, -r * 0.34, r * 1.05, r * 0.8, h, o);
+      if (st_ === "curly") return E(0, -r * 0.4, r * 1.14, r * 0.9, h, o);
       return "";
     }
     if (st_ === "bun") {
@@ -938,6 +939,11 @@
       return P(d, h, o) + curls;
     }
     if (st_ === "quiff") return P(p("M-1.02r -0.08r C-1.0r -1.05r 0.95r -1.15r 1.02r -0.25r C0.7r -0.6r 0.2r -0.7r -0.3r -0.62r C-0.65r -0.55r -0.9r -0.4r -1.02r -0.08r Z"), h, o) + P(p("M-0.55r -0.82r C-0.45r -1.52r 0.75r -1.62r 1.0r -1.02r C0.72r -1.18r 0.32r -1.12r 0.1r -0.86r Z"), h, o) + P(p("M-0.2r -1.0r Q0.3r -1.4r 0.8r -1.15r"), "none", SK(shade(h, 0.8), 1.1));
+    if (st_ === "curly") {
+      var cap = p("M-1.04r 0.02r C-1.16r -1.2r 1.12r -1.3r 1.06r -0.1r C0.82r -0.48r 0.42r -0.62r 0r -0.6r C-0.44r -0.6r -0.84r -0.42r -1.04r 0.02r Z"), cu = "", cs = SK(shade(h, 0.78), 0.9);
+      [[-0.98, -0.1, 0.22], [-0.86, -0.5, 0.25], [-0.6, -0.86, 0.27], [-0.22, -1.08, 0.28], [0.2, -1.1, 0.28], [0.58, -0.92, 0.27], [0.86, -0.58, 0.25], [1.0, -0.18, 0.21], [-0.36, -0.7, 0.22], [0.12, -0.78, 0.22], [0.52, -0.62, 0.2]].forEach(function (q) { cu += C(q[0] * r, q[1] * r, q[2] * r, h, cs); });
+      return P(cap, h, o) + cu;
+    }
     if (st_ === "long") return P(p("M-1.04r 0.5r C-1.2r -1.12r 0.92r -1.28r 1.05r -0.12r C0.8r -0.56r 0.12r -0.76r -0.42r -0.46r C-0.72r -0.24r -0.86r 0.1r -1.04r 0.5r Z"), h, o);
     if (st_ === "flattop") return P(p("M-0.98r -0.12r L-0.96r -1.14r Q-0.92r -1.34r -0.7r -1.34r L0.7r -1.34r Q0.92r -1.34r 0.96r -1.14r L0.98r -0.24r C0.82r -0.56r 0.6r -0.64r 0.3r -0.64r L-0.3r -0.64r C-0.62r -0.64r -0.82r -0.5r -0.98r -0.12r Z"), h, o);
     if (st_ === "spiky") return P(p("M-1.02r -0.04r L-1.12r -0.74r L-0.76r -0.86r L-0.72r -1.3r L-0.3r -1.06r L0r -1.44r L0.3r -1.06r L0.72r -1.3r L0.8r -0.84r L1.14r -0.72r L1.02r -0.14r C0.7r -0.5r 0.3r -0.6r 0r -0.58r C-0.4r -0.6r -0.8r -0.45r -1.02r -0.04r Z"), h, o);
@@ -1080,7 +1086,8 @@
       e.lidT = svg("rect", { x: -erx - 2, width: erx * 2 + 4, height: ery * 3, fill: lidC, stroke: robot ? "none" : INK, "stroke-width": 1, "clip-path": "url(#" + cid + ")" }, eb);
       e.lidB = svg("rect", { x: -erx - 2, width: erx * 2 + 4, height: ery * 3, fill: lidC, "clip-path": "url(#" + cid + ")" }, eb);
       e.arc = svg("path", { d: "M" + -erx + " 1Q0 " + f2(-ery * 0.95) + " " + erx + " 1", fill: "none", stroke: robot ? cd.glow : INK, "stroke-width": robot ? 2.2 : 1.6, "stroke-linecap": "round" }, eg);
-      if (cd.glasses) e.glass = svg("circle", { r: erx + 2.4, fill: "rgba(255,255,255,0.18)", stroke: INK, "stroke-width": 1.5 }, eg);
+      if (cd.glasses === "square") e.glass = svg("rect", { x: -erx - 2.6, y: -ery - 2.2, width: erx * 2 + 5.2, height: ery * 2 + 4.4, rx: 1.6, fill: "rgba(255,255,255,0.18)", stroke: INK, "stroke-width": 1.7 }, eg);
+      else if (cd.glasses) e.glass = svg("circle", { r: erx + 2.4, fill: "rgba(255,255,255,0.18)", stroke: INK, "stroke-width": 1.5 }, eg);
       return e;
     });
     if (cd.glasses) el.bridge = svg("path", { fill: "none", stroke: INK, "stroke-width": 1.4 }, el.face);
@@ -2515,6 +2522,23 @@
   S.camera = function () { return ensure().camera; };
   S.cartoonEase = CE;
   S.cast = CAST_IDS.slice();
+  // Register a character from scene code (e.g. a brand's own narrator). cd uses the same fields as the built-in cast:
+  // skin, hair, shirt, pants, shoe (colours); hairStyle bun|quiff|long|flattop|spiky|curly; top tee|hoodie|blouse|polo|stripe;
+  // sleeve short|long; beard; glasses (true/"round" or "square"); broad; kid; shorts; hairTop. Missing fields come from maya.
+  // Returns the id; S.character(id, ...) then works with every pose, expression and the lip-sync. Built-in ids cannot be replaced.
+  S.defineCharacter = function (id, cd) {
+    id = str(id).toLowerCase();
+    if (!/^[a-z][a-z0-9-]{0,23}$/.test(id)) throw new Error("defineCharacter: id must be lowercase letters, digits or -, starting with a letter: " + id);
+    if (["maya", "leo", "priya", "sam", "bolt", "kai"].indexOf(id) >= 0) throw new Error("defineCharacter: " + id + " is a built-in character");
+    if (!cd || typeof cd !== "object") throw new Error("defineCharacter: give a character description object");
+    var base = cd.robot ? CAST.bolt : CAST.maya, out = {};
+    Object.keys(base).forEach(function (k) { out[k] = base[k]; });
+    Object.keys(cd).forEach(function (k) { out[k] = cd[k]; });
+    CAST[id] = out;
+    if (CAST_IDS.indexOf(id) < 0) CAST_IDS.push(id);
+    S.cast = CAST_IDS.slice();
+    return id;
+  };
   S.poses = Object.keys(POSES);
   S.expressions = Object.keys(EXPR);
   S.marks = MARKS.slice();

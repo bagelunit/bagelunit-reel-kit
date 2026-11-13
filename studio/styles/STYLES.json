@@ -1,7 +1,7 @@
 {
   "_note": "Written by sync-to-kit.mjs in the bagelunit-styles repo. Edit a style there and sync again; never edit the copies here.",
   "source": "bagelunit-styles",
-  "version": "5730b9f",
+  "version": "287a8f3",
   "synced": "2026-11-12",
   "format": "tall",
   "size": [
@@ -9,7 +9,7 @@
     1920
   ],
   "core": {
-    "version": "5730b9f",
+    "version": "287a8f3",
     "files": {
       "runtime.js": "d5f059c201fd4635",
       "build-scene.mjs": "e5ecd9bb233562b5",
@@ -782,13 +782,13 @@
         "journey",
         "title-card"
       ],
-      "version": "5730b9f",
+      "version": "287a8f3",
       "files": {
-        "engine.js": "3a0e5a13cf7611c3",
+        "engine.js": "7aeea25559881356",
         "engine.css": "1bfc0abebd98ffa6",
         "meta.json": "d310e4cb86c83266",
         "SKILL.md": "f4e1ec5ac7c5b42b",
-        "docs.md": "16be552fc6d0f4cb",
+        "docs.md": "5e749313dad32d24",
         "templates.json": "c31c7e2f1060cac0"
       }
     }
