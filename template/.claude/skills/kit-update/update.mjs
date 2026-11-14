@@ -169,7 +169,8 @@ export function engineState(skills = path.join(os.homedir(), '.claude', 'skills'
 
 // What the session-start notice says about versions, or ''. No network for the engine check (the engine against this
 // workspace); once a day it reads the public VERSION file on GitHub (3 seconds at most, never fails the session) and
-// says when a newer kit is out. Turn the online check off with "updates": { "check": false } in brand/brand.json.
+// says when a newer kit is out. Turn the online check off with "updates": { "check_on_start": false } in brand/brand.json
+// (what /brand-setup writes for "No, I'll check myself"; the older "check": false is still honoured).
 export async function versionNote(root, { skills, now = Date.now(), fetchLatest = null } = {}) {
   const mine = (() => { try { return fs.readFileSync(path.join(root, '.kit-version'), 'utf8').trim(); } catch { return ''; } })();
   if (!mine) return '';
@@ -179,7 +180,7 @@ export async function versionNote(root, { skills, now = Date.now(), fetchLatest 
   if (eng.state === 'ok' && (eng.version === 'unknown' || behind({ version: mine, build: mineB }, eng, 'engine')))
     lines.push(`The engine (/bagelunit-reels) is on ${eng.version === 'unknown' ? 'an older version' : cmp(mine, eng.version) === 0 ? `${eng.version}, ${eng.build ? `build ${when(eng.build)}` : 'an earlier build'}` : eng.version}, behind this workspace (${mine}${cmp(mine, eng.version || '0') === 0 && mineB ? `, build ${when(mineB)}` : ''}). Fixes in the newer kit do not work until it is updated: tell the owner in one line and offer to run  node .claude/skills/kit-update/update.mjs engine  (then Claude Code must be restarted).`);
   let cfg = {}; try { cfg = JSON.parse(fs.readFileSync(path.join(root, 'brand', 'brand.json'), 'utf8')); } catch {}
-  if (cfg.updates?.check !== false) {
+  if (cfg.updates?.check_on_start !== false && cfg.updates?.check !== false) {
     const cacheFile = path.join(root, '.cache', 'kit-latest.json');
     let c = null; try { c = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch {}
     if (!c || !(now - c.at < 24 * 3600 * 1000)) {

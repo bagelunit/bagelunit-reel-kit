@@ -91,6 +91,12 @@ assert.match(src, /MARKER\), new Date\(\)\.toISOString\(\)\.slice\(0, 10\) \+ '\
   // switched off in brand.json: no online check at all
   fs.writeFileSync(path.join(ws, 'brand', 'brand.json'), JSON.stringify({ updates: { check: false } })); fs.rmSync(path.join(ws, '.cache'), { recursive: true, force: true }); fetches = 0;
   assert.equal(await versionNote(ws, { skills, now: NOW + 99 * 3600e3, fetchLatest: latest('9.9.9') }), ''); assert.equal(fetches, 0);
+  // the key /brand-setup writes for "No, I'll check myself" switches it off too (and true keeps it on)
+  fs.writeFileSync(path.join(ws, 'brand', 'brand.json'), JSON.stringify({ updates: { check_on_start: false } })); fs.rmSync(path.join(ws, '.cache'), { recursive: true, force: true }); fetches = 0;
+  assert.equal(await versionNote(ws, { skills, now: NOW + 99 * 3600e3, fetchLatest: latest('9.9.9') }), ''); assert.equal(fetches, 0);
+  fs.writeFileSync(path.join(ws, 'brand', 'brand.json'), JSON.stringify({ updates: { check_on_start: true } })); fs.rmSync(path.join(ws, '.cache'), { recursive: true, force: true });
+  assert.match(await versionNote(ws, { skills, now: NOW + 99 * 3600e3, fetchLatest: latest('9.9.9') }), /9\.9\.9/); assert.equal(fetches, 1);
+  fs.writeFileSync(path.join(ws, 'brand', 'brand.json'), JSON.stringify({ updates: { check_on_start: false } })); fs.rmSync(path.join(ws, '.cache'), { recursive: true, force: true });   // off again for the engine checks below
   // a linked engine and a missing engine are never called behind
   fs.rmSync(engine, { recursive: true, force: true }); fs.symlinkSync(fakeKit, engine, 'dir');
   assert.equal(await versionNote(ws, { skills, now: NOW, fetchLatest: latest('1.20.0') }), '');

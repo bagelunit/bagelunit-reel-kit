@@ -50,7 +50,7 @@ is what usually brings the owner here.
    `--workspace <folder>`. The engine is already current by then, so only the workspace changes.
 
 The once-a-day check for a newer kit reads one public file on GitHub (the newest version number) and nothing else. To
-turn it off, set `"updates": { "check": false }` in `brand/brand.json`.
+turn it off, set `"updates": { "check_on_start": false }` in `brand/brand.json` (`/brand-setup` asks this).
 
 ## If something fails
 

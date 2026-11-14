@@ -26,6 +26,7 @@ Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. T
 
 **Added since the first release (still 1.0.0)**
 
+- **"No, I'll check myself" now works.** Answering no to the kit-update question in `/brand-setup` really stops the start-of-session check for a newer kit (it saved a setting the check did not read).
 - **Calm styles can reach 90.** Deep Zoom (a calm, slow-by-design style) no longer fails `kit pace`, and `/reel-review` scores its movement and pace against a calm bar, so calm clips pass on their own merits instead of needing the owner's override. Frame 0 and the hook keep the full bar.
 - **Scene-style reels open built and have sound cues.** The first scene of a scene-style reel opens on its finished picture, so frame 0 shows the subject and the title instead of an empty fade-in, and it keeps moving. `kit render` writes the sound cues from the scene cuts (a soft swoosh on every cut, plus any a scene asks for with `"sfx"`), so the real-sound step has something to work with.
 - **Deep Zoom fits portrait.** Big hero objects stay inside the safe area with a margin, clear of the sides and of Instagram's caption area.
