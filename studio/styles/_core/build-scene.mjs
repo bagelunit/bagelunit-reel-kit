@@ -24,6 +24,8 @@ const { values: a } = parseArgs({
     seed: { type: 'string', default: '1' },
     style: { type: 'string' },
     out: { type: 'string' },
+    // "none": open on the built picture (no build-in from nothing); a number: seconds of build-in to skip. See runtime.js.
+    enter: { type: 'string' },
   },
 });
 if (!a.out || (!a.code && !a.template)) {
@@ -49,8 +51,16 @@ const input = {
   narration: a.narration,
   words: a.words ? JSON.parse(read(a.words) || '[]') : [],
 };
+const props = a.template && a.props ? JSON.parse(read(a.props) || '{}') : {};
+// "enter" may also sit in the props (a kit that copies a scene's props as they are): it is a scene option, never a
+// template prop, so it is taken out before the template sees the props. --enter wins.
+const enterOf = (v) => (v === 'none' ? 'none' : v != null && v !== '' && Number.isFinite(Number(v)) ? Number(v) : null);
+let enter = enterOf(a.enter);
+if (props && typeof props === 'object' && 'enter' in props) { enter = enter ?? enterOf(props.enter); delete props.enter; }
+if (a.enter != null && enter == null) { console.error(`--enter must be "none" or a number of seconds, not "${a.enter}"`); process.exit(1); }
+if (enter != null) input.enter = enter;
 const scene = a.template
-  ? { templateId: a.template, props: a.props ? JSON.parse(read(a.props)) : {}, narration: a.narration }
+  ? { templateId: a.template, props, narration: a.narration }
   : { narration: a.narration };
 
 const custom = a.code ? `<script>window.__scene_code = function scene(V, S, root) {\n${safe(read(a.code))}\n};</script>` : '';

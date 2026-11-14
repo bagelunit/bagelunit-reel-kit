@@ -44,7 +44,9 @@ import { logoProblems } from '../../.claude/skills/logo-library/logos.mjs';
 import { checkText, checkLength, videoTargets, LIMITS } from '../src/limits.js';
 import { fileSeconds } from '../src/mp4.js';
 
-const MAX_BYTES = 95 * 1024 * 1024;   // Cloudflare's free plan takes request bodies up to 100 MB
+const MAX_BYTES = 95 * 1024 * 1024;            // one request body: Cloudflare takes up to 100 MB
+const MULTIPART_MAX_BYTES = 300 * 1024 * 1024; // a bigger video goes up in parts, up to Instagram's 300 MB reel limit
+export const PART_BYTES = 64 * 1024 * 1024;    // every part but the last the same size (R2), well under one request body
 const PLATFORMS = ['instagram', 'facebook', 'threads', 'youtube', 'tiktok'];
 
 const list = (v) => (v && v !== true ? String(v).split(',').map((s) => s.trim()).filter(Boolean) : []);
@@ -73,7 +75,7 @@ export function checkReel(reelDir, args = {}, now = Date.now()) {
     else {
       sha = sha256File(video);
       if (sha.slice(0, 12) !== gate.sha12) problems.push(`out/${gate.file} changed since Gate C (approved ${gate.sha12}, now ${sha.slice(0, 12)}): it needs Gate C again`);
-      if (fs.statSync(video).size > MAX_BYTES) problems.push(`out/${gate.file} is over 95 MB; export a smaller file and approve it again`);
+      if (fs.statSync(video).size > MULTIPART_MAX_BYTES) problems.push(`out/${gate.file} is over 300 MB, Instagram's limit for a reel file; export a smaller file and approve it again`);
     }
     if (gate.cover) {
       cover = path.join(reel, 'out', gate.cover.file);
@@ -221,6 +223,38 @@ async function askHandle(handle) {
 }
 
 // The whole flow. `confirm(handle)` returns what the person typed; tests pass their own, plus fetchImpl and configDir.
+// A video over 95 MB (a full episode) goes up in parts of PART_BYTES (src/publish.js, "big files"): start, each part
+// (read from disk one at a time, never the whole file in memory; a part that fails is sent again up to twice), then
+// complete, where the publisher reads the joined file back and refuses it unless its size and SHA-256 match. If anything
+// fails, the unfinished upload is given up so its parts are freed.
+export async function uploadInParts(conn, file, sha, size, { fetchImpl = fetch, log = console.log, partBytes = PART_BYTES } = {}) {
+  const s = await admin(conn, 'POST', `/admin/upload/multipart?type=video&name=${encodeURIComponent(path.basename(file))}`, {
+    headers: { 'X-Content-SHA256': sha, 'X-Content-Length': String(size) }, fetchImpl,
+  });
+  const fd = fs.openSync(file, 'r');
+  try {
+    const parts = [];
+    const count = Math.ceil(size / partBytes);
+    for (let n = 1, off = 0; off < size; n++, off += partBytes) {
+      const buf = Buffer.alloc(Math.min(partBytes, size - off));
+      fs.readSync(fd, buf, 0, buf.length, off);
+      let r, tries = 0;
+      for (;;) {
+        try { r = await admin(conn, 'PUT', `/admin/upload/multipart/part?upload=${s.upload}&part=${n}`, { body: buf, headers: { 'Content-Type': 'application/octet-stream' }, fetchImpl }); break; }
+        catch (e) { if (++tries > 2) throw e; }
+      }
+      parts.push({ partNumber: r.partNumber, etag: r.etag });
+      log(`  uploaded part ${n} of ${count}`);
+    }
+    return await admin(conn, 'POST', `/admin/upload/multipart/complete?upload=${s.upload}`, {
+      body: JSON.stringify({ parts }), headers: { 'Content-Type': 'application/json' }, fetchImpl,
+    });
+  } catch (e) {
+    await admin(conn, 'DELETE', `/admin/upload/multipart?upload=${s.upload}`, { fetchImpl }).catch(() => null);
+    throw e;
+  } finally { fs.closeSync(fd); }
+}
+
 export async function scheduleReel(reelDir, args, { fetchImpl = fetch, configDir = CONFIG_DIR, confirm = askHandle, log = console.log, now = Date.now() } = {}) {
   let c = checkReel(reelDir, args, now);
   const implicit = !list(args.platforms).length && !(Array.isArray(c.brand?.posting?.platforms) && c.brand.posting.platforms.length);
@@ -242,9 +276,12 @@ export async function scheduleReel(reelDir, args, { fetchImpl = fetch, configDir
   }
   const media = [];
   const up = async (file, sha, type, role) => {
-    const r = await admin(conn, 'PUT', `/admin/upload?type=${type}&name=${encodeURIComponent(path.basename(file))}`, {
-      body: fs.readFileSync(file), headers: { 'X-Content-SHA256': sha, 'Content-Type': type === 'video' ? 'video/mp4' : 'image/jpeg' }, fetchImpl,
-    });
+    const size = fs.statSync(file).size;
+    const r = type === 'video' && size > MAX_BYTES
+      ? await uploadInParts(conn, file, sha, size, { fetchImpl, log })
+      : await admin(conn, 'PUT', `/admin/upload?type=${type}&name=${encodeURIComponent(path.basename(file))}`, {
+        body: fs.readFileSync(file), headers: { 'X-Content-SHA256': sha, 'Content-Type': type === 'video' ? 'video/mp4' : 'image/jpeg' }, fetchImpl,
+      });
     media.push({ key: r.key, sha256: sha, role });
   };
   let s;

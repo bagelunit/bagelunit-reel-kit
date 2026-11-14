@@ -22,6 +22,14 @@
   var HEIGHT = Math.max(1, num(input.height, num(html.getAttribute("data-height"), w.innerHeight || 1080)));
   var SEED = Math.floor(num(input.seed, num(html.getAttribute("data-seed"), 1))) >>> 0;
   var NARRATION = typeof input.narration === "string" ? input.narration : "";
+  // Opening ("enter"): "none" means the scene opens already built, so frame 0 shows the subject and the title instead
+  // of an empty build-in. Frame 0 shows the scene as it is at ENTER seconds; from there the scene runs at half speed
+  // until it meets the real clock at 2 x ENTER, so it never stands still (a frozen opening fails a reel's QA), and after
+  // that time is untouched, so the voice and the word cues stay in sync (a cue inside the first 2 x ENTER s lands up to
+  // ENTER s early). A number is ENTER in seconds (0 to 3); anything else (or nothing) keeps the normal build-in.
+  var ENTER_NONE = 1.0;
+  var ENTER = input.enter === "none" ? ENTER_NONE : Math.max(0, Math.min(3, num(input.enter, 0)));
+  ENTER = Math.min(ENTER, DURATION);
 
   // --------------------------- errors ---------------------------
   var errors = [];
@@ -737,6 +745,7 @@
   function seek(t) {
     t = num(t, 0);
     if (t < 0) t = 0;
+    if (t < 2 * ENTER) t = ENTER + t / 2;        // "enter": open on the built picture, then catch up at half speed (see input)
     now = t;
     try {
       if (dirty) compile();
@@ -850,6 +859,8 @@
     isLandscape: ORIENT === "landscape",
     isSquare: ORIENT === "square",
     seed: SEED,
+    /** seconds of the build-in skipped at the start ("enter"), 0 for a normal build-in */
+    enter: ENTER,
     at: at,
     find: find,
     findEnd: findEnd,
@@ -893,6 +904,7 @@
     version: VERSION,
     ready: ready,
     duration: DURATION,
+    enter: ENTER,
     seek: seek,
     errors: errors,
   };

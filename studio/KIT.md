@@ -184,8 +184,9 @@ node "$KIT_DIR/tools/kit.mjs" scene <REELS>/<slug> stand-in         optional: a 
 1. Read `styles/<style>/SKILL.md` (the art direction and its golden rules) and `templates.json` (each template's props schema, example props and narration) before planning.
 2. Write `script.txt` (section C), then `scenes.json`: one scene per idea, `narration` = the exact words of the script it covers, `props` from the template's schema, using the narrator's own words in labels so the engine lands each one on its word. Reuse the same cast and props across scenes; vary the templates.
 3. Voice, then `kit scene <dir> plan`: every scene should say `words n/n`. Fix the narration of any scene on `even split`. Aim for 3 to 12 s a scene.
-4. `kit scene <dir> check`, then LOOK at every sheet; fix props (shorter labels, fewer items) and check again. Then `kit render`, pull frames around each cut, and section G from step 3 on: `kit pace` (the print bar; calm styles may need busier templates), `kit effort` says it does not apply, `kit lint` finds no shot data, `kit qa` checks the safe zone from the engine's boxes.
-5. Revisions: change a scene's props or narration and render again; only changed scenes are drawn again.
+4. `kit scene <dir> check`, then LOOK at every sheet; fix props (shorter labels, fewer items) and check again. Then `kit render`, pull frames around each cut, and section G from step 3 on: `kit pace` (the print bar; a calm style in `CALM_STYLES` in `tools/kitcore.py`, today `deep-zoom`, is measured but passes with a note, and `/reel-review` scores its movement and pace against the calm bar), `kit effort` says it does not apply, `kit lint` finds no shot data, `kit qa` checks the safe zone from the engine's boxes.
+5. Sound: `kit render` writes `build/sfx.json` from the scene cuts (a soft swoosh on every cut, none on frame 0), so `kit export` and the real-sound step (section G step 5) have cues. A scene can add its own with `"sfx": "pop"` (at its start) or `"sfx": [{"at": 1.2, "name": "pop", "gain": -3}]` (seconds into the scene); `reel.json` `"sfx": "off"` turns the cut swooshes off. Names: whoosh swoosh pop click tick thud stamp boom riser shimmer type cash.
+6. Revisions: change a scene's props or narration and render again; only changed scenes are drawn again.
 
 ---
 

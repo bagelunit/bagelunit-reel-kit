@@ -50,6 +50,7 @@ node "$KIT_DIR/tools/kit.mjs" effort <project>
 ```
 
 The final render waits until both say PASS.
+- A calm scene style (`CALM_STYLES` in `tools/kitcore.py`, today `deep-zoom`) is slow on purpose: `pace` still prints its numbers but passes with "calm style", and `/reel-review` scores its movement and pace against the calm bar. Frame 0 and the hook keep the full bar.
 - `pace` names every flat stretch and the words over it. Open that shot's card and give the stretch something: an event on the word that carries the line, idle motion on props already there, a camera move or a host gesture. Draft again, check again.
 - `effort` rejects reels that are thin or built from stock pieces. More of the same won't fix it; objects invented for this script will.
 

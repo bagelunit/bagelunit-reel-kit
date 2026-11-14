@@ -80,6 +80,20 @@ const contiguous = (ts) => ts.every((t, i) => i === 0 ? t.t0 === 0 : t.t0 === ts
   check(ts.every((t) => t.source === 'even') && Math.abs(ts.at(-1).t1 - 12) < 1e-9 && Math.abs((ts[0].t1 - ts[0].t0) - 4) < 0.05, 'no words.json: an even split over the length');
 }
 
+// ── 2b. sound cues from the scene cuts (build/sfx.json) and the calm styles list ─────────────────────────────────────
+{
+  const { sfxCues } = scenesLib;
+  const items = [0, 3, 7.5].map((t0, i) => ({ time: { t0 }, scene: { n: i + 1, sfx: i === 1 ? 'pop' : i === 2 ? [{ at: 1.2, name: 'stamp', gain: -3 }, { name: 'kazoo' }] : null } }));
+  const c = sfxCues(items, {});
+  check(c.list.filter((x) => x.name === 'swoosh').length === 2 && !c.list.some((x) => x.t < 0.5 && x.name === 'swoosh'), 'scene-style sound: a swoosh on every cut, none on frame 0');
+  check(c.list.some((x) => x.name === 'pop' && x.t === 3) && c.list.some((x) => x.name === 'stamp' && x.t === 8.7 && x.gain === -3), 'scene-style sound: a scene\'s own cues land at its start or "at" seconds in');
+  check(c.unknown.length === 1 && c.unknown[0].name === 'kazoo' && !c.list.some((x) => x.name === 'kazoo'), 'scene-style sound: a name the bank lacks is reported, not written');
+  const off = sfxCues(items, { sfx: 'off' });
+  check(off.list.length === 0, 'scene-style sound: reel.json "sfx": "off" writes no cues');
+  const calm = spawnSync(PY, ['-c', 'import sys; sys.path.insert(0, sys.argv[1]); import kitcore, pace; print(kitcore.is_calm("deep-zoom"), kitcore.is_calm("print"), pace.CALM_STYLES is kitcore.CALM_STYLES)', path.join(STUDIO, 'tools')], { encoding: 'utf8' });
+  check(calm.stdout.trim() === 'True False True', `calm styles: one list in kitcore.py, used by pace.py (${(calm.stdout || calm.stderr).trim().split('\n').pop()})`);
+}
+
 // ── 3. the commands in a new brand folder ─────────────────────────────────────────────────────────────────────────────
 function brand(name, studio) {
   const made = spawnSync('node', [path.join(REPO, 'setup', 'new-brand.mjs'), path.join(tmp, name)], { encoding: 'utf8' });
@@ -161,6 +175,11 @@ else {
   const probeD = spawnSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', path.join(R, 'build', 'draft.mp4')], { encoding: 'utf8' }).stdout.trim().replace(/,+$/, '');
   check(probe === '1080,1920' && probeD === '540,960', `build/video.mp4 is 1080x1920 and build/draft.mp4 is 540x960 (${probe} / ${probeD})`);
   check(/0 rendered, 3 reused/.test(out(k2('render', 'reels/short'))), 'a second render reuses every unchanged scene');
+  const sfx = JSON.parse(fs.readFileSync(path.join(R, 'build', 'sfx.json'), 'utf8'));
+  const html = (n) => fs.readFileSync(path.join(R, 'build', 'scenes', `00${n}.html`), 'utf8');
+  const inputOf = (n) => JSON.parse(html(n).match(/__SCENE_INPUT__ = (\{.*?\});<\/script>/s)[1].replace(/\\u003c/g, '<'));
+  check(inputOf(1).enter === 'none' && inputOf(2).enter === undefined, 'the first scene opens on its finished picture ("enter": "none"), the others keep their build-in');
+  check(sfx.length === 2 && sfx.every((c) => c.name === 'swoosh' && c.t > 0.5), `kit render writes build/sfx.json with a swoosh on each of the 2 cuts (${sfx.length} cues)`);
   short[1].props = { ...short[1].props, label: 'all colours, mixed' };
   fs.writeFileSync(path.join(R, 'scenes.json'), JSON.stringify({ scenes: short }, null, 2));
   check(/1 rendered, 2 reused/.test(out(k2('render', 'reels/short'))), 'changing one scene re-renders only that scene');

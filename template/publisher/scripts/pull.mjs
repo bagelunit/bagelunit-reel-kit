@@ -65,7 +65,8 @@ export async function pull({ root, fetchImpl = fetch, configDir = CONFIG_DIR, lo
       if (t?.status !== 'published' || !t.permalink) continue;
       if (read(ap).includes(t.permalink)) continue;
       const when = t.published_at ? new Date(t.published_at) : new Date();
-      appendUnder(ap, 'Posting', `- ${stamp(when)} ${label}: ${t.permalink}`);
+      if (p.kind === 'carousel') appendUnder(ap, 'Carousel', `- ${stamp(when)} Carousel posted on ${handle}: ${t.permalink}`);   // never the reel's own Posting record
+      else appendUnder(ap, 'Posting', `- ${stamp(when)} ${label}: ${t.permalink}`);
       added++;
     }
   }

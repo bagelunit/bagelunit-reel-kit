@@ -99,3 +99,7 @@ Cast: `wren` (girl, mustard raincoat), `oli` (boy, striped jumper), `nana` (gran
 - Layer order is back, mid, cast, front, text, fx, grain, top. Bubbles sit in `text` (under the grain);
   the page turn is in `top`. Objects default to `front` (above the cast): pass `parent: b.mid` to put
   one behind the characters.
+
+## Opening (`enter`, every style)
+
+A scene option, not a template prop. `"enter": "none"` makes the scene open on its built picture: frame 0 already shows the subject and the title instead of an empty build-in, so a reel's hook frame is never blank. Frame 0 shows the scene as it is at 1 s; it then runs at half speed until it meets the real clock at 2 s, so the opening never stands still, and after that time is untouched, so the voice and the word cues stay in sync (a cue in the first 2 s lands up to 1 s early). A number sets that start point in seconds (0 to 3). Give it to `core/build-scene.mjs --enter none`, or as `"enter"` in a scene's props (taken out before the template sees them). In custom code `V.enter` is the hold in seconds (0 for a normal build-in). Use it on the first scene of a reel; later scenes keep their build-in, which reads as the cut.

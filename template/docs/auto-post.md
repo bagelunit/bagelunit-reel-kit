@@ -30,6 +30,17 @@ In the Instagram app or Meta Business Suite, upload the approved mp4 from `reels
 
 A scheduling app connects to an Instagram professional account and posts at a set time. You upload the approved file and cover once. Check the app's current price and terms first.
 
+**Carousels.** The publisher also posts an Instagram carousel that goes with a reel (for example a facts carousel
+per episode): the slides go in the reel's `out/carousel/`, the owner approves them, and
+`node publisher/scripts/carousel.mjs` schedules them (`/reel-posting`, route 4).
+
+**YouTube Shorts and the full episode.** YouTube's API cannot set a Short's "related video" (the link to the full
+episode). Set it by hand in YouTube Studio after the Short is up.
+
+**If Claude Code stops the schedule command.** In auto mode it may block `schedule.mjs --yes` as an outward action,
+even in dry run. Allow it when asked, or add `Bash(node publisher/scripts/schedule.mjs:*)` in `/permissions` for this
+brand folder. The script still refuses anything that did not pass Gate C.
+
 ## Changing a post after it is out
 
 Instagram's and Threads' APIs cannot edit a caption once it is posted, so the publisher cannot fix one. Edit the caption by hand in the app. For a wrong video, delete the post by hand and schedule the fixed reel again, then add the new post's link to the reel's "Posting" lines so the dashboard matches it.

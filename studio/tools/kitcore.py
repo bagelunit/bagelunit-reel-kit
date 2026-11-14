@@ -264,6 +264,17 @@ def brand_of(project):
     return p.parent.parent
 
 
+# ── calm scene styles (Susanoo Studio, owner 2026-11-13) ─────────────────────────────────────────────────────────────────
+# Slow by design (long camera moves, no slams). `kit pace` measures them but does not hold them to the busy bar, and
+# /reel-review scores "Movement on the words" and "Pace and variety" against the calm bar for them. Add a style here only
+# on the owner's say-so.
+CALM_STYLES = {'deep-zoom'}
+
+
+def is_calm(style):
+    return str(style or '') in CALM_STYLES
+
+
 # ── the score bar (owner rule 2026-11-11): anything scored must reach 90 or more, or it is redone and rechecked ──────────
 MIN_SCORE = 90
 

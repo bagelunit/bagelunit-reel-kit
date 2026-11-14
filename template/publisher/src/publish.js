@@ -167,6 +167,94 @@ export async function handleUpload(request, env, url) {
 }
 export const UPLOAD_TTL_S = 24 * 3600;
 
+// ---------- big files: R2 multipart ----------
+// A Worker takes request bodies up to about 100 MB, so a video over 95 MB (a full episode as an Instagram reel) goes up
+// in parts, through the same admin key:
+//   POST   /admin/upload/multipart?name=<file>&type=video     X-Content-SHA256: <64 hex>, X-Content-Length: <bytes>
+//   PUT    /admin/upload/multipart/part?upload=<id>&part=<n>  body: part n (every part but the last the same size)
+//   POST   /admin/upload/multipart/complete?upload=<id>       JSON { parts: [{ partNumber, etag }, ...] }
+//   DELETE /admin/upload/multipart?upload=<id>                gives up and frees the parts
+// R2 cannot check a whole-file SHA-256 on a multipart object, so after completing, the Worker reads the stored file back
+// as a stream (crypto.DigestStream: never the whole file in memory) and deletes it unless its size and SHA-256 are the
+// ones given at the start. Only then is the upload record written, so a file that does not match can never be scheduled.
+export const MULTIPART_MAX_BYTES = 300 * 1024 * 1024;   // Instagram's API limit for a reel file
+export const PART_MIN_BYTES = 5 * 1024 * 1024;          // R2: every part but the last at least 5 MiB
+export const PART_MAX_BYTES = 95 * 1024 * 1024;         // one request body
+const toHex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+
+// SHA-256 of a stream. In a Worker crypto.DigestStream hashes as the bytes flow; elsewhere (the tests) it reads it whole.
+export async function sha256OfStream(stream) {
+  if (typeof crypto.DigestStream === 'function') {
+    const d = new crypto.DigestStream('SHA-256');
+    await stream.pipeTo(d);
+    return toHex(await d.digest);
+  }
+  return toHex(await crypto.subtle.digest('SHA-256', await new Response(stream).arrayBuffer()));
+}
+
+const mpuRecord = async (env, id) => {
+  if (!/^[0-9a-f]{32}$/.test(String(id || ''))) return null;
+  try { return JSON.parse((await env.KV.get(`mpu:${id}`)) || 'null'); } catch { return null; }
+};
+
+export async function startMultipart(request, env, url) {
+  const sha = (request.headers.get('X-Content-SHA256') || '').toLowerCase();
+  if (!/^[0-9a-f]{64}$/.test(sha)) return { status: 400, body: { error: 'X-Content-SHA256 must be the full SHA-256 of the file' } };
+  const size = Number(request.headers.get('X-Content-Length'));
+  if (!Number.isSafeInteger(size) || size <= 0) return { status: 400, body: { error: 'X-Content-Length must be the file size in bytes' } };
+  if (size > MULTIPART_MAX_BYTES) return { status: 413, body: { error: `the file is over ${MULTIPART_MAX_BYTES / 1048576} MB, Instagram's limit for a reel` } };
+  if ((url.searchParams.get('type') || 'video') !== 'video') return { status: 400, body: { error: 'only videos go up in parts (images are small)' } };
+  const name = (url.searchParams.get('name') || 'reel.mp4').replace(/[^A-Za-z0-9._-]/g, '_').slice(0, 80);
+  if (!TYPES.video.ext.test(name)) return { status: 400, body: { error: 'a video must be .mp4 or .mov' } };
+  const key = `media/${Date.now()}-${hex(4)}-${name}`;
+  const mpu = await env.MEDIA.createMultipartUpload(key, { httpMetadata: { contentType: TYPES.video.mime } });
+  const id = hex(16);
+  await env.KV.put(`mpu:${id}`, JSON.stringify({ key, upload_id: mpu.uploadId, sha256: sha, size, type: 'video', name, at: new Date().toISOString() }), { expirationTtl: UPLOAD_TTL_S });
+  return { status: 200, body: { upload: id, key, part_size_min: PART_MIN_BYTES, part_size_max: PART_MAX_BYTES } };
+}
+
+export async function uploadPart(request, env, url) {
+  const rec = await mpuRecord(env, url.searchParams.get('upload'));
+  if (!rec) return { status: 404, body: { error: 'no such multipart upload (it expires after a day)' } };
+  const n = Number(url.searchParams.get('part'));
+  if (!Number.isInteger(n) || n < 1 || n > 10000) return { status: 400, body: { error: 'part must be a number from 1 to 10000' } };
+  const len = Number(request.headers.get('Content-Length'));
+  if (Number.isFinite(len) && len > PART_MAX_BYTES) return { status: 413, body: { error: `a part is at most ${PART_MAX_BYTES / 1048576} MB` } };
+  if (!request.body) return { status: 400, body: { error: 'no bytes' } };
+  const part = await env.MEDIA.resumeMultipartUpload(rec.key, rec.upload_id).uploadPart(n, request.body);
+  return { status: 200, body: { partNumber: part.partNumber, etag: part.etag } };
+}
+
+export async function completeMultipart(request, env, url) {
+  const id = url.searchParams.get('upload');
+  const rec = await mpuRecord(env, id);
+  if (!rec) return { status: 404, body: { error: 'no such multipart upload (it expires after a day)' } };
+  let data; try { data = await request.json(); } catch { return { status: 400, body: { error: 'send JSON { parts: [...] }' } }; }
+  const parts = Array.isArray(data?.parts) ? data.parts.map((p) => ({ partNumber: Number(p?.partNumber), etag: String(p?.etag || '') })) : [];
+  if (!parts.length || parts.some((p) => !Number.isInteger(p.partNumber) || !p.etag)) return { status: 400, body: { error: 'parts must list { partNumber, etag } for every part' } };
+  parts.sort((a, b) => a.partNumber - b.partNumber);
+  try { await env.MEDIA.resumeMultipartUpload(rec.key, rec.upload_id).complete(parts); }
+  catch (e) { return { status: 422, body: { error: `R2 could not join the parts (${e.message})` } }; }
+  await env.KV.delete(`mpu:${id}`);
+  const refuse = async (why) => { await env.MEDIA.delete(rec.key); return { status: 422, body: { error: `upload refused: ${why}` } }; };
+  const head = await env.MEDIA.head(rec.key);
+  if (!head || head.size !== rec.size) return refuse(`the stored file is ${head?.size ?? 0} bytes, not ${rec.size}`);
+  const stored = await env.MEDIA.get(rec.key);
+  const got = stored ? await sha256OfStream(stored.body) : '';
+  if (got !== rec.sha256) return refuse('the file does not match its SHA-256');
+  await env.KV.put(`upload:${rec.key}`, JSON.stringify({ sha256: rec.sha256, type: rec.type, name: rec.name, size: head.size, at: new Date().toISOString(), parts: parts.length }), { expirationTtl: UPLOAD_TTL_S });
+  return { status: 200, body: { key: rec.key, sha256: rec.sha256, type: rec.type } };
+}
+
+export async function abortMultipart(env, url) {
+  const id = url.searchParams.get('upload');
+  const rec = await mpuRecord(env, id);
+  if (!rec) return { status: 404, body: { error: 'no such multipart upload' } };
+  await env.MEDIA.resumeMultipartUpload(rec.key, rec.upload_id).abort().catch(() => null);
+  await env.KV.delete(`mpu:${id}`);
+  return { status: 200, body: { aborted: id } };
+}
+
 // DELETE /admin/upload?key=<key>: schedule.mjs takes back its upload when scheduling is refused. Only a file that is
 // not part of a post can be deleted this way.
 export async function deleteUpload(env, key) {
@@ -291,6 +379,8 @@ export async function schedulePost(env, data, origin, now = Date.now()) {
     videoSeconds = await r2Seconds(env.MEDIA, video.key);
     const lengthProblems = checkLength(videoSeconds, videoTargets({ kind, platforms, story: o.story, threadsMode: o.threads_mode }), video.name);
     if (lengthProblems.length) return bad(lengthProblems.join('; '));
+    const vh = await env.MEDIA.head(video.key);
+    if (vh && vh.size > MULTIPART_MAX_BYTES) return bad(`${video.name} is over ${MULTIPART_MAX_BYTES / 1048576} MB, Instagram's limit for a reel file`);
   }
   for (const c of covers) {
     const h = await env.MEDIA.head(c.key);

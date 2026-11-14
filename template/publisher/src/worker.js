@@ -37,7 +37,7 @@
 // DM_DISCLOSURE, and optionally FETCH_TIMEOUT_MS (25000) and INBOX_MAX (200). Secrets are never logged or shown.
 
 import { instagramApi, isUnified, refreshTokens } from './graph.js';
-import { handleUpload, deleteUpload, schedulePost, cancelPost, serveMedia, runDue, listPosts, publicPost, platformsView } from './publish.js';
+import { handleUpload, deleteUpload, schedulePost, cancelPost, serveMedia, runDue, listPosts, publicPost, platformsView, startMultipart, uploadPart, completeMultipart, abortMultipart } from './publish.js';
 
 const DAY = 24 * 3600 * 1000;
 const KEEP = 90 * 24 * 3600;                 // comment, mention and message records are kept 90 days
@@ -467,6 +467,11 @@ export default {
     if (url.pathname === '/admin/forget' && request.method === 'POST') return json(await forgetUser(env, url.searchParams.get('who'), url.searchParams.get('next')));
     if (url.pathname === '/admin/upload' && request.method === 'PUT') { const r = await handleUpload(request, env, url); return json(r.body, r.status); }
     if (url.pathname === '/admin/upload' && request.method === 'DELETE') { const r = await deleteUpload(env, url.searchParams.get('key') || ''); return json(r.body, r.status); }
+    // a video over 95 MB goes up in parts (publish.js, "big files")
+    if (url.pathname === '/admin/upload/multipart' && request.method === 'POST') { const r = await startMultipart(request, env, url); return json(r.body, r.status); }
+    if (url.pathname === '/admin/upload/multipart/part' && request.method === 'PUT') { const r = await uploadPart(request, env, url); return json(r.body, r.status); }
+    if (url.pathname === '/admin/upload/multipart/complete' && request.method === 'POST') { const r = await completeMultipart(request, env, url); return json(r.body, r.status); }
+    if (url.pathname === '/admin/upload/multipart' && request.method === 'DELETE') { const r = await abortMultipart(env, url); return json(r.body, r.status); }
     if (url.pathname === '/admin/schedule' && request.method === 'POST') {
       let data; try { data = await request.json(); } catch { return json({ error: 'send JSON' }, 400); }
       const r = await schedulePost(env, data, url.origin); return json(r.body, r.status);

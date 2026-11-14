@@ -25,7 +25,7 @@ Nothing for a normal brand, within Cloudflare's free amounts. One catch: Cloudfl
 - Workers free plan: 100,000 requests a day. The publisher wakes up every 5 minutes (288 times a day) plus Meta's visits.
 - Storage (KV) free: 100,000 reads and 1,000 writes a day. A reel uses a few dozen.
 - File storage (R2) free: 10 GB a month. A reel is stored only until it is posted, then deleted.
-- Free plan limits worth knowing: files up to 100 MB each (the command stops at 95 MB), and 5 scheduled (cron) triggers per Cloudflare account, shared by every worker on that account. Each brand's publisher uses one, so a free account runs up to 5 brands only when nothing else on it uses a trigger. `node scripts/setup.mjs deploy` counts the triggers already in use and stops before going over (on Workers Paid, add `--anyway`).
+- Free plan limits worth knowing: one request carries up to 100 MB, so a video over 95 MB (a full episode) goes up in 64 MB parts and the publisher checks the joined file's SHA-256 before it can be scheduled (up to 300 MB, Instagram's limit for a reel file), and 5 scheduled (cron) triggers per Cloudflare account, shared by every worker on that account. Each brand's publisher uses one, so a free account runs up to 5 brands only when nothing else on it uses a trigger. `node scripts/setup.mjs deploy` counts the triggers already in use and stops before going over (on Workers Paid, add `--anyway`).
 
 Meta charges nothing for these APIs.
 

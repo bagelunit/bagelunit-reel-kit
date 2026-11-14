@@ -150,6 +150,36 @@ platforms and planned times.
    answers "too late to cancel", the publisher is posting it or already sent it to Meta: say so, check `status` a
    few minutes later, and if it went out the owner deletes it in the app.
 
+## Route 4: a carousel that goes with a reel (Instagram only)
+
+For example a facts carousel per episode. The slides (JPEG at 1080x1350, or MP4 clips of 3 to 60 s; 2 to 20 items)
+go in `reels/<slug>/out/carousel/` named in posting order (`01.jpg`, `02.jpg`, ...), with `caption.txt` next to them
+(`/ig-carousel` and `/reel-repurpose <reel> carousel` plan the copy; every claim is in `brand/facts.md`).
+1. `node publisher/scripts/carousel.mjs files reels/<slug>` lists the items in order and every check (JPEG or MP4
+   only, sizes, one shape for every slide, the caption). Fix what it names.
+2. Show the approver every slide (a contact sheet or the files) and the caption, then ask "Approve this carousel?"
+   (question block: "Approve (Recommended)", "Change something", "Stop"). After the yes:
+   `node publisher/scripts/carousel.mjs approve reels/<slug>` records one fingerprint over every slide and the
+   caption under `## Carousel` in `approvals.md`. A slide or the caption changed afterwards needs this step again.
+3. `node publisher/scripts/carousel.mjs schedule reels/<slug> --at <ISO time with offset> --preview`, show its summary,
+   ask "Schedule it at <time>?" (one question, as in route 3), then the same command with `--yes`. It writes its line
+   under `## Carousel`, never under `## Posting`, so the reel's own record and the dashboard are unchanged; `pull.mjs`
+   adds the carousel's link there once it is out. `schedule.mjs status` and `cancel` work for carousels too.
+
+## Two things the APIs cannot do (say them, do them by hand)
+
+- **A Short's related video.** YouTube's API cannot set the "related video" link that sends Shorts viewers to the full
+  episode. After a Short is up, the owner links it in YouTube Studio (the Short's details, "Related video").
+- **Instagram edits.** A posted caption cannot be changed through the API (see `docs/auto-post.md`).
+
+## When Claude Code blocks the command
+
+In auto mode, Claude Code may stop `schedule.mjs ... --yes` (or `carousel.mjs schedule ... --yes`) as an outward
+action, even for a dry run. Say so in one line and leave the choice to the owner: they can allow it once when asked,
+or add `Bash(node publisher/scripts/schedule.mjs:*)` (and `Bash(node publisher/scripts/carousel.mjs:*)`) in
+`/permissions` for this brand folder. The scripts still refuse anything without Gate C (or a carousel approval), and
+`--yes` is still only used after the owner's yes in this conversation.
+
 ## Never
 
 - Never post or schedule a reel that did not pass Gate C, or a file that changed after it.

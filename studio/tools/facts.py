@@ -166,7 +166,23 @@ def check(project, scope, facts_path):
 
     facts_blob = ' '.join(r['claim'] + ' ' + r['notes'] for r in rows)
     facts_numbers = {re.sub(r'[\s,]', '', n.group(0).lower()) for n in NUMBER.finditer(facts_blob)}
-    surfaces = words_text(project, scope)
+    # A caption's "Sources:" block (studio rule: every reel lists its sources with links) holds citations, not claims:
+    # its numbers (volume, pages, DOIs, dates) must match facts.md's SOURCE column instead (local change 2026-11-13).
+    source_numbers = {re.sub(r'[\s,]', '', n.group(0).lower()) for n in NUMBER.finditer(' '.join(r['source'] for r in rows))}
+    surfaces = []
+    for label, text in words_text(project, scope):
+        parts = re.split(r'^\s*Sources:\s*$', text, maxsplit=1, flags=re.M) if label == 'caption.txt' else [text]
+        surfaces.append((label, parts[0]))
+        if len(parts) > 1:
+            block = parts[1].split('\n\n')[0]          # up to the hashtag line
+            for n in NUMBER.finditer(block):
+                tok = re.sub(r'[\s,]', '', n.group(0).lower())
+                if tok not in source_numbers:
+                    ctx = block[max(0, n.start() - 25): n.end() + 25].replace('\n', ' ')
+                    findings.append(('ERROR', 'SOURCE-NOT-IN-FACTS', label, f'"{n.group(0).strip()}" in the Sources block is not in any facts.md source (…{ctx}…)'))
+            rest = parts[1].split('\n\n', 1)
+            if len(rest) > 1:
+                surfaces.append((label, rest[1]))
     if not surfaces[0][1].strip():
         findings.append(('ERROR', 'NO-SCRIPT', 'script.txt', 'script.txt is missing or empty'))
     claims = []

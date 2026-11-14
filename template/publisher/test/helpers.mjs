@@ -29,9 +29,28 @@ export function kv(init = {}) {
 }
 
 export function r2() {
-  const m = new Map(); const when = new Map();
+  const m = new Map(); const when = new Map(); const uploads = new Map();
+  // R2 multipart, like the Workers binding: parts are kept per upload id and joined in partNumber order on complete.
+  const resume = (key, uploadId) => ({
+    key, uploadId,
+    async uploadPart(n, body) {
+      const u = uploads.get(uploadId); if (!u || u.key !== key) throw new Error('no such upload');
+      const buf = Buffer.from(await new Response(body).arrayBuffer());
+      const etag = createHash('md5').update(buf).digest('hex'); u.parts.set(n, { buf, etag });
+      return { partNumber: n, etag };
+    },
+    async complete(parts) {
+      const u = uploads.get(uploadId); if (!u || u.key !== key) throw new Error('no such upload');
+      const bufs = parts.map((p) => { const got = u.parts.get(p.partNumber); if (!got || got.etag !== p.etag) throw new Error(`part ${p.partNumber} missing or wrong etag`); return got.buf; });
+      const all = Buffer.concat(bufs); m.set(key, all); when.set(key, new Date()); uploads.delete(uploadId);
+      return { key, size: all.length };
+    },
+    async abort() { uploads.delete(uploadId); },
+  });
   return {
-    m, when,
+    m, when, uploads,
+    async createMultipartUpload(key) { const uploadId = `u${uploads.size + 1}-${Date.now()}`; uploads.set(uploadId, { key, parts: new Map() }); return resume(key, uploadId); },
+    resumeMultipartUpload: resume,
     async put(key, body, opts = {}) {
       const buf = Buffer.from(await new Response(body).arrayBuffer());
       if (opts.sha256 && createHash('sha256').update(buf).digest('hex') !== opts.sha256) throw new Error('sha256 mismatch');

@@ -2289,7 +2289,19 @@
     return { W: W, H: H, safe: safe(), view: v, camera: v.cam, add: function (n) { return v.add(n); }, portrait: PORT, landscape: LAND, square: V.isSquare, stage: st };
   }
   // Place a bounding sphere (radius R at the camera target) so it fills `fill` of the region's short side, centred in it.
-  function frameCam(cam, R, region, fill, rect) {
+  // Portrait (a wide-first scene drawn at 1080x1920): the subject is kept a margin inside the safe area, so a big hero
+  // never reaches the sides or Instagram's caption area. Only for full-frame framing; split views (rect) and the
+  // thumbnail (which bleeds on purpose, frameCamRaw) are left alone. Landscape and square are unchanged.
+  var PORT_MARGIN = 0.022, PORT_MAX_FILL = 0.96;
+  function portraitRegion(reg) {
+    var sa = safe(), m = W * PORT_MARGIN, x0 = Math.max(reg.x, sa.x0 + m), y0 = Math.max(reg.y, sa.y0), x1 = Math.min(reg.x + reg.w, sa.x1 - m), y1 = Math.min(reg.y + reg.h, sa.y1 - m);
+    return x1 - x0 < 10 || y1 - y0 < 10 ? reg : region(x0, y0, x1, y1);
+  }
+  function frameCam(cam, R, reg, fill, rect) {
+    if (PORT && !rect) { reg = portraitRegion(reg); fill = Math.min(num(fill, 1), PORT_MAX_FILL); }
+    return frameCamRaw(cam, R, reg, fill, rect);
+  }
+  function frameCamRaw(cam, R, region, fill, rect) {
     rect = rect || { x: 0, y: 0, w: W, h: H };
     var tn = Math.tan((cam.base.fov * DEG) / 2), F = Math.min(rect.w, rect.h) / 2 / tn, px = (fill * Math.min(region.w, region.h)) / 2;
     cam.set({ dist: Math.max(0.01, (R * F) / Math.max(4, px)) + R * 0.0, sx: (region.x + region.w / 2 - (rect.x + rect.w / 2)) / rect.w, sy: (region.y + region.h / 2 - (rect.y + rect.h / 2)) / rect.h });
@@ -2297,6 +2309,7 @@
   }
   // Fit a box of half extents (world units, as seen by the camera: hw across, hh up) inside the region.
   function frameBox(cam, hw, hh, reg, fill, rect) {
+    if (PORT && !rect) reg = portraitRegion(reg);
     rect = rect || { x: 0, y: 0, w: W, h: H };
     fill = fill || 0.92;
     var tn = Math.tan((cam.base.fov * DEG) / 2), F = Math.min(rect.w, rect.h) / 2 / tn;
@@ -2772,7 +2785,7 @@
     };
     ctx.camera.set({ pitch: hero === "molecule" ? 6 : 16, yaw: -16, fov: 30 });
     var heroReg = LAND ? (right ? region(W * 0.42, sa.y0 - u(20), W * 0.98, sa.y1 + u(20)) : region(W * 0.02, sa.y0 - u(20), W * 0.58, sa.y1 + u(20))) : region(sa.x0, sa.y0, sa.x1, sa.y0 + sa.h * 0.56);
-    frameCam(ctx.camera, R, heroReg, node.radiusXZ ? 1.3 : 1.05);
+    frameCamRaw(ctx.camera, R, heroReg, node.radiusXZ ? 1.3 : 1.05);
     if (ctx.view.reflect) ctx.view.floor = node.lo - node.r * 0.03;
     // text block
     var words = str(p.text) || "Why is ice *slippery*?";

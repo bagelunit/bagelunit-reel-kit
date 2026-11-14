@@ -104,6 +104,7 @@ const GROUPS = [
     ['setup.mjs', 'Writes the publisher\'s settings for this brand and prints the steps in order; deploy puts it online (it first counts the cron triggers other workers already use on the Cloudflare account, and tries once more on "This Worker does not exist"); secrets sends the tokens from your token files to Cloudflare without showing them (--dry-run first); subscribe asks Meta to send this account\'s comments and messages to the publisher, for keyword replies (--dry-run first); --url saves its address; check shows each platform and whether it is live.', 'publisher'],
     ['schedule.mjs', 'Schedules an approved reel on the platforms in brand.json posting.platforms (Instagram only when empty; --platforms overrides it for one reel), at --at or, with --from-plan, at the time in the reel\'s plan.md row (--preview checks without uploading); status lists posts and comment replies; cancel <id> stops one.', 'publisher'],
     ['pull.mjs', 'Brings back what went out: links, errors and automatic replies, for the dashboard and the reel\'s Posting lines.', 'publisher'],
+    ['carousel.mjs', 'An Instagram carousel that goes with a reel (slides in the reel\'s out/carousel/): files lists them and the checks, approve records the approver\'s yes with one fingerprint, schedule posts it at --at (--preview checks without uploading).', 'publisher'],
     ['forget.mjs', 'Deletes what the publisher kept about one person, when they ask.', 'publisher'],
   ]],
   ['From the plugin the installer adds', '', [

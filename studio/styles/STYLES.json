@@ -1,18 +1,18 @@
 {
   "_note": "Written by sync-to-kit.mjs in the bagelunit-styles repo. Edit a style there and sync again; never edit the copies here.",
   "source": "bagelunit-styles",
-  "version": "1d9e151",
-  "synced": "2026-11-13",
+  "version": "1475aae",
+  "synced": "2026-11-14",
   "format": "tall",
   "size": [
     1080,
     1920
   ],
   "core": {
-    "version": "1d9e151",
+    "version": "1475aae",
     "files": {
-      "runtime.js": "d5f059c201fd4635",
-      "build-scene.mjs": "e5ecd9bb233562b5",
+      "runtime.js": "a5c142aa2dbe956a",
+      "build-scene.mjs": "b69eafe2f5044a41",
       "render-scene.mjs": "b0b578f21380a777",
       "assemble.sh": "310a314a1160f5da",
       "playwright.mjs": "71698da6b58ce99d"
@@ -49,13 +49,13 @@
         "sky-montage",
         "chibi-explainer"
       ],
-      "version": "1d9e151",
+      "version": "1475aae",
       "files": {
         "engine.js": "04c8c97a3c299c03",
         "engine.css": "43a1ec90b8819858",
         "meta.json": "c677a6201a90d3ee",
         "SKILL.md": "5a45868305e4f0ef",
-        "docs.md": "f2bda55a59a9d15a",
+        "docs.md": "4c75580aa8399368",
         "templates.json": "9423fcd0e119ce84"
       }
     },
@@ -90,13 +90,13 @@
         "dream-sequence",
         "the-end"
       ],
-      "version": "1d9e151",
+      "version": "1475aae",
       "files": {
         "engine.js": "57c8988b0564d6ff",
         "engine.css": "41d3987db241ff5b",
         "meta.json": "77bed69655f810bb",
         "SKILL.md": "c8e985f563a48c90",
-        "docs.md": "6859ef324c31adf6",
+        "docs.md": "5f831941733dd7d3",
         "templates.json": "f44efad954ed855a"
       }
     },
@@ -131,13 +131,13 @@
         "timeline-of-campaign",
         "quote-from-history"
       ],
-      "version": "1d9e151",
+      "version": "1475aae",
       "files": {
         "engine.js": "938afbdde1e36fca",
         "engine.css": "a52d4c3f41e130d0",
         "meta.json": "375314f9e0840742",
         "SKILL.md": "33a1095881be7e8f",
-        "docs.md": "7561cacc73666004",
+        "docs.md": "55e208279a00652a",
         "templates.json": "5497035cbcaa3525"
       }
     },
@@ -172,13 +172,13 @@
         "split-worlds",
         "pillar-chart"
       ],
-      "version": "1d9e151",
+      "version": "1475aae",
       "files": {
         "engine.js": "33bfaeeaa967acb3",
         "engine.css": "f37f0dd14504dc12",
         "meta.json": "4dd47657ebabf841",
         "SKILL.md": "5c842697a5e7324e",
-        "docs.md": "dfb835fb3d653eb3",
+        "docs.md": "85ba1de52d1f3359",
         "templates.json": "af806380a9f052e1"
       }
     },
@@ -212,13 +212,13 @@
         "page-turn-chapter",
         "fact-panels"
       ],
-      "version": "1d9e151",
+      "version": "1475aae",
       "files": {
         "engine.js": "ca635f509a55ad09",
         "engine.css": "49503f6e1c132664",
         "meta.json": "07765b57a36a3e45",
         "SKILL.md": "2ba3800404c69b08",
-        "docs.md": "2260b99660abfa3d",
+        "docs.md": "01d55c13102b8817",
         "templates.json": "4d5af53a132e83db"
       }
     },
@@ -254,13 +254,13 @@
         "cause-chain",
         "thumbnail"
       ],
-      "version": "1d9e151",
+      "version": "1475aae",
       "files": {
-        "engine.js": "0738ce149652b20d",
+        "engine.js": "edc78a5ade98855f",
         "engine.css": "666a552392c4c28f",
         "meta.json": "d56765a6b7be8c21",
         "SKILL.md": "3797941c585b18c3",
-        "docs.md": "abf94dd782593899",
+        "docs.md": "5e4d2d76f3a786b0",
         "templates.json": "7623900df9f3a6f9"
       }
     },
@@ -295,13 +295,13 @@
         "reaction-close-up",
         "timeline-eras"
       ],
-      "version": "1d9e151",
+      "version": "1475aae",
       "files": {
         "engine.js": "d0fbbdbda5bd732a",
         "engine.css": "dc3d88f77ea3160c",
         "meta.json": "690096177624ac4c",
         "SKILL.md": "e0e377c39dc16190",
-        "docs.md": "d02c247c2e304c26",
+        "docs.md": "d5b55fb09db31b4b",
         "templates.json": "07f7e74b702c107c"
       }
     },
@@ -336,13 +336,13 @@
         "then-vs-now",
         "film-reel"
       ],
-      "version": "1d9e151",
+      "version": "1475aae",
       "files": {
         "engine.js": "6ed6da22a98f326d",
         "engine.css": "971151aef7dc5c0b",
         "meta.json": "7bf5d1596e6bd95c",
         "SKILL.md": "f4eb5916c7b399fd",
-        "docs.md": "87a90d54ccd2248b",
+        "docs.md": "5db5ea30fb1c0c05",
         "templates.json": "9386ee53e0efa84a"
       }
     },
@@ -376,13 +376,13 @@
         "title-card",
         "outcome-split"
       ],
-      "version": "1d9e151",
+      "version": "1475aae",
       "files": {
         "engine.js": "9b92494df6d4a0c7",
         "engine.css": "d52aa83dbd1ad852",
         "meta.json": "2cd6af466c78f052",
         "SKILL.md": "4a61c85bfe1e9dd5",
-        "docs.md": "c0204999a9e5b427",
+        "docs.md": "943a208df6340a28",
         "templates.json": "6022f545974ea8af"
       }
     },
@@ -417,13 +417,13 @@
         "title-card",
         "progress-graph"
       ],
-      "version": "1d9e151",
+      "version": "1475aae",
       "files": {
         "engine.js": "cbed7a450ba8f631",
         "engine.css": "04718159275ea35b",
         "meta.json": "e15bc7ea66494d85",
         "SKILL.md": "b31f4159ac48f688",
-        "docs.md": "35a8b2108d9b8afe",
+        "docs.md": "54f9c9283b276392",
         "templates.json": "984561c50c13f93d"
       }
     },
@@ -458,13 +458,13 @@
         "heat-zones",
         "globe-spin"
       ],
-      "version": "1d9e151",
+      "version": "1475aae",
       "files": {
         "engine.js": "e50f0e3a2242caa7",
         "engine.css": "81d176aea9289693",
         "meta.json": "16d0e39436a99f85",
         "SKILL.md": "2569fc22f6c36f72",
-        "docs.md": "1e0447d1ed4835fd",
+        "docs.md": "d3040298f0d05f55",
         "templates.json": "14614a4a9b1a2c96"
       }
     },
@@ -499,13 +499,13 @@
         "title-board",
         "timeline"
       ],
-      "version": "1d9e151",
+      "version": "1475aae",
       "files": {
         "engine.js": "0a23da56a4209b15",
         "engine.css": "a5c6936b0024d9bf",
         "meta.json": "2873bdd335c3b240",
         "SKILL.md": "ec30b29ac9f22cdd",
-        "docs.md": "c06547e57d2e73ff",
+        "docs.md": "12155312d44879d6",
         "templates.json": "c55d9e1b671f7d51"
       }
     },
@@ -539,13 +539,13 @@
         "crowd-scene",
         "aftermath-reflection"
       ],
-      "version": "1d9e151",
+      "version": "1475aae",
       "files": {
         "engine.js": "25ecd1d6fb4ed111",
         "engine.css": "cab97156f0931109",
         "meta.json": "9565e44af30cc3d1",
         "SKILL.md": "e75bc58df23cbf27",
-        "docs.md": "70a4a3c7cca74a20",
+        "docs.md": "ab3dc7aaaf7717ad",
         "templates.json": "63563b8c4b63a5d8"
       }
     },
@@ -580,13 +580,13 @@
         "deal-handshake",
         "legacy-skyline"
       ],
-      "version": "1d9e151",
+      "version": "1475aae",
       "files": {
         "engine.js": "ea07c22959b50f1e",
         "engine.css": "85fc217f61faf131",
         "meta.json": "691df4df115ab716",
         "SKILL.md": "532438ff31dea304",
-        "docs.md": "a68b8a83a7d804e2",
+        "docs.md": "678cabe86ff94505",
         "templates.json": "2ed6c4e3becdd0c8"
       }
     },
@@ -622,13 +622,13 @@
         "paper-quote",
         "clothesline-timeline"
       ],
-      "version": "1d9e151",
+      "version": "1475aae",
       "files": {
         "engine.js": "37421497916f607b",
         "engine.css": "e17361ac96a2a034",
         "meta.json": "bd06767fb6abad58",
         "SKILL.md": "082af59682bc2a34",
-        "docs.md": "9928a25cb4395109",
+        "docs.md": "6c0b45c5b5ab7562",
         "templates.json": "21be397855bca239"
       }
     },
@@ -663,13 +663,13 @@
         "pixel-chart",
         "high-scores"
       ],
-      "version": "1d9e151",
+      "version": "1475aae",
       "files": {
         "engine.js": "52dcea480fb69e42",
         "engine.css": "9f0d72ea98c1064c",
         "meta.json": "1ff5d814e2a27691",
         "SKILL.md": "3e93a684de198e31",
-        "docs.md": "363f0f2c87b5fa10",
+        "docs.md": "f1c19b4bcb6dda30",
         "templates.json": "fb194b64a2d27e3f"
       }
     },
@@ -703,13 +703,13 @@
         "timeline-strip",
         "skyline-compare"
       ],
-      "version": "1d9e151",
+      "version": "1475aae",
       "files": {
         "engine.js": "edf28b2a56a2ac4c",
         "engine.css": "ddcbb400ab1e2e1f",
         "meta.json": "6aaee53d3e8f4e00",
         "SKILL.md": "a51239afd58e242c",
-        "docs.md": "0790636be6291479",
+        "docs.md": "fa5e284b8c691c3d",
         "templates.json": "e0049f2559db3609"
       }
     },
@@ -743,13 +743,13 @@
         "timeline-squiggle",
         "versus"
       ],
-      "version": "1d9e151",
+      "version": "1475aae",
       "files": {
         "engine.js": "8a84cb82a7de79d1",
         "engine.css": "4109a95196c7dba4",
         "meta.json": "67b5f5711f858a53",
         "SKILL.md": "dcf06ff0dec50ca0",
-        "docs.md": "27f5f9ab3b89d34c",
+        "docs.md": "bafe68af57484b80",
         "templates.json": "f242a12547dddd8e"
       }
     },
@@ -784,13 +784,13 @@
         "iso-donut",
         "town-signs"
       ],
-      "version": "1d9e151",
+      "version": "1475aae",
       "files": {
         "engine.js": "ac322f8c15ba4712",
         "engine.css": "54b4c35de0eea605",
         "meta.json": "b9f74f6523460323",
         "SKILL.md": "6cfc448dbf08dbb1",
-        "docs.md": "3809da6dfa97751a",
+        "docs.md": "3ad3acafce87d7d8",
         "templates.json": "1b0be18015c4de2b"
       }
     },
@@ -824,13 +824,13 @@
         "journey",
         "title-card"
       ],
-      "version": "1d9e151",
+      "version": "1475aae",
       "files": {
         "engine.js": "7aeea25559881356",
         "engine.css": "1bfc0abebd98ffa6",
         "meta.json": "d310e4cb86c83266",
         "SKILL.md": "f4e1ec5ac7c5b42b",
-        "docs.md": "5e749313dad32d24",
+        "docs.md": "c703cdd6e02fdd50",
         "templates.json": "c31c7e2f1060cac0"
       }
     }

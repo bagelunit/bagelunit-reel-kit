@@ -65,6 +65,16 @@ Score whole numbers. 5 is the best work the brand has shipped, 3 is acceptable, 
 | Brand fit | Sounds, looks and reads like this brand, not a generic template |
 | Cover and caption | Cover reads at 150 px wide; caption's first line is under 125 characters, one ask |
 
+**Calm scene styles.** A reel in a calm style (its `reel.json` "style" is in `CALM_STYLES` in the kit's
+`tools/kitcore.py`, today `deep-zoom`; `kit pace` prints "calm style" for it) is slow on purpose, so
+two rows are scored against the calm bar instead. Every other row, and must-pass 3 (frame 0 and the
+hook), keep the full bar: a calm reel still has to stop a stranger at frame 0.
+
+| Check (calm style) | A 5 looks like |
+|---|---|
+| Movement on the words | A slow camera move or build is always under way; each beat lands on its spoken word; nothing is frozen for more than about 3 s |
+| Pace and variety | A new scene, reveal or label arrives every 4 to 8 s; scene layouts vary; the slowness reads as chosen, not stuck |
+
 **The score** is out of 100: the average of the eight scores (1 to 5) divided by 5, times 100, rounded
 (an average of 4.5 is 90). Round down, never up.
 

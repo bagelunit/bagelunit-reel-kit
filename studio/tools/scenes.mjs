@@ -108,7 +108,7 @@ export function planOf(dir, style) {
     if (extra.length) notes.push(`scene ${k + 1} (${s.template}): props the template does not know, ignored by the engine: ${extra.join(', ')}`);
     if (!String(s.narration || '').trim()) notes.push(`scene ${k + 1}: no "narration", so its time can only be guessed (even split)`);
     return { n: k + 1, file: pad(k + 1), id: String(s.id || `${String(k + 1).padStart(2, '0')}-${s.template || 'custom'}`),
-      template: s.template || null, code: s.code || null, props: s.props || {}, narration: String(s.narration || ''), seed: s.seed };
+      template: s.template || null, code: s.code || null, props: s.props || {}, narration: String(s.narration || ''), seed: s.seed, sfx: s.sfx ?? null, enter: s.enter ?? null };
   });
   return { scenes, notes };
 }
@@ -205,6 +205,9 @@ function buildPages(reel, prep) {
     const args = [path.join(CORE, 'build-scene.mjs'), '--style', path.join(STYLES_DIR, reel.cfg.style), '--out', `${base}.html`,
       '--duration', dur.toFixed(6), '--width', String(W), '--height', String(H), '--seed', String(s.seed ?? seed),
       '--narration', s.narration, '--words', `${base}.words.json`];
+    // "enter": the first scene opens on its finished picture (frame 0 is checked), unless it sets its own; 0 keeps the build-in
+    const enter = s.enter ?? (s.n === 1 ? 'none' : null);
+    if (enter != null && enter !== 0 && enter !== '0') args.push('--enter', String(enter));
     if (s.template) { fs.writeFileSync(`${base}.props.json`, JSON.stringify(s.props)); args.push('--template', s.template, '--props', `${base}.props.json`); }
     else args.push('--code', path.join(reel.dir, s.code));
     const b = spawnSync(process.execPath, args, { encoding: 'utf8' });
@@ -318,6 +321,30 @@ function standInActive(dir) {
   return Boolean(note && fs.existsSync(vo) && note.sha === sha(fs.readFileSync(vo)));
 }
 
+/* ── sound cues for a scene-style reel ─────────────────────────────────────────────────────────────────────────────── */
+// reel.json "sfx": "scenes" (default: a soft swoosh on every cut, none on frame 0) or "off". A scene can ask for its own:
+// "sfx": "pop" (at its start) or [{"at": 1.2, "name": "pop", "gain": -3}] (seconds into the scene). The names are the
+// sound bank's (the ones tools/sound.py and tools/realsound.py know). Field report from Susanoo Studio, 2026-11-13: a
+// scene-style reel had no cues at all, so the real-sound step had nothing to hang sounds on.
+export const SFX_NAMES = ['whoosh', 'swoosh', 'pop', 'click', 'tick', 'thud', 'stamp', 'boom', 'riser', 'shimmer', 'type', 'cash'];
+export function sfxCues(items, cfg = {}) {
+  const mode = cfg.sfx === false ? 'off' : String(cfg.sfx ?? 'scenes');
+  const list = [], unknown = [];
+  if (mode === 'off') return { list, unknown };
+  items.forEach((it, i) => {
+    const t0 = it.time.t0;
+    if (i > 0 && mode === 'scenes') list.push({ t: r3(Math.max(0, t0 - 0.08)), name: 'swoosh', gain: -6 });
+    const own = typeof it.scene.sfx === 'string' ? [{ at: 0, name: it.scene.sfx }] : Array.isArray(it.scene.sfx) ? it.scene.sfx : [];
+    for (const c of own) {
+      if (!c || !c.name) continue;
+      if (!SFX_NAMES.includes(String(c.name))) { unknown.push({ scene: it.scene.n, name: String(c.name) }); continue; }
+      list.push({ t: r3(t0 + Math.max(0, Number(c.at) || 0)), name: String(c.name), gain: Math.min(0, Number(c.gain) || 0) });
+    }
+  });
+  list.sort((a, b) => a.t - b.t);
+  return { list, unknown };
+}
+
 /* ── kit render <dir> for a scene style ─────────────────────────────────────────────────────────────────────────────── */
 export async function renderScenes(reel, { only = null, force = false } = {}) {
   const began = Date.now();
@@ -326,6 +353,10 @@ export async function renderScenes(reel, { only = null, force = false } = {}) {
   const build = path.join(reel.dir, 'build');
   fs.writeFileSync(path.join(build, 'scene_times.json'), JSON.stringify(prep.times, null, 1));
   const items = buildPages(reel, prep);
+  // the sound cues: build/sfx.json, the same [{t, name, gain}] list a mode's page writes, for kit export and the real-sound step
+  const cues = sfxCues(items, reel.cfg);
+  for (const n of cues.unknown) console.log(`note: scene ${n.scene} asks for sound "${n.name}", which the kit has no sound for (use one of: ${SFX_NAMES.join(' ')})`);
+  fs.writeFileSync(path.join(build, 'sfx.json'), JSON.stringify(cues.list, null, 1));
   // files of scenes no longer in the plan
   for (const f of fs.readdirSync(path.join(build, 'scenes'))) {
     const m = /^(\d{3})\./.exec(f);

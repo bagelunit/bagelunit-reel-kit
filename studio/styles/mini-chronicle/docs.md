@@ -128,3 +128,7 @@ Templates can also be rendered from custom code: `S.render("character-talks", ro
   around date tags unless `reserve: false`), `S.caption(..., { x, y, width, size })`, `S.stamp(..., { width, size, shake })`.
 - `S.roles`, `S.nations`, `S.gestures`, `S.expressions`, `S.props`, `S.locations`, `S.templates`, `S.safe()`,
   `S.find(word, after)`, `S.syncTimes(words, { a, b, gap })`, `S.lines(lines)`, `S.inspect(t)`.
+
+## Opening (`enter`, every style)
+
+A scene option, not a template prop. `"enter": "none"` makes the scene open on its built picture: frame 0 already shows the subject and the title instead of an empty build-in, so a reel's hook frame is never blank. Frame 0 shows the scene as it is at 1 s; it then runs at half speed until it meets the real clock at 2 s, so the opening never stands still, and after that time is untouched, so the voice and the word cues stay in sync (a cue in the first 2 s lands up to 1 s early). A number sets that start point in seconds (0 to 3). Give it to `core/build-scene.mjs --enter none`, or as `"enter"` in a scene's props (taken out before the template sees them). In custom code `V.enter` is the hold in seconds (0 for a normal build-in). Use it on the first scene of a reel; later scenes keep their build-in, which reads as the cut.
