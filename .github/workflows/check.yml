@@ -137,7 +137,7 @@ jobs:
           node --check setup/new-brand.mjs
           B="$RUNNER_TEMP/test-reels"
           node setup/new-brand.mjs "$B" | grep -q "OK: made a new brand folder"
-          diff -r template "$B"
+          diff -r -x .kit-base template "$B"      # .kit-base is the saved copy of the kit files that updates merge against: a new folder has it, the template does not
           if node setup/new-brand.mjs "$B"; then echo "should refuse an existing folder"; exit 1; fi
           if node setup/new-brand.mjs ./inside-kit; then echo "should refuse a folder inside the kit"; exit 1; fi
           test ! -e inside-kit && test ! -e inside-kit-reels
