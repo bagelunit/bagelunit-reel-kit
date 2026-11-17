@@ -299,3 +299,26 @@ def spoken_hash(script_path):
         return None
     lines = [l.strip() for l in raw.splitlines() if l.strip() and not l.strip().startswith(('#', '//', '['))]
     return hashlib.sha256(re.sub(r'\s+', ' ', ' '.join(lines)).strip().lower().encode()).hexdigest()[:12]
+
+
+def gate_a_problem(project):
+    """Why voice credits may not be spent yet, or None. In a brand folder (one with brand/brand.json above the reel) the voice
+    is paid for only after Gate A, and for the words that were approved: approvals.md needs a recorded Gate A line, and when a
+    "Script review: ... [script <fingerprint>]" line exists its fingerprint must match script.txt as it is now. Outside a brand
+    folder (the engine on its own) nothing is required."""
+    p = Path(project).resolve()
+    root = next((d for d in p.parents if (d / 'brand' / 'brand.json').is_file()), None)
+    if root is None:
+        return None
+    try:
+        text = (p / 'approvals.md').read_text(encoding='utf-8')
+    except OSError:
+        text = ''
+    if not re.search(r'Gate A \(script\) approved', text):
+        return 'Gate A (the script) is not recorded in approvals.md yet, and no voice credits are spent before it.'
+    lines = re.findall(r'^\s*(?:[-*]\s*)?Script review:.*$', text, re.M)
+    m = re.search(r'\[script ([0-9a-f]{12})\]', lines[-1]) if lines else None
+    if m and m.group(1) != spoken_hash(p / 'script.txt'):
+        return 'script.txt changed after Gate A (its review was for other words): run /script-score and record Gate A again.'
+    return None
+

@@ -69,7 +69,7 @@ Follow `playbook/writing.md`:
 
 In a brand folder the words come through the staged flow (`/reel-scripter`): `/script-plan` (viewer, one promise, a beat outline), the draft, `kit script <project>` (the lint), `/script-coldread`, then `/script-score` (90 or more). Where this section and the brand's own word band differ, the brand folder's `CLAUDE.md` and `docs/` win. Outside a brand folder run at least `kit script <project>` on the draft.
 
-Save it as `<project>/script.txt`. Show it first only if they asked to review; otherwise keep going.
+Save it as `<project>/script.txt`. In a brand folder the script then goes to **Gate A** and no voice is made before it is recorded (`voice.py` refuses, and the owner alone overrides with `--before-gate-a "reason"`). Outside a brand folder, show it first only if they asked to review; otherwise keep going.
 
 ---
 

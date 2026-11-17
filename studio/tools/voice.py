@@ -6,6 +6,7 @@
   python3 tools/voice.py <project> --provider openai       OpenAI speech (word clock from Whisper)
   python3 tools/voice.py <project> --provider file --audio take.mp3    your own recording (word clock from Whisper)
   python3 tools/voice.py <project> --reuse                 re-cut the last take instead of paying for a new one
+  python3 tools/voice.py <project> --before-gate-a "why"   the owner's override: pay for the voice before Gate A (a brand folder refuses otherwise)
   python3 tools/voice.py <project> --force                 pay for a new take even though the same one was already made
   tuning: --speed 1.15 (tempo once the pauses are cut)  --gap 0.28 (breath left where a long pause was)  --no-cut
 
@@ -22,10 +23,10 @@ Every mode reads what this writes:
 
 Which voice and which defaults: tools/voicebank.py (saved in ~/.config/bagelunit-reels/config.json); reel.json "voice" overrides per reel.
 """
-import base64, io, json, re, shutil, subprocess, time, urllib.error, urllib.request
+import base64, io, json, re, shutil, subprocess, sys, time, urllib.error, urllib.request
 from pathlib import Path
 
-from kitcore import (resolve_reel, Flags, CJK_CHAR, api_key, fail, ffmpeg, media_length, tidy_word, voice_settings, whisper_words, write_words)
+from kitcore import (resolve_reel, Flags, CJK_CHAR, api_key, fail, ffmpeg, gate_a_problem, media_length, tidy_word, voice_settings, whisper_words, write_words)
 from markers import Markers, MaybeBilled, digest
 
 TOOL = 'voice'
@@ -192,6 +193,14 @@ def record(project, flags, opts, provider, take, saved):
         return json.loads(saved.read_text(encoding='utf-8'))
     if state == 'blocked':
         marks.blocked('voice')
+    why = gate_a_problem(project)
+    skip = flags.get('before-gate-a')
+    if skip is True:
+        fail(TOOL, '--before-gate-a needs a reason in quotes')
+    if why and not skip:
+        fail(TOOL, why + ' (Only the owner goes ahead anyway, with  --before-gate-a "reason".)')
+    if why and skip:
+        print(f'voice: paying before Gate A, owner override: {skip}', file=sys.stderr)
     words = marks.paid('voice', h, lambda: speak(text, opts, take), 'voice')
     saved.write_text(json.dumps(words))
     marks.done('voice', h, outputs)

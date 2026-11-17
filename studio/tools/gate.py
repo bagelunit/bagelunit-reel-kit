@@ -92,6 +92,7 @@ def main():
             print(f'MATCH: {name} sha256 {now} and cover {cover[0]} sha256 {cover[1]} are the files that were approved')
             return
         print(f'MATCH: {name} sha256 {now} is the file that was approved')
+        return                                  # check writes nothing: never fall through into the record step
 
     facts_line = ''
     if gate in ('A', 'C'):
