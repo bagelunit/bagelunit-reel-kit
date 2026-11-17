@@ -54,7 +54,8 @@
     "banned_characters": [
       "—"
     ],
-    "banned_words": []
+    "banned_words": [],
+    "human_score_min": 90
   },
   "cta": {
     "default": "follow",

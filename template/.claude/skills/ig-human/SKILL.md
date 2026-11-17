@@ -87,8 +87,12 @@ PASS, and it is the part a script cannot do.
 | VOICE | contractions, person, structural tells | no contractions, staged reveals |
 
 The verdict weights the mean at 60% and the **weakest single check** at 40%,
-because one signal is enough. PASS needs an overall of 70+ with no check
-below 55.
+because one signal is enough. The panel's own PASS needs an overall of 70+
+with no check below 55. The bar a script, caption or Threads text must reach
+before it is shown is higher: 90, or `brand.json` -> `writing.human_score_min`.
+The detector prints it as the BAR line (MET or NOT MET). Long run-ons
+(over 28 words), stacks of tiny fragments and long lists of names do not raise
+the score.
 
 ## Say this honestly
 

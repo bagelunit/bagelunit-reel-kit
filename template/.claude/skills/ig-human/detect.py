@@ -40,6 +40,18 @@ NUMBERS = re.compile(r"\b\d[\d,.]*%?\b|\$\d")
 PROPER = re.compile(r"(?<![.!?]\s)(?<!^)\b[A-Z][a-z]{2,}\b", re.MULTILINE)
 
 
+def brand_bar():
+    """The brand's own bar for the human score: brand.json -> writing.human_score_min (the kit default is 90, the owner's
+    rule that anything scored reaches 90). The panel's PASS (70) is the detector's own verdict; the bar is what a script,
+    caption or Threads text must reach before it is shown."""
+    try:
+        root = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
+        with open(os.path.join(root, "brand", "brand.json"), encoding="utf-8") as f:
+            return float(json.load(f).get("writing", {}).get("human_score_min", 90))
+    except Exception:
+        return 90.0
+
+
 def clamp(n):
     return max(0.0, min(100.0, n))
 
@@ -203,6 +215,8 @@ def render(results, overall, verdict, label=None, out=sys.stdout):
         print(f"  {'':<13} {detail}", file=out)
     print("-" * 62, file=out)
     print(f"  {'HUMAN SCORE':<13} {bar(overall)} {overall:5.1f}   {verdict}", file=out)
+    need = brand_bar()
+    print(f"  {'BAR':<13} {need:5.0f} needed   {'MET' if overall >= need else 'NOT MET: rewrite and score again'}", file=out)
     if verdict != "PASS":
         weakest = min(CHECKS, key=lambda c: results[c][0])
         print(f"\n  Weakest signal: {weakest}. Fix that first.", file=out)

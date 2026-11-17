@@ -1,12 +1,12 @@
 ---
 name: ig-reel
 description: >-
-  Write an Instagram Reel from a raw idea - hook options off 26 formulas, the
-  spoken script, the on-screen text, and a timed beat sheet - in the user's own
-  voice and scored before they shoot it. Use whenever the user wants a Reel, a
-  short-form video script, a hook, a voiceover, "make a reel about X", "what
-  should I say in this video", or is about to record and does not have the
-  first line yet.
+  Write a script for a reel the owner FILMS THEMSELVES on camera - hook options
+  off 26 formulas, the spoken script, the on-screen text, and a timed beat
+  sheet - in their own voice. Use when the user says "I'm about to record",
+  "what should I say in this video" or "write me a script to film". NOT for a
+  reel this kit builds (animated or voiced): that goes through /reel-scripter
+  and /bagelunit-reels, with their facts, gates and checks.
 ---
 
 # ig-reel
@@ -93,8 +93,9 @@ Reply "yes" to log it, or tell me what to change.
 ```
 
 **7. Never publish.** This skill produces a script. The user shoots it and
-posts it. On "yes", append to `brand/log.md` with the date, the
-hook formula used and the first line, so `/ig-audit` has a history later.
+posts it. `brand/log.md` gets its row only after the reel is posted and the
+owner confirms it (the kit's dashboard refresh adds it for reels the
+publisher posted), never when a script is approved.
 
 ## On-screen text is a separate script
 
@@ -103,10 +104,10 @@ Write it separately, every time. It is read before it is heard.
 - **Six words or fewer per card.** It is being read at arm's length by someone
   who is not listening yet.
 - **The hook card is up at frame 1**, not after a beat of silence.
-- **Keep it inside the safe zone.** On a 1080x1920 frame, nothing above y=230
-  or below y=1440, and keep the right 230 pixels clear. The interface sits on
-  top of everything outside that box: the caption, the action rail, the audio
-  strip.
+- **Keep it inside the safe zone.** On a 1080x1920 frame, keep every word out
+  of the bottom 300 px and the right 120 px (the kit's rule, checked by
+  `scripts/qa/gate_qa.py`). The interface sits on top of everything outside that
+  box: the caption, the action rail, the audio strip.
 - **Never put the hook where the caption sits.** That is the bottom of the
   frame and it is covered.
 - **Burn in captions for the body.** Most people watch muted first.

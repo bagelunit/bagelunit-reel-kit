@@ -42,7 +42,7 @@ Roles: `context`, `lean`, `snapback`, `setup`, `item`, `payoff`, `ask`. Rules th
 - every loop a beat `opens` has a later beat that `closes` it, and the payoff beat answers the promise;
 - `announced_count` equals the number of `item` beats (3 items for 30 to 40 s; 5 at most, only if each is 18 words or fewer), and the hook says the count;
 - every `item` has a `so_what`; a beat whose claim is outside the promise is a tangent: cut it;
-- the word budgets add up to the size band (about 110 to 130 words for 40 s; at most 45 s).
+- the word budgets add up to the size band: about 110 to 130 spoken words for 40 s, never more than 45 s at the brand's pace (this is the one place the band is set; the other skills quote it).
 
 ## 3. Check it
 `node ~/.claude/skills/bagelunit-reels/tools/kit.mjs script reels/<slug>` (with no `script.txt` yet it checks the plan alone).

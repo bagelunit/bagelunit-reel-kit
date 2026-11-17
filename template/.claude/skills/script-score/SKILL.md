@@ -21,7 +21,7 @@ The same rule as `/reel-review`: anything scored reaches 90 or it is redone and 
 3. Fits the size: words in the band and estimated seconds at or under the brief (script lint).
 4. One viewer: the cold read's "who is it for" matches the brief.
 5. No `{{needs cleared fact}}`, and the script-scope fact check passes (`/reel-factcheck`).
-6. The human score meets the brand's rule (`/ig-human`).
+6. The human score is 90 or more (`/ig-human`; `brand.json` -> `writing.human_score_min`, default 90).
 
 ## Scored (1 to 5 each, weighted)
 | Criterion | Weight | A 5 | A 2 |
