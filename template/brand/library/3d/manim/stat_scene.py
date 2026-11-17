@@ -1,5 +1,5 @@
 # Manim sample in the Print look: a number counting up while a bar grows. Vertical 1080x1920.
-#   manim -qh --fps 30 stat_scene.py StatScene -o stat-sample.mp4   (the installer's Manim step puts manim in ~/.config/bagelunit-reels/manim-venv/bin)
+#   manim -qh --fps 30 stat_scene.py StatScene -o stat-sample.mp4   (install it once: python3 -m venv ~/.config/bagelunit-reels/manim-venv && ~/.config/bagelunit-reels/manim-venv/bin/pip install manim; then run ~/.config/bagelunit-reels/manim-venv/bin/manim)
 # Fonts: the kit's Anton. Colours: the brand's (brand/brand.json), else paper #FBF5E6, ink #15110E, vermilion #E23B2E.
 from manim import *
 config.pixel_width, config.pixel_height, config.frame_height, config.frame_width = 1080, 1920, 16, 9

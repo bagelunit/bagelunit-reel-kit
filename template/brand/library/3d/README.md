@@ -12,7 +12,7 @@ writes the shot from a brief, renders one still, looks at it, fixes it, then ren
 | `sprite_voxel.py` | Any pixel mascot or image as voxel blocks, with a hop and turn; `--assemble` flies the blocks together. |
 | `card_hero.py`, `stroke_drawon.py` | A 3D card; hand-drawn circle, underline and arrow strokes. |
 | `fx_glitch.sh` | An RGB-split glitch burst on any finished clip (ffmpeg). |
-| `manim/stat_scene.py` | A counting number and a growing bar (Manim; the installer's Manim step). |
+| `manim/stat_scene.py` | A counting number and a growing bar (Manim: optional, see "Optional tools" in SETUP.md). |
 
 Gotchas: colours go through `bb.rgba` (a straight sRGB hex looks washed out); overlay a clip with ffmpeg only after `format=rgba`;
 Blender's Python has no PIL (use numpy); each new mascot or object is shown to the owner before first use.

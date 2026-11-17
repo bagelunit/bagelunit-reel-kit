@@ -3,12 +3,17 @@ node_modules/
 *.key
 .env*
 .DS_Store
-reels/*/build/
-reels/*/audio/
-reels/*/out/*.mp4
-reels/*/out/*.mov
+# a reel's heavy files, in the flat layout (reels/<slug>/) and the dated one (reels/2026/11 November/November 12/<slug>/)
+reels/**/build/
+reels/**/audio/
+reels/**/stills/
+reels/**/frames/
+reels/**/assets/clip/
+reels/**/out/*.mp4
+reels/**/out/*.mov
 *.wav
 *.mp3
+*.bak
 *.bak-*
 .cache/
 __pycache__/

@@ -9,7 +9,7 @@
 
 Writes <reel>/build/qa-gate.json with the video's sha256, the HOOK verdict, the SAFE lines, the SIZE lines and PASS/FAIL.
 Gate C passes only when HOOK and SAFE pass (SIZE is listed for a person to judge, as in reel_qa.py).
-scripts/qa/gate_hook.py (a PreToolUse hook in .claude/settings.local.json) refuses `kit gate <reel> record --gate C`
+scripts/qa/gate_hook.py (a PreToolUse hook in the kit's .claude/settings.json) refuses `kit gate <reel> record --gate C`
 unless this record is for the exact mp4 on disk and passed or was skipped. Exit code 0 = pass or skipped, 1 = fail."""
 import argparse, hashlib, json, pathlib, subprocess, sys, time
 

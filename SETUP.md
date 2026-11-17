@@ -200,6 +200,17 @@ Keep brand folders out of iCloud-synced folders (Desktop, Documents) if you can:
 - **The laptop gets loud:** normal during a final render. Drafts are half size, and renders take turns.
 - **"Operation not permitted" when a tool writes into Documents (Mac):** a security program's ransomware protection (for example Bitdefender's Safe Files) is blocking programs it does not trust. It is per program, so allowing your editor does not cover the commands it runs. Allow the shell (`zsh`, `bash`), `git`, `node`, `python3`, `ffmpeg`, `ffprobe`, `whisper-cli` and the basic file tools (`cp`, `mv`, `mkdir`, `rm`, `touch`) in the program's application-access list. Homebrew's version folders change on an upgrade, so the block can come back after one.
 
+## Optional tools (each can be skipped; the kit says so when one is missing)
+
+| Tool | What needs it | Install |
+|---|---|---|
+| Blender 5.1 or newer | `/blender-shot` (3D product, phone, text and model shots) | Mac: `brew install --cask blender`; Windows and Linux: blender.org |
+| Manim | the animated number and bar scene (`brand/library/3d/manim/stat_scene.py`) | `python3 -m venv ~/.config/bagelunit-reels/manim-venv` then `~/.config/bagelunit-reels/manim-venv/bin/pip install manim` |
+| Xcode command line tools (Mac) | the reel QA reads text with Apple Vision, built once from `scripts/qa/ocr.swift` | `xcode-select --install` |
+| Tesseract (Windows, Linux) | the reel QA's text reader where Apple Vision does not exist | tesseract-ocr.github.io/tessdoc/Installation.html |
+
+Without a text reader the Gate C QA hook lets Gate C through and says so; with one it refuses until the QA has passed on the exact final.
+
 ## Optional: Apify (outlier scan)
 
 Only if a brand owner wants `/account-audit` to fetch posts instead of using an export. With the browser tool, Claude makes `~/.config/bagelunit-reels/apify.key` (empty, readable by you only) and opens it, then opens Apify: you sign up or log in, and Claude goes to https://console.apify.com/settings/integrations and stops at the token's copy button; you copy it into the file and save. By hand: make a token there and save it yourself to `~/.config/bagelunit-reels/apify.key` (`chmod 600`). Then set `autopilot.scrape` to `true` in that brand's `brand/brand.json`. It is paid per result (about $2.70 per 1,000 posts on the free plan); the script prints the estimate first and stops above `--max-cost`. Claude never asks for or prints the token.
