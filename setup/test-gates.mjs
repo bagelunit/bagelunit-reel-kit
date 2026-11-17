@@ -166,7 +166,7 @@ console.log('kit start: brand settings first, global fallback: ok');
 const pick = (place) => py(['-c', 'import sys; sys.path.insert(0, sys.argv[1]); import calibrate; print(calibrate.model_file(sys.argv[2]))', tools, place]);
 const hasNumpy = py(['-c', 'import numpy']).status === 0;
 if (hasNumpy) {
-  assert.equal(fs.realpathSync(path.dirname(pick(path.join(brand, 'reels')).stdout.trim())), fs.realpathSync(path.join(brand, 'brand')));
+  assert.equal(fs.realpathSync.native(path.dirname(pick(path.join(brand, 'reels')).stdout.trim())), fs.realpathSync.native(path.join(brand, 'brand')));   // .native: Windows temp folders have an 8.3 short name (RUNNER~1) and a long one
   assert.equal(path.basename(pick(path.join(brand, 'reels')).stdout.trim()), 'predict-model.json');
   assert.match(pick(path.join(tmp, 'loose')).stdout.trim(), /bagelunit-reels[\\/]predict-model\.json$/);
   console.log('calibrate: model per brand: ok');
