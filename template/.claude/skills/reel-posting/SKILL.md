@@ -137,7 +137,9 @@ platforms and planned times.
    this one reel). Show its summary (it says DRY RUN or LIVE: this really posts, where the time and platforms came
    from, and the posting card), then ask **one question**: "Schedule it at <the summary's time> on <its platforms>?"
    (question block: "Schedule (Recommended)", "Change something", "Not now"). That one yes is the owner's yes to this
-   reel, its time and its platforms (house rule 11). If the preview refuses (Gate C, a changed file or cover, a
+   reel, its time and its platforms (house rule 11). If the reel has `out/first-comment.txt`, the summary shows a
+   "1st comment" line: the publisher posts it on the Instagram reel right after it is up (no link in it; the owner pins
+   it by hand; `--no-first-comment` leaves it out). If the preview refuses (Gate C, a changed file or cover, a
    caption too long, a video too long for a platform, mixed modes, a plan row with no time or a time that has passed, or a
    live publisher while `autopilot.post` is off), say why in plain words and stop. In dry run, say that this post
    stays a dry run even if the publisher goes live before its time. A video too long only for Facebook (over 90

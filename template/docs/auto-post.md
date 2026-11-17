@@ -10,6 +10,7 @@ These rules from `CLAUDE.md` still apply, whichever way you connect it:
 - Only a reel that passed Gate C goes out, and only the exact file that was approved. `kit gate <reel> check` must print MATCH: a file changed after approval is not posted. The latest review in `approvals.md` must also say "meets the bar" with 90/100 or more (the same bar as Gate C): the scheduler refuses a reel with no review or a lower score. Only the owner's `--skip-review "reason"` at Gate C, which is written into the record, gets past it.
 - The owner says yes to each reel's time slot. Scheduling is a yes per reel, not a standing permission.
 - The caption is the approved `out/caption.txt`, with only cleared facts (rule 1).
+- An optional first comment: if the reel has `out/first-comment.txt` (cleared facts only, no link), the publisher posts it as the first comment on the Instagram reel right after it is up (`--no-first-comment` skips it). Pin it by hand in the app; Meta's API cannot.
 - Claude never logs in, never handles a token or password, and never starts a scheduled job by itself.
 
 ## Three ways to do it

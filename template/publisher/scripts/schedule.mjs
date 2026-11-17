@@ -5,7 +5,7 @@
 //   node publisher/scripts/schedule.mjs <reel folder> --at 2026-11-10T09:00:00-05:00
 //        (or --from-plan: the date and time come from the reel's row in brand/plan.md, in brand.json -> posting.timezone)
 //        [--platforms instagram,facebook,threads,youtube,tiktok] [--trial] [--threads text|video] [--collaborators a,b]
-//        [--location <id>] [--story] [--thumb-offset <ms>] [--no-feed] [--preview | --yes]
+//        [--location <id>] [--story] [--thumb-offset <ms>] [--no-feed] [--no-first-comment] [--preview | --yes]
 //        [--youtube-privacy public|unlisted|private] [--tiktok-mode draft|direct] [--tiktok-privacy <level>] [--ai-generated]
 //        --preview runs every check and shows the summary, then stops: nothing is uploaded or scheduled.
 //   node publisher/scripts/schedule.mjs status
@@ -129,6 +129,9 @@ export function checkReel(reelDir, args = {}, now = Date.now()) {
     if (caption || p !== 'instagram') problems.push(...checkText(p, text[p]).map((m) => (p !== 'instagram' && !own(p) ? `${m} (it uses out/caption.txt; write out/platforms/${p}.txt for ${p}, or /reel-repurpose)` : m)));
   }
 
+  // The first comment (out/first-comment.txt), posted on the Instagram reel right after it is up
+  const firstComment = platforms.includes('instagram') && args['no-first-comment'] !== true ? read(path.join(reel, 'out', 'first-comment.txt')).trim() : '';
+
   // the time
   let atStr = typeof args.at === 'string' ? args.at.trim() : '';
   let fromPlan = null;
@@ -162,6 +165,7 @@ export function checkReel(reelDir, args = {}, now = Date.now()) {
       ...(platforms.includes('tiktok') && args['tiktok-mode'] ? { tiktok_mode: args['tiktok-mode'] } : {}),
       ...(platforms.includes('tiktok') && args['tiktok-privacy'] ? { tiktok_privacy: args['tiktok-privacy'] } : {}),
       ...(args['ai-generated'] === true ? { ai_generated: true } : {}),
+      ...(firstComment ? { first_comment: firstComment } : {}),   // first comment from out/first-comment.txt (skip with --no-first-comment)
     },
   };
 }
@@ -200,6 +204,7 @@ export function summary(c, info, mode) {
     `  platforms   ${c.platforms.join(', ')}${c.platformsFrom === 'brand' ? '  [from brand.json -> posting.platforms]' : c.platformsFrom === 'all' ? '  [every platform the publisher has connected]' : ''}${c.options.story ? ', and the reel as an Instagram story' : ''}`,
     `  mode        ${mode === 'live' ? 'LIVE: this really posts' : 'dry run: nothing is posted, the publisher records what it would send (it stays a dry run even if the publisher goes live before then)'}`,
   ];
+  if (c.options.first_comment) lines.push(`  1st comment  ${c.options.first_comment.length} characters from out/first-comment.txt, posted on the Instagram reel right after it is up (pin it by hand: Meta's API cannot pin)`);
   if (c.options.trial) lines.push('  trial       yes: Instagram shows it to non-followers first; you share it to followers in the app');
   if (c.options.trial && c.platforms.some((p) => p !== 'instagram')) lines.push('              (Facebook and Threads posts are shown to followers as usual)');
   if (c.options.collaborators) lines.push(`  collab      ${c.options.collaborators.map((x) => '@' + x).join(', ')}`);

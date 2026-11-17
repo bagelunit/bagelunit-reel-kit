@@ -14,8 +14,13 @@
 //       It NEVER touches brand/ or reels/ (the brand's own data; brand/licensed/ gets its README and empty folders, never assets.json or media), except that brand/brand.json gains any NEW
 //       setting (at any depth, existing values are never changed) and brand starter files that do not exist yet
 //       (log.md, swipe.md, insights.csv) are added.
-//       Files it overwrites are first saved next to them as <name>.bak-<date>.
-//       A brand-specific edit you made to CLAUDE.md or a skill WILL be replaced (the .bak keeps it): re-apply it after.
+//       Files it changes are first saved next to them as <name>.bak-<date>.
+//       Local edits are MERGED, not lost: the workspace keeps a pristine copy of every kit file in .kit-base/ (written by each
+//       update and by new-brand.mjs). A file you edited and the kit also changed is three-way merged (git merge-file); if the
+//       same lines changed on both sides, your file stays as it is and the kit's version is written beside it as <name>.kit-new
+//       to merge by hand. A file with no saved base yet (the first update after this feature) is replaced and the .bak keeps
+//       your edits; from then on updates merge. The output shows replaced, merged and conflicts, in the dry run and the apply.
+//       .gitignore keeps your own lines and gains the kit's new ones. The merge code is setup/lib/kit-merge.mjs.
 //       Rules for one brand belong in its CLAUDE.local.md, which this script never touches.
 //       The dry run also says which kit version the workspace is on, which is current, and what changed in between.
 //
@@ -24,18 +29,14 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { planUpdate, applyPlan, writeBase, report } from './lib/kit-merge.mjs';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(REPO, 'template');
 // a generic copy-from folder only when one is wanted: never create one in a synced Documents folder by default
 const LEGACY = path.join(os.homedir(), 'Documents', 'Claude', 'Reel Template');
 const GENERIC = process.env.REEL_TEMPLATE_HOME || (fs.existsSync(path.join(LEGACY, 'CLAUDE.md')) ? LEGACY : null);
-// brand/licensed/: the kit adds the README and the empty folders; the brand's assets.json and downloaded media are never touched (assets.json is created only when absent)
-const LICENSED_KEEP = ['music', 'sfx', 'stock-video', 'motion-graphic', 'lut'].map((t) => `brand/licensed/${t}/.gitkeep`);
-const PATHS = ['CLAUDE.md', 'README.md', 'LICENSE', '.gitignore', 'docs', '.claude/skills', '.claude/settings.json', 'reels/_example', 'publisher', 'scripts', 'brand/library/3d', 'brand/library/sfx/sfx_add.py', 'brand/licensed/README.md', ...LICENSED_KEEP];   // kit-owned; brand/ and the brand's own reels/ are absent on purpose
 const stamp = () => new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
-const bytes = (f) => fs.readFileSync(f);
-const same = (a, b) => bytes(a).equals(bytes(b));
 const args = process.argv.slice(2);
 const apply = args.includes('--apply');
 const target = args.find((a) => !a.startsWith('--'));
@@ -48,14 +49,6 @@ const buildText = (b) => (b ? `build ${b.at.replace('T', ' ').replace('Z', ' UTC
 if (!fs.existsSync(path.join(SRC, 'CLAUDE.md'))) { console.error('Cannot find template/ next to this script.'); process.exit(1); }
 for (const a of args) if (a.startsWith('--') && a !== '--apply') { console.error(`Unknown option: ${a} (use --apply)`); process.exit(1); }
 
-function* walk(root) {
-  if (fs.statSync(root).isFile()) { yield root; return; }
-  for (const e of fs.readdirSync(root, { withFileTypes: true })) {
-    if (e.name === '.DS_Store') continue;
-    const p = path.join(root, e.name);
-    if (e.isDirectory()) yield* walk(p); else yield p;
-  }
-}
 function mirror(src, dst) {                      // make dst match src exactly (generic folder only)
   fs.mkdirSync(dst, { recursive: true });
   const want = new Set();
@@ -88,16 +81,8 @@ if (!fs.existsSync(path.join(DEST, 'CLAUDE.md')) || !fs.existsSync(path.join(DES
   console.error(`Not a reel workspace (no CLAUDE.md or brand/brand.json): ${DEST}`); process.exit(1);
 }
 
-// what differs
-const added = [], changed = [];
-for (const p of PATHS) {
-  const from = path.join(SRC, p);
-  if (!fs.existsSync(from)) continue;
-  for (const f of walk(from)) {
-    const r = path.relative(SRC, f), g = path.join(DEST, r);
-    if (!fs.existsSync(g)) added.push(r); else if (!same(f, g)) changed.push(r);
-  }
-}
+// what differs (nothing is written while planning: the dry run and the apply use the same plan)
+const plan = planUpdate(SRC, DEST);
 const newBrand = JSON.parse(fs.readFileSync(path.join(SRC, 'brand', 'brand.json'), 'utf8'));
 const oldBrandPath = path.join(DEST, 'brand', 'brand.json');
 const oldBrand = JSON.parse(fs.readFileSync(oldBrandPath, 'utf8'));
@@ -137,21 +122,17 @@ if (!apply) {
   if (have !== 'unknown' && cmp(have, kitVersion) >= 0) console.log(sameBuild ? '  (this workspace is already on the newest kit version and build)' : `  (same version; the kit has a different build, ${buildText(kitBuild)})`);
   const news = have === 'unknown' ? blocks.slice(0, 1) : blocks.filter((b) => cmp(b.split(/\s/)[0], have) > 0);
   for (const b of news) console.log(`\n  What changed in ${b.trimEnd().replace(/\n/g, '\n  ')}\n`);
-  for (const r of added) console.log(`  new       ${r}`);
-  for (const r of changed) console.log(`  replaced  ${r}`);
-  if (!added.length && !changed.length) console.log('  all kit files are current');
+  for (const line of report(plan, false)) console.log(line);
+  console.log('');
   console.log(`  brand.json would gain: ${missing.length ? missing.join(', ') : 'nothing'}`);
   console.log(`  new brand files (created empty, nothing overwritten): ${newStarters.length ? newStarters.map((f) => 'brand/' + f).join(', ') : 'none'}`);
   process.exit(0);
 }
 
 const S = stamp();
-for (const r of [...added, ...changed]) {
-  const g = path.join(DEST, r);
-  fs.mkdirSync(path.dirname(g), { recursive: true });
-  if (fs.existsSync(g)) fs.copyFileSync(g, `${g}.bak-${S}`);
-  fs.copyFileSync(path.join(SRC, r), g);
-}
+applyPlan(plan, SRC, DEST, S);
+for (const line of report(plan, true)) console.log(line);
+console.log('');
 if (missing.length) {
   fs.copyFileSync(oldBrandPath, `${oldBrandPath}.bak-${S}`);
   for (const k of missing) addKey(oldBrand, newBrand, k);
@@ -163,4 +144,5 @@ if (newStarters.length) console.log(`new brand files: ${newStarters.map((f) => '
 fs.writeFileSync(path.join(DEST, '.kit-synced'), new Date().toISOString().slice(0, 10) + '\n');
 fs.writeFileSync(path.join(DEST, '.kit-version'), kitVersion + '\n');
 if (kitBuild) fs.writeFileSync(path.join(DEST, '.kit-build'), kitBuild.line + '\n');
-console.log(`Updated ${DEST} to kit version ${kitVersion}${kitBuild ? ` (${buildText(kitBuild)})` : ''}. Replaced files were saved as *.bak-${S}. Your brand data and reels were not changed (only new settings and missing starter files were added). Rules for this brand only belong in CLAUDE.local.md, which updates never touch.`);
+const nBase = writeBase(SRC, DEST, { version: kitVersion, build: kitBuild ? kitBuild.line : '' });   // the pristine copy the next update merges against
+console.log(`Updated ${DEST} to kit version ${kitVersion}${kitBuild ? ` (${buildText(kitBuild)})` : ''}. Changed files were saved as *.bak-${S}; ${nBase} kit files were saved in .kit-base/ so the next update can merge your edits (commit .kit-base with the rest, never edit it)${plan.conflicts.length ? `. ${plan.conflicts.length} file${plan.conflicts.length === 1 ? ' has a conflict' : 's have conflicts'}: yours ${plan.conflicts.length === 1 ? 'was' : 'were'} kept and the kit's version is in <name>.kit-new, merge it by hand` : ''}. Your brand data and reels were not changed (only new settings and missing starter files were added). Rules for this brand only belong in CLAUDE.local.md, which updates never touch.`);

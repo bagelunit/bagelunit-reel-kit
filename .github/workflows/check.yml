@@ -119,6 +119,9 @@ jobs:
       - name: Reel loop learns from the numbers (too few reels, waiting, best angle, weak hook or middle, breakout, stalled)
         run: node setup/test-loop.mjs
 
+      - name: Updates merge local edits (replaced, merged, conflicts, no saved base, dry run, .gitignore, CRLF, binary)
+        run: node setup/test-update-merge.mjs
+
       - name: /kit-update updates the engine by itself (behind, current, linked, missing, failed installer)
         run: node setup/test-kit-update-engine.mjs
 

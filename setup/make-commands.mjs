@@ -20,14 +20,14 @@ const GROUPS = [
     ['node setup/install.mjs', 'The same installer, for Windows (it works on every system).', 'terminal, kit folder'],
     ['/brand-setup', 'The first command after installing: makes your brand\'s own folder (named <brand>-reels) and asks about your brand.', 'Claude Code, kit folder'],
     ['node setup/new-brand.mjs <folder>', 'Makes a new brand folder from the command line, for example ~/Reels/acme (it becomes acme-reels).', 'terminal, kit folder'],
-    ['node setup/sync-template.mjs <brand folder>', 'Shows what a kit update would change in a brand folder; add --apply to do it. /kit-update does this for you.', 'terminal, kit folder'],
+    ['node setup/sync-template.mjs <brand folder>', 'Shows what a kit update would change in a brand folder (replaced, merged, conflicts); add --apply to do it. Your edits to kit files are merged, not lost. /kit-update does this for you.', 'terminal, kit folder'],
   ]],
   ['Set up and keep up to date', 'Type these in Claude Code inside a brand folder.', [
     ['/brand-setup', 'Sets up the brand (name, handle, colours, logo, fonts, presenter, voice, call to action) or changes it later.', 'brand folder'],
     ['/sticker-host', 'Makes your sticker host, a cartoon of you or your mascot for Print reels: a base pose from one photo, then a starter 10, then any pose a reel needs (new, add <pose>, check <reel>, status).', 'brand folder'],
     ['/logo-library', 'Adds and checks the logos and app icons your reels show: finds the brand\'s own artwork (it asks before downloading anything), records the rights, puts the SVG in a reel, and blocks posting a reel whose logos are not approved. The kit ships no logos.', 'brand folder'],
     ['/licensed-assets', 'Records music, sound effects, stock video, motion graphics and LUTs you downloaded by hand from any source, such as Uppbeat (the kit ships none), says what each does in a reel, and checks them before Gate C. Nothing licensed is ever committed.', 'brand folder'],
-    ['/kit-update', 'Checks for a newer kit, shows what changed, updates this folder without touching your brand or reels, and updates the engine too.', 'brand folder'],
+    ['/kit-update', 'Checks for a newer kit, shows what changed, updates this folder without touching your brand or reels (your edits to kit files are merged in, conflicts are left beside the file as .kit-new), and updates the engine too.', 'brand folder'],
   ]],
   ['Instagram skills (research, writing, planning)', 'Ready-made Instagram skills in every brand folder.', [
     ['/ig-audit', 'Post-mortem on what you posted: which reels worked, why, and what to stop making.', 'brand folder'],

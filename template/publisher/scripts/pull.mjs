@@ -34,7 +34,8 @@ export async function pull({ root, fetchImpl = fetch, configDir = CONFIG_DIR, lo
   const a = await admin(conn, 'GET', '/admin', { fetchImpl });
   const inbox = await admin(conn, 'GET', '/admin/inbox', { fetchImpl });
 
-  const posts = (a.posts || []).map((p) => ({
+  const SINCE = brand.posting?.since || '';   // posting.since: posts before that time stay out of the dashboard
+  const posts = (a.posts || []).filter((p) => !SINCE || (String(p.at || '') >= SINCE && p.status !== 'cancelled')).map((p) => ({
     id: p.id, reel: p.reel || null, kind: p.kind, at: p.at, status: p.status, platforms: p.platforms,
     trial: Boolean(p.options?.trial),
     targets: Object.fromEntries(Object.entries(p.targets || {}).map(([k, t]) => [k, {

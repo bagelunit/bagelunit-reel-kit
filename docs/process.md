@@ -136,7 +136,7 @@ For a week's reels in one sitting: plan up to the brand's `batch.max_reels` topi
 
 ## Updating the kit
 
-In a brand workspace, type `/kit-update`. It checks for a newer version, shows what changed, previews, updates the workspace without touching the brand's files (replaced files are kept as `.bak-<date>`), and updates the engine too. It works even if the kit was downloaded as a ZIP. The manual way is `node setup/sync-template.mjs <workspace>` (dry run), then `--apply`, from the kit's folder.
+In a brand workspace, type `/kit-update`. It checks for a newer version, shows what changed, previews, updates the workspace without touching the brand's files (your edits to kit files are merged with the kit's changes, using the pristine copies in `.kit-base/`; a clash keeps your file and writes the kit's version beside it as `<name>.kit-new`; changed files are also kept as `.bak-<date>`), and updates the engine too. It works even if the kit was downloaded as a ZIP. The manual way is `node setup/sync-template.mjs <workspace>` (dry run), then `--apply`, from the kit's folder.
 
 ## Lessons from the first reels
 

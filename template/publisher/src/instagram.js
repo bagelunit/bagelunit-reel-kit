@@ -50,6 +50,28 @@ async function findLink(c) {
   if (t.link_tries >= LINK_TRIES) { delete t.link_pending; return c.log(`published, but its link could not be read after ${LINK_TRIES} tries`); }
 }
 
+// First comment. After a reel is up, post options.first_comment as the first comment on it
+// (POST /<MEDIA_ID>/comments, instagram_manage_comments). It never fails the post: a few tries, then it is logged and dropped.
+// Meta's API cannot pin a comment, so the owner pins it by hand in the app.
+export const COMMENT_TRIES = 6;
+async function postComment(c) {
+  const { api, post, t } = c;
+  const message = String(post.options?.first_comment || '').trim();
+  if (!message || t.comment_id) { delete t.comment_pending; return; }
+  try {
+    const r = await api.post(`${t.media_id}/comments`, { message });
+    t.comment_id = String(r?.id || 'posted'); delete t.comment_pending; delete t.comment_tries;
+    if (c.save) await c.save();
+    return c.log('first comment posted', { comment_id: t.comment_id });
+  } catch (e) {
+    if (e instanceof OutOfBudget) throw e;
+    t.comment_tries = (t.comment_tries || 0) + 1;
+    c.log(`first comment not posted yet (${t.comment_tries}/${COMMENT_TRIES}): ${e.message}`);
+    if (t.comment_tries >= COMMENT_TRIES) { delete t.comment_pending; c.log('first comment given up; post it by hand'); }
+  }
+}
+const wantsComment = (post, name) => name === 'instagram' && post.kind !== 'story' && !!String(post.options?.first_comment || '').trim();
+
 // The bodies sent to POST /<IG_ID>/media. `url(item)` gives the public address of an uploaded file.
 export function itemBody(item, url) {
   return item.type === 'video'
@@ -119,6 +141,7 @@ export async function quotaFull(api, igId) {
 export async function step(c) {
   const { api, post, t, env, name } = c;
   const ig = env.IG_USER_ID;
+  if (t.status === 'published' && t.comment_pending && t.media_id) return postComment(c);
   if (t.status === 'published' && t.link_pending) return findLink(c);
   if (t.status === 'pending') {
     if (isCarousel(post, name)) {
@@ -158,6 +181,7 @@ export async function step(c) {
       const r = await api.post(`${ig}/media_publish`, { creation_id: t.container_id });
       t.media_id = r.id; t.published_at = c.stamp; t.status = 'published';
       if (name === 'instagram') t.link_pending = true;                 // until the link is read (next runs if need be)
+      if (wantsComment(post, name)) t.comment_pending = true;
       const m = await api.get(`${r.id}?fields=permalink`).catch((e) => { if (e instanceof OutOfBudget) throw e; return null; });
       if (m?.permalink) { t.permalink = m.permalink; delete t.link_pending; }
       return c.log('published', { media_id: r.id, permalink: t.permalink || null });
@@ -166,6 +190,7 @@ export async function step(c) {
       // media_publish's answer was lost but Meta published: find the id and link on this and the next runs
       t.status = 'published'; t.published_at = t.published_at || c.stamp;
       c.log('container already published');
+      if (wantsComment(post, name)) t.comment_pending = true;
       if (name === 'instagram') { t.link_pending = true; return findLink(c); }
       return;
     }

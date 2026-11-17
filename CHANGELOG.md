@@ -2,6 +2,16 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.1.1 (2026-11-17)
+
+**Updates keep your edits, and the publisher can post a first comment.**
+
+- **Updates merge instead of overwrite.** Each brand folder now keeps a pristine copy of every kit file in `.kit-base/` (made by `/brand-setup`, by `node setup/new-brand.mjs` and by every update; commit it, never edit it). When you edited a kit file and the kit changed it too, `/kit-update` (and `node setup/sync-template.mjs <folder>`) three-way merges the two and keeps your change; if the same lines changed on both sides, your file stays exactly as it was and the kit's new version is written beside it as `<name>.kit-new` to merge by hand. A file you edited that the kit did not change is left alone. `.gitignore` keeps your own lines and gains the kit's new ones.
+- **The update output has three groups.** Replaced (you had not edited it), merged (your changes kept) and conflicts, with a summary line, in the dry run and in the apply. The dry run predicts merges and conflicts exactly and changes nothing. Changed files are still kept as `<name>.bak-<date>`.
+- **The first update after this one cannot merge yet.** A folder with no `.kit-base` has nothing to compare with, so that one update replaces files as before (the `.bak` keeps any edit) and lists the files whose old content differed; every update after it merges. The merge code is in the kit you download, so even an older `/kit-update` runs the new merge.
+- **First comment on Instagram.** If a reel has `out/first-comment.txt`, `schedule.mjs` schedules it with the post (`--no-first-comment` leaves it out) and the publisher posts it as the first comment on the Instagram reel right after it is up. No links in it (house rule 12), up to 2,200 characters, never for stories. A failed comment is retried a few times and never fails the post. Meta's API cannot pin a comment, so pin it by hand. Needs the `instagram_manage_comments` permission.
+- **`posting.since` in `brand/brand.json`.** A date (for example `2026-11-15`); the dashboard and `brand/publisher.json` then leave out posts scheduled before it and cancelled ones, for a brand that moved to a new account. Empty (the default) shows everything.
+
 ## 1.1.0 (2026-11-17)
 
 **A reel that checks itself end to end.** The script now goes through a staged flow with a hard gate before any paid voice, the final video is checked for the text it really shows, and the kit tells you why a connection fails instead of just counting failures.

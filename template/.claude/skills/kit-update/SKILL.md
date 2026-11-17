@@ -36,14 +36,27 @@ is what usually brings the owner here.
    updates only the engine), and stop.
 2. **Ask once** (question block): "Update now (Recommended)", "Show me what changed first", "Not now". On "show me",
    run `preview` (downloads the kit once into `~/.bagelunit-reel-kit/<version>/`, prints the changelog entries since
-   this workspace's version and the files that would be added or replaced), summarise it in plain words, then ask
+   this workspace's version and the files that would be added, replaced, merged or in conflict), summarise it in plain words, then ask
    again.
-3. **Update:** `node .claude/skills/kit-update/update.mjs now`. It prints what changed, updates this workspace
-   (every replaced file is kept next to the new one as `<name>.bak-<date>`, and `brand/` values and `reels/` are
-   never touched), then updates the engine (`/bagelunit-reels`) when it is older than the kit by running the kit's
-   installer without the program, plugin and sound-library steps. Report it in two or three lines. If the owner
-   changed `CLAUDE.md`, a skill or the publisher's code (`publisher/src`, `publisher/scripts`, `publisher/test`) for this brand only, say that the change was replaced (the `.bak` copy is kept) and
-   offer to move it into `CLAUDE.local.md` (rules for this brand only; updates never touch it).
+3. **Update:** `node .claude/skills/kit-update/update.mjs now`. It prints what changed, updates this workspace, then
+   updates the engine (`/bagelunit-reels`) when it is older than the kit by running the kit's installer without the
+   program, plugin and sound-library steps. `brand/` values and `reels/` are never touched. Your edits to kit files
+   are **merged, not lost**: the workspace keeps a pristine copy of every kit file in `.kit-base/` (tracked in git,
+   never edited by hand), and an update compares your file, that copy and the new kit file. The output has three
+   groups; report them in plain words, two or three lines:
+   - **Replaced:** you had not edited the file, so it is now the kit's new one (the old one is kept as
+     `<name>.bak-<date>`).
+   - **Merged (your changes kept):** you edited a file and the kit changed it too, in different places, so both
+     changes are in it (the old one is kept as `.bak`). Offer to open one if the owner wants to look.
+   - **Conflicts:** you and the kit changed the same lines. Your file is **left exactly as it was**, and the kit's new
+     version is written next to it as `<name>.kit-new`. Show both files, merge them with the owner (keep their edit,
+     take the kit's change), then delete the `.kit-new` file. Until then the file works as before but misses the kit's
+     change. `.gitignore` keeps your own lines and gains the kit's new ones.
+   - **No saved base yet** (the first update after the kit started saving it, or a workspace made before): that run
+     cannot merge, so a file you edited was replaced (the `.bak` copy has your edit). It lists those files; offer to
+     re-apply the edit from the `.bak` (or move a brand-only rule into `CLAUDE.local.md`). From the next update on,
+     your edits merge. Commit `.kit-base/` with the rest if this folder is a git repo.
+   The preview shows the same three groups and predicts merges and conflicts exactly.
 4. **Restart:** if it printed "The engine is updated", tell the owner to restart Claude Code so the new engine and
    skills load. A linked engine (installed with `--link`) follows its kit folder and is left alone. If it says the
    engine update did not finish, show the command it printed and what the installer said. `--no-engine` skips the
@@ -59,4 +72,5 @@ turn it off, set `"updates": { "check_on_start": false }` in `brand/brand.json` 
 - Offline or GitHub unreachable: say so; nothing was changed.
 - A workspace without `.kit-version` (made before versions existed): `preview` still works; it shows the newest
   changes only.
-- To undo: every replaced file sits next to the new one as `<name>.bak-<date>`.
+- To undo: every file an update replaced or merged sits next to the new one as `<name>.bak-<date>`.
+- A `.kit-new` file left over from an earlier conflict is only the kit's version of that file at the time; delete it once merged.

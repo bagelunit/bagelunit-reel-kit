@@ -122,6 +122,8 @@ Options:
 
 If the publisher refuses the post after the files were uploaded, the command deletes them again. A file that is uploaded but never scheduled is deleted by the publisher within a day.
 
+**First comment (Instagram only).** If the reel has `out/first-comment.txt`, `schedule.mjs` schedules it with the post and the publisher posts it as the first comment on the Instagram reel right after the reel is up (`--no-first-comment` leaves it out). It is up to 2,200 characters, with no link (house rule 12: a link goes in a DM). A comment that fails is retried a few times on the next runs and never fails the post; the post's record shows `comment_id` when it went out. Meta's API cannot pin a comment, so pin it by hand in the app. Needs the `instagram_manage_comments` permission. Stories get none.
+
 The texts: Instagram uses `out/caption.txt`. Facebook, Threads, YouTube and TikTok use `out/platforms/facebook.txt`, `threads.txt`, `youtube.txt` and `tiktok.txt` when they exist (`/reel-repurpose` writes the last two), and the caption otherwise. `youtube.txt` is the title on its first line (100 characters at most) and the description after it; a caption's first line is used as the title when there is no file. TikTok allows 2,200 characters. Threads allows 500 characters (an emoji counts as several), so a long caption needs its own `threads.txt`.
 
 It writes one line under "## Posting" in the reel's `approvals.md`, which the dashboard reads:

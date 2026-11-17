@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const STAMP = 'template/.kit-build';
 const INSTALL = ['setup/install.mjs', 'setup/install.sh', 'setup/install.ps1'];
-const KIT = ['template', 'studio', ...INSTALL, 'setup/sync-template.mjs', 'setup/sync-template.sh', 'setup/new-brand.mjs'];
+const KIT = ['template', 'studio', ...INSTALL, 'setup/sync-template.mjs', 'setup/sync-template.sh', 'setup/new-brand.mjs', 'setup/lib'];
 const ENGINE = ['studio', ...INSTALL];
 
 function fingerprint(paths) {

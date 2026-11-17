@@ -352,6 +352,13 @@ export async function schedulePost(env, data, origin, now = Date.now()) {
     if (kind === 'story') return bad('stories take no collaborators');
     if (!isUnified(env)) return bad('collaborators need the Unified Login setup (API_SETUP = "unified")');
   }
+  if (o.first_comment !== undefined) {
+    o.first_comment = String(o.first_comment).trim();
+    if (!o.first_comment) delete o.first_comment;
+    else if (kind === 'story' || !platforms.includes('instagram')) return bad('a first comment is for an Instagram post (not a story)');
+    else if (o.first_comment.length > 2200) return bad('the first comment is over Instagram\'s 2,200 characters');
+    else if (/https?:\/\/|www\./i.test(o.first_comment)) return bad('no links in a public comment (house rule 12): put the link in a DM');
+  }
   if (o.location_id && !/^\d+$/.test(String(o.location_id))) return bad('location must be the numeric id of a Facebook Page with a location');
   o.threads_mode = o.threads_mode === 'text' ? 'text' : 'video';
   if (platforms.includes('threads') && o.threads_mode === 'text' && !o.link && !platforms.includes('instagram')) return bad('a Threads text post links to the Instagram post: add instagram, give a link, or use video');
@@ -466,7 +473,7 @@ export async function serveMedia(env, tokenStr, request) {
 // ---------- the cron ----------
 // A target that is published but still looking for its link (link_pending, instagram.js and threads.js) keeps the
 // post processing, so the next runs can find the link.
-const settled = (t) => FINAL.has(t.status) && !t.link_pending;
+const settled = (t) => FINAL.has(t.status) && !t.link_pending && !t.comment_pending;
 function overall(p) {
   const s = Object.values(p.targets).map((t) => t.status);
   if (!Object.values(p.targets).every(settled)) return 'processing';

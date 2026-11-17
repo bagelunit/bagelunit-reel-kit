@@ -5,11 +5,13 @@
 //       Copies this repo's template/ to <folder> (for example ~/Reels/my-brand-reels) and prints the next step.
 //       The folder name always ends in -reels: "~/Reels/acme" becomes ~/Reels/acme-reels.
 //       It refuses a folder that already exists and is not empty, and a folder inside this repo.
+//       It also saves a pristine copy of the kit's files in <folder>/.kit-base/ (updates merge your edits against it).
 //       It changes nothing else. /brand-setup in the kit's folder runs this for you.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { writeBase } from './lib/kit-merge.mjs';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(REPO, 'template');
@@ -41,6 +43,10 @@ if (fs.existsSync(target) && fs.readdirSync(target).filter((f) => f !== '.DS_Sto
 fs.mkdirSync(target, { recursive: true });
 fs.cpSync(SRC, target, { recursive: true, filter: (src) => !SKIP.has(path.basename(src)) });
 const version = (() => { try { return fs.readFileSync(path.join(target, '.kit-version'), 'utf8').trim(); } catch { return 'unknown'; } })();
+
+// the pristine copy of every kit file: later updates merge your edits against it instead of replacing them (commit it; never edit it)
+const build = (() => { try { return fs.readFileSync(path.join(target, '.kit-build'), 'utf8').trim(); } catch { return ''; } })();
+writeBase(SRC, target, { version, build });
 
 console.log(`OK: made a new brand folder at ${target} (kit ${version})`);
 console.log('Next: open Claude Code in that folder. It sees the empty brand and asks the brand questions (or type /brand-setup there).');

@@ -5,7 +5,7 @@
 //   node .claude/skills/kit-update/update.mjs get                download that kit version into ~/.bagelunit-reel-kit/<version>/
 //   node .claude/skills/kit-update/update.mjs preview            show what would change in this workspace (changes nothing)
 //   node .claude/skills/kit-update/update.mjs now                everything in one go: what changed, update this workspace, update the engine (what /kit-update runs)
-//   node .claude/skills/kit-update/update.mjs apply              update this workspace (old files kept as *.bak-<date>), then the engine
+//   node .claude/skills/kit-update/update.mjs apply              update this workspace (your edits to kit files are merged; changed files kept as *.bak-<date>), then the engine
 //   node .claude/skills/kit-update/update.mjs engine             update only the engine (the installed /bagelunit-reels), if it is behind
 // The engine is updated by `apply` itself when it is older than the kit (once per computer: a second workspace finds it current).
 // --no-engine skips that. A linked engine (install.sh --link) follows the kit folder and is left alone.
@@ -16,6 +16,12 @@
 // kit's setup/stamp-build.mjs): "<time> kit:<fingerprint> engine:<fingerprint>". A workspace keeps the one it was
 // updated from in .kit-build, and the engine's marker keeps its own. A newer build of the same version counts as an
 // update, and each build is downloaded fresh into ~/.bagelunit-reel-kit/<version>+<kit fingerprint>/.
+//
+// Merging: this script only downloads the kit and runs the DOWNLOADED kit's setup/sync-template.mjs on this workspace (the
+// sync() function below), so the merge code that runs is always the new kit's, never this workspace's older copy. An edit
+// you made to a kit file is three-way merged against the pristine copy kept in .kit-base/ (a clean merge is written, a
+// conflict keeps your file and writes the kit's version beside it as <name>.kit-new). The first update after .kit-base
+// exists for the first time has no saved base, so it replaces files (the .bak keeps your edits) and says so; later ones merge.
 //
 // It only ever downloads the public kit from GitHub. It never touches brand/ data or reels (sync-template.mjs adds new
 // settings and missing starter files only), never needs a key, and never runs as administrator.
