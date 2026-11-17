@@ -21,7 +21,7 @@ def rec_possible():
 
 
 def licensed_problem(reel):
-    """The reel's licensed assets (Uppbeat, recorded with kit licensed add) must be in order: runs the engine's
+    """The reel's licensed assets (recorded with kit licensed add) must be in order: runs the engine's
     `licensed.mjs check`. Returns a message, or None when all is well or the engine tool is not installed here."""
     import shutil, subprocess
     tool = pathlib.Path.home() / '.claude' / 'skills' / 'bagelunit-reels' / 'tools' / 'licensed.mjs'
@@ -44,11 +44,11 @@ def main():
     slug = pathlib.Path(arg).name
     hits = [d for d in (ROOT / 'reels').rglob(slug) if d.is_dir() and (d / 'reel.json').exists()]
     if len(hits) != 1: return 0                       # not one of this workspace's reels: nothing to check here
-    if not rec_possible(): return 0                    # no text reader on this computer (see reel_qa.py): do not lock the owner out
     reel = hits[0]
-    lic = licensed_problem(reel)
+    lic = licensed_problem(reel)                       # needs no text reader, so it runs first
     if lic:
         print(f'Gate C blocked: {lic}', file=sys.stderr); return 2
+    if not rec_possible(): return 0                    # no text reader on this computer (see reel_qa.py): do not lock the owner out
     rec_file = reel / 'build' / 'qa-gate.json'
     how = f'python3 scripts/qa/gate_qa.py {slug}'
     if not rec_file.exists():
