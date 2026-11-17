@@ -1,6 +1,6 @@
-# Style ideas (concepts, not shipped)
+# Style ideas for future scene styles
 
-**Status: concepts only.** None of these is a mode you can pick today. Each is an idea to build and test one at a time: build one, make a real reel with it, check it against `docs/craft-playbook.md`, then keep it, change it or drop it. Until then, the three modes (Print, Depth, Talking) are the only options. Names are working names.
+**Status: concepts only.** None of these is a style you can pick today. The 20 built scene styles are listed by `kit scene list`; these eight are separate ideas for future ones. Each is an idea to build and test one at a time: build one, make a real reel with it, check it against `docs/craft-playbook.md`, then keep it, change it or drop it. Names are working names.
 
 Every idea follows the craft playbook: one world, one through-line, a picture for each kind of line, nothing repeated three times.
 

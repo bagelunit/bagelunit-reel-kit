@@ -15,12 +15,12 @@ Claude does the work. You answer a few questions, approve three times, and post 
 
 **The steps**
 1. **Ask for a reel:** type `/bagelunit-reels` with a topic, for example `/bagelunit-reels how to [SOMETHING THE BRAND REALLY KNOWS]`.
-2. **Pick the style** (Print, 3D, or Talking head if you filmed yourself). Take the recommended one if unsure.
-3. **Claude writes hooks (each a triple hook: context, lean, contrarian snapback) and the script.** Then it fact checks the script: it re-reads every source, and a claim it cannot back up is flagged before anything is spent. It also shows what the voice will cost.
+2. **Pick the style** (Print, 3D, Talking head if you filmed yourself, or one of the 20 scene styles; Claude offers the two or three that fit your niche). Take the recommended one if unsure.
+3. **Claude plans the script** (who it is for and the one promise), **writes hooks (each a triple hook: context, lean, contrarian snapback) and the script, and checks it four ways:** a sentence check, a fresh reader, a fact check and a score out of 100. You see the score and the fresh reader's summary with the script. The fact check re-reads every source, and a claim it cannot back up is flagged before anything is spent. It also shows what the voice will cost.
 4. **Approve the script (Gate A).** Click Approve, or "Change something" and say what. Nothing is spent before you approve.
 5. **Claude makes the voice and the visual plan**: a short description of what the screen does on each line, and the handle that will show.
 6. **Approve the visual plan (Gate B).**
-7. **Wait while Claude builds, checks and mixes the real sound.** Then it makes the final, the cover and the caption, fact checks again, and scores the reel out of 100 and fixes and re-checks it until the score is 90 or more. Watch it on your phone.
+7. **Wait while Claude builds, checks and mixes the real sound.** Then it makes the final, the cover and the caption, fact checks again, runs the reel QA (`python3 scripts/qa/gate_qa.py <slug>`: it reads the pixels for the hook, text in the unsafe areas and text size), and scores the reel out of 100 and fixes and re-checks it until the score is 90 or more. Watch it on your phone.
 8. **Approve the final (Gate C).** The finished video is in `reels/<the reel's name>/out/`.
 9. **Post it yourself.** `/reel-posting` gives you a posting card: the file, the cover, the caption ready to copy and the quality setting. Or schedule it in Instagram.
 10. **A day later, type `/analytics-readout` with your numbers** (where to find them: `docs/after-posting.md`).

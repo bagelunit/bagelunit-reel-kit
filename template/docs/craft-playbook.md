@@ -1,6 +1,6 @@
 # Craft playbook: what is on screen
 
-The hook playbook decides whether someone stops. This one decides what they see once they have. Read it before the storyboard (Gate B) and again before you call a build done. The gates it leans on: `kit pace` (does it keep moving), `kit effort` (was it built for this script), `kit lint` (shot length, repeats, cuts on words) and `kit qa` (the final file's format, loudness, black frames and sync). The table near the end says exactly what each one flags.
+The hook playbook decides whether someone stops. This one decides what they see once they have. Read it before the storyboard (Gate B) and again before you call a build done. The gates it leans on: `kit pace` (does it keep moving), `kit effort` (was it built for this script), `kit lint` (shot length, repeats, cuts on words) and `kit qa` (the final file's format, loudness, black frames and sync). The table near the end says exactly what each one flags, and also names the reel QA `gate_qa.py` and `kit script`.
 
 ## A. One world per reel
 
@@ -70,6 +70,23 @@ Rule of thumb: if two rows would get the same picture, the line is not specific 
 - Two grounds per reel, light and dark, swapped on big beats, so numbers and reveals pop. Text keeps at least 4.5:1 contrast on its ground.
 - Photos and library images get the brand's tone: tint them or sit them on a brand-coloured card rather than leaving a stray palette in frame.
 
+## Safe zones and text size (the one table)
+
+This is the single source. Every check, skill and doc quotes these numbers; the code uses the same ones. The frame is 1080 by 1920.
+
+| What | Number |
+|---|---|
+| Keep clear of text: bottom | 300 px (the caption and buttons cover it) |
+| Keep clear of text: right | 120 px (the like and share buttons) |
+| Keep clear of text: top | 250 px |
+| Keep clear of text: left | 60 px |
+| Safe area for text | x 60 to 960, y 250 to 1620 |
+| Text size, a spoken line shown on screen | at least 40 px |
+| Text size, the floor | 30 px: the QA lists anything between 30 and 40 px for a person to judge in `/reel-review` |
+| Cover | the centre 1080 by 1440 band |
+
+Pictures may run into the margins; text may not.
+
 ## Order of work
 
 1. Read the approved script and mark each line with its kind from table C (a number, a step, a mistake and so on). Write the kind beside the line.
@@ -77,7 +94,7 @@ Rule of thumb: if two rows would get the same picture, the line is not specific 
 3. Fill the shot cards: for each, one object from the row, the word that triggers the move, what keeps moving, the camera.
 4. Run the swap test and the repeat check on the cards, before anything is built.
 5. Pull library items for any shot that wants a real product, screen or clip. Note the file name on the card.
-6. After the build, run the four gates and fix what they flag. A warning is not a veto, but explain why you kept it in the plan.
+6. After the build, run the four gates (`kit pace`, `kit effort`, `kit lint`, `kit qa`) and fix what they flag. A warning is not a veto, but explain why you kept it in the plan.
 
 ## What the gates look at
 
@@ -86,7 +103,9 @@ Rule of thumb: if two rows would get the same picture, the line is not specific 
 | `kit pace` | reads the rendered draft and lists every stretch where almost nothing changes (about 1.5 s or more), with the words spoken there, against the mode's movement bar |
 | `kit effort` | whether the reel was built for its own script: the amount of its own scene code and its own prop makers per second, against how much leans on the mode's ready-made props |
 | `kit lint` | shot grammar: shot length (1 to 5 s), how long a face stays on screen, the same layout twice in a row, cuts that fall in the middle of a word, three shots of the same length in a row, no movement in the first second, one prop carrying three shots. It needs shot data, so print reels print "nothing checked" until the print page publishes its shots |
-| `kit qa` | the finished file: size and format, loudness and peak, black or frozen stretches, and whether the first word lines up with the first sound. The text-size and safe-area check is skipped until the render writes text boxes, so check those by eye in `/reel-review` |
+| `kit qa` | the finished file: size and format, loudness and peak, black or frozen stretches, and whether the first word lines up with the first sound. Text size and safe areas are checked from the pixels by `gate_qa.py` (next rows), and by eye in `/reel-review` |
+| `kit script` | the script's own checks before Gate A: length, shape, sentence rules and leftover `{{needs cleared fact}}` (run by `/reel-scripter`) |
+| `python3 scripts/qa/gate_qa.py <slug>` | the reel QA on the exact video: the frame-0 hook, text in the bottom 300 px or right 120 px, and text size, read from the pixels. It writes `build/qa-gate.json`, and Gate C is refused until it passes for the file on disk. Only the owner skips it, with `--skip "reason"` |
 | `kit measure` and `kit predict` | facts about the video (cuts, pauses, loudness, still stretches, contact sheets). With a calibrated model, `predict` adds a watch-time and skip-rate estimate; without one it says so and gives no estimate |
 | `kit facts` | the mechanical half of the fact check: digits not in `facts.md`, rows without a source or cleared date, clearances older than 30 days, leftover `{{needs cleared fact}}`, absolute wording (only, never, best, faster ...). It cannot tell if a source is true: `/reel-factcheck` re-reads the sources for that, and `kit gate` needs its PASS at Gates A and C |
 | `kit gate` | records each approval and, at Gate C, the final file's fingerprint, so a change after approval shows up |
@@ -130,10 +149,12 @@ Through-line device:
 Shots carrying it (count, at least a third):
 Hook shot moving on frame 0: yes / no
 Swap test passed on first and last shot: yes / no
+Tools per scene (which shots are 3D, which are real clips, which are scene styles):
+Names on screen (every person, company or product name shown, for the fact check):
 Library items used (file names):
 Colour jobs (accent / ink / ground / warning):
 ```
 
 ## Before you hand over
 
-Walk the storyboard once: world named, through-line named and in at least a third of shots, no layout three times running, hero moving on frame 0, every shot has one moving thing, cuts on stressed words, colours with jobs. Then run `kit pace`, `kit effort`, `kit lint` and, on the render, `kit qa`.
+Walk the storyboard once: tools per scene and names on screen filled in, world named, through-line named and in at least a third of shots, no layout three times running, hero moving on frame 0, every shot has one moving thing, cuts on stressed words, colours with jobs. Then run `kit pace`, `kit effort`, `kit lint` and, on the render, `kit qa`.

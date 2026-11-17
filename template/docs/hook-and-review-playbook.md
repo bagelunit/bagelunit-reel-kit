@@ -1,8 +1,8 @@
 # Hook and review playbook
 
-Added November 2026, with the reel skills in this folder's `.claude/skills/`. These are ideas and checklists that sharpen steps 1, 2, 5, 7, 12 and 14 of the kit's [reel process](https://github.com/bagelunit/bagelunit-reel-kit/blob/main/docs/process.md) (in the kit's own folder, not in this copy). The skills' numbers come from one account in one niche, so treat every number below as a hypothesis to test against the brand's own median, not as a law.
+These checklists sharpen the research, hook, script, plan, review and readout steps. They go with the reel skills in this folder's `.claude/skills/`. The skills' numbers come from one account in one niche, so treat every number below as a hypothesis to test against the brand's own median, not as a law.
 
-## 0. The triple hook: how every hook is written (step 5)
+## 0. The triple hook: how every hook is written 
 
 The hook is the first one or two sentences of a reel. BagelUnit's triple hook builds them in three beats, always in this order: the viewer buys into the topic at once, leans in out of curiosity, and is then snapped back in another direction. Do all three and the hook is very hard to scroll past. Every hook the kit writes (`/viral-hook-writer`, `/reel-scripter`, the engine's script step) uses it, and `/reel-review` checks it.
 
@@ -34,11 +34,11 @@ Three yeses, or rewrite it.
 
 **Test it on your own numbers.** `/ab-hook-tester` can run the same context and lean with and without the snapback, so the brand's own skip rate shows what the snapback adds for this audience.
 
-## 1. Frame-0 hook checklist (step 5 and step 7)
+## 1. Frame-0 hook checklist
 
-The triple hook (section 0) is checked on the script; this checklist then checks the hook on the draft's real frames.
+Before Gate A, check the script with the triple hook read-back test (section 0). This checklist is checked on frames, not on the script: on the Gate B stills, on the draft and on the final.
 
-A hook passes only if all eight are true. Check it on the draft's real frames at 0 s, 0.5 s, 1 s, 2 s and 3 s, never on the script alone.
+A hook passes only if all eight are true. Check it on real frames at 0 s, 0.5 s, 1 s, 2 s and 3 s.
 
 1. Frame 0 is already moving. No fade from black, no empty frame, no slow logo build.
 2. Frame 0 shows something the viewer recognises (the app, the platform, their problem), not abstract art.
@@ -53,7 +53,7 @@ Loser patterns to reject: abstract background with no brand the viewer knows, a 
 
 Same words can win or flop: what happens on screen decides it. Show the real product or screen doing the thing, not text on a card.
 
-## 2. Pick ONE goal before scripting (step 2)
+## 2. Pick ONE goal before scripting
 
 | Goal | Feeling to trigger | Build it |
 | --- | --- | --- |
@@ -62,24 +62,24 @@ Same words can win or flop: what happens on screen decides it. Show the real pro
 | Follow | fear of falling behind | show the gap, a real number, a look people recognise every post |
 | Lead | curiosity plus a free thing | show the value, name the free deliverable, one keyword (only with a tested auto-reply) |
 
-Write the goal into `reels/<slug>/approvals.md` next to Gate A. One goal per reel, one ask.
+`/script-plan` writes the goal and the angle into `reels/<slug>/approvals.md` next to Gate A. One goal per reel, one ask.
 
-## 3. Rotate the angle (step 2)
+## 3. Rotate the angle
 
 Check `brand/log.md` for the last two angles and do not repeat the most recent one. Angles: result first, self-proving (the reel proves its own claim), contrarian, pain first, something breaks. Add an `angle` and a `goal` column to the log rows.
 
-## 4. Hold them after the hook (step 5 and step 7)
+## 4. Hold them after the hook
 
 - Every spoken line gets its own visual. No plain text card for a demo line.
 - Nothing static: if two frames a second apart look the same, add motion (the `pace` gate finds these).
 - Re-hook at the dips, around 4 s, 9 s and 15 s, with a short micro-loop ("and it gets better", "wait for the last one").
 - Series or countdown format (optional): promise a payoff in the hook, number the beats so the finish line is visible, save the best beat for last, then pay it off for real. A promised payoff that never arrives is forbidden. This does not replace the rule that the hook gives value up front; it is a format for numbered series reels only.
 
-## 5. Hook mining (step 5)
+## 5. Hook mining
 
 When the brand has a swipe file of proven hooks (`brand/swipe.md`), run `.claude/skills/hook-mining/mine_hooks.py` on a CSV of them, or use the `/hook-mining` skill. It buckets hooks by psychological pattern and flags the charged power words. The remix rule: keep the pattern, clause order, specificity and rhythm; swap only the charged words. Never ship a mined hook verbatim, and a number in the source stays a number only if it is ours and cleared in `facts.md`.
 
-## 6. Teardown of a reference reel (step 1)
+## 6. Teardown of a reference reel
 
 Keeps the existing rule: reels are read in the browser at human speed, no scraping services unless `autopilot.scrape` is on, no logging in with a brand's password. For a reel worth studying, the owner supplies the file (own screen recording or download), or `/reel-sources` fetches it when scraping is on. Claude then pulls frames with ffmpeg and a transcript with whisper-cpp and writes a teardown with `/reel-analyzer`:
 
@@ -92,25 +92,27 @@ Keeps the existing rule: reels are read in the browser at human speed, no scrapi
 
 Save the teardown in `brand/swipe.md`. Study the brand's own best reels the same way once it has some.
 
-## 7. Comment mining (step 2)
+## 7. Comment mining
 
 Once a brand has 30 or more real comments or DMs, paste them in and run `/comment-mining`: recurring questions with counts, objections, the audience's exact phrases, misreads. Each idea must trace to a real comment. Use their words in hooks and captions.
 
-## 8. Cover check (step 12)
+## 8. Cover check
 
 In addition to the centre 1080x1440 rule: cover text of 3 to 5 words, legible when the cover is shrunk to 150 px wide (if it is not, simplify), a family resemblance to the last 8 covers without disappearing next to them. `/cover-thumbnail-brief` writes the options.
 
-## 9. A/B hook test (step 14)
+## 9. A/B hook test
 
 Optional, once a brand has steady views. Two hooks with different mechanisms (not one reworded), one variable only: same cover, length, caption and posting time. State the hypothesis first (what we learn if A wins, if B wins), decide on 3-second hold rather than likes, and note roughly how many views are needed before the result means anything. `/ab-hook-tester`. If more than the hook changed, it is two different reels, not a test.
 
-## 10. Review readout (step 14)
+## 10. Review readout
 
 Use `/analytics-readout`: judge every figure against the brand's own median, name the one metric that matters for the reel's goal, and diagnose where it broke. A drop at about 3 s is a hook problem, around 12 s a middle problem, at the end a CTA problem. Give two actions, not twelve, and say plainly what the data cannot tell. Never use an outside benchmark as if it were our data.
 
-## 10b. Reel review before Gate C (step 10 and step 12)
+## 10b. Reel review and reel QA before Gate C
 
-`/reel-review` checks a built reel on its real frames and numbers: seven must-pass checks (facts, words match, frame 0 and the hook, safe zones and size, handle and payoffs, sound, honesty) and eight scored checks from 1 to 5. It ends in one verdict line with a score out of 100: meets the bar (every must-pass passes and the score is 90 or more) or not ready. Below 90 the reel is redone and reviewed again until it reaches 90, and Gate C refuses a lower score. The verdict goes in `approvals.md` next to Gate C and the scores go in `brand/log.md`, so after a few reels you can see which check keeps scoring lowest for the brand. A reel that is not ready still goes to the approver with the line attached.
+`/reel-review` checks a built reel on its real frames and numbers: seven must-pass checks (facts, words match, frame 0 and the hook, safe zones and size, handle and payoffs, sound, honesty) and eight scored checks from 1 to 5. It ends in one verdict line with a score out of 100: meets the bar (every must-pass passes and the score is 90 or more) or not ready. Below 90 the reel is redone and reviewed again until it reaches 90, and Gate C refuses a lower score. The verdict line goes in `approvals.md` next to Gate C. Scores do not go into `brand/log.md`: the log holds posted reels only, and `/reel-posting` adds the row once the owner confirms the reel went out. A reel that is not ready does not go to the approver as it is. Below 90 it is redone; only the owner can override this, with `--skip-review "reason"`.
+
+Also run the reel QA on the exact video: `python3 scripts/qa/gate_qa.py <slug>`. It reads the pixels for the frame-0 hook, text in the bottom 300 px or right 120 px, and text size, and Gate C is refused until it passes for the file on disk. If no text reader is installed on the computer, it says so; say so to the owner too.
 
 ## 11. Comment replies and links
 
@@ -120,14 +122,14 @@ A public comment reply never contains a link. The link goes in the DM only, and 
 
 The kit is for any brand and any person, so it also ships four skills that do more than write text. They are installed but off by default for a brand, and a brand turns each one on through the `autopilot` permissions in its `brand/brand.json` (see section 3b of the template `CLAUDE.md`):
 
-- `/content-factory`: runs the whole loop (research, hook, script, build, caption, post, DM loop) and repeats it. It calls Apify (reel teardown), Composio (posting and DMs) and Remotion (render), and stops to ask when a tool is not connected.
-- `/reel-builder`: beat-by-beat build table, plus a render harness. It uses Remotion for free and Seedance on Runway (about $6 to $12 per reel) for character acting.
+- `/content-factory`: runs the whole loop (research, hook, script, build, caption, post, DM loop) and repeats it. It builds with `/bagelunit-reels`, posts through the brand's own publisher, and stops at every gate and whenever a tool is not connected.
+- `/reel-builder`: beat-by-beat build table. Seedance on Runway (about $6 to $12 per reel) is the paid option for character acting.
 - `/comment-responder`: a keyword rule that replies publicly (never with a link) and sends the DM, around the clock.
 - `/account-audit` and `/reel-sources`: audit an account and find the reels that beat its median (an Apify token, paid per result), mine real questions, and fetch a reel with frames and a transcript.
 
 Know before you turn them on:
 - Posting, DMs and scraping act on a real account and can break a platform's rules or get an account limited. The brand owner decides, per brand.
-- Paid services (Apify, Composio, Runway) cost money; check the plan first.
+- Paid services (Apify, Runway) cost money; check the plan first.
 - Keep the honesty rules the skills themselves carry: a keyword call to action must really deliver, no links in public replies, no invented numbers, never search the computer for someone's API key.
 - Our gated build (`/bagelunit-reels`, Gates A to C, a person posts) is the default and is still the better route when quality matters more than volume.
 

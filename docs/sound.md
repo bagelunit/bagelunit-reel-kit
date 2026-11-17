@@ -11,11 +11,10 @@ It uses two open-source tools installed by the setup script into `~/dev/sound/` 
 
 ## Run it
 
-After `kit export <reel>`:
+After `kit export <reel>`, run the step below. It leaves the final as `out/<name>.mp4` and keeps the kit-sound original in `build/pre-real/<name>-kitsound.mp4` (so the step can be redone). The gates, the posting card and the publisher all use that one name.
 
 ```bash
-~/dev/sound/earshot/.venv/bin/python ~/.claude/skills/bagelunit-reels/tools/realsound.py <reel> \
-  --video out/<name>.mp4 --out out/<name>-real.mp4
+~/dev/sound/earshot/.venv/bin/python ~/.claude/skills/bagelunit-reels/tools/realsound.py <reel>
 ```
 
 Use earshot's Python: it has numpy and soundfile. Options:

@@ -9,20 +9,20 @@ How the BagelUnit Reel Kit decides what to make, how it makes it, and the rules 
 - **Account mix:** 4 direct (your niche, a bit ahead), 4 adjacent (same audience, other topic), 2 to 4 big ones for format ideas. Stay within about 10x of your follower count.
 - **Look, don't scrape:** read reels in the browser at human speed. Scraping services stay off unless the brand owner turns them on.
 - **The triple hook:** every hook is built in three beats, in order. Context: the first line says what the video is about, at once, in the voice, the picture and the text. Lean: proof or a number, a specific pain or benefit, or something unexpected makes the viewer curious in one direction. Contrarian snapback: a true turn pulls them onto another path, which the reel then pays off. Read the first one or two sentences alone: context, lean and snapback, or rewrite.
-- **Hook scoring:** 3 hooks per idea, scored, keep 75 or more. Flags: a hook over 3 s, a beat long enough to leave, lines with nothing concrete, no loop back.
+- **Hooks:** `/viral-hook-writer` writes 10 per idea and marks the top 3; the rules (including any score) live in that skill. Flags: a hook over 3 s, a beat long enough to leave, lines with nothing concrete, no loop back.
 - **Weekly loop:** monthly research, Monday plan, each reel scored, caption check (first 125 characters), Sunday review.
 
 ## 2. How a reel is made
 
 **Flow:** checkup > brief > words > project + voice > concept card > shot cards > build > check > ship.
 
-- **Three styles:** `print` (riso-print look, with the drawn presenter or the brand's own sticker host), `depth` (three.js 3D rooms with a boxy host), `talking` (edits your own face video: cuts pauses, adds captions and graphics).
+- **Three main styles and 20 scene styles:** `print` (riso-print look, with the drawn presenter or the brand's own sticker host), `depth` (three.js 3D rooms with a boxy host), `talking` (edits your own face video: cuts pauses, adds captions and graphics). The scene styles are listed by `kit scene list`, with samples in [samples/README.md](samples/README.md).
 - **Voice:** ElevenLabs by API; shortens long pauses, speeds up slightly, sets -14 LUFS, and writes `words.json`, every word with its start and end. Every animation and caption is locked to a spoken word. It also takes your own recording.
 - **Concept card before any code:** one world or object whose behaviour IS the argument, 3 to 6 props invented from this script, one wow per section, and the swap test ("could this frame sit in someone else's reel? then it is generic").
 - **Shot cards:** every 1.5 to 5 s planned: what is on stage, what changes on each stressed word, idle motion, presenter action, camera, at least one hit per second.
 - **Crew build:** one sub-agent per 1 or 2 shots in parallel, with a shared props file and a hand-off block so they agree.
 - **Quality gates:** stills sheet > half-size draft > a `pace` gate (finds flat stretches) and an `effort` gate (rejects reels carried by stock props) must PASS > only then the final render.
-- **Safe zones:** nothing important in the bottom 300 px or right 120 px (Instagram covers them). Text 40 px minimum.
+- **Safe zones:** keep text out of the bottom 300 px, the right 120 px, the top 250 px and the left 60 px; text 40 px minimum. The one table is in the template's `docs/craft-playbook.md`.
 - **Ship:** mp4 + caption + cover + posting card. A person posts unless the brand owner connected a publisher.
 - **Time per reel:** 30 to 80 minutes of Claude time, little of yours.
 
@@ -38,7 +38,7 @@ How the BagelUnit Reel Kit decides what to make, how it makes it, and the rules 
 
 ## 4. The kit's reel skills
 
-The template ships its skills in its `.claude/skills/` folder, so every brand folder carries them: brand setup, sticker host, kit update, account audit, reel sources, teardown, comment mining, going viral, virality, hook writer, hook mining, A/B test, script, shoot plan, humanizer, fact check, review, predict, caption, cover brief, posting, readout, comment responder, and the opt-in autopilot one. The full list with what each does is in [COMMANDS.md](../COMMANDS.md). The template's `CLAUDE.md` has a "which skill for which step" table. The checklists are in [hook-and-review-playbook.md](../template/docs/hook-and-review-playbook.md): the eight-point frame-0 hook checklist, one goal and one rotated angle per reel, re-hooks at the dips, reel teardowns, comment mining, A/B hook tests with one variable, a cover legibility test, and a retention-based review (drop at 3 s = hook, 12 s = middle, end = CTA). The skills' numbers are starting points, so we test them against each brand's own median. Auto-posting, automated DMs, scraping services and paid cloud renders are off by default and only a brand owner turns them on (template `CLAUDE.md` section 3b).
+The template ships its skills in its `.claude/skills/` folder, so every brand folder carries them. The full list with what each does is in [COMMANDS.md](../COMMANDS.md). The template's `CLAUDE.md` has a "which skill for which step" table. The checklists are in [hook-and-review-playbook.md](../template/docs/hook-and-review-playbook.md): the eight-point frame-0 hook checklist, one goal and one rotated angle per reel, re-hooks at the dips, reel teardowns, comment mining, A/B hook tests with one variable, a cover legibility test, and a retention-based review (drop at 3 s = hook, 12 s = middle, end = CTA). The skills' numbers are starting points, so we test them against each brand's own median. Auto-posting, automated DMs, scraping services and paid cloud renders are off by default and only a brand owner turns them on (template `CLAUDE.md` section 3b).
 
 ## 5. Rules
 

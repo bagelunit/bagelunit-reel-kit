@@ -47,9 +47,9 @@ Two kit guides live in the kit's own folder, not in this copy: [the sticker host
 | `auto-post.md` | how to post approved reels on a schedule for this brand (optional) |
 | `connect.md` | how to connect everything, step by step: Instagram, your Facebook Page, Threads, the publisher and keyword replies (optional) |
 | `dashboard.md` | your content dashboard, a Telegram summary, where to view it and a daily refresh (optional) |
-| `hook-and-review-playbook.md` | the first-frame hook checklist and the review after posting |
-| `craft-playbook.md` | what goes on screen: one world, a through-line, a picture for each kind of line |
-| `style-ideas.md` | style concepts that are not built yet |
+| `hook-and-review-playbook.md` | the triple hook, the first-frame hook checklist, the reel review and QA before Gate C, and the review after posting |
+| `craft-playbook.md` | what goes on screen: one world, a through-line, a picture for each kind of line; the one table of safe zones and text size |
+| `style-ideas.md` | ideas for future scene styles (the 20 built ones are listed by `kit scene list`) |
 
 **`.claude/skills/`: the skills** (`COMMANDS.md` in the kit lists every one; Claude loads the right one for each step; you can also type its name)
 
@@ -68,9 +68,9 @@ Two kit guides live in the kit's own folder, not in this copy: [the sticker host
 | `/hook-mining` | makes new hooks from a CSV of real top hooks |
 | `/ab-hook-tester` | an A/B test of a reel's hook: two versions, each approved, posted as trial reels, compared on one number, the winner remembered in `brand/tests.md` |
 | `/reel-repurpose` | the same approved reel for TikTok and YouTube Shorts (captions, titles, a check of where each app's buttons sit), plus a carousel and a blog post |
-| `/reel-scripter` | writes the script |
+| `/reel-scripter` | plans and writes the script in stages, and checks it before Gate A |
 | `/reel-builder` | turns an idea into a shoot plan without rendering |
-| `/humanizer` | makes text sound like you, not like AI (after the `/ig-human` detector flags it) |
+| `/humanizer` | makes text sound like you, not like AI (it rewrites what the `/ig-human` detector flags) |
 | `/reel-factcheck` | re-reads every source, before the script is approved and again on the final |
 | `/reel-review` | checks a draft or final and gives one verdict line |
 | `/reel-predict` | measures a reel, and estimates how it will hold viewers once 8 posted reels have numbers |

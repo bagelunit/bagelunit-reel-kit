@@ -1,7 +1,14 @@
-{{HOOK: the value in the first second. Name the viewer's problem or the result. Example shape: "Stop doing X. Do this instead."}}
-{{PROOF: one name or number from brand/facts.md. If nothing is cleared yet, leave it out; do not invent one.}}
-{{STEP 1: one short sentence}}
-{{STEP 2: one short sentence}}
-{{STEP 3: one short sentence}}
-{{YOUR OWN TWIST OR PROOF: what you actually do or saw. This is the part nobody else can copy.}}
-Save this so you have it later.
+# Example only, with invented words about a made-up bakery. Replace every line with this brand's own words. Lines that start with # are notes: the voice skips them. Real scripts get their outline from /script-plan.
+# Triple hook: context, lean, snapback.
+Your sourdough goes flat for three simple reasons.
+Fix them and your first slice looks like it came from a bakery.
+And none of the three is your oven.
+# Announced count: the hook says three, and there are exactly three items below, each with a so-what.
+Here are the three.
+One. A weak starter. If it does not double after a feed, the loaf will not rise either, so wait until it does.
+Two. Cold dough. Dough in a chilly kitchen rises slowly, so find the warmest spot and give it more time.
+Three. Cutting too soon. A hot loaf is still setting inside, so let it cool before the knife comes out.
+# Payoff answers the promise. Any number or result here must be in brand/facts.md.
+Check those three and your bread rises again, because the problem was never the oven.
+# Ask: save or follow, unless the brand has a tested keyword in brand.json -> cta.tested_keywords.
+Save this for your next bake.

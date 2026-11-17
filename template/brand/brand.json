@@ -2,10 +2,6 @@
   "name": "",
   "slug": "",
   "handle": "",
-  "platforms": [
-    "instagram"
-  ],
-  "approver": "owner",
   "people": {
     "_note": "who runs this workspace (asked at first-run setup)",
     "operator_name": "",
@@ -30,9 +26,11 @@
     "body": ""
   },
   "host": {
+    "_note": "logo_text = the words printed on the sticker host's chest or hoodie, so the reel QA does not count them as stray text.",
     "enabled": false,
     "type": "none",
     "poses_dir": "",
+    "logo_text": "",
     "notes": ""
   },
   "niche": {
@@ -58,7 +56,7 @@
     "human_score_min": 90
   },
   "cta": {
-    "default": "follow",
+    "default": "",
     "style": "",
     "dm_tool": "",
     "tested_keywords": []
@@ -77,7 +75,7 @@
   },
   "work_dir": "~/dev/reel-work/<slug>",
   "posting": {
-    "_note": "How this brand's reels get posted: \"by hand\" (default), \"instagram-scheduler\", \"tool: <name>\" or \"own publisher\". Set with /reel-posting. Timezone for scheduling, e.g. America/Toronto. days and times: the brand's posting days (e.g. [\"tue\", \"thu\"]) and times on each of them, any number a day (one: [\"18:00\"]; several: [\"09:00\", \"13:00\", \"19:00\"]), set with /content-calendar days; every time on a posting day is one slot, and the calendar marks empty ones as open. time is the older single time, still read when times is empty. platforms = where every reel goes with the kit's publisher, e.g. [\"instagram\", \"facebook\", \"threads\"]; empty = Instagram only; schedule.mjs uses it when --platforms is not given, and /reel-posting asks about it once, not per reel. A reel's time comes from its row in brand/plan.md (schedule.mjs --from-plan).",
+    "_note": "How this brand's reels get posted: \"by hand\" (default), \"instagram-scheduler\", \"tool: <name>\" or \"own publisher\". Set with /reel-posting. Timezone for scheduling, e.g. America/Toronto. days and times: the brand's posting days (e.g. [\"tue\", \"thu\"]) and times on each of them, any number a day (one: [\"18:00\"]; several: [\"09:00\", \"13:00\", \"19:00\"]), set with /content-calendar days; every time on a posting day is one slot, and the calendar marks empty ones as open. time is the older single time, still read when times is empty. platforms = where every reel goes with the kit's publisher, e.g. [\"instagram\", \"facebook\", \"threads\"]; empty = every platform the publisher has connected; schedule.mjs uses it when --platforms is not given, and /reel-posting asks about it once, not per reel. A reel's time comes from its row in brand/plan.md (schedule.mjs --from-plan).",
     "method": "by hand",
     "timezone": "",
     "days": [],
@@ -86,7 +84,7 @@
     "platforms": []
   },
   "dashboard": {
-    "_note": "The content dashboard (/content-calendar, docs/dashboard.md). OFF until the brand owner turns each part on: instagram, facebook, threads = read this brand's own numbers on each through Meta's APIs (docs/connect.md); telegram = send the summary to the owner's phone; refresh = off, daily or weekly, set by /content-calendar auto (time on this computer's clock). host = where the page is viewed: local (default), wifi, netlify (suggested), cloudflare or folder (any other host), set by /content-calendar host; site = the Netlify site id or Cloudflare Pages project; url = its address, for the Telegram link. publish_every = with a host set, the online copy follows your changes at most every this many minutes (0 = only on the scheduled refresh). Tokens live in ~/.config/bagelunit-reels/, written by the owner.",
+    "_note": "The content dashboard (/content-calendar, docs/dashboard.md). OFF until the brand owner turns each part on: instagram, facebook, threads = read this brand's own numbers on each through Meta's APIs (docs/connect.md); telegram = send the summary to the owner's phone; refresh = off, daily or weekly, set by /content-calendar auto (time on this computer's clock). host = where the page is viewed: local (default), wifi, netlify (suggested), cloudflare or folder (any other host), set by /content-calendar host; site = the Netlify site id or Cloudflare Pages project; url = its address, for the Telegram link. publish_every = with a host set, the online copy follows your changes at most every this many minutes (0 = only on the scheduled refresh). previews_online = true puts small copies of the approved, not yet posted reels online so you can watch them from the calendar (off by default). competitors = true lets the daily refresh read the accounts in competitors.json through Meta once a week, after the owner's yes (/content-calendar competitors). Tokens live in ~/.config/bagelunit-reels/, written by the owner.",
     "instagram": false,
     "facebook": false,
     "threads": false,
@@ -97,7 +95,9 @@
     "host": "local",
     "site": "",
     "url": "",
-    "publish_every": 15
+    "publish_every": 15,
+    "previews_online": false,
+    "competitors": false
   },
   "batch": {
     "_note": "The most reels Claude plans in one sitting for this brand (a week's worth: for several posts a day, the number a day times the posting days). Each reel is still approved on its own. Goals may repeat; angles may not in a batch of up to five, and in a bigger one no two reels next to each other share one.",
@@ -112,7 +112,7 @@
     "retime": false
   },
   "updates": {
-    "_note": "ON by default. true = at the start of a session, Claude checks once whether a newer kit version is out and tells you. It reads one public file from GitHub and never updates anything by itself.",
+    "_note": "ON by default. true = at the start of a session, Claude checks once whether a newer kit version is out and tells you. It reads two small public files from GitHub (the version and the build stamp) and never updates anything by itself.",
     "check_on_start": true
   }
 }

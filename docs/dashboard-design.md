@@ -1,6 +1,6 @@
 # Content dashboard: design notes
 
-For anyone changing `template/.claude/skills/content-calendar/page.mjs`. The dashboard is version 1 of the kit's content dashboard (kit 1.10.0).
+For anyone changing `template/.claude/skills/content-calendar/page.mjs`.
 
 ## Who it is for
 

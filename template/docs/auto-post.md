@@ -1,6 +1,6 @@
 # Post reels automatically (optional)
 
-By default a person posts every reel (house rule 11). If the brand owner wants approved reels to go out on a schedule, this page lists the ways to do it. The kit comes with its own publisher (`publisher/` in this folder), which posts on Instagram, the Facebook Page and Threads, but only once the owner has set it up on their own Cloudflare account and said yes to each reel. It is set up once per brand, with the brand owner's own accounts.
+By default a person posts every reel (house rule 11). If the brand owner wants approved reels to go out on a schedule, this page lists the ways to do it. The kit comes with its own publisher (`publisher/` in this folder), which posts on Instagram, the Facebook Page, Threads, YouTube Shorts and TikTok, but only once the owner has set it up on their own Cloudflare account and said yes to each reel. It is set up once per brand, with the brand owner's own accounts.
 
 ## Before anything goes out
 

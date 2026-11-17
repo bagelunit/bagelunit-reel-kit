@@ -73,7 +73,7 @@ Rules: write down only what I confirm. Do not put any number, result, price or c
 
 ## 2. Make a reel (every time)
 
-Send this in the brand folder, after the brand is set up. Claude asks the style, writes the script, fact checks it, builds the video, and stops three times for your yes, each time with a clickable approval (Approve, Change something, or Stop this reel). Nothing is ever posted for you.
+Send this in the brand folder, after the brand is set up. Claude asks the style, plans and writes the script, checks it four ways (a sentence check, a fresh reader, a fact check and a score out of 100), builds the video, and stops three times for your yes, each time with a clickable approval (Approve, Change something, or Stop this reel). Nothing is ever posted for you.
 
 ```
 Make a reel for [BRAND NAME] on [THE TOPIC, IN ONE LINE].
@@ -82,7 +82,7 @@ WHAT I WANT FROM IT
 - The one goal: [save / share / follow / lead (people ask for something)]
 - The angle (optional; if blank, suggest one different from my last post): [result first / the reel proves itself / go against common advice / start with the pain / something goes wrong]
 - Length: [about 30 seconds / about 40 seconds / about 45 seconds]
-- Style: [Print / 3D / Talking head / not sure: recommend one and ask me]
+- Style: [Print / 3D / Talking head / one of the 20 scene styles (`kit scene list` names them) / not sure: recommend one and ask me]
 - My video (Talking head only): [DRAG YOUR VIDEO FILE INTO THE TERMINAL HERE, or delete this line]
 
 WHAT IS TRUE AND OK TO SAY
@@ -93,13 +93,13 @@ WHAT IS TRUE AND OK TO SAY
 IF I ALREADY HAVE A SCRIPT
 - [PASTE IT HERE and use it word for word, or delete this whole part]
 
-Follow the house rules in CLAUDE.md. Write the hook as a triple hook (context at once, then a lean, then a contrarian snapback; docs/hook-and-review-playbook.md section 0) and check the first-frame hook checklist before writing the script. Fact check the script against its sources before I see it, and tell me about any claim you could not back up. Run the voice credit check and tell me the number before I approve the script. Stop at each of the three checkpoints (script, visual plan, final video), ask me with a clickable approval, and wait for my yes. Do not post, schedule or send anything; I will post it myself.
+Follow the house rules in CLAUDE.md. Plan the script first (/script-plan), then write the hook as a triple hook (context at once, then a lean, then a contrarian snapback). Fact check before I see the script and tell me any claim you could not back up. Tell me the voice credits before I approve. Stop at each of the three approvals (script, visual plan, final video), ask me with a clickable approval, and wait for my yes. Do not post, schedule or send anything; I will post it myself.
 ```
 
 **What goes in each blank**
 - **Goal:** pick the single result you want. Save = people keep it for later. Share = people send it to others. Follow = people follow you. Lead = people ask you for something.
 - **Length:** about 40 seconds is the usual. Shorter is easier to watch to the end; pick 45 only if the topic needs it.
-- **Style:** Print is the safe default. 3D is more cinematic. Talking head edits your own video of you talking. Unsure? Leave "not sure" and Claude recommends one.
+- **Style:** Print is the safe default. 3D is more cinematic. Talking head edits your own video of you talking. The 20 scene styles (for example a stick figure, a comic or a map) each suit a kind of topic: Claude names the two or three that fit your niche. Unsure? Leave "not sure" and Claude recommends one.
 - **My video:** only for Talking head. Film yourself with the phone held upright, at your normal pace; Claude cuts the pauses. Drag the file into the terminal to fill in its location. It uses your voice, so no voice credits.
 - **Facts:** Claude will only state facts you give it here or have saved in `brand/facts.md`. If you give none, it uses no numbers.
 - **Something only we can say:** the part nobody can copy, like what you actually do differently. This is what makes a reel yours.
@@ -124,7 +124,7 @@ WHAT IS TRUE AND OK TO SAY
 IF I ALREADY HAVE A SCRIPT
 - (none, so write it)
 
-Follow the house rules in CLAUDE.md. Write the hook as a triple hook (context at once, then a lean, then a contrarian snapback; docs/hook-and-review-playbook.md section 0) and check the first-frame hook checklist before writing the script. Fact check the script against its sources before I see it, and tell me about any claim you could not back up. Run the voice credit check and tell me the number before I approve the script. Stop at each of the three checkpoints (script, visual plan, final video), ask me with a clickable approval, and wait for my yes. Do not post, schedule or send anything; I will post it myself.
+Follow the house rules in CLAUDE.md. Plan the script first (/script-plan), then write the hook as a triple hook (context at once, then a lean, then a contrarian snapback). Fact check before I see the script and tell me any claim you could not back up. Tell me the voice credits before I approve. Stop at each of the three approvals (script, visual plan, final video), ask me with a clickable approval, and wait for my yes. Do not post, schedule or send anything; I will post it myself.
 ```
 
 ---

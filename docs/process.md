@@ -28,7 +28,7 @@ Type `/brand-setup` in the kit's folder: it copies `template/` to a new brand fo
 
 The person gives a topic or a finished script. A pasted script is used word for word (obvious typos only). Confirm which brand it is for.
 
-Pick ONE goal (save, share, follow or lead) and an angle (result first, self-proving, contrarian, pain first, something breaks) that differs from the brand's last post in `brand/log.md`. Write both next to Gate A.
+Pick ONE goal (save, share, follow or lead) and an angle (result first, self-proving, contrarian, pain first, something breaks) that differs from the brand's last post in `brand/log.md`. `/script-plan` writes both into `approvals.md` next to Gate A.
 
 ## 3. Style question (always)
 
@@ -96,39 +96,39 @@ Run the reel QA on the draft (`python3 scripts/qa/gate_qa.py <slug> --gate B`: i
 
 ## 11. Real sound
 
-After `kit export`, run the real-sound step (see [sound.md](sound.md)). It replaces the synthesised effects with real recordings snapped to the picture. Read `build/realsound/report.txt` and report the numbers honestly; the person's ears decide. Keep the kit-sound file as `<name>-kitsound.mp4` and make the real-sound file the final.
+After `kit export`, run the real-sound step (see [sound.md](sound.md)). It replaces the synthesised effects with real recordings snapped to the picture. Read `build/realsound/report.txt` and report the numbers honestly; the person's ears decide. The step leaves the final as `out/<name>.mp4` and keeps the kit-sound original in `build/pre-real/`: the final is always that one name.
 
 ## 12. Final, cover and caption
 
 - `kit render <reel> --final`, `kit export <reel>`, then the real-sound step on `out/<name>.mp4`.
-- **Caption:** `out/caption.txt`. The first line is under 125 characters, one ask, 3 to 5 hashtags, no em dashes. Check it with `node .claude/skills/caption-and-hashtags/caption.mjs check` (the layout, the 5-hashtag limit, the keyword line).
-- **Cover rule:** every reel gets a dedicated cover, never a frame grabbed from the hook. Make a still-only `scenes/cover.js` with a big topic title, a prop that shows the subject, the presenter (if the brand has one) and the handle. Render it with `kit frames <reel> 0 --only cover` to `out/cover.jpg`. Keep the title, prop and face inside the centre 1080x1440 band, which is what the profile grid shows. Title of 3 to 5 words; shrink the cover to 150 px wide and simplify if it is unreadable; it should look like family next to the last 8 covers without disappearing (`/cover-thumbnail-brief`).
+- **Caption:** `/caption-and-hashtags` writes `out/caption.txt` and checks it with `node .claude/skills/caption-and-hashtags/caption.mjs check`. Its rules (layout, hashtag count, keyword line) live in that skill.
+- **Cover rule:** every reel gets a dedicated cover, never a frame grabbed from the hook. Run `kit cover reels/<slug>`: it makes `out/cover.jpg` from the reel's `cover.html` (a big topic title, a prop that shows the subject, the presenter if the brand has one, and the handle). Keep the title, prop and face inside the centre 1080x1440 band, which is what the profile grid shows. Title of 3 to 5 words; shrink the cover to 150 px wide and simplify if it is unreadable; it should look like family next to the last 8 covers without disappearing (`/cover-thumbnail-brief`).
 
 Run `/reel-review` again on the final and put its verdict line in `approvals.md`.
 
 **Fact check on the final.** Run `/reel-factcheck` again with scope `final`: it covers the script, the caption and every word on screen, and `/reel-review` check 1 needs its PASS. Changing a word or a facts row afterwards makes the PASS out of date.
 
-**GATE C: the approver approves the final.** File the mp4, caption, cover, script, storyboard and approvals in the brand's reels folder. The reel's row in `brand/log.md` is added once it is posted (step 13).
+**GATE C: the approver approves the final.** `kit gate <reel> record --gate C` needs Gates A and B recorded, the final fact check PASS, a `Review: meets the bar (NN/100; ...) [video <12 hex>]` line of 90 or more (the 12 hex is the first 12 characters of the sha256 of the newest `out/*.mp4`: `node ~/.claude/skills/bagelunit-reels/tools/kit.mjs gate <reel> hash` prints it), a `kit qa` PASS for that exact file, and the reel QA passed for it (`python3 scripts/qa/gate_qa.py <slug>`). Only the owner overrides a check, each with a reason written into the record: `--skip-facts`, `--skip-script-review`, `--skip-review`, `--skip-qa`, `--skip-order`. The full rule is house rule 10 in the template's `CLAUDE.md`. File the mp4, caption, cover, script, storyboard and approvals in the brand's reels folder. The reel's row in `brand/log.md` is added once it is posted (step 13).
 
 ## 13. Posting (a person by default)
 
 Run `/reel-posting`. It first checks the reel passed Gate C and that the file is the one approved (`kit gate <reel> check` prints MATCH), then gives a **posting card**: the file and how to get it to the phone, the cover, the caption ready to copy, the quality setting and a suggested time from `brand/log.md`.
 
-On Instagram: turn on "Upload at highest quality", upload `cover.jpg` as the cover (Edit cover > Add from camera roll), paste the caption, post. Instagram's own scheduler (Advanced settings, Schedule this post) can hold it until the chosen time. Afterwards Claude adds the line under `## Posting` in `approvals.md` and the reel's row to `brand/log.md`.
+On Instagram: turn on "Upload at highest quality", upload `cover.jpg` as the cover (Edit cover > Add from camera roll), paste the caption, post. Instagram's own scheduler (Advanced settings, Schedule this post) can hold it until the chosen time. Afterwards Claude adds the line under `## Posting` in `approvals.md` and the reel's row to `brand/log.md` (the log holds posted reels only, with the goal, the angle and the review verdict).
 
-**A connected publisher (optional).** A brand owner who wants approved reels to go out on a schedule can set one up with `/reel-posting`, step by step, using `template/docs/auto-post.md` (Instagram's scheduler, a scheduling tool, or their own publisher on Meta's API). Claude may schedule a reel only when `autopilot.post` is on, only the exact file approved at Gate C, and only after the owner says yes to that reel's time.
+**A connected publisher (optional).** A brand owner who wants approved reels to go out on a schedule sets up the kit's own publisher with `/reel-posting`, step by step (`template/docs/auto-post.md`, `template/docs/connect.md` step 6). It posts to every platform the brand connected: Instagram, the Facebook Page, Threads, YouTube Shorts and TikTok. Claude may schedule a reel only when `autopilot.post` is on, only the exact file approved at Gate C, and only after the owner says yes to that reel's time.
 
 ## 14. Review
 
 A day or more after posting, the person types `/analytics-readout` with the numbers (where to find each one in Instagram: `template/docs/after-posting.md`). Claude adds one row per posted reel to `brand/insights.csv` (views, reach, average watch time, skip rate, likes, comments, saves, shares, follows) and reads it back. Weekly: each reel's views against your own median, 3-second hold, reach to non-followers, sends and saves. Lessons go back into the swipe file and the next plan.
 
-Run `/analytics-readout` on the numbers: judge against the brand's own median, name the one metric that matters for the reel's goal, and locate the break (about 3 s = hook, about 12 s = middle, the end = CTA). Two actions, not twelve, and say what the data cannot show. To test two hooks, use `/ab-hook-tester` (one variable only). Log the goal and angle in `brand/log.md`.
+Run `/analytics-readout` on the numbers: judge against the brand's own median, name the one metric that matters for the reel's goal, and locate the break (about 3 s = hook, about 12 s = middle, the end = CTA). Two actions, not twelve, and say what the data cannot show. To test two hooks, use `/ab-hook-tester` (one variable only). The goal and angle are already in the reel's `brand/log.md` row, written when it was posted.
 
 Once 8 or more posted reels have numbers in `brand/insights.csv`, `kit calibrate` learns how this brand's reels hold viewers, and `/reel-predict` can then estimate a new draft's watch time and skip rate before it is posted. Under 8 reels it gives measurements only, never a guess.
 
 ## 15. Comment auto-reply (optional)
 
-A reel that ends on "Comment WORD" needs something that answers those comments. The kit sends nothing itself. `/comment-responder` has a guided setup: it drafts the keyword, the public reply (never a link) and the DM, then walks the owner through connecting a no-code tool or their own small service (`template/docs/auto-reply.md`), with the owner doing every login. Only after a test from a second account does the keyword go in `cta.tested_keywords`, and only after the owner says so is `autopilot.dm_replies` turned on.
+A reel that ends on "Comment WORD" needs something that answers those comments. The kit sends nothing itself. `/comment-responder` has a guided setup: it drafts the keyword, the public reply (never a link) and the DM, then walks the owner through connecting the kit's own publisher (`template/docs/auto-reply.md`, route A; route B is a no-code tool), with the owner doing every login. Only after a test from a second account does the keyword go in `cta.tested_keywords`, and only after the owner says so is `autopilot.dm_replies` turned on.
 
 ## Weekly batch (optional)
 
