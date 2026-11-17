@@ -80,8 +80,8 @@ PASS, and it is the part a script cannot do.
 
 | check | what it measures | machine looks like |
 | --- | --- | --- |
-| BURSTINESS | sentence-length variation | every sentence the same length |
-| SPECIFICITY | numbers, names, concrete markers per 100 words | abstract nouns, no figures |
+| BURSTINESS | sentence-length variation, only when speakable: any sentence over 28 words caps it at 75 and stacks of 3-word fragments cost points | every sentence the same length |
+| SPECIFICITY | numbers, names, concrete markers per 100 words (at most 6 distinct names count: a list of brand names is not facts) | abstract nouns, no figures |
 | SLOP DENSITY | lexicon hits per 100 words | stock vocabulary |
 | FINGERPRINT | invisible chars, em dashes, curly quotes per 1k chars | typographically perfect |
 | VOICE | contractions, person, structural tells | no contractions, staged reveals |

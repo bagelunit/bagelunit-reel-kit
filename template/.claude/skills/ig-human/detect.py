@@ -59,15 +59,33 @@ def words(text):
     return WORD_RE.findall(text)
 
 
+ENUM_WORD = re.compile(r"^(one|two|three|four|five|six|seven|eight|nine|ten|\d+)[.:)]?$", re.IGNORECASE)
+LONG_SENTENCE = 28          # words: no one says this in one breath, so it earns no variety credit
+MAX_NAMES = 6               # distinct proper names that count towards concreteness (a longer list is a screen job)
+
+
 def check_burstiness(text):
-    """Humans vary sentence length hard. Models write even."""
-    lens = [len(s.split()) for s in sentences(text)]
+    """Humans vary sentence length hard. Models write even.
+    Variety only counts when it is speakable: any sentence over 28 words caps the score (a run-on is not rhythm), and
+    stacks of tiny fragments are a tell of their own, so they cost points instead of earning them."""
+    sents = sentences(text)
+    lens = [len(s.split()) for s in sents]
     if len(lens) < 4:
         return 50.0, "too short to judge"
     mean = statistics.mean(lens)
     cv = statistics.pstdev(lens) / mean if mean else 0
     score = scale(cv, human=0.70, machine=0.22)
-    return score, f"variation {cv:.2f} across {len(lens)} sentences (want 0.55+)"
+    notes = [f"variation {cv:.2f} across {len(lens)} sentences (want 0.55+)"]
+    long_n = sum(1 for n in lens if n > LONG_SENTENCE)
+    if long_n:
+        score = min(score, 75.0)
+        notes.append(f"{long_n} sentence(s) over {LONG_SENTENCE} words: split them, a run-on is not rhythm")
+    chunks = [c.strip() for c in SENT_RE.findall(text)]
+    frags = [c for c in chunks if 0 < len(c.split()) <= 3 and not ENUM_WORD.match(c.split()[0] if c.split() else "") and not NUMBERS.search(c)]
+    if len(frags) > 3:
+        score = clamp(score - 6 * (len(frags) - 3))
+        notes.append(f"{len(frags)} fragments of 3 words or fewer: a fragment should be a clear thought")
+    return score, "; ".join(notes)
 
 
 def check_specificity(text):
@@ -76,10 +94,11 @@ def check_specificity(text):
     if len(w) < 25:
         return 50.0, "too short to judge"
     per100 = 100 / len(w)
-    hits = len(NUMBERS.findall(text)) + len(set(PROPER.findall(text)))
+    names = len(set(PROPER.findall(text)))
+    hits = len(NUMBERS.findall(text)) + min(names, MAX_NAMES)   # a list of ten brand names is not ten facts
     density = hits * per100
     score = scale(density, human=6.0, machine=0.5)
-    return score, f"{hits} concrete markers, {density:.1f} per 100 words (want 4+)"
+    return score, f"{hits} concrete markers, {density:.1f} per 100 words (want 4+; at most {MAX_NAMES} names count)"
 
 
 def check_slop(text, lex):
