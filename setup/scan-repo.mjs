@@ -36,6 +36,10 @@ const problems = [];
 const LICENSED_OK = /^template\/brand\/licensed\/(README\.md|assets\.json|(music|sfx|stock-video|motion-graphic|lut|generated-image|generated-video)\/\.gitkeep)$/;
 const add = (f, why) => problems.push(`${f}: ${why}`);
 for (const f of files) {
+  // a workflow step name with a colon and a space in it is invalid YAML (GitHub then rejects the whole workflow before any job runs)
+  if (/^\.github\/workflows\/.*\.ya?ml$/.test(f) && fs.existsSync(path.join(REPO, f))) {
+    fs.readFileSync(path.join(REPO, f), 'utf8').split(/\r?\n/).forEach((l, n) => { if (/^\s*-?\s*name:\s*[^'"\s].*:\s/.test(l)) add(f, `line ${n + 1}: a name with a colon and a space is invalid YAML (reword it or quote it)`); });
+  }
   // a documentation or code file that is empty is a mistake (an edit that truncated it); only placeholders like .gitkeep may be empty
   if (/\.(md|mjs|js|py|sh|json|yml|html)$/.test(f) && fs.existsSync(path.join(REPO, f)) && fs.statSync(path.join(REPO, f)).size === 0 && !/(^|\/)(__init__\.py)$/.test(f)) add(f, 'the file is empty (an edit may have truncated it)');
   if (/^template\/brand\/licensed\//.test(f) && !LICENSED_OK.test(f)) add(f, 'a licensed asset must not be tracked (only README.md, an empty assets.json and .gitkeep files ship in brand/licensed/)');
