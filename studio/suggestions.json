@@ -260,6 +260,33 @@
           "tip_lines": {}
         }
       ]
+    },
+    {
+      "id": "research",
+      "title": "Research and competitors",
+      "question": "Do you have a research or scraping tool?",
+      "tools": [
+        {
+          "id": "apify",
+          "name": "Apify",
+          "what_you_get": "Competitor tracking beyond what Meta's API shows: other accounts' recent reels with views, likes and comments, personal accounts included. /account-audit and the dashboard's competitors section read it. You pay Apify as you go: the kit shows the estimated cost first, logs it, and runs nothing unless brand.json autopilot.scrape is true.",
+          "example": "/account-audit on five rival accounts: the reels that beat each account's own median (the 3x rule), shown on the dashboard with post ideas",
+          "kind": "key",
+          "detect": {
+            "file": [
+              "~/.config/bagelunit-reels/apify.key"
+            ]
+          },
+          "url": "https://apify.com",
+          "connect": [
+            "Make an Apify account and check the site for the current plan, free credit and usage terms.",
+            "Create an API token at console.apify.com/settings/integrations (Claude can open the page with the browser tool; you copy the token yourself).",
+            "Save it alone on one line in ~/.config/bagelunit-reels/apify.key (Claude makes the empty file and opens it for you; never paste the token into the chat).",
+            "Set brand.json autopilot.scrape to true (that is your yes), then run /account-audit or /content-calendar competitors --apify; the kit prints the cost first."
+          ],
+          "tips": []
+        }
+      ]
     }
   ],
   "tip_order": {

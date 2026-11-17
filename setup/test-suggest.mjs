@@ -39,7 +39,7 @@ const fakeClaude = (dir, lines) => {
 /* 1. the catalog */
 {
   const cat = JSON.parse(fs.readFileSync(path.join(REPO, 'studio', 'suggestions.json'), 'utf8'));
-  assert.deepEqual(cat.categories.map((c) => c.id), ['voice', 'music-and-effects', '3d', 'generated-video', 'design']);
+  assert.deepEqual(cat.categories.map((c) => c.id), ['voice', 'music-and-effects', '3d', 'generated-video', 'design', 'research']);
   const ids = cat.categories.flatMap((c) => c.tools.map((t) => t.id));
   assert.equal(new Set(ids).size, ids.length);
   for (const t of cat.categories.flatMap((c) => c.tools)) {
@@ -49,7 +49,7 @@ const fakeClaude = (dir, lines) => {
     assert.ok(!/[$€£]\s?\d|\u2014/.test(JSON.stringify(t)), `${t.id}: a price or an em dash`);
   }
   assert.ok(JSON.stringify(cat).includes('1900s factory floor, labelled Re-creation'));
-  ok('catalog: 5 categories, required fields, connect steps, no prices, no em dash');
+  ok('catalog: 6 categories, required fields, connect steps, no prices, no em dash');
 }
 
 /* 2. detection, from existence checks only */
@@ -198,7 +198,7 @@ const tipRun = (b, step, extra = {}, args = []) => run(['tip', step, ...args], {
   if (r.status !== 0 && /Cannot find|playwright|ERR_MODULE/.test(all(r))) skip('kit.mjs would not load here (' + all(r).split(/\r?\n/)[0].slice(0, 80) + ')');
   else {
     assert.equal(r.status, 0, all(r));
-    assert.ok(JSON.parse(r.stdout).categories.length === 5);
+    assert.ok(JSON.parse(r.stdout).categories.length === 6);
     assert.match(spawnSync(process.execPath, [KIT], { encoding: 'utf8', env: baseEnv }).stdout, /suggest/);
     ok('kit suggest runs through kit.mjs and is listed in its verbs');
     // the hook: kit start prints one tip on stderr only, and --no-tips / BAGELUNIT_NO_TIPS silence it

@@ -1,7 +1,7 @@
 ---
 name: suggested-tools
 description: >
-  Shows the optional outside tools the kit suggests (a voice service, music and effects, 3D, generated video, design), asks which ones the
+  Shows the optional outside tools the kit suggests (a voice service, music and effects, 3D, generated video, design, research and competitors), asks which ones the
   user already has with clickable questions, saves the answers in brand/brand.json, and walks through connecting each tool they have.
   Use on /suggested-tools, when /brand-setup offers it, or when the user asks "what tools can I connect", "does the kit work with Canva /
   Blender / Higgsfield / ElevenLabs / Uppbeat / Epidemic Sound", "what else can improve my reels" or "turn the tips off". Nothing here is
@@ -25,7 +25,7 @@ Say this plainly at the start: **the kit works on its own code with none of thes
 Every question below is a question block (AskUserQuestion): up to four questions per block, two to four options each, the recommended option first. Never ask any of it as plain text. The harness adds "Other" for typing something not listed.
 
 1. **Look first.** Run `kit suggest --json` (in this brand folder). Show the catalog as one short list, a line per tool: its name, its status (connected / not connected / dismissed) and what it adds, with its example in a few words. If the user named a tool (`/suggested-tools canva`), run `kit suggest <id>` instead, show it, and skip to step 5 for that tool.
-2. **Ask which they have, one question per category,** in one or two blocks (up to four questions each): voice, music and effects, 3D, generated video, design. Each question is multi-select. Options: the category's tools (tools already shown as connected are pre-noted: "ElevenLabs (found on this computer)"), plus "I have none of these". With more than three tools in a category, put the extra tool in the question text and let "Other" carry it. Voice options: ElevenLabs, another voice service, none. Music and effects: Uppbeat, Epidemic Sound, none. 3D: Blender, none. Generated video: Higgsfield, another generated-video tool, none. Design: Canva, Adobe Firefly or Express, Adobe connector for Claude, none (if that is five options, ask the Adobe pair as one option "Adobe (Firefly, Express or the connector)" and sort out which after).
+2. **Ask which they have, one question per category,** in one or two blocks (up to four questions each): voice, music and effects, 3D, generated video, design, research and competitors. Each question is multi-select. Options: the category's tools (tools already shown as connected are pre-noted: "ElevenLabs (found on this computer)"), plus "I have none of these". With more than three tools in a category, put the extra tool in the question text and let "Other" carry it. Voice options: ElevenLabs, another voice service, none. Music and effects: Uppbeat, Epidemic Sound, none. 3D: Blender, none. Generated video: Higgsfield, another generated-video tool, none. Design: Canva, Adobe Firefly or Express, Adobe connector for Claude, none (if that is five options, ask the Adobe pair as one option "Adobe (Firefly, Express or the connector)" and sort out which after).
 3. **Confirm.** Show what you understood in one line per category, then ask one block: "Save these answers (Recommended)" / "Change something". On "Change something", ask which category and redo only that one.
 4. **Save.** Run exactly one of:
    - `kit suggest --have <id>,<id>` plus `--other "<what they typed under Other>"` when they typed one,

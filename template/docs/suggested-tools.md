@@ -61,3 +61,11 @@ Other tools work the same way. If you prefer a different voice, music, 3D, image
 ## Research and growth: already in the kit
 
 No outside account is needed for these. `/account-audit`, `/comment-mining`, `/hook-mining`, `/reel-analyzer`, `/analytics-readout` and the content calendar's competitor board read your own numbers and public pages. `kit licensed check <reel>` and `python3 ~/.claude/skills/bagelunit-reels/tools/mixcheck.py <reel>` check your files without any outside tool.
+
+## Research and competitors: Apify
+
+**What it is for:** reading other accounts' recent reels (views, likes, comments, personal accounts too) for `/account-audit` and the dashboard's competitors section, where Meta's own API shows only business and creator accounts.
+
+**How it connects:** make an Apify account, create an API token, and save it alone on one line in `~/.config/bagelunit-reels/apify.key` (Claude makes the empty file and opens it; you paste the token yourself, never in the chat). Then set `autopilot.scrape` to `true` in `brand/brand.json`, which is your yes to paid reads.
+
+**What to check:** Apify's current plan, free credit and usage terms (check the site), and the terms of the platform you read from. The kit prints the estimated cost first, logs it in `brand/spend.csv`, and never runs a paid read on a schedule. Meta's official API and your own export files need no Apify at all, and stay the first choice. Other scrapers work the same way: put their data in a file the kit can read.
