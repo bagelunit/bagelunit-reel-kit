@@ -1,6 +1,6 @@
 # Library index
 
-One row per file in `broll/`, `product-images/`, `components/` and `screens/`. Logos have their own list in `logos/index.json`, kept with `/logo-library`. The owner or Claude adds a row whenever a file is added, and sets "Rights OK" only when the brand owns the file or has permission to use it. Claude does not use a file marked "no" or left blank.
+One row per file in `broll/`, `product-images/`, `components/` and `screens/`. Logos have their own list in `logos/index.json`, kept with `/logo-library`. Two more folders are not listed here: `3d/` holds the Blender and Manim shot tools (`/blender-shot`, see its README), and `sfx/` holds sound effects with their licence on record (`sfx/sfx_add.py`). The owner or Claude adds a row whenever a file is added, and sets "Rights OK" only when the brand owns the file or has permission to use it. Claude does not use a file marked "no" or left blank.
 
 | File | What it shows | Source | Rights OK (yes/no) | Date |
 |---|---|---|---|---|

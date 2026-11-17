@@ -15,6 +15,8 @@ metadata:
 
 # Kit update: newest kit, nothing of yours lost
 
+Trigger: "update the kit" or the start-of-session notice. Inputs: none. Outputs: this workspace and the engine on the newest build. Next step: carry on with the reel you were making.
+
 The kit's version (`.kit-version`) changes only for a release; smaller changes come as newer builds of the same version
 (`.kit-build`, a time and a fingerprint). `update.mjs` treats a newer build as an update: `check` says "a newer build of
 <version> is out", `now` downloads that build fresh (`~/.bagelunit-reel-kit/<version>+<fingerprint>/`), shows the
@@ -49,7 +51,7 @@ is what usually brings the owner here.
 5. **Other workspaces** (other brands on this computer): offer to update each one the same way, one at a time, with
    `--workspace <folder>`. The engine is already current by then, so only the workspace changes.
 
-The once-a-day check for a newer kit reads one public file on GitHub (the newest version number) and nothing else. To
+The once-a-day check for a newer kit reads two small public files on GitHub (the newest version number and the build stamp) and nothing else. To
 turn it off, set `"updates": { "check_on_start": false }` in `brand/brand.json` (`/brand-setup` asks this).
 
 ## If something fails

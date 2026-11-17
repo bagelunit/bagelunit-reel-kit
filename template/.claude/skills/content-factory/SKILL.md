@@ -1,10 +1,10 @@
 ---
 name: content-factory
 description: >
-  The whole setup in one command - run the reel factory end to end, one reel at a time. Claude takes a
-  proven viral format, studies it, writes an original hook + script in your voice, builds the finished
-  reel locally with /bagelunit-reels, writes the caption + hashtags, and prepares the comment→DM lead loop,
-  stopping at each approval gate. This is the orchestrator that runs the other skills in order, and it
+  The opt-in autopilot: runs the whole reel loop for one reel, as far as the brand's autopilot permissions
+  allow, stopping at every gate. Claude studies a proven viral format, writes an original hook and script in
+  your voice, builds the finished reel locally with /bagelunit-reels, writes the caption and hashtags, and
+  prepares the comment to DM lead loop. It is the orchestrator that runs the other skills in order, and it
   only does the steps the brand's autopilot permissions allow. Use ONLY when the user says "run the
   content factory", "set up my whole content system" or "build my content machine". Do not use it for a
   plain "make me a reel": that goes to /bagelunit-reels.
@@ -16,7 +16,9 @@ metadata:
   category: content
 ---
 
-# Content Factory - the whole setup, one command
+# Content Factory - the opt-in autopilot
+
+Inputs: topic, handle, optional model reel. Outputs: a finished reel and drafts, stopping at every gate. Next step: Gate C, then `/reel-posting`.
 
 The Content Factory is the *orchestrator*: it runs the other skills in order so you get a finished,
 on-brand reel plus the lead-loop drafts - not just notes. Point it at a topic (and optionally a viral reel
@@ -39,8 +41,8 @@ by default) and run only the steps whose permission is `true`:
   live DM flow (rule 4). End on a save or follow ask and say why.
 
 These still apply to every reel, whatever is on: ask the style first (Print, 3D, Talking head), run
-`budget.py` before Gate A, `/reel-factcheck` before Gate A and before Gate C, `/reel-review` on every
-draft and final, and Gates A, B and C from CLAUDE.md rules 10 and 13. Only cleared facts from
+`budget.py` before Gate A, the Script review and `/reel-factcheck` before Gate A, `/reel-factcheck`,
+`/reel-review` and the reel QA (`scripts/qa/gate_qa.py`) before Gate C, `/reel-review` on every draft, and Gates A, B and C from CLAUDE.md rules 10 and 13. Only cleared facts from
 `brand/facts.md` (rule 1). Weekly batches follow CLAUDE.md section 3c (up to `brand.json` -> `batch.max_reels` reels, default 3; goals may repeat; angles may not in a batch of up to five, and in a bigger one no two reels next to each other share one).
 
 ## The pipeline (what runs, in order)
@@ -50,9 +52,9 @@ draft and final, and Gates A, B and C from CLAUDE.md rules 10 and 13. Only clear
 1. MEMORY       brand memory ........ read brand/voice.md + brand/log.md (your voice + past winners)
 2. FIND+STUDY   teardown ............ study a proven reel (Apify only if scrape is on; otherwise a file or transcript you supply)
 3. HOOK         viral-hook-writer ... 10 scroll-stopping hooks for the first 1-3s, ranked
-4. SCRIPT       reel-scripter ....... tight 30-45s ORIGINAL script, then /reel-factcheck, budget.py, Gate A
+4. SCRIPT       reel-scripter ....... the staged script flow (its stages cover /script-plan, hooks, cold read, fact check, human score, Script review), then budget.py, Gate A
 5. BUILD+RENDER /bagelunit-reels ...... Gate B, then the REAL rendered mp4 (Runway/Seedance only if paid_renders is on)
-6. CAPTION      caption-and-hashtags  caption, up to 5 hashtags chosen from what worked, then a keyword line, then /reel-review and Gate C
+6. CAPTION      caption-and-hashtags  caption, up to 5 hashtags chosen from what worked, then a keyword line, then /reel-review, `python3 scripts/qa/gate_qa.py <slug>` and Gate C
 7. POST         prepare and pause ... prepares the post and pauses; a person posts (autopilot.post true still needs the owner's OK for that reel)
 8. LEADS        comment-responder ... draft the keyword rule (live only if dm_replies is on and the keyword is tested)
 9. COMPOUND     brand memory ........ note what worked in brand/log.md after the owner confirms
@@ -61,7 +63,7 @@ draft and final, and Gates A, B and C from CLAUDE.md rules 10 and 13. Only clear
 **This runs for real by calling the tools directly - it is a harness, not a description.** The creative
 steps (3, 4, 6) are Claude; the execution steps use the underlying tools:
 - **Step 0 (once, at onboarding):** read `autopilot` and ask the style. Connecting any tool (Apify,
-  Composio/Instagram, a render service) is the person's own action, and only for a permission that is on.
+  the kit's publisher, a render service) is the person's own action, and only for a permission that is on.
   If a needed tool is not connected, say what to connect and wait; never search for, print or reuse a key.
 - **Step 2** uses Apify only if `autopilot.scrape` is true (cost shown first). Otherwise work from a file
   or transcript the person supplies.
@@ -108,12 +110,12 @@ PIPELINE
 2) FIND+STUDY: tear down the model reel (Apify only if scrape is on; otherwise use the file or transcript
    I supply) → hook, beats, pacing, visuals.
 3) viral-hook-writer: 10 hooks, ranked; I'll pick one (or you pick the strongest).
-4) reel-scripter: a 30-45s ORIGINAL script in MY voice on that structure (never a copy). Run
-   /reel-factcheck, run budget.py, then take it to Gate A.
+4) reel-scripter: an ORIGINAL script in MY voice on that structure (never a copy), through its staged flow
+   including the Script review line (90 or more). Run budget.py, then take it to Gate A.
 5) /bagelunit-reels: Gate B (visual plan), then a local render → a real mp4. Show me the beat table + the
    rendered reel. No Runway or Seedance unless paid_renders is on and I OK the cost.
 6) caption-and-hashtags: caption, up to 5 hashtags and a keyword line (caption only, never comments), with my CTA keyword only if it is
-   tested. Run /reel-factcheck (final) and /reel-review, then Gate C.
+   tested. Run /reel-factcheck (final), /reel-review and `python3 scripts/qa/gate_qa.py <slug>`, then Gate C.
 7) POST: prepare the post and pause. If post is off, stop at the mp4 and caption and I post it myself.
    If post is on, you still wait for my OK for this reel.
 8) LEADS: with comment-responder, draft the keyword rule (reply + DM). Live only if dm_replies is on and

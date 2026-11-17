@@ -15,6 +15,8 @@ metadata:
 
 # Reel posting: from an approved file to a live post
 
+Trigger: an approved reel (Gate C) the owner wants posted. Inputs: the reel folder. Outputs: a posting card, or a scheduled post. Next step: after it is posted, add the reel's row to `brand/log.md`, then `/analytics-readout` after a week.
+
 Ask every choice with a question block (AskUserQuestion). Nothing is posted by Claude unless the brand owner
 connected a publisher and said yes to that reel's time (CLAUDE.md rule 11).
 
@@ -25,7 +27,8 @@ connected a publisher and said yes to that reel's time (CLAUDE.md rule 11).
    Its latest review must say "meets the bar" with 90/100 or more too: the scheduler refuses a reel with no review
    or a lower one. Run /reel-review, fix what it names and rebuild; do not edit the number. Only the owner overrides
    it, at Gate C, with `--skip-review "reason"`.
-2. `out/caption.txt` exists and passed `/humanizer`; the cover (`out/cover.jpg`) exists.
+2. `out/caption.txt` exists and `node .claude/skills/caption-and-hashtags/caption.mjs check <slug>` passes
+   (the recorded, testable check; the text also passed `/humanizer`); the cover (`out/cover.jpg`) exists.
 3. Read `brand/brand.json` -> `autopilot.post` and `posting.method` to know which route this brand uses.
 
 ## Route 1: posting by hand (the default)
@@ -53,7 +56,7 @@ Give the owner a **posting card** and nothing else to think about:
 Only when the owner asks. Walk it one step at a time and keep a short checklist in the reply.
 
 1. **Pick the route** (question block): "The kit's publisher (Recommended: posts by itself on Instagram, your
-   Facebook Page and Threads, free on Cloudflare)", "Instagram's own scheduler (free, a person uploads)",
+   Facebook Page, Threads, YouTube Shorts and TikTok, free on Cloudflare)", "Instagram's own scheduler (free, a person uploads)",
    "A scheduling app", "Not now". Read `docs/auto-post.md` for the chosen route.
 2. **Scheduler or app:** give the exact steps in plain words; the owner connects the account and logs in.
    Record `posting.method` in `brand.json` ("instagram-scheduler", "tool: <name>").

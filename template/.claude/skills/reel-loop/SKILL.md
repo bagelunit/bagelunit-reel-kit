@@ -14,6 +14,8 @@ metadata:
 
 # Reel loop: post, read, improve, repeat
 
+Inputs: `brand/loop.md` and the numbers. Outputs: one change for the next reel and a reel made through the gates. Next step: `/reel-posting`, then read again after 72 hours.
+
 Instagram trial reels show a reel to non-followers first, so the skip rate and watch time of a trial reel are an honest read of the
 hook and the middle on a cold audience. This skill turns those numbers into the next reel, and repeats until one breaks out.
 
@@ -32,7 +34,7 @@ check, Gates A, B and C, a `/reel-review` of **90 or more**, and the owner's one
    - `found`: a reel broke out (views at 5 times the median or more, at least 5,000, skip rate no worse than the median; the brand can change these in `brand.json` -> `loop`). Tell the owner, name the reel and what it did differently, and offer the next reel in the same format on a new topic. Do not keep changing everything.
    - `stalled`: the last six judged reels did not beat the best skip rate before them. Say so and offer a bigger change (a new format, goal or topic from `/comment-mining`) rather than another small tweak.
 3. **Change one thing.** The brief names the variable: the hook, the middle, the format or the topic. Change only that one, so the next result teaches something. A hook change is an A/B test: `/ab-hook-tester` makes two versions to post as trial reels.
-4. **Make it.** `/viral-hook-writer` (triple hook), `/reel-scripter`, then `/reel-factcheck` and Gate A, then `/bagelunit-reels` for the voice, visual plan (Gate B), build and export, `/reel-review` until it scores 90 or more, the caption and cover, Gate C. Each gate is a question to the owner.
+4. **Make it.** `/reel-scripter` (its stages include the hooks, the fact check and the score), then Gate A, then `/bagelunit-reels` for the voice, visual plan (Gate B), build and export, `/reel-review` until it scores 90 or more, the caption and cover, Gate C. Each gate is a question to the owner.
 5. **Post as a trial reel, with the owner's yes.** `/reel-posting` with the trial option (`node publisher/scripts/schedule.mjs reels/<slug> --from-plan --trial`, preview first). One question shows the time and platforms; the answer is the owner's yes.
 6. **Wait, then read again.** After 72 hours, run step 1. Add the reel's numbers to `brand/insights.csv` if Instagram is not connected. Record a finished A/B test (`/ab-hook-tester record`).
 

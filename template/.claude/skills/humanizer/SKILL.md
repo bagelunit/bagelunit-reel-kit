@@ -2,9 +2,10 @@
 name: humanizer
 description: >
   Rewrite a script, caption or reply so it sounds like the person and not like AI, without changing what it
-  says, and check it against the brand's banned characters and words. Use ONLY when the user asks to
-  "humanize" or "make this sound less like AI", or by name (/humanizer). In a reel workspace the
-  /ig-human detector is the first pass; this is the rewrite and the brand check.
+  says, and check it against the brand's banned characters and words. Use when the user asks to
+  "humanize" or "make this sound less like AI", or by name (/humanizer). The kit also runs it
+  automatically on any text before it is handed over (script, caption, reply). /ig-human detects
+  and scores; this rewrites and checks the brand's word list.
 user-invokable: true
 argument-hint: "[text to rewrite, or a path to a script or caption]"
 metadata:
@@ -14,6 +15,12 @@ metadata:
 ---
 
 # Humanizer
+
+Input: text or a file path. Output: the rewritten text and a short list of
+what changed. Next step: the caller's next step (for a script, `/script-score`).
+
+How it relates to `/ig-human`: `/ig-human` detects and gives the score (the Gate A must-pass). This skill rewrites
+what was flagged. Run `/ig-human` again afterwards to confirm the score.
 
 Same meaning, fewer tells. Never add a fact, number or claim that was not in the text.
 

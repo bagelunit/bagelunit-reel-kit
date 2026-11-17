@@ -15,6 +15,8 @@ metadata:
 
 # Logo library: faithful marks, with the rights on record
 
+Inputs: the reel or reference that shows a logo. Outputs: SVGs in `brand/library/logos/` and a record in `reel.json`. Next step: `logos.mjs check <reel>` before `/reel-posting`.
+
 Every logo a reel shows comes from `brand/library/logos/` (one SVG each, listed in `index.json`), never drawn from memory.
 The tool is `.claude/skills/logo-library/logos.mjs` (run with `node`). Ask every choice with a question block (AskUserQuestion).
 

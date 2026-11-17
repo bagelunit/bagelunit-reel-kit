@@ -14,9 +14,9 @@ metadata:
 
 # Cover & Thumbnail Brief - the frame that stops the scroll on the grid
 
-Writes the cover-frame text and visual brief that makes your reel stop the scroll on the grid and
-in Explore.
-
+Use when the owner asks for cover text or a cover brief. Input: the reel's topic or script. Output: three
+cover texts, a visual brief and the checks below; in a reel workspace it becomes `cover.html`. Next step:
+`kit cover reels/<slug>`.
 
 ## When to use
 The reel is made and the grid cover decides whether anyone opens it.

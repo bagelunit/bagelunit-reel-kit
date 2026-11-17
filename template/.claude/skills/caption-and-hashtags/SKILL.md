@@ -15,6 +15,8 @@ metadata:
 
 # Caption & Hashtags
 
+Inputs: the reel and its script. Outputs: `out/caption.txt` (caption, up to 5 hashtags, a keyword line). Next step: `node .claude/skills/caption-and-hashtags/caption.mjs check <slug>`, then Gate C.
+
 Write the caption, with its hashtags inside it, that drives saves, follows, and reach.
 
 ## When to use
@@ -79,6 +81,6 @@ Give me:
 Match the niche's own language and the audience's: the words THEY use, not the industry's jargon unless the audience uses it. No emojis-as-bullets unless on-brand. The CTA is a keyword only if the word is listed in brand.json cta.tested_keywords; otherwise a save or follow ask, per cta.style. Never invent a result, number or personal claim; use only brand/facts.md, and write {{needs cleared fact}} where one is missing.
 ```
 
-**Memory tip:** if present, point Claude at the brand's `brand/swipe.md` and `brand/log.md` (they may be empty at first) - "use the hooks that performed best there as the pattern." Hooks grounded in *your* winners beat generic ones.
+**Memory tip:** read `brand/log.md` (it may be empty at first) and reuse the caption first lines of the reels that did best.
 
 **Tip:** The first line of the caption is a second hook. Make it earn the "…more" tap.

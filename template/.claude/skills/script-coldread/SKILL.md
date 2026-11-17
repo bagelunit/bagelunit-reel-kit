@@ -14,11 +14,13 @@ metadata:
 
 # Script cold read
 
+Inputs: `script.txt` (spoken words only). Outputs: `build/coldread.md`. Next step: `/reel-factcheck` and `/ig-human`, then `/script-score`.
+
 The writer cannot hear their own gaps: the brief fills them in. So a reader with no brief hears the script once.
 
 ## Run it
 1. Run `node ~/.claude/skills/bagelunit-reels/tools/kit.mjs script reels/<slug>` first. A cold read of a script with ERRORs wastes a call.
-2. Start a **fresh agent** (the Agent tool, `subagent_type: "general-purpose"`, a cheaper model is fine, no tools needed). Give it ONLY the
+2. Start a **fresh agent** (the Agent tool, `subagent_type: "general-purpose"`; use the cheaper model alias, such as `model: "haiku"`, if it is available; it needs no tools). Give it ONLY the
    spoken words (the lines of `script.txt` with notes removed) and this prompt. Do not give it the brief, the plan, the facts, the storyboard or the topic:
 
 ```

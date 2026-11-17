@@ -19,6 +19,8 @@ Turn one idea into a postable 30 to 45 second script that makes sense heard once
 in one pass leaves promises unpaid, lists with the wrong count and facts with no point. Each stage saves its output in the reel's
 folder, so a fault is caught at the cheapest point. Stages 1 to 7 cost no voice credits.
 
+Inputs: an idea or a chosen hook. Outputs: `script.txt`, the table in `STORYBOARD.md`, the fact check and Script review records. Next step: `budget.py`, then Gate A (the Gate A rules need the fact check PASS and the Script review line of 90 or more; only the owner skips them, with a reason written into the record).
+
 ## About posting
 If the script talks about how the brand posts, describe the brand's real setup, not the questions a skill asks: the platforms are fixed per brand (`brand.json` -> `posting.platforms`) and the times are planned ahead in `brand/plan.md`, then adjusted by the numbers. Never write "I pick the time and tick the platforms", and say nothing about posting that the owner has not cleared in `brand/facts.md`.
 
@@ -33,7 +35,7 @@ If the script talks about how the brand posts, describe the brand's real setup, 
 | 6 | Coherence edit | this skill | `script.txt` | lint clean; the whole script re-read, never only the changed line |
 | 7 | Cold read | `/script-coldread` | `build/coldread.md` | a reader who sees only the words retells the promise, the viewer and the takeaway, and finds nothing unanswered or confusing |
 | 8 | Facts and human score | `kit facts <reel> check --scope script`, `/reel-factcheck`, `/ig-human` | the fact check record; the human score | fact check PASS; human score 90 or more (`brand.json` -> `writing.human_score_min`) |
-| 9 | Score | `/script-score` | the Gate A line in `approvals.md` | 90 or more, every must-pass passes |
+| 9 | Score | `/script-score` | the `Script review: meets the bar (NN/100; ...) [script <12 hex>]` line in `approvals.md` | 90 or more, every must-pass passes |
 | 10 | Credits and owner | `budget.py`, then Gate A | the Gate A record | the script fits the voice credits left; the owner says yes |
 
 ## How to draft (stage 4)
@@ -46,7 +48,7 @@ Write from the outline, beat by beat, in this order: the triple hook (`docs/hook
 - **Open a loop only if the outline pays it**, and pay it in words the viewer can use. If the opening teases "the biggest one", name it where the outline says.
 - Spoken facts only from `brand/facts.md`; where one is missing write `{{needs cleared fact}}`, which blocks the script until cleared. Never invent a result, number or personal claim.
 - Length: the word band in `/script-plan` is the rule (about 110 to 130 words for 40 s, never over 45 s); `kit script` measures the brand's own pace from past reels and fails a script over its time. The CTA is the one the brand picked for this reel (`brand.json` `cta`); offer a keyword only if it is in `cta.tested_keywords`.
-- Output a two-column script (spoken line | on-screen text) plus a one-line visual per beat, and save `reels/<slug>/script.txt` with only the spoken words (notes start with `#`, `//` or `[`).
+- Output a two-column table (spoken line | on-screen text) plus a one-line visual per beat into `STORYBOARD.md`. `script.txt` holds the spoken words. Notes are allowed on their own lines starting with `#`, `//` or `[`; the voice skips them.
 
 ## Editing rules
 - After stage 4 the spoken words change only by going back through stages 5, 7 and 8. A fact-check fix that changes spoken words does the same (stages 5, 7, 8 and 9 again).

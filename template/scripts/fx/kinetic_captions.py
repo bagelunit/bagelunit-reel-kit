@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """kinetic_captions.py: word-by-word pop captions from the reel's own word times .
-  python3 scripts/fx/kinetic_captions.py reels/<slug> in.mp4 out.mp4 [--y 1380] [--size 88]
+  python3 scripts/fx/kinetic_captions.py reels/<slug> in.mp4 out.mp4 [--y 1280] [--size 88]
 Reads <reel>/build/words.json ([{w, s, e}] in seconds), draws the current 3 to 4 words with the active word popping, and overlays it on in.mp4.
 This ffmpeg has no libass/drawtext, so frames are drawn with PIL and streamed in. Keep the captions out of the bottom 300 px (default y=1280)."""
 import argparse, json, pathlib, subprocess, sys

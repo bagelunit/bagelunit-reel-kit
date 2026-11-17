@@ -14,16 +14,16 @@ metadata:
 
 # Analytics Readout - your numbers, in plain English
 
-Reads your reel insights and explains in plain English what to make more of and what to stop - no
-jargon.
-
+Use when the owner gives numbers or asks what worked. Input: the insights (pasted, a file or
+`brand/insights.csv`). Output: a plain-English readout against the brand's own median. Next step: the one
+change to try in the next reel (`/reel-loop` turns it into a test).
 
 ## Where the numbers live
 
 If the brand connected Instagram (`brand.json` -> `dashboard.instagram`, see `docs/dashboard.md`), run `node .claude/skills/content-calendar/refresh.mjs --no-telegram` first: it pulls the latest numbers and adds each reel's 7-day row to `brand/insights.csv` by itself, so ask the owner only for what the API does not give (follows per reel). This brand keeps one row per posted reel in `brand/insights.csv` (columns: reel, date, views, reach, avg_watch_time_s, skip_rate, likes, comments, saves, shares, follows). When the owner gives new numbers, add the row (never overwrite old rows), read it back, then read the whole file so the comparison uses this brand's own median. Where to find each number: `docs/after-posting.md`.
 
 ## When to use
-You're looking at insights and can't tell what to do differently.
+The owner is looking at insights and cannot tell what to do differently.
 
 ## What you'll need
 Your reel or account insights. Paste them in, export them from the platform, or read `brand/insights.csv` (the raw numbers, one row per reel) and `brand/stats.md` (the median summary `/account-audit --all` writes from them) (written by `/account-audit --all`).

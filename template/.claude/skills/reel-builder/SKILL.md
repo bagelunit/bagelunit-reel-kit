@@ -15,6 +15,8 @@ metadata:
 
 # Reel Builder - Claude assembles the whole reel for you
 
+Inputs: a teardown or a topic and structure. Outputs: the build table and shoot plan in `STORYBOARD.md`. Next step: `/bagelunit-reels` for the voice and render.
+
 The last step of the factory. Hand Claude a teardown (from [reel-analyzer](../reel-analyzer/SKILL.md))
 or just an idea + the structure to follow, and it **builds the finished reel** - every beat scripted in
 your voice, with the on-screen text and the visual for each beat - so you can shoot/render it as-is.
@@ -47,6 +49,9 @@ In a reel workspace also do these, in this order:
 - Ask the style first (Print, 3D, or Talking head), one multiple-choice question, recommendation first.
 - Run `/reel-factcheck` on the script and `budget.py` (see CLAUDE.md rule 10) before Gate A.
 - Record the goal and angle, and each approval, in `reels/<slug>/approvals.md`.
+- The shoot plan (`STORYBOARD.md`) ends with two headings: **Tools per scene** (one line per scene naming how it is made:
+  Print, a scene style, screen capture, 3D (Blender) via `/blender-shot`, or the person's own footage) and **Names on
+  screen** (every person, company, product or place name that appears in a picture; `/reel-factcheck` reads this list).
 
 **Pairs with:** [reel-analyzer](../reel-analyzer/SKILL.md) (what to model) →
 [viral-hook-writer](../viral-hook-writer/SKILL.md) (the opener) → this (the full build) →

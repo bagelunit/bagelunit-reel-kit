@@ -15,6 +15,8 @@ metadata:
 
 # Reel fact check: a second look at every claim
 
+Inputs: the script (scope `script`) or the final video, caption and cover (scope `final`). Outputs: a PASS or FAIL record in `approvals.md`. Next step: `/script-score` (script) or Gate C (final).
+
 `brand/facts.md` says a claim was cleared. This skill asks a different question: **is it still true,
 does the reel say no more than the source says, and does the reel imply anything the source does not?**
 It is the one place the kit reads the sources again instead of trusting the earlier read.
@@ -61,7 +63,9 @@ For every sentence of the reel that states something about the world (skip hooks
 5. For a claim about how a tool behaves (a flag, a command, a file name), where the tool is installed here and
    the check is read-only, run its `--help` or version command and note it. Never run anything that costs money
    or changes the user's files.
-6. Scope `final` only: also read the text in `scenes/*.js` (if the folder exists) and the cover, caption and storyboard "Names on screen".
+6. Scope `final` only: also read the text in `scenes/*.js` (if the folder exists) and the cover and caption. Also read the on-screen text column of the script table in `STORYBOARD.md` and its
+   "Names on screen" section (every person, company, product or place name that appears in a picture). Each name is a
+   claim: check it.
    Picture claims count (a chart, a logo, a product screen, an address that carries a real brand name).
 
 Public pages can themselves be wrong or out of date. If a source looks stale, contradicts another official

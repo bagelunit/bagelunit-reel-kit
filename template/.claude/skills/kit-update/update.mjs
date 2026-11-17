@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // BagelUnit Reel Kit: update this workspace to the newest kit, even if the kit was downloaded as a ZIP.
 //
-//   node .claude/skills/kit-update/update.mjs check              which version is out, and what changed (reads one public file)
+//   node .claude/skills/kit-update/update.mjs check              which version is out, and what changed (reads two small public files: the version and the build stamp)
 //   node .claude/skills/kit-update/update.mjs get                download that kit version into ~/.bagelunit-reel-kit/<version>/
 //   node .claude/skills/kit-update/update.mjs preview            show what would change in this workspace (changes nothing)
 //   node .claude/skills/kit-update/update.mjs now                everything in one go: what changed, update this workspace, update the engine (what /kit-update runs)
@@ -168,7 +168,7 @@ export function engineState(skills = path.join(os.homedir(), '.claude', 'skills'
 }
 
 // What the session-start notice says about versions, or ''. No network for the engine check (the engine against this
-// workspace); once a day it reads the public VERSION file on GitHub (3 seconds at most, never fails the session) and
+// workspace); once a day it reads two small public files on GitHub (VERSION and the build stamp) (3 seconds at most, never fails the session) and
 // says when a newer kit is out. Turn the online check off with "updates": { "check_on_start": false } in brand/brand.json
 // (what /brand-setup writes for "No, I'll check myself"; the older "check": false is still honoured).
 export async function versionNote(root, { skills, now = Date.now(), fetchLatest = null } = {}) {

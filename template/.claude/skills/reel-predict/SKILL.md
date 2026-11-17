@@ -69,7 +69,7 @@ The numbers only mean something once the model has learned from this brand's own
    saying how many more. It fits a small, penalised linear model (ridge) and reports a leave-one-out error in plain
    words, for example "typically off by 4 s of watch time", plus a warning when that is large or no better than
    guessing the average.
-4. The model is saved to `~/.config/bagelunit-reels/predict-model.json` and is used by every later `kit predict`.
+4. The model is saved to this brand's own `brand/predict-model.json` and is used by every later `kit predict` in this brand folder (a brand with no model of its own falls back to the old computer-wide one, with a note).
    Refit every time you add reels. Its error shrinks slowly: expect a rough hint at 8 to 15 reels, and something
    steadier past 30.
 

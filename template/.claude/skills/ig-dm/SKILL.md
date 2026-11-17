@@ -61,7 +61,9 @@ word. They are expecting the thing. So:
 
 Send the thing **first**, in message one, with no gate. A keyword post that
 delivers a "before I send it, can I ask what you do?" is a bait and switch and
-it is remembered. The question at the end is what starts the conversation, and
+it is remembered. The one exception is the brand's follow gate
+(`require_follow` in the keyword rule, see `docs/auto-reply.md`): it asks the
+person to follow first, and the comment reply says so up front. Never hide it. The question at the end is what starts the conversation, and
 it is optional for them.
 
 Automated keyword replies are a supported feature for professional accounts,
@@ -101,6 +103,12 @@ Two. That is the number.
   pressure.
 
 Then stop. A third converts nobody and costs the relationship.
+
+## One DM per person who raised their hand
+
+Send one DM to each person who commented or replied, not a second one to the
+same person for the same post. Follow-ups below are for the warm approach and
+the pitch only.
 
 ## Never
 

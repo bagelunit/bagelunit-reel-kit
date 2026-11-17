@@ -2,9 +2,9 @@
 name: ig-plan
 description: >-
   Build the week on Instagram - what to post, which format, when, and who to
-  engage with. Use when the user says "plan my week", "what should I post",
-  "content calendar", "I have nothing to post about", or wants a posting
-  schedule and an engagement list.
+  engage with - and write it into brand/plan.md. Use when the user says "plan
+  my week", "what should I post", "I have nothing to post about", or wants an
+  engagement list. For the content calendar and dashboard, use /content-calendar.
 ---
 
 # ig-plan
@@ -95,6 +95,14 @@ ENGAGE  (5 reach / 3 peers / 2 buyers)
 Say "write Tuesday" and I will draft it.
 ```
 
-Write the plan to `brand/plan.md` so the other skills can read
-it. Nothing is scheduled or posted anywhere. This is a plan and the user runs
-it.
+Write the plan to `brand/plan.md` in the kit's table format, one row per post,
+under the existing header row: `Date | Topic | Goal | Angle | Reel (folder) |
+Notes` (keep any extra column the file already has, such as Series). Put the
+format, the hook formula and the time in Notes, leave Reel (folder) empty until
+a reel is started, and keep the existing rows. The calendar and the scheduler
+read this table, so do not write a weekday grid into the file; show the grid in
+chat only. Nothing is scheduled or posted anywhere. This is a plan and the user
+runs it.
+
+Next step: `/bagelunit-reels` with the first row's topic, or `/content-calendar`
+to see the week on the dashboard.

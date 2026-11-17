@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """board_add.py: pull reference frames into a per-format board. Shape study only: pacing, layout, hook position.
-  python3 scripts/qa/board_add.py <video.mp4> --format menu|prompt-pack|hero-shot|screen-capture|... --source <post url> [--every 1.5]
+  python3 scripts/qa/board_add.py <video.mp4> --format <a short name you choose for the kind of reel, for example tip-list, how-to, before-after> --source <post url> [--every 1.5]
+The format is free text (letters, numbers and hyphens): use whatever names you group your references by.
 Writes brand/research/boards/<format>/<video name>/ with a frame every N seconds plus a contact sheet, and a row in boards/INDEX.md
 (source, date, length). The video must be one the project already holds (a file the owner supplied, or one fetched with the scrape rule).
 Never reuse another creator's script, colours, characters or footage in a reel: boards are for timing and layout only."""

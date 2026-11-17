@@ -3,8 +3,8 @@ name: blender-shot
 description: >
   Makes a short 3D shot in Blender for a reel, of anything: a product, a box or can with a label, a phone showing a screen
   capture, 3D text, a model, a scene. Claude writes the shot from a brief, renders one still, LOOKS at it, fixes what is wrong,
-  then renders a transparent clip to place over a Print or scene-style reel. Use on /blender-shot, or when a reel's "Tools per
-  scene" plan calls for a 3D hero shot, or when the user asks for a 3D object, product shot, phone mock-up or 3D title.
+  then renders a transparent clip to place over a Print or scene-style reel. Use on /blender-shot, when the Gate B shot plan marks a shot as 3D (the "Tools per scene" line in the reel's
+  STORYBOARD.md), or when the user asks for a 3D object, product shot, phone mock-up or 3D title.
 user-invokable: true
 argument-hint: "[what the shot shows]"
 metadata:
@@ -16,10 +16,12 @@ metadata:
 # Blender shot: any subject, checked by eye before it is rendered
 
 Blender renders almost anything. This skill makes one 3-to-5 second shot per use, from a short brief, and joins it to a reel as a
-transparent clip. A shot is only worth it when it earns its place in the reel (list it in the reel's "Tools per scene" line at Gate B).
+transparent clip. A shot is only worth it when it earns its place in the reel (list it in the "Tools per scene" line of the reel's `STORYBOARD.md` at Gate B, for example "Scene 4: 3D (Blender) box with label").
 The owner sees each new subject (a mascot, a product, an object) before its first use in a reel.
 
 ## Before you start
+Inputs: the brief and the reel folder. Output: a transparent clip in `reels/<slug>/build/3d/`. Next step: join it to the scene, then `/reel-review`.
+- The shell scripts need bash (Mac, Linux). On Windows, use Git Bash or WSL, or run the ffmpeg and Blender commands directly (see `brand/library/3d/blender_shot.sh` for the exact arguments).
 - Blender is installed: `blender --version` (Mac: `brew install --cask blender`; others: blender.org). Blender 5.1 or newer. If a different
   path, set `BLENDER_PATH`. Without it, say so and stop; the rest of the reel does not need it.
 - Tools are in `brand/library/3d/`: `lib/bb.py` (the helper library), `shots/product.py`, `shots/phone.py` and the older recipes
@@ -34,8 +36,8 @@ The owner sees each new subject (a mascot, a product, an object) before its firs
    `build/3d/<shot>.py` using `lib/bb.py` (`setup`, `mat`, `mat_image`, `rounded_box`, `cylinder`, `plane`, `text3d`, `import_model`,
    `blob_shadow`, `studio_lights`, `camera`, `orbit`, `push_in`, `smooth`, `render`). Anything an object needs but the library lacks, write inline.
 3. **Look before you render the clip.** Render ONE frame (a few seconds):
-   `zsh brand/library/3d/blender_shot.sh <shot.py> reels/<slug>/build/3d/<shot> --still 45 [options]`.
-   Put it over the paper colour so you judge it as the reel will show it (`ffmpeg -f lavfi -i color=c=0xFBF5E6:s=1080x1080 -i still.png
+   `bash brand/library/3d/blender_shot.sh <shot.py> reels/<slug>/build/3d/<shot> --still 45 [options]`.
+   Put it over the paper colour so you judge it as the reel will show it. The ffmpeg command below lays the still on a flat paper-coloured square and saves one preview picture; use the brand's paper colour from `brand.json` if it has one (`ffmpeg -f lavfi -i color=c=0xFBF5E6:s=1080x1080 -i still.png
    -filter_complex "[1:v]format=rgba[c];[0:v][c]overlay=format=auto" -frames:v 1 look.jpg`), then open `look.jpg` and check:
    subject centred and not cut off, colours match the brand (not washed out), nothing floating above its shadow, text readable and spelled right,
    no intersecting parts, a screen's picture at its true colours. Fix the script and render the still again. Up to 3 rounds; then show the owner what blocks it.

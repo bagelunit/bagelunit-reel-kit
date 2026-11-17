@@ -46,7 +46,14 @@ Roles: `context`, `lean`, `snapback`, `setup`, `item`, `payoff`, `ask`. Rules th
 
 ## 3. Check it
 `node ~/.claude/skills/bagelunit-reels/tools/kit.mjs script reels/<slug>` (with no `script.txt` yet it checks the plan alone).
-Fix every ERROR. Then show the owner the viewer, the promise and the beats in six lines, with the news-reel fast path in mind:
-for a news slot keep it to 3 items and still do this step; it takes minutes.
+Fix every ERROR. Then show the owner six lines: the viewer, the promise and the beats. Wait for a yes or a change. For a news
+reel, keep it to 3 items; do not skip this step.
 
-Next: `/reel-scripter` writes the script from this plan.
+## 4. Record the goal and angle
+Write the **Goal** and **Angle** lines into `reels/<slug>/approvals.md` next to the Gate A heading (the example reel shows where).
+If this reel came from a row in `brand/plan.md`, write the reel's folder name (the slug) into that row's **Reel (folder)** cell now, so the calendar, the log and the scheduler can find the reel from its plan row.
+This skill is the one place that writes them; `/reel-posting` and the log row read them from there.
+
+Inputs: the idea or reel folder. Outputs: `script-brief.md`, `script-plan.json`, the Goal and Angle lines in `approvals.md`, and the slug in the plan row's Reel (folder) cell.
+Next: `/viral-hook-writer` writes 10 hooks that open the loop this outline closes, then `/reel-scripter` (draft stage) writes the
+script from this plan.

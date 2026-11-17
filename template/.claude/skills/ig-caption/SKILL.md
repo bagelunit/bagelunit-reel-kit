@@ -1,14 +1,21 @@
 ---
 name: ig-caption
 description: >-
-  Write the Instagram caption - the line that survives the "... more" cut, the
-  body, the single ask, the search terms and the three hashtags - and lint it
-  before it goes out. Use when the user says "write the caption", "caption this",
-  "what do I put in the description", has a reel or a carousel ready and needs
-  the text, or asks about hashtags.
+  Write the Instagram caption for a post that is NOT a reel (a photo, a single
+  image or a carousel): the line that survives the "... more" cut, the body, the
+  single ask, the search terms and up to 5 hashtags, then lint it. Use when the
+  user says "caption this carousel", "caption this photo" or asks about hashtags
+  for a non-reel post. Reels use /caption-and-hashtags instead.
 ---
 
 # ig-caption
+
+For posts that are not reels. For a reel, stop and run `/caption-and-hashtags`
+(the kit's three-block layout, checked by `caption.mjs check` before Gate C).
+The hashtag limit is one rule everywhere: up to 5.
+
+Inputs: the post, and two or three search terms. Output: a copy-ready caption
+and a receipt. Next step: the user pastes it; nothing is posted.
 
 One tool lives in this folder and it runs:
 

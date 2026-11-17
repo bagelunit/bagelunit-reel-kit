@@ -2,9 +2,10 @@
 name: reel-review
 description: >
   Review a finished or draft reel against the kit's own quality bar and write a one-line verdict
-  before Gate C. Use ONLY when the user asks to "review this reel", "run the review", "score this
-  draft", or by name (/reel-review). It is a check on a built video, not a script or hook writer:
-  inside the loop it runs at the end of step 10 (verify) and again on the final at Gate C.
+  before Gate C. Use when the user asks to "review this reel", "run the review", "score this
+  draft", or by name (/reel-review). The kit runs it automatically at the end of step 10 (verify) on
+  every draft and again on the final before Gate C. It is a check on a built video, not a script or
+  hook writer.
 user-invokable: true
 argument-hint: "[reel folder, e.g. reels/<slug>, or a video file]"
 metadata:
@@ -18,6 +19,9 @@ metadata:
 Look at the reel the way a viewer on a phone would, then write down what you saw. Judge what is on
 screen and in the audio, not how hard it was to make. When two scores are close, take the lower one.
 
+Inputs: the built mp4 and the reel folder. Output: one verdict line in `approvals.md`. Next step:
+`python3 scripts/qa/gate_qa.py <slug>`, then Gate C (see "Part 3").
+
 ## What you need
 A draft or final mp4 (usually `reels/<slug>/build/draft.mp4` or `out/<name>.mp4`) plus the reel's
 `script.txt`, `STORYBOARD.md` and `build/words.json`. Pull frames and timing from the CURRENT video,
@@ -28,6 +32,10 @@ never from an old stills folder.
    then one every 2 to 3 s to the end.
 2. Timing: the `earshot` `timeline` tool for what happens when, and `measure` for loudness and peaks.
 3. Words: `build/words.json` against what is on screen.
+4. Pixel check: run `python3 scripts/qa/gate_qa.py <slug>` on the exact video. It reads the pixels for the
+   frame-0 hook, text in the bottom 300 px or right 120 px, and text size, and writes `build/qa-gate.json`.
+   Gate C is refused until it passes (only the owner skips it, with `--skip "reason"`). If no text reader
+   is installed on this computer the check cannot run: say so, and judge safe zone and size by eye.
 
 If earshot is not installed, use `ffmpeg` for frames and `ffprobe` or the kit's sound report for the
 numbers, and say which checks you could not make.
@@ -102,11 +110,21 @@ Review: not ready (84/100; weakest: hook has no snapback, handle hidden by the c
 Review: not ready (must-pass 1 failed: "3x faster" is not in facts.md).
 ```
 
-The number in brackets is required: Gate C reads it. Only the last line counts, so after a redo write
-a new verdict line (never edit the old one) and keep the earlier ones as the history of the passes.
+The number in brackets is required: Gate C reads it. The line is written with the video's fingerprint
+at the end, so it names the exact file reviewed:
 
-Save it in `reels/<slug>/approvals.md` under the Gate C heading, and add the scores to the reel's row
-in `brand/log.md`. Only a line that meets the bar goes to the approver. Only the owner may send a reel under 90 to
+```
+Review: meets the bar (92/100; weakest: ending drags after 27 s) [video 3fa91c07d2be]
+```
+
+The 12 hex characters come from `node ~/.claude/skills/bagelunit-reels/tools/kit.mjs gate <reel> hash`.
+Any rebuild changes the file, so any rebuild needs a new review and a new line. Only the last line
+counts: after a redo write a new verdict line (never edit the old one) and keep the earlier ones as the
+history of the passes.
+
+Save it in `reels/<slug>/approvals.md` under the Gate C heading. Scores do not go to `brand/log.md`:
+`/reel-posting` copies the last verdict into the log row once the reel is posted. Only a line that
+meets the bar (90 or more) goes to the approver. Only the owner may send a reel under 90 to
 Gate C anyway (`--skip-review "reason"`, written into the record).
 
 ## Honesty
