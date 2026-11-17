@@ -57,6 +57,7 @@ The main command, plus the steps it uses. Claude picks the right one; you can al
 | `/viral-hook-writer` | Writes hooks (the first 1 to 3 seconds) for a reel. |
 | `/hook-mining` | Makes new hooks from a file of hooks that already worked, keeping what made them work. |
 | `/ab-hook-tester` | A/B tests a reel's hook: two clearly different versions, each approved, posted as Instagram trial reels, compared on one number; add record to save the winner. |
+| `/blender-shot` | Makes a short 3D shot in Blender for a reel, of anything (a product, a box or can with a label, a phone showing a screen capture, 3D text, a model): writes it from a brief, renders one still, looks at it, fixes it, then renders a transparent clip to place over the reel. Needs Blender (optional). |
 | `/script-plan` | Plans a script before it is written: one viewer, one promise, and a beat outline where every promise has a payoff and every list item a so-what. Checks the outline by code. Writes no script. |
 | `/script-coldread` | A fresh reader who hears only the spoken words says what the reel is about, who it is for, what to do, what it promised and whether it delivered, and which lines made no sense. |
 | `/script-score` | Scores a script out of 100 in a fresh context that did not write it, against a written rubric; 90 or more is the bar. Records the line Gate A reads. |
