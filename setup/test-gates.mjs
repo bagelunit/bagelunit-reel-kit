@@ -181,7 +181,7 @@ const rr = path.join(tmp, 'loose', 'snd');
 fs.mkdirSync(rr, { recursive: true });                                  // a relative --out is looked up in the reel folder
 r = rsPy('import os\nreel = sys.argv[1]\nfor v, o in ((os.path.join(reel, "out", "snd.mp4"), None), (os.path.join(reel, "build", "pre-real", "snd-kitsound.mp4"), None), (os.path.join(reel, "build", "draft.mp4"), None), (os.path.join(reel, "out", "snd.mp4"), "mine.mp4")):\n    f, k = R.plan_output(reel, v, o)\n    print(os.path.relpath(f, reel), k and os.path.relpath(k, reel))', rr);
 assert.equal(r.status, 0, out(r));
-assert.deepEqual(r.stdout.trim().split('\n').map((l) => l.replace(/\\/g, '/')), [
+assert.deepEqual(r.stdout.trim().split(/\r?\n/).map((l) => l.replace(/\\/g, '/')), [
   'out/snd.mp4 build/pre-real/snd-kitsound.mp4', 'out/snd.mp4 None', 'build/draft-real.mp4 None', 'mine.mp4 None']);
 const earshot = path.join(os.homedir(), 'dev', 'sound', 'earshot', '.venv', process.platform === 'win32' ? 'Scripts' : 'bin', process.platform === 'win32' ? 'python.exe' : 'python');
 const opus = path.join(os.homedir(), 'dev', 'sound', 'opus-sound-layer', 'audio', 'kit', 'catalog.json');
