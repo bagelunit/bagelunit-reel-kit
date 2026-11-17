@@ -41,3 +41,11 @@ brand/publisher.json
 publisher/node_modules/
 publisher/.wrangler/
 publisher/.dev.vars
+
+# Reel QA: the compiled Apple OCR helper is rebuilt on each Mac
+scripts/qa/ocr
+
+# Blender frames (the scripts stay) and Manim output
+brand/library/3d/**/frames/
+brand/library/3d/manim/media/
+brand/library/sfx/files/

@@ -1,0 +1,1 @@
+# Extra words the reel QA never reports (one per line, lower case), for example a watermark or a handle drawn on every scene.

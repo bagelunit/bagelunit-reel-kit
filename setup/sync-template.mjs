@@ -10,7 +10,7 @@
 //   node setup/sync-template.mjs <brand-workspace> --apply    does it
 //       Updates ONE brand workspace (a copy you already set up) with the newer kit files.
 //       It updates only what the kit owns: CLAUDE.md, README.md, LICENSE, .gitignore, docs/, .claude/skills/,
-//       .claude/settings.json (the kit's hooks; a brand's own settings go in .claude/settings.local.json), reels/_example/.
+//       .claude/settings.json (the kit's hooks; scripts/, brand/library/3d and brand/library/sfx/sfx_add.py (the reel QA, effects, Blender and Manim tools); a brand's own settings go in .claude/settings.local.json), reels/_example/.
 //       It NEVER touches brand/ or reels/ (the brand's own data), except that brand/brand.json gains any NEW
 //       setting (at any depth, existing values are never changed) and brand starter files that do not exist yet
 //       (log.md, swipe.md, insights.csv) are added.
@@ -30,7 +30,7 @@ const SRC = path.join(REPO, 'template');
 // a generic copy-from folder only when one is wanted: never create one in a synced Documents folder by default
 const LEGACY = path.join(os.homedir(), 'Documents', 'Claude', 'Reel Template');
 const GENERIC = process.env.REEL_TEMPLATE_HOME || (fs.existsSync(path.join(LEGACY, 'CLAUDE.md')) ? LEGACY : null);
-const PATHS = ['CLAUDE.md', 'README.md', 'LICENSE', '.gitignore', 'docs', '.claude/skills', '.claude/settings.json', 'reels/_example', 'publisher'];   // kit-owned; brand/ and the brand's own reels/ are absent on purpose
+const PATHS = ['CLAUDE.md', 'README.md', 'LICENSE', '.gitignore', 'docs', '.claude/skills', '.claude/settings.json', 'reels/_example', 'publisher', 'scripts', 'brand/library/3d', 'brand/library/sfx/sfx_add.py'];   // kit-owned; brand/ and the brand's own reels/ are absent on purpose
 const stamp = () => new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
 const bytes = (f) => fs.readFileSync(f);
 const same = (a, b) => bytes(a).equals(bytes(b));
