@@ -4,7 +4,14 @@
   python3 tools/sound.py <project> [--music track.mp3] [--sfx-gain -4] [--no-sfx]
 
 In:   audio/vo.mp3 · build/sfx.json (the cue list the page writes on every render: [{t, name, gain}]) · reel.json "music" / "sfx_gain"
-Out:  build/mix.wav (48 kHz stereo, -14 LUFS)
+Out:  build/mix.wav (48 kHz stereo, -14 LUFS) · build/music.json (the licensed music beds used, with each file's hash)
+
+reel.json "music" is either a path to one track (the old form) or a list of licensed beds recorded with  kit licensed add:
+  "music": [{"asset": "clear-skies", "from": 0, "fade": 1.5, "gain_db": -18}]
+  asset    the id in brand/licensed/assets.json (type music)      from     seconds into the reel where the bed starts (default 0)
+  fade     fade in and out, seconds (default 1)                   gain_db  level under the voice before ducking (default -18)
+The bed loops to the end of the reel and is ducked under the voice with ffmpeg sidechaincompress. A missing, changed or wrong-type
+asset stops the mix with the reason.
 
 No sound files ship with the kit: every effect is synthesised below, so there is nothing to license.
 Effect names: whoosh swoosh pop click tick thud impact boom shimmer riser type cash stamp. Any other name is matched by keyword
@@ -12,10 +19,13 @@ Effect names: whoosh swoosh pop click tick thud impact boom shimmer riser type c
 House taste: effects sit about 18 dB under the voice, and crowded cues are skipped so nothing machine-guns.
 """
 from pathlib import Path
+import hashlib
+import json
 import subprocess
+import tempfile
 import numpy as np
 
-from kitcore import resolve_reel, Flags, fail, load_words, media_length, pcm, read_json, reel_settings
+from kitcore import resolve_reel, Flags, fail, load_words, media_length, pcm, read_json, reel_settings, brand_root
 
 TOOL = 'sound'
 RATE = 48000
@@ -143,6 +153,78 @@ def music_bed(project, path, voice, length):
     duck = 1 - 0.7 * np.clip(loud / (loud.max() + 1e-9) * 4, 0, 1)    # dip the music while words are spoken
     return bed * 0.16 * duck[:len(bed)]
 
+def _sha256(path):
+    h = hashlib.sha256()
+    with open(path, 'rb') as f:
+        for chunk in iter(lambda: f.read(1 << 20), b''):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def licensed_beds(project, music):
+    """reel.json "music" as a list of licensed beds -> [{asset, file, from, fade, gain_db, sha256}], or stops with the reason."""
+    brand = brand_root(project)
+    if brand is None:
+        fail(TOOL, 'reel.json "music" lists licensed assets, but this reel is not inside a brand folder (no brand/brand.json above it)')
+    reg = read_json(brand / 'brand' / 'licensed' / 'assets.json', {}) or {}
+    assets = reg.get('assets') if isinstance(reg.get('assets'), list) else []
+    root = (brand / 'brand' / 'licensed').resolve()
+    beds = []
+    for i, m in enumerate(music, 1):
+        if not isinstance(m, dict) or not m.get('asset'):
+            fail(TOOL, f'reel.json music[{i}] needs an "asset" (the id of a licensed music asset)')
+        a = next((x for x in assets if x.get('id') == m['asset']), None)
+        if not a:
+            fail(TOOL, f'music[{i}]: no licensed asset "{m["asset"]}" in brand/licensed/assets.json (kit licensed add <file> --type music --title ...)')
+        if a.get('type') != 'music':
+            fail(TOOL, f'music[{i}]: asset "{m["asset"]}" is a {a.get("type")}, not music')
+        f = (brand / str(a.get('file', ''))).resolve()
+        if root not in f.parents:
+            fail(TOOL, f'music[{i}]: asset "{m["asset"]}" points outside brand/licensed/')
+        if not f.is_file():
+            fail(TOOL, f'music[{i}]: the file of asset "{m["asset"]}" is missing ({a.get("file")})')
+        digest = _sha256(f)
+        if digest != a.get('sha256'):
+            fail(TOOL, f'music[{i}]: asset "{m["asset"]}" changed since it was recorded (kit licensed check)')
+        try:
+            start, fade, gain = float(m.get('from', 0)), float(m.get('fade', 1)), float(m.get('gain_db', -18))
+        except (TypeError, ValueError):
+            fail(TOOL, f'music[{i}]: from, fade and gain_db must be numbers')
+        if start < 0 or fade < 0 or gain > 0:
+            fail(TOOL, f'music[{i}]: from and fade cannot be negative and gain_db cannot be above 0 (it is how far under full level the bed sits)')
+        beds.append({'asset': m['asset'], 'file': str(a['file']), 'from': start, 'fade': fade, 'gain_db': gain, 'sha256': digest, '_path': f})
+    return beds
+
+
+def licensed_bed(bed, voice, length):
+    """One licensed bed, looped to the end of the reel, faded, set to gain_db and ducked under the voice (ffmpeg sidechaincompress)."""
+    import os
+    seconds = length / RATE
+    run = max(0.1, seconds - bed['from'])
+    fade = min(bed['fade'], run / 2)
+    keyed = np.zeros(length)
+    keyed[:min(len(voice), length)] = voice[:length]
+    fd, key = tempfile.mkstemp(suffix='.wav')
+    os.close(fd)
+    try:
+        subprocess.run(['ffmpeg', '-y', '-v', 'error', '-f', 'f64le', '-ar', str(RATE), '-ac', '1', '-i', '-', key], input=keyed.tobytes(), check=True)
+        chain = (f'[1:a]aresample={RATE},aformat=channel_layouts=mono,atrim=0:{run:.3f},asetpts=PTS-STARTPTS,volume={bed["gain_db"]}dB'
+                 + (f',afade=t=in:d={fade:.3f},afade=t=out:st={max(0, run - fade):.3f}:d={fade:.3f}' if fade > 0 else '')
+                 + f',adelay={int(bed["from"] * 1000)},apad=whole_len={length}[m];'
+                 f'[0:a]aresample={RATE},aformat=channel_layouts=mono,apad=whole_len={length}[k];'
+                 f'[m][k]sidechaincompress=threshold=0.03:ratio=8:attack=20:release=300:makeup=1[d]')
+        raw = subprocess.run(['ffmpeg', '-v', 'error', '-i', key, '-stream_loop', '-1', '-i', str(bed['_path']), '-filter_complex', chain,
+                              '-map', '[d]', '-t', f'{seconds:.3f}', '-f', 'f32le', '-ar', str(RATE), '-ac', '1', '-'], capture_output=True)
+    finally:
+        try:
+            os.remove(key)
+        except OSError:
+            pass
+    if raw.returncode != 0:
+        fail(TOOL, 'ffmpeg could not mix the licensed bed: ' + raw.stderr.decode('utf-8', 'replace').strip()[-400:])
+    return np.frombuffer(raw.stdout, np.float32).astype(np.float64)[:length]
+
+
 def main():
     flags = Flags()
     args = flags.positional()
@@ -170,9 +252,20 @@ def main():
     mix = track
     mix[:min(len(voice), length)] += voice[:length]
     music = flags.get('music', reel.get('music'))
-    if music:
+    record = project / 'build' / 'music.json'
+    if isinstance(music, list) and not flags.get('music'):
+        beds = licensed_beds(project, music)
+        for b in beds:
+            bed = licensed_bed(b, voice, length)
+            mix[:len(bed)] += bed
+        record.write_text(json.dumps([{k: v for k, v in b.items() if not k.startswith('_')} for b in beds], indent=1) + '\n', encoding='utf-8')
+        music = bool(beds)
+    elif music:
         bed = music_bed(project, music, voice, length)
         mix[:len(bed)] += bed
+        record.unlink(missing_ok=True)
+    else:
+        record.unlink(missing_ok=True)
     mix = mix / max(1.0, np.abs(mix).max() / 0.97)
     out = project / 'build' / 'mix.wav'
     subprocess.run(['ffmpeg', '-y', '-v', 'error', '-f', 'f64le', '-ar', str(RATE), '-ac', '1', '-i', '-',

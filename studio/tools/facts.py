@@ -20,6 +20,20 @@
            A new take changes them, so the final record goes out of date.
            It cannot tell whether a source is TRUE. That is the second half: the /reel-factcheck skill re-reads each source
            fresh and records its verdict with `record`.
+  on-screen text (scope final)
+           `kit render` writes build/on_screen_text.txt for every kind of reel (tools/ontext.mjs; scene styles: tools/scenes.mjs):
+           one line per text the page really drew, "[t0-t1s kind] text", read from the page while the frames are drawn (the DOM, and
+           canvas text), plus, for a scene style, every text prop of the plan that the page did not draw as one piece (kind
+           "scene N: prop name"). Only the text after the "[...]" is checked, so the times never count as numbers, and the
+           fingerprint covers that text only, so a change of timing alone does not make a record stale. Caption words are joined into
+           lines; a typed-out text is listed once, in full; a counter or clock that ticks is listed by its last value (a value held
+           for 0.4 s or more always stays). A text seen for under 0.3 s is marked "fleeting": its numbers not in facts.md are a
+           warning (NUMBER-FLEETING), not an error, because no one can read them; every other number is an error as in the script. Lines of
+           kind "chrome" (the print engine's own chapter mark "01 THE PROBLEM" and the brand handle) are read for {{needs cleared fact}}
+           and absolute wording but their numbers are not checked: a chapter number is not a claim. A readout the reel sets itself is
+           content and is checked. Text a 3D scene draws on a texture is a string only (kind "in-scene"). When the file is
+           missing the final check prints  SKIP ON-SCREEN-TEXT  and says on-screen text was NOT checked, never OK for it; a file older
+           than the reel's files is a warning (render again). A render of only part of the reel (--from/--to) leaves the file alone.
   record   Saves the re-read verdict (PASS or FAIL) for this scope together with a fingerprint of the words and the facts
            table, writes build/facts_check.json and adds a "Fact check:" line under "## Fact check" in approvals.md.
            PASS is refused while `check` still has errors. Change the script, the caption or a facts row afterwards and the
@@ -88,6 +102,35 @@ def talking_words(project):
     return ' '.join(str(w.get('w', '')).strip() for w in words if isinstance(w, dict) and str(w.get('w', '')).strip())
 
 
+ON_SCREEN_LINE = re.compile(r'^\[([^\]\n]*)\]\s*(.*)$')    # "[1.20-3.30s caption] text": the bracket is in front of every line of build/on_screen_text.txt
+FLEETING_LABEL = 'on_screen_text.txt (fleeting)'
+CHROME_LABEL = 'on_screen_text.txt (engine tag)'      # the print engine's chapter mark and handle: its chapter numbers are not claims
+ON_SCREEN_LABELS = ('on_screen_text.txt', FLEETING_LABEL, CHROME_LABEL)
+ON_SCREEN_SOURCES = ('reel.json', 'scenes.json', 'timeline.js', 'cuts.js', 'index.html', 'scenes.js', 'build/words.json')
+
+
+def on_screen_path(project):
+    return project / 'build' / 'on_screen_text.txt'
+
+
+def on_screen_stale(project):
+    """Name of a file that changed after build/on_screen_text.txt was written (so the text may be out of date), else ''."""
+    f = on_screen_path(project)
+    if not f.exists():
+        return ''
+    when = f.stat().st_mtime
+    names = list(ON_SCREEN_SOURCES)
+    for sub in ('scenes', 'shots'):
+        d = project / sub
+        if d.is_dir():
+            names += [f'{sub}/{p.name}' for p in d.iterdir() if p.suffix == '.js']
+    for n in names:
+        p = project / n
+        if p.is_file() and p.stat().st_mtime > when + 2:
+            return n
+    return ''
+
+
 def words_text(project, scope):
     """The reel's words for this scope: [(file label, text)]."""
     out = []
@@ -99,9 +142,23 @@ def words_text(project, scope):
             out.append(('words.json', spoken))
         for label, path in (('caption.txt', project / 'out' / 'caption.txt'),
                             ('caption.txt', project / 'caption.txt'),
-                            ('on_screen_text.txt', project / 'build' / 'on_screen_text.txt')):
+                            ('on_screen_text.txt', on_screen_path(project))):
             if path.exists():
-                out.append((label, path.read_text(encoding='utf-8')))
+                raw = path.read_text(encoding='utf-8')
+                if label != 'on_screen_text.txt':
+                    out.append((label, raw))
+                    continue
+                held, fleeting, tag = [], [], []        # "fleeting": on screen under 0.3 s (a rolling counter, a wipe); "chrome": the engine's own tag
+                for ln in raw.splitlines():
+                    m = ON_SCREEN_LINE.match(ln)
+                    bracket, body = (m.group(1), m.group(2)) if m else ('', ln)
+                    words = bracket.split()
+                    (tag if 'chrome' in words else fleeting if 'fleeting' in words else held).append(body)
+                out.append((label, '\n'.join(held)))
+                if fleeting:
+                    out.append((FLEETING_LABEL, '\n'.join(fleeting)))
+                if tag:
+                    out.append((CHROME_LABEL, '\n'.join(tag)))
     return out
 
 
@@ -204,20 +261,33 @@ def check(project, scope, facts_path):
             rest = parts[1].split('\n\n', 1)
             if len(rest) > 1:
                 surfaces.append((label, rest[1]))
+    if scope == 'final':
+        if not on_screen_path(project).exists():
+            findings.append(('SKIP', 'ON-SCREEN-TEXT', 'build/on_screen_text.txt', 'SKIPPED: the text drawn on screen was NOT checked, because kit render has not written '
+                             'build/on_screen_text.txt (render the reel, whole, then check again); check the text in scenes by eye'))
+        else:
+            late = on_screen_stale(project)
+            if late:
+                findings.append(('WARN', 'STALE-ON-SCREEN', 'build/on_screen_text.txt', f'{late} is newer than the on-screen text file: render the reel again so the text checked is the text drawn'))
     if not surfaces[0][1].strip():
         findings.append(('ERROR', 'NO-SCRIPT', 'script.txt', 'script.txt is missing or empty'))
     claims = []
     for label, text in surfaces:
         for m in re.finditer(r'\{\{\s*needs cleared fact.*?\}\}', text, re.I):
             findings.append(('ERROR', 'NEEDS-FACT', label, 'a {{needs cleared fact}} marker is still in the text'))
-        for n in NUMBER.finditer(text):
-            tok = re.sub(r'[\s,]', '', n.group(0).lower())
-            if tok not in facts_numbers:
-                ctx = text[max(0, n.start() - 25): n.end() + 25].replace('\n', ' ')
-                if re.fullmatch(r'(19|20)\d\d', tok):     # a bare year: low risk, but still say so
-                    findings.append(('WARN', 'YEAR', label, f'the year {tok} is not in facts.md (…{ctx}…): true as a date, but check it'))
-                else:
-                    findings.append(('ERROR', 'NUMBER-NOT-CLEARED', label, f'"{n.group(0).strip()}" is not in facts.md (…{ctx}…)'))
+        # on-screen text is one text per line: a number never runs over a line break, and the finding shows its own line
+        chunks = text.splitlines() if label in ON_SCREEN_LABELS else [text]
+        for chunk in ([] if label == CHROME_LABEL else chunks):
+            for n in NUMBER.finditer(chunk):
+                tok = re.sub(r'[\s,]', '', n.group(0).lower())
+                if tok not in facts_numbers:
+                    ctx = chunk[max(0, n.start() - 25): n.end() + 25].replace('\n', ' ')
+                    if label == FLEETING_LABEL:                 # on screen under 0.3 s: too fast to read, so a warning, not a block
+                        findings.append(('WARN', 'NUMBER-FLEETING', label, f'"{n.group(0).strip()}" is not in facts.md (…{ctx}…): on screen for under 0.3 s, so check it by eye'))
+                    elif re.fullmatch(r'(19|20)\d\d', tok):     # a bare year: low risk, but still say so
+                        findings.append(('WARN', 'YEAR', label, f'the year {tok} is not in facts.md (…{ctx}…): true as a date, but check it'))
+                    else:
+                        findings.append(('ERROR', 'NUMBER-NOT-CLEARED', label, f'"{n.group(0).strip()}" is not in facts.md (…{ctx}…)'))
         for sent in sentences(text):
             hit = ABSOLUTES.search(sent)
             if hit:
@@ -231,7 +301,8 @@ def check(project, scope, facts_path):
 
     errors = sum(1 for f in findings if f[0] == 'ERROR')
     warns = sum(1 for f in findings if f[0] == 'WARN')
-    return {'rows': rows, 'never': never, 'findings': findings, 'claims': claims, 'errors': errors, 'warnings': warns}
+    skipped = [f[1] for f in findings if f[0] == 'SKIP']
+    return {'rows': rows, 'never': never, 'findings': findings, 'claims': claims, 'errors': errors, 'warnings': warns, 'skipped': skipped}
 
 
 def write_worksheet(project, scope, res, facts_path):
@@ -253,7 +324,11 @@ def write_worksheet(project, scope, res, facts_path):
     L += ['', '## Never say (the reel must not say or imply any of these)', '']
     L += [f'- {n}' for n in res['never']] or ['- (none listed)']
     if scope == 'final':
-        L += ['', '## Also check by eye', '', '- Text on screen in scenes/*.js, names on the cover, the handle, anything a picture claims (a chart, a logo, a product screen).']
+        seen = on_screen_path(project).exists()
+        L += ['', '## Also check by eye', '',
+              ('- Text on screen was read from the render (build/on_screen_text.txt): the numbers and wording in it are checked above. ' if seen else
+               '- Text on screen was NOT read (no build/on_screen_text.txt yet): read the text in scenes/*.js by eye. ')
+              + 'Names on the cover, the handle, anything a picture claims (a chart, a logo, a product screen) are not text and are never checked here.']
     (project / 'build').mkdir(exist_ok=True)
     (project / 'build' / 'factcheck.md').write_text('\n'.join(L) + '\n', encoding='utf-8')
 
@@ -279,11 +354,11 @@ def main():
 
     if action == 'check':
         write_worksheet(project, scope, res, facts_path)
-        order = {'ERROR': 0, 'WARN': 1}
+        order = {'ERROR': 0, 'WARN': 1, 'SKIP': 2}
         for lvl, code, where, msg in sorted(res['findings'], key=lambda f: order[f[0]]):
             print(f'{lvl:5} {code:18} {where}: {msg}')
         print(f'FACTS CHECK ({scope}): {"FAIL" if res["errors"] else "OK"}  {res["errors"]} errors, {res["warnings"]} warnings, '
-              f'{len(res["rows"])} cleared rows. Worksheet: build/factcheck.md')
+              f'{len(res["rows"])} cleared rows.' + (' SKIPPED: ' + ', '.join(res['skipped']) + ' (see above).' if res['skipped'] else '') + ' Worksheet: build/factcheck.md')
         print('This is the mechanical half. It does not know whether a source is true: next, re-read each source (/reel-factcheck) '
               'and run  facts.py <project> record --scope %s --result PASS|FAIL' % scope)
         if res['errors']:
@@ -301,11 +376,12 @@ def main():
     fpr = fingerprint(project, scope, facts_path)
     state = load_state(project)
     state.setdefault('records', {})[scope] = {'result': result, 'at': stamp, 'fingerprint': fpr, 'note': note,
-                                              'rows': len(res['rows']), 'warnings': res['warnings']}
+                                              'rows': len(res['rows']), 'warnings': res['warnings'], 'skipped': res['skipped']}
     (project / 'build').mkdir(exist_ok=True)
     (project / 'build' / 'facts_check.json').write_text(json.dumps(state, indent=2) + '\n', encoding='utf-8')
 
-    entry = f'- {stamp} Fact check ({scope}): {result}, fingerprint {fpr}, {len(res["rows"])} cleared rows' + (f'. {note}' if note else '')
+    entry = (f'- {stamp} Fact check ({scope}): {result}, fingerprint {fpr}, {len(res["rows"])} cleared rows'
+             + (f'. SKIPPED: {", ".join(res["skipped"])}' if res['skipped'] else '') + (f'. {note}' if note else ''))
     approvals = project / 'approvals.md'
     text = approvals.read_text(encoding='utf-8') if approvals.exists() else ''
     heading = '## Fact check'

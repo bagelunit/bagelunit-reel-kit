@@ -14,6 +14,7 @@ Gate A approves the script, Gate B the visual plan, Gate C the final video. The 
 - **Gate A** needs the script fact check PASS and a line `Script review: meets the bar (NN/100; ...) [script <12 hex>]` with NN of 90 or more for the script as it is now. In a brand folder `voice.py` refuses to make a voice before Gate A is recorded.
 - **Gate B** needs Gate A recorded.
 - **Gate C** needs A and B recorded, the final fact check PASS, a line `Review: meets the bar (NN/100; ...) [video <12 hex>]` with NN of 90 or more for the final `out/<slug>.mp4` (get the 12 hex with `kit gate <reel> hash`), a `kit qa` result of PASS for that exact file, and, in a brand folder, `scripts/qa/gate_qa.py` passed for it.
+- Gate C also needs `kit licensed check <reel>` to pass: every licensed asset the reel uses (section L) is recorded in the brand's `brand/licensed/assets.json` and its file is unchanged. No override. The assets' credits are written into the Gate C block of `approvals.md`.
 - **Owner-only overrides**, each recorded with a reason: `--skip-facts`, `--skip-script-review`, `--skip-review`, `--skip-qa`, `--skip-order`, `--before-gate-a` (on `voice.py`). Never use one yourself.
 - A changed video needs a new QA, a new review and a new Gate C. `kit gate <reel> check` shows whether the file changed after approval.
 
@@ -174,7 +175,7 @@ Full checklist: `playbook/self-review.md`.
    - `pace` lists every flat stretch with its words. Give each one a build-up, secondary motion, a camera move or a host act.
    - `effort` checks for enough original work, with no stock prop carrying the reel.
    - Never render the final while a gate fails.
-   - `kit lint reels/<slug>` (local addition) checks shot grammar for depth and talking reels: shot length, face time, repeated layouts, cuts on words, rhythm, movement in the first second. Fix every error. It checks nothing for print or scene styles yet; skip it there.
+   - `kit lint reels/<slug>` (local addition) checks shot grammar for depth and talking reels: shot length, face time, repeated layouts, cuts on words, rhythm, movement in the first second. Fix every error. Print reels get their shot list from `build/shots.json`, which `kit render` writes (a print shot is a timeline scene, so SHOT-LEN flags a scene longer than 5 s; layout, face and props are checked only where a scene file declares them). Scene styles have no shot data, so nothing is checked there.
 4. **Last look:** the sheet once more through `playbook/taste.md`'s questions. If any answer is "not yet", improve first.
 5. **Final:** `kit render reels/<slug> --final`, then `kit export reels/<slug>`, which writes `out/<name>.mp4` (1080×1920, 30 fps, H.264 + AAC).
 6. **Real sound (local add-on, owner 2026-11-05, replaces the synthesised effects):** `"$EARSHOT_PY" "$KIT_DIR/tools/realsound.py" reels/<slug>`. `EARSHOT_PY` is `~/dev/sound/earshot/.venv/bin/python` (Windows: `%USERPROFILE%\dev\sound\earshot\.venv\Scripts\python.exe`); the installer sets it up. It takes the exported `out/<slug>.mp4` and leaves ONE final in `out/`, named `out/<slug>.mp4`; the original kit-sound file is kept at `build/pre-real/<slug>-kitsound.mp4` so the step can be redone. `--out <file>` chooses an exact name instead. <!-- local change, re-apply after kit updates -->
@@ -264,17 +265,28 @@ Next step: none; the reel is done. On failure: if Gate C was refused, `kit gate`
 
 ---
 
+## L · Licensed material (Uppbeat; local addition, 2026-11-17)
+
+The kit ships no music, clips, graphics or LUTs. The one outside source is Uppbeat (Business plan); the owner downloads by hand and records each file: `kit licensed add <file> --type music|sfx|stock-video|motion-graphic|lut --title "..." [--artist --url --channels --credit]` (registry `brand/licensed/assets.json`, media in `brand/licensed/<type>/`, never committed; `kit licensed list|check [<reel>]|remove <id>`; the brand folder's `/licensed-assets` skill and `brand/licensed/README.md` explain it). A reel uses an asset by its id:
+- `reel.json` `"look": {"lut": "<id>", "strength": 0-1}` (default 1): the grade is applied to the whole picture by `kit export` (ffmpeg `lut3d`, blended by strength). A reel LUT wins over the brand's `scripts/fx/look.cube` slot and `kit export` says so.
+- `reel.json` `"music": [{"asset": "<id>", "from": 0, "fade": 1, "gain_db": -18}]`: `kit sound` loops the bed to the end, fades it, sets it `gain_db` under full level and ducks it under the voice (ffmpeg `sidechaincompress`); `build/music.json` records each bed and its hash. A string in `"music"` is the old single-track form.
+- Scene styles, in `scenes.json`: a scene `{"clip": {"asset": "<stock-video id>", "start": 2, "duration": 5, "mute": true}, "narration": "..."}` is a cutaway (scaled and cropped to 1080x1920, same codec settings, timed from `build/words.json` like any scene, held on its last frame if the scene is longer; `kit frames` shows one frame of it), and any scene may carry `"overlay": {"asset": "<motion-graphic id>", "blend": "normal|screen", "opacity": 0-1, "at": s, "duration": s}`, composited by ffmpeg after the scene renders (alpha kept for .mov and .webm; `screen` for black-background light leaks). An overlay is picture only: it is never text for the safe zone or the on-screen text.
+
+Next step: `kit licensed check <reel>`. On failure it names the asset (not recorded, file missing, changed since recorded, wrong type); fix that, never edit `assets.json` by hand to make it pass.
+
+---
+
 ## Always
 - Their script, brand names and claims are used exactly as given. Never invent stats, prices or quotes about real products.
-- No one else's logos, footage or characters unless the user supplies them and has the rights.
+- No one else's logos, footage or characters unless the user supplies them and has the rights. Licensed music, clips, graphics and LUTs only from Uppbeat, recorded with `kit licensed add` (section L).
 - Never print keys. Never post or upload anything by yourself; outside a brand folder you only create files, and in a brand folder follow its rule 11 and `/reel-posting`.
 - When a tool errors, read the message, fix the cause (often setup: run the checkup) and retry. Don't silently switch approaches.
 - Keep them posted in plain words at each stage (script ✓, voice ✓, shots 3/7, check, final), without log dumps.
 
 ## Map
 - `tools/`:
-  - `kit.mjs`, the one command; run `node "$KIT_DIR/tools/kit.mjs"` alone to print every verb: start, frames, render, pace, script, effort, lint, qa, facts, gate, measure, calibrate, predict, sound, export, live, cover, organize, tidy, scene, host
-  - `scenes.mjs` (scene styles: plan, timing, render, check, stand-in voice), `session.mjs`, `server.mjs`, `chromium.mjs`, `lock.mjs`
+  - `kit.mjs`, the one command; run `node "$KIT_DIR/tools/kit.mjs"` alone to print every verb: start, frames, render, pace, script, effort, lint, qa, facts, gate, measure, calibrate, predict, licensed, sound, export, live, cover, organize, tidy, scene, host
+  - `licensed.mjs` (`kit licensed`: the licensed-assets registry and check), `scenes.mjs` (scene styles: plan, timing, render, check, stand-in voice), `session.mjs`, `server.mjs`, `chromium.mjs`, `lock.mjs`
   - `voice.py`, `take.py`, `voicebank.py`, `budget.py` (credits left), `markers.py`, `glyphs.py`, `checkup.mjs`
   - checks: `pace.py`, `effort.py`, `lint.py`, `scriptlint.py`, `qa.py`, `facts.py`, `gate.py`, `measure.py`, `calibrate.py`, `predict.py`
   - sound: `sound.py` (export mix), `realsound.py` (the real-sound step)

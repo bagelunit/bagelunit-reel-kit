@@ -1,6 +1,6 @@
 # BagelUnit Reel Kit commands
 
-Every command in the kit (version 1.0.0) and what it does. Also as a [PDF](docs/commands.pdf) and a [spreadsheet](docs/commands.csv) (opens in Excel).
+Every command in the kit (version 1.1.0) and what it does. Also as a [PDF](docs/commands.pdf) and a [spreadsheet](docs/commands.csv) (opens in Excel).
 
 Most of the time you only need four: `/brand-setup`, `/bagelunit-reels` with your topic, `/analytics-readout` with your numbers, and `/kit-update`.
 
@@ -25,6 +25,7 @@ Type these in Claude Code inside a brand folder.
 | `/brand-setup` | Sets up the brand (name, handle, colours, logo, fonts, presenter, voice, call to action) or changes it later. |
 | `/sticker-host` | Makes your sticker host, a cartoon of you or your mascot for Print reels: a base pose from one photo, then a starter 10, then any pose a reel needs (new, add <pose>, check <reel>, status). |
 | `/logo-library` | Adds and checks the logos and app icons your reels show: finds the brand's own artwork (it asks before downloading anything), records the rights, puts the SVG in a reel, and blocks posting a reel whose logos are not approved. The kit ships no logos. |
+| `/licensed-assets` | Records music, sound effects, stock video, motion graphics and LUTs you downloaded by hand from Uppbeat (the kit ships none), says what each does in a reel, and checks them before Gate C. Nothing licensed is ever committed. |
 | `/kit-update` | Checks for a newer kit, shows what changed, updates this folder without touching your brand or reels, and updates the engine too. |
 
 ## Instagram skills (research, writing, planning)
@@ -127,7 +128,8 @@ Run on every reel; Claude runs them at the approvals.
 | `kit measure` | Measures a video: cuts, words, loudness, silence, still stretches. |
 | `kit calibrate` | Learns from your own Instagram numbers (needs 8 or more reels). |
 | `kit predict` | Measured facts, plus a watch-time estimate once calibrated. |
-| `kit sound` | Mixes the voice, effects and music. |
+| `kit licensed` | The brand's licensed assets from Uppbeat: add records a download (hash, credit, channels), list shows them, check <reel> verifies every asset a reel uses is recorded and unchanged (Gate C refuses a reel that fails), remove takes one out. |
+| `kit sound` | Mixes the voice, effects and music (a licensed music bed is ducked under the voice). |
 | `kit export` | Joins picture and sound into the finished mp4 for Instagram. |
 | `kit scene` | Scene styles (the 20 looks, for example stick-figure-folk, comic, map, deep-zoom): list them, plan the scenes of a reel, check them, or make a preview voice that needs no key (list, plan, check, stand-in). |
 | `kit cover` | Renders the reel's cover to out/cover.jpg at Meta's size, plus a sheet showing how it crops in the grid. |

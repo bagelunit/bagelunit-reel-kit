@@ -293,6 +293,7 @@ Then open `brand/dashboard.html`. Anything that failed shows under "Needs you", 
 | What you see | What it means | What to do |
 | --- | --- | --- |
 | "the token is not valid any more" | It expired or you removed the app's access | Ask Claude to make a new one: it repeats the same step and you copy the new token into the file |
+| "this token was made without instagram_manage_insights and pages_read_engagement" (competitors cannot be read) | Reading other accounts needs those two permissions, and a new configuration or token dropped them | Step 2B point 3: add both to the configuration (add them to the use case first if they are not offered), make a new token, replace the token file, then run `/content-calendar competitors` |
 | "the token is missing a permission" | The token was made without one of the permissions | Add the permission in the app, make a new token |
 | "rate limit reached" | Meta's hourly limit | Nothing; the next refresh works |
 | "does not cover any Instagram professional account" | The account was not picked when the token was made, or it is a personal account | Step 2B point 5, pick the account |

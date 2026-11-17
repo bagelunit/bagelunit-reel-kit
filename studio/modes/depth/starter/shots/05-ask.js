@@ -13,7 +13,7 @@ export default {
     S.queue.forEach((q, i) => { q.root.position.set(shot.set.queueFrom.x + i * 0.5, shot.set.stoop, shot.set.queueFrom.z + (i % 2) * 0.12); q.root.rotation.y = -1.2; });
     const kw = cta.keyword || 'LINK';
     S.tKey = shot.at(kw, 0.25);
-    shot.cta = { keyword: kw, at: S.tKey, sub: cta.sub || '' };
+    shot.cta = { keyword: kw, at: S.tKey, sub: String(cta.text || cta.sub || '').trim().slice(0, 48) };   // cta.text (or the older cta.sub) is the line under the box
     k.sound(S.tKey + 0.75, 'click', -6);
   },
 

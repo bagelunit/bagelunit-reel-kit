@@ -16,6 +16,7 @@
 //   --skip-packages   do not install ffmpeg, Python, git, uv and Whisper (--skip-brew is the same)
 //   --skip-plugins    do not add the Claude Code plugin (hyperframes)
 //   --skip-sound      do not set up opus-sound-layer and earshot (the real-sound step will not work)
+//   (Blender, optional, for /blender-shot: looked for and reported only; the NOTE prints how to get it)
 //   --earshot-mcp     also register earshot as a user-level MCP server in Claude Code
 //   --rebuild-sounds  rebuild the opus-sound-layer library even if it already exists
 //   --yes             answer yes to "install this program?" questions
@@ -261,6 +262,39 @@ step('Whisper model (word timing for voices and reel teardowns)');
         ok(`model saved to ${dest}`);
       } catch (e) { fs.rmSync(`${dest}.part`, { force: true }); warn(`could not download the model (${e.message}). Do it by hand: save ${url} as ${dest}, or pip install faster-whisper`); }
     } else info(`(not downloaded) save ${url} as ${dest}, or pip install faster-whisper`);
+  }
+}
+
+// ---------------------------------------------------------------- 1c. Blender (optional, for /blender-shot)
+// Only looked for and reported, never installed here: it is a large program, so the person decides. The assistant asks (AskUserQuestion)
+// and runs the NOTE's command when the person says yes.
+step('Blender (free 3D for /blender-shot, optional)');
+{
+  const MIN_BLENDER = [5, 1];
+  const pf = [process.env.ProgramFiles, process.env['ProgramFiles(x86)'], 'C:\\Program Files'].filter(Boolean);
+  const globDirs = (dir, rx) => { try { return fs.readdirSync(dir).filter((n) => rx.test(n)).sort().reverse().map((n) => path.join(dir, n)); } catch { return []; } };
+  const candidates = [];
+  if (IS_MAC) candidates.push('/Applications/Blender.app/Contents/MacOS/Blender', path.join(HOME, 'Applications', 'Blender.app', 'Contents', 'MacOS', 'Blender'));
+  else if (IS_WIN) for (const root of new Set(pf)) for (const d of globDirs(path.join(root, 'Blender Foundation'), /^Blender/i)) candidates.push(path.join(d, 'blender.exe'));
+  else candidates.push('/usr/bin/blender', '/usr/local/bin/blender', '/snap/bin/blender', ...globDirs('/opt', /^blender/i).map((d) => path.join(d, 'blender')), path.join(HOME, 'blender', 'blender'));
+  // BAGELUNIT_BLENDER_PATHS (a PATH-style list) replaces the standard places: for tests, so "not installed" can be checked on a computer that has it
+  if (process.env.BAGELUNIT_BLENDER_PATHS !== undefined) candidates.splice(0, candidates.length, ...process.env.BAGELUNIT_BLENDER_PATHS.split(path.delimiter).filter(Boolean));
+  const bin = have('blender') ? 'blender' : candidates.find(exists);
+  if (bin) {
+    const r = sh(bin, ['--version'], { capture: true, always: true, noShell: bin !== 'blender' && !IS_WIN });
+    const m = /Blender\s+(\d+)\.(\d+)(?:\.(\d+))?/.exec(r.out);
+    if (!m) warn(`Blender is at ${bin} but did not report a version, so it may not start. Open it once by hand, or reinstall it (blender.org).`);
+    else {
+      const v = [Number(m[1]), Number(m[2])];
+      const old = v[0] < MIN_BLENDER[0] || (v[0] === MIN_BLENDER[0] && v[1] < MIN_BLENDER[1]);
+      if (old) warn(`Blender ${m[1]}.${m[2]} found at ${bin}, but /blender-shot needs ${MIN_BLENDER.join('.')} or newer. Update it: ${IS_MAC ? 'brew upgrade --cask blender' : IS_WIN ? 'winget upgrade BlenderFoundation.Blender' : 'blender.org (snap: sudo snap refresh blender)'}`);
+      else ok(`Blender ${m[1]}.${m[2]}${m[3] ? '.' + m[3] : ''} found (${bin})`);
+    }
+    if (bin !== 'blender') info(`it is not on PATH; /blender-shot calls it by name, so add it to PATH or link it (the 3D scripts in a brand folder say how)`);
+  } else {
+    const how = IS_MAC ? 'brew install --cask blender' : IS_WIN ? 'winget install BlenderFoundation.Blender'
+      : have('snap') ? 'sudo snap install blender --classic' : have('apt-get') ? 'sudo apt install blender (apt may be older than 5.1; blender.org has the current one)' : 'download it from blender.org';
+    warn(`Blender is not installed. It is optional: only /blender-shot (3D product, phone, text and model shots) needs it, and every other part of the kit works without it. To add it: ${how}`);
   }
 }
 

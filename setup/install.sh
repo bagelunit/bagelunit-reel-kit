@@ -2,6 +2,7 @@
 # BagelUnit Reel Kit installer: launcher for macOS and Linux.
 # The real installer is setup/install.mjs (Node), which also runs on Windows (use install.ps1 there).
 # All options pass straight through: bash setup/install.sh --help
+# Every step (programs, the optional Blender check for /blender-shot, the studio, sound) is in install.mjs, so this launcher and install.ps1 do the same.
 set -euo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if ! command -v node >/dev/null 2>&1; then

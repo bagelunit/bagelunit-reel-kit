@@ -27,7 +27,7 @@ const takesReel = {
   pace: [], effort: [], lint: [], facts: [], gate: ['check'], measure: [], predict: [], qa: [], host: ['--check'], script: [],
   scene: ['plan'],   // on the smoke reel (print) it finds the reel, then says it is not a scene-style reel; setup/test-scene-styles.mjs tests the rest
 };
-const needsMore = ['start', 'frames', 'render', 'calibrate', 'sound', 'export', 'live', 'cover', 'organize', 'tidy', 'budget'];   // covered by test-reel-folders.mjs, test-gates.mjs (budget: it would read the saved key), the sticker-host CI step, or need a render
+const needsMore = ['start', 'frames', 'render', 'calibrate', 'sound', 'export', 'live', 'cover', 'organize', 'tidy', 'budget', 'licensed'];   // covered by test-reel-folders.mjs, test-gates.mjs, test-licensed.mjs (licensed finds its reel by slug), (budget: it would read the saved key), the sticker-host CI step, or need a render
 const help = spawnSync('node', [KIT], { encoding: 'utf8' }).stdout;
 const listed = [...help.matchAll(/^  node tools\/kit\.mjs (\w+)/gm)].map((m) => m[1]);
 assert.ok(listed.length > 10, 'could not read the command list from kit.mjs help');

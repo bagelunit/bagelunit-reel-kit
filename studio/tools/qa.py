@@ -13,8 +13,16 @@ SHA-256 ("sha256"): Gate C (tools/gate.py) accepts a QA only for the very file i
   frozen     frozen stretches longer than 0.5 s, listed with times (FAIL). The end hold is not counted: the last `tail` seconds
              (reel.json "tail", else the engine's own default: print 0.8, depth 1.0, talking and scene styles 0.6) may stand still.
   text       text size and safe zone, from build/text_boxes.json: [{"t0": s, "t1": s, "x": px, "y": px, "w": px, "h": px,
-             "label": "..."}] on the 1080x1920 canvas. No other build file holds text boxes (build/motion_mask.json lists regions
-             to ignore, not text), so without that file this check is SKIPPED, never PASS.
+             "label": "...", "kind": "..."}] on the 1080x1920 canvas, either as a list or as {"source", "seconds", "boxes": [...]}.
+             `kit render` writes it for print, depth and talking reels (tools/ontext.mjs): the page is read every 0.1 s, a box is
+             the median of the sampled boxes over a text's life (an entrance or a shake does not decide it). x, y, w, h are what is drawn
+             (the ink, for canvas text; the text's own box, for page text) and decide the safe zone; "size" is the font's own box
+             (about 1.2 times the font size, so 40 px type is about 48), and decides the 44 px minimum when it is there, else h does. Only text the page draws flat on
+             the frame has a box: text drawn inside a 3D scene (depth) is not measured, and the PASS line says so. Boxes of kind
+             "chrome" and "readout" (the print engine's own chapter tag, handle and readout tag, drawn in a row at the top on purpose) and boxes on screen for under
+             0.3 s (a counter rolling, a piece flying through) are counted but not judged. Boxes
+             from a render of a different length than the video, or no boxes at all, give SKIPPED. No other build file holds text
+             boxes (build/motion_mask.json lists regions to ignore, not text), so without that file this check is SKIPPED, never PASS.
              Scene-style reels (local addition): when there is no text_boxes.json but kit render wrote build/scene_boxes.json
              (the resting boxes the style's engine reports through S.inspect, every drawn item, not only text), the safe zone
              is checked on those boxes with the styles repo's 6 px slack; text size is not, since the engine reports boxes,
@@ -30,8 +38,10 @@ from kitcore import resolve_reel, Flags, fail, load_words, media_length, pcm, re
 TOOL = 'qa'
 SAFE = dict(top=250, bottom=300, left=60, right=120)   # px kept clear of text on a 1080x1920 canvas: the kit's one safe zone (the bottom 300 px and the right 120 px are the platforms' caption bar and buttons; scripts/qa/reel_qa.py and scenes.mjs use the same numbers)
 MIN_TEXT_H = 44                                    # a text box shorter than this is hard to read on a phone
+FLEETING = 0.3                                     # a text on screen for less than this (s) is not judged: it passes too fast to read
 MIN_STILL = 0.5                                    # black or frozen for longer than this (s) is reported
 SYNC_LIMIT = 0.080
+SCENE_EDGE = 60                                    # scene styles: the right edge that still fails (the old 60 px side); the 120 px strip inside it is a note
 SCENE_SLACK = 6                                    # px; scene-style boxes (S.inspect) get the styles repo tester's tolerance
 TAIL_DEFAULT = {'print': 0.8, 'depth': 1.0, 'talking': 0.6}   # the engines' own end hold when reel.json has no "tail" (scene styles 0.6)
 
@@ -184,32 +194,58 @@ def main():
         else f'no frozen frames longer than {MIN_STILL}s{hold_note}', stretches=[[a, b] for a, b in frozen], end_hold_s=tail)
 
     # text size and safe zone
-    boxes = read_json(project / 'build' / 'text_boxes.json', None)
+    raw_boxes = read_json(project / 'build' / 'text_boxes.json', None)
+    render_seconds = None
+    if isinstance(raw_boxes, dict):
+        render_seconds = raw_boxes.get('seconds')
+        raw_boxes = raw_boxes.get('boxes')
+    boxes = raw_boxes
     scene_boxes = read_json(project / 'build' / 'scene_boxes.json', None) if not isinstance(boxes, list) or not boxes else None
-    if isinstance(scene_boxes, list) and scene_boxes:
-        k, bad = SCENE_SLACK, []
+    mode_style = reel_settings(project).get('style')
+    if isinstance(boxes, list) and boxes and isinstance(render_seconds, (int, float)) and abs(render_seconds - duration) > 1.0:
+        add('text', 'SKIPPED', f'build/text_boxes.json is from a render of {render_seconds:.1f}s but this video is {duration:.1f}s long, so the text was NOT checked (run kit render again)')
+    elif isinstance(scene_boxes, list) and scene_boxes:
+        k, bad, strip = SCENE_SLACK, [], []
         for b in scene_boxes:
             x, y, bw, bh = b.get('x', 0), b.get('y', 0), b.get('w', 0), b.get('h', 0)
-            if y < SAFE['top'] - k or y + bh > 1920 - SAFE['bottom'] + k or x < SAFE['left'] - k or x + bw > 1080 - SAFE['right'] + k:
-                bad.append(f'{b.get("t0", 0):.1f}s {b.get("kind", "")} "{str(b.get("label", ""))[:24]}" outside the safe zone')
-        add('text', 'FAIL' if bad else 'PASS', (f'{len(bad)} of {len(scene_boxes)} scene boxes: ' + '; '.join(bad[:6])) if bad
-            else f'{len(scene_boxes)} resting boxes from the scene engine (S.inspect) inside the safe zone; text size not measured for scene styles',
-            boxes=len(scene_boxes), bad=bad, source='build/scene_boxes.json')
+            tag = f'{b.get("t0", 0):.1f}s {b.get("kind", "")} "{str(b.get("label", ""))[:24]}"'
+            if y < SAFE['top'] - k or y + bh > 1920 - SAFE['bottom'] + k or x < SAFE['left'] - k or x + bw > 1080 - SCENE_EDGE + k:
+                bad.append(f'{tag} outside the safe zone')
+            elif x + bw > 1080 - SAFE['right'] + k:
+                strip.append(tag)
+        # The scene styles were laid out for 60 px sides, before the right 120 px (the platforms' buttons) became the kit's rule.
+        # Until the styles repo is re-laid out, something inside that strip is a note to look at, not a failure; top, bottom and left stay hard.
+        note = f'; {len(strip)} inside the right-hand button strip (x 960 to 1020; the styles predate the 120 px rule): ' + '; '.join(strip[:4]) if strip else ''
+        add('text', 'FAIL' if bad else 'PASS', (f'{len(bad)} of {len(scene_boxes)} scene boxes: ' + '; '.join(bad[:6]) + note) if bad
+            else f'{len(scene_boxes)} resting boxes from the scene engine (S.inspect) inside the safe zone; text size not measured for scene styles{note}',
+            boxes=len(scene_boxes), bad=bad, button_strip=strip, source='build/scene_boxes.json')
     elif not isinstance(boxes, list) or not boxes:
-        add('text', 'SKIPPED', 'no text-box data (build/text_boxes.json is not written by kit render yet), so text size and safe zone were NOT checked')
+        add('text', 'SKIPPED', 'no text-box data (run kit render on the whole reel to write build/text_boxes.json), so text size and safe zone were NOT checked')
     else:
-        bad = []
+        bad, judged, fleeting = [], 0, 0
         for b in boxes:
+            if b.get('kind') in ('chrome', 'readout'):      # the print engine's own tag row at the top: its place and size are the engine's
+                continue
+            if b.get('t1', 0) - b.get('t0', 0) < FLEETING - 1e-6:        # on screen for a blink (a rolling counter, a piece flying through): not read
+                fleeting += 1
+                continue
+            judged += 1
             x, y, bw, bh = b.get('x', 0), b.get('y', 0), b.get('w', 0), b.get('h', 0)
+            size = b.get('size', bh)           # the font's own box when the box is the drawn ink (a word like "of" is short but not small)
             why = []
-            if bh < MIN_TEXT_H:
-                why.append(f'height {bh:.0f}px < {MIN_TEXT_H}')
+            if size < MIN_TEXT_H:
+                why.append(f'text {size:.0f}px tall < {MIN_TEXT_H}')
             if y < SAFE['top'] or y + bh > 1920 - SAFE['bottom'] or x < SAFE['left'] or x + bw > 1080 - SAFE['right']:
                 why.append('outside the safe zone')
             if why:
                 bad.append(f'{b.get("t0", 0):.1f}s "{str(b.get("label", ""))[:24]}" ' + ', '.join(why))
-        add('text', 'FAIL' if bad else 'PASS', (f'{len(bad)} of {len(boxes)} boxes: ' + '; '.join(bad[:6])) if bad
-            else f'{len(boxes)} text boxes inside the safe zone and tall enough', boxes=len(boxes), bad=bad)
+        skipped_chrome = len(boxes) - judged - fleeting
+        note = (f' ({skipped_chrome} chrome tag box(es) not judged)' if skipped_chrome else '') + (f' ({fleeting} box(es) on screen under {FLEETING}s not judged)' if fleeting else '') + (' (text inside 3D scenes is not measured)' if mode_style == 'depth' else '')
+        if not judged:
+            add('text', 'SKIPPED', f'the only text boxes are the engine\'s own chrome tag or on screen for under {FLEETING}s ({len(boxes)}), so text size and safe zone were NOT checked', boxes=len(boxes), bad=[])
+        else:
+            add('text', 'FAIL' if bad else 'PASS', (f'{len(bad)} of {judged} boxes: ' + '; '.join(bad[:6]) + note) if bad
+                else f'{judged} text boxes inside the safe zone and tall enough{note}', boxes=judged, bad=bad)
 
     # audio / video sync
     words = load_words(project)

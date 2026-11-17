@@ -68,9 +68,18 @@ Use `/reel-posting` for each version. Trial reels go to non-followers first, so 
 
 ## 4. Read and record the result (`/ab-hook-tester record`)
 
-The dashboard calls it once each version has the views it needs: a winner when the deciding number differs by 10% or
-more, otherwise no clear winner. It is a rule of thumb, not statistics; say so.
-1. Show both versions' numbers and the dashboard's verdict. Ask: "B won: record it (Recommended)", "Too early, wait",
+The dashboard shows both versions once each has the views it needs, with a 10% rule of thumb. The call itself is made with the
+kit's winner rule, which is statistics, not a rule of thumb:
+```
+python3 scripts/abtest.py --a <hits A> <views A> --b <hits B> <views B> --metric <saves|shares|holds|skips> [--lower-better]
+```
+`hits` is how many of the views did the deciding thing (saves, shares, 3-second holds); for skip rate use the people who
+skipped and add `--lower-better`. It prints the chance that each version is really better (a Beta-binomial posterior,
+exact, no random numbers) and applies one plain rule: both versions need at least 300 views, and a winner is called only at
+95% or more. Otherwise it says "keep testing, need about N more views each", or that the two are too close to tell apart
+(then stop and choose on something else). Do not look every hour and stop the first time it crosses 95%: look when each
+version has the views it needs. A 95% call is still wrong about one time in twenty; say so.
+1. Show both versions' numbers and the `abtest.py` line. Ask: "B won: record it (Recommended)", "Too early, wait",
    "No clear winner".
 2. On a winner: tell the owner to share the winning trial reel to their followers in the Instagram app (from the
    reel's trial results), and to leave the other as a trial. Set `"winner": "B"` and `"decided": "<today>"` in

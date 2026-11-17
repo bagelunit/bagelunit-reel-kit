@@ -145,7 +145,12 @@ function capDrawWord(ctx, w, ph, at, look) {
   fillRR(ctx, -w.wd / 2 - ph.pad * 0.3, ph.size * 0.44, (w.wd + ph.pad * 0.6) * swipe, strokeH, strokeH / 2, C.ink);
   text(ctx, w.disp, -w.wd / 2, ph.size * 0.36, { ...w.f, align: 'left', color: look.key });
 }
+// window.__ontextKind lets the text probe (tools/ontext.mjs) label the caption text
 function headline(ctx, t, sc) {
+  window.__ontextKind = 'caption';
+  try { headlineDraw(ctx, t, sc); } finally { window.__ontextKind = null; }
+}
+function headlineDraw(ctx, t, sc) {
   if (REEL.captions === false || !PHRASE_LIST.length) return;
   if (!HL) layoutPhrases();
   if (sc.noHeadline && sc.noHeadline(t)) return;

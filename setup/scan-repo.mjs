@@ -32,8 +32,12 @@ const HOME_PATH = /\/Users\/[a-z][a-z0-9_-]+\/|C:\\Users\\[A-Za-z][^\\]+\\/;
 const HOME_OK = /\/Users\/(runner|runneradmin|you|name|yourname)\b/;   // none expected, kept narrow
 
 const problems = [];
+// brand/licensed/ ships only the README, the empty registry and .gitkeep files: no asset (Uppbeat music, clip, LUT...) is ever tracked
+const LICENSED_OK = /^template\/brand\/licensed\/(README\.md|assets\.json|(music|sfx|stock-video|motion-graphic|lut)\/\.gitkeep)$/;
 const add = (f, why) => problems.push(`${f}: ${why}`);
 for (const f of files) {
+  if (/^template\/brand\/licensed\//.test(f) && !LICENSED_OK.test(f)) add(f, 'a licensed asset must not be tracked (only README.md, an empty assets.json and .gitkeep files ship in brand/licensed/)');
+  if (f === 'template/brand/licensed/assets.json') { try { if (JSON.parse(fs.readFileSync(path.join(REPO, f), 'utf8')).assets.length) add(f, 'the shipped registry must be empty ({"assets":[]})'); } catch { add(f, 'is not a valid registry'); } }
   if (BAD_FILES.test(f)) add(f, 'a key, secret or system file must not be tracked');
   const SAMPLE = /^docs\/samples\/[a-z0-9-]+\.mp4$/.test(f) && fs.statSync(path.join(REPO, f)).size < 3 * 1024 * 1024;   // the sample clips, each under 3 MB
   if (BIG_MEDIA.test(f) && !SAMPLE) add(f, 'a render, audio or raw media file must not be tracked');

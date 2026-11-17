@@ -50,13 +50,14 @@ function complaints() {
 }
 
 /* ── open a reel ────────────────────────────────────────────────────────────────────────────────────────────────────── */
-export async function openReel(reel, { scale = 0.5, query = '', page: pageFile = 'index.html', fail }) {
+export async function openReel(reel, { scale = 0.5, query = '', page: pageFile = 'index.html', fail, init = null }) {   // init: a script run in the page before it loads (tools/ontext.mjs)
   const { server, url } = await serve(reel.dir, reel.cfg.style);
   const browser = await launch();
   const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: scale });
   const log = complaints();
   page.on('pageerror', (err) => log.error(err.message));
   page.on('console', log.consoleMessage);
+  if (init) await page.addInitScript(init);
   await page.goto(`${url}/${pageFile}${query}`, { timeout: 60000 });
   try {
     await page.waitForFunction(() => Boolean(window.studio && window.studio.ready), null, { timeout: 30000 });

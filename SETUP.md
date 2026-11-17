@@ -204,12 +204,18 @@ Keep brand folders out of iCloud-synced folders (Desktop, Documents) if you can:
 
 | Tool | What needs it | Install |
 |---|---|---|
-| Blender 5.1 or newer | `/blender-shot` (3D product, phone, text and model shots) | Mac: `brew install --cask blender`; Windows and Linux: blender.org |
+| Blender 5.1 or newer | `/blender-shot` (3D product, phone, text and model shots) | Mac: `brew install --cask blender`; Windows: `winget install BlenderFoundation.Blender`; Linux: `sudo snap install blender --classic` (or `sudo apt install blender`, which may be older than 5.1; blender.org has the current build) |
 | Manim | the animated number and bar scene (`brand/library/3d/manim/stat_scene.py`) | `python3 -m venv ~/.config/bagelunit-reels/manim-venv` then `~/.config/bagelunit-reels/manim-venv/bin/pip install manim` |
 | Xcode command line tools (Mac) | the reel QA reads text with Apple Vision, built once from `scripts/qa/ocr.swift` | `xcode-select --install` |
 | Tesseract (Windows, Linux) | the reel QA's text reader where Apple Vision does not exist | tesseract-ocr.github.io/tessdoc/Installation.html |
 
+The installer has a step "Blender (free 3D for /blender-shot, optional)": it looks for `blender` on PATH and in the standard places (Mac `/Applications/Blender.app`, Linux `/usr/bin`, `/snap/bin` and `/opt`, Windows `Program Files\Blender Foundation`), prints the version it finds, and if there is none or it is older than 5.1 prints a NOTE with the command above. It never installs Blender by itself: with Claude Code, Claude asks first and runs the command only on your yes.
+
 Without a text reader the Gate C QA hook lets Gate C through and says so; with one it refuses until the QA has passed on the exact final.
+
+## Licensed music, clips and looks (Uppbeat, optional)
+
+Nothing licensed ships with the kit. If the brand has an Uppbeat Business plan, you download music, sound effects, stock video, motion graphics or LUTs from uppbeat.io by hand (there is no API; for music set the download type to WAV) and record each one in the brand folder with `/licensed-assets` (`kit licensed add`). The brand folder keeps the registry in `brand/licensed/assets.json` and the media next to it, never in git. `brand/licensed/README.md` has the steps, including the YouTube Shorts safelist (Uppbeat Account > Safelist). Needs only ffmpeg, which the installer already checks.
 
 ## Optional: Apify (outlier scan)
 

@@ -92,6 +92,30 @@ jobs:
           python -m pip install --quiet numpy
           node setup/test-gates.mjs
 
+      - name: Blender installer step (found, too old, not installed; never installs, never asks)
+        run: node setup/test-blender-step.mjs
+
+      - name: Keyword CTA, A/B winner rule, caption reading speed and cover check (brand keyword into reel.json, scriptlint keyword warning, 95 percent bar, chars per second, safe centre 1010x1350)
+        shell: bash
+        run: |
+          python -m pip install --quiet numpy
+          python template/scripts/abtest.py --selftest
+          python studio/tools/captions.py --selftest
+          python template/scripts/qa/cover_check.py --selftest
+          node setup/test-checks.mjs
+
+      - name: On-screen text, text boxes and print shots work (fact check reads the text a render drew, SKIPPED when missing; qa measures boxes; lint reads the print scene list; the renders themselves need a browser and run where there is one)
+        shell: bash
+        run: |
+          python -m pip install --quiet numpy
+          node setup/test-ontext.mjs
+
+      - name: Licensed assets work (registry add, list, remove; duplicate, traversal and missing-file refusals; sha mismatch; LUT validation; clip and overlay plans; a real ffmpeg composite, LUT grade and ducked music bed; Gate C refusal; ignore, sync and scan rules)
+        shell: bash
+        run: |
+          python -m pip install --quiet numpy
+          node setup/test-licensed.mjs
+
       - name: Reel loop learns from the numbers (too few reels, waiting, best angle, weak hook or middle, breakout, stalled)
         run: node setup/test-loop.mjs
 

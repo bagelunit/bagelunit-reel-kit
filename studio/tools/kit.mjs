@@ -8,7 +8,11 @@ import { spawn, spawnSync } from 'node:child_process';
 import { serve, SKILL } from './server.mjs';
 import { exclusive, openReel } from './session.mjs';
 import * as folders from './folders.mjs';
+const { findBrand } = folders;
 import * as scenes from './scenes.mjs';
+import * as ontext from './ontext.mjs';
+import * as licensed from './licensed.mjs';
+import { applyBrandCta } from './ctafill.mjs';
 
 const MODES_DIR = path.join(SKILL, 'modes');
 const MODES = fs.readdirSync(MODES_DIR).filter((m) => fs.existsSync(path.join(MODES_DIR, m, 'starter')));
@@ -99,6 +103,7 @@ function applyBrandLook(reel, style, home, dir) {
   if (typeof v.style === 'number') voice.style = v.style;
   else if (s(v.style)) voice.description = s(v.style);
   if (Object.keys(voice).length) reel.voice = voice;
+  notes.push(...applyBrandCta(reel, brand));     // the brand's tested comment keyword and short line, for the closing scene and the script check
   const h = brand.host || {};
   if (style === 'print') {
     if (h.type === 'none' && h.enabled !== true) { reel.presenter = false; notes.push('brand.json host.type is none: the presenter is off'); }
@@ -227,18 +232,27 @@ async function render() {
   const out = path.resolve(reel.dir, text('out') ?? (final ? 'build/video.mp4' : 'build/draft.mp4'));
   fs.mkdirSync(path.dirname(out), { recursive: true });
   await exclusive(async () => {
-    const view = await openReel(reel, { scale, fail: die });
+    const view = await openReel(reel, { scale, fail: die, init: ontext.PROBE_INIT });
     const from = num('from', 0), to = Math.min(num('to', view.info.seconds), view.info.seconds);
+    // the text probe (tools/ontext.mjs): read the on-screen text every 0.1 s of the reel while frames are drawn anyway
+    const probed = await ontext.attach(view.page), log = new ontext.TextLog(), every = Math.max(1, Math.round((fps * sub) * ontext.SAMPLE_DT));
     const w = Math.round((1080 * scale) / 2) * 2, h = Math.round((1920 * scale) / 2) * 2;
     const pipe = encoder({ fps, sub, w, h, final, out }), count = Math.round((to - from) * fps) * sub, began = Date.now();
     const elapsed = () => Math.round((Date.now() - began) / 1000);
     for (let k = 0; k < count; k++) {
       const jpg = await view.frameAt(from + k / (fps * sub), final ? 0.95 : 0.88);
+      if (probed && (k % every === 0 || k === count - 1)) log.add(from + k / (fps * sub), await ontext.collect(view.page));
       if (!pipe.stdin.write(jpg)) await new Promise((r) => pipe.stdin.once('drain', r));
       if (k % 30 === 0) process.stdout.write(`\r${Math.round((100 * k) / count)}%  ${elapsed()}s `);
     }
     pipe.stdin.end();
     await new Promise((r) => pipe.on('close', r));
+    // a whole-reel render writes build/on_screen_text.txt, build/text_boxes.json and (print) build/shots.json; a part of the reel writes none
+    if (from > 1e-6 || to < view.info.seconds - 1 / fps) console.log('\non-screen text: only part of the reel was rendered, so build/on_screen_text.txt and build/text_boxes.json were left as they were');
+    else {
+      const shots = await view.page.evaluate(() => (window.studio && typeof window.studio.shots === 'function' ? window.studio.shots() : null)).catch(() => null);
+      for (const n of ontext.writeAll(reel.dir, log, { seconds: view.info.seconds, shots: probed ? shots : null })) console.log(n);
+    }
     await view.close();
     console.log(`\nrender: ${rel(reel, out)}  (${(to - from).toFixed(2)} s, ${w}x${h}, ${fps} fps, ${elapsed()} s)`);
   });
@@ -257,7 +271,11 @@ function exportReel() {
   if (flags.remix || !fs.existsSync(mix) || newer) sound();
   const out = path.join(reel.dir, 'out', `${reel.name}.mp4`);
   fs.mkdirSync(path.dirname(out), { recursive: true });
-  ffmpeg(['-i', picture, '-i', mix, '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-maxrate', '12M', '-bufsize', '24M',
+  // reel.json "look": {"lut": "<licensed LUT id>", "strength": 0-1}: the grade is applied here, on the final picture (tools/licensed.mjs)
+  let grade = null;
+  try { grade = licensed.gradeFor(reel.dir, reel.cfg, findBrand(reel.dir)); } catch (e) { die(e.message); }
+  if (grade) console.log(grade.note);
+  ffmpeg(['-i', picture, '-i', mix, ...(grade ? ['-filter_complex', grade.filter, '-map', '[v]'] : ['-map', '0:v']), '-map', '1:a', '-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-maxrate', '12M', '-bufsize', '24M',
     '-profile:v', 'high', '-pix_fmt', 'yuv420p', '-r', '30', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-shortest', '-movflags', '+faststart', out]);
   console.log('export:', path.relative(process.cwd(), out));
 }
@@ -392,6 +410,9 @@ async function scene() {
   die(`kit scene ${target} takes plan, check or stand-in (not "${action}")`);
 }
 
+// the brand's licensed assets (Uppbeat): kit licensed add|list|check|remove (tools/licensed.mjs)
+async function licensedVerb() { process.exitCode = await licensed.cli(target, loose, flags); }
+
 const COMMANDS = {
   start: [start, '<dir> --style print|depth|talking|<scene style> [--name n]', 'a new reel from that mode\'s starter (a scene style: a sample scenes.json; kit scene list)'],
   frames: [frames, '<dir> 1.2 3.4 … [--scale 0.5] [--only <shot>] [--out <folder>] [--page other.html]',
@@ -416,6 +437,8 @@ const COMMANDS = {
   tidy: [tidy, '<reel>|--all [--audio] [--force] [--apply]', 'free disk space in finished (posted) reels: removes build/, stills/ and unapproved files in out/; keeps the script, approvals, caption, reel.json and the approved video and cover. --audio also removes the voice take (re-voicing costs credits). Shows the list first'],
   scene: [scene, 'list [<style>]  |  <dir> plan|check|stand-in [--only n] [--times 20%,end] [--pace 0.38] [--force]',
     'scene styles: list them and their templates; the plan with each scene\'s time from build/words.json; check every scene (errors, safe area, seeking) with stills in build/scenes/check/; a stand-in voice (a tone, fake word times, no key) for previews'],
+  licensed: [licensedVerb, 'add <file> --type music|sfx|stock-video|motion-graphic|lut --title "..." [--artist --url --channels a,b --credit --id --notes --licence --move]  |  list [--type T]  |  check [<reel>]  |  remove <id> [--keep-file]',
+    'the brand\'s licensed assets (Uppbeat, downloaded by hand): record a download with its hash and credit, list them, check that every asset a reel uses exists and is unchanged (Gate C refuses a reel that fails), remove one'],
   host: [host, '<dir> [--dir <poses folder>] [--check]', 'sticker host: link the brand\'s pose set into the reel, list every pose in reel.json, and name any pose the cues need that the set lacks'],
 };
 

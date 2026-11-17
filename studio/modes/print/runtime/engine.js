@@ -249,13 +249,20 @@ function readoutTag(ctx, r) {
   text(ctx, key, x + 18, CHROME_Y + 31, { color: C.ink, align: 'left', ...keyFace });
   text(ctx, value, x + w - 18, CHROME_Y + 33, { color: r.hot ? r.col || C.red : C.ink, align: 'right', ...valueFace });
 }
+// the text probe (tools/ontext.mjs) tells the engine's own tag (the chapter mark, the handle) from the reel's content through window.__ontextKind
 function chrome(ctx, t, sc) {
+  window.__ontextKind = 'chrome';
+  try { chromeDraw(ctx, t, sc); } finally { window.__ontextKind = null; }
+}
+function chromeDraw(ctx, t, sc) {
   if (sc.noChrome || REEL.chrome === false) return;
   chapterMark(ctx, String(sc.label || ''));
   const reading = sc.readout ? sc.readout(t) : null;
   const handle = REEL.brand && REEL.brand.handle;
-  if (reading) readoutTag(ctx, reading);
-  else if (handle) text(ctx, String(handle), W - SAFE_X, CHROME_Y + 32, { font: F.voice, weight: 400, size: 25, ls: 1.5, color: C.ink, align: 'right' });
+  if (reading) {
+    window.__ontextKind = 'readout';   // the reel's own number or label: the probe lists it as content, not as the engine's tag
+    readoutTag(ctx, reading);
+  } else if (handle) text(ctx, String(handle), W - SAFE_X, CHROME_Y + 32, { font: F.voice, weight: 400, size: 25, ls: 1.5, color: C.ink, align: 'right' });
 }
 
 /* ---------- one frame ---------- */
@@ -483,6 +490,13 @@ studio.ready = (async () => {
 })();
 studio.ready.catch(e => console.error('boot failed: ' + e.message));
 studio.show = t => renderFrame(Math.max(0, Math.min(t, DUR - 1e-3)));
+// the scene list for `kit render`, which writes it to build/shots.json for `kit lint`: [{id, t0, t1, layout, face, props, presenter}].
+// layout, face and props are what the scene file itself declares (sc.layout, sc.face, sc.props), else null: the engine does not know them
+studio.shots = () => SCENES.filter(s => s.key !== 'presenter').map((s, i, all) => ({
+  id: s.key, t0: +s.start.toFixed(3), t1: +(all[i + 1] ? all[i + 1].start : DUR).toFixed(3),
+  layout: s.layout ?? null, face: s.face ?? null, props: Array.isArray(s.props) ? s.props.map(String) : null,
+  presenter: Boolean(s.guy) && REEL.presenter !== false,
+}));
 
 // ?t=3.5 draws one frame · ?play plays in real time with the voice (click to start) · otherwise frame 0
 function playWithVoice() {

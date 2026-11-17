@@ -49,6 +49,9 @@ Save it as `reels/<slug>/out/caption.txt`. Then run `node .claude/skills/caption
 - **Only what the reel covers.** Every phrase must describe this reel. A phrase for something it does not show or teach is not a keyword, it is stuffing, and it breaks the facts rule (house rule 1). No other company's name unless the reel is really about it, no result or number claims, nothing from `brand.json` -> `writing` that is banned. More than 15 phrases reads as stuffing and the check refuses more than 20.
 - **Vary them.** Keep the one or two phrases that name the brand's subject on every reel; change the rest with the topic.
 
+## A music credit line (only when needed)
+Add a credit line (last line of the caption text, before the hashtag block) for a licensed music bed only when BOTH are true: the asset's `credit` field in `brand/licensed/assets.json` is set (`kit licensed list` shows it; the reel's assets are in `build/music.json` and the Gate C record), and the platform needs it. Instagram and TikTok are covered by the Uppbeat licence and need none unless the asset's `credit` says to give one. For YouTube Shorts, use the credit text exactly as recorded and remember the channel must be safelisted in Uppbeat. Never write a credit the record does not hold, and never invent an artist or track name.
+
 ## Tailored to the brand's niche
 
 Everything here comes from THIS brand, never from a generic list. `brand.json` -> `niche` holds `topic` (what the content is about), `audience` (who watches), `keywords` (3 to 8 phrases that audience searches for) and `tags` (1 or 2 steady hashtags).

@@ -130,6 +130,7 @@ function apify(root, handle, { maxCost }) {
 export async function syncOne(root, handle, { useApify = false, maxCost = 1, api = undefined } = {}) {
   const h = clean(handle);
   let metaWhy = '';
+  let permission = false;
   let client = api;
   if (client === undefined) { try { client = connect(root); } catch (e) { metaWhy = e instanceof Plain ? e.message : 'no Meta connection'; client = null; } }
   if (client && client.login === 'instagram') { metaWhy = 'the Instagram Login connection cannot read other accounts (Meta\'s rule): connect with "login": "unified"'; client = null; }
@@ -142,6 +143,7 @@ export async function syncOne(root, handle, { useApify = false, maxCost = 1, api
     } catch (e) {
       if (!(e instanceof Plain)) throw e;
       metaWhy = e.message;
+      if (e.permission) permission = true;
     }
   }
   if (useApify) {
@@ -156,7 +158,7 @@ export async function syncOne(root, handle, { useApify = false, maxCost = 1, api
   }
   const hint = useApify ? 'give an export with `competitors.mjs import`' : 'try --apify (needs autopilot.scrape and costs money) or give an export with `competitors.mjs import`';
   setAccount(root, h, { note: `not read: ${metaWhy || 'no source worked'}` });
-  return { handle: h, source: null, error: `${metaWhy || 'no source worked'}. To get it anyway: ${hint}` };
+  return { handle: h, source: null, permission, error: `${metaWhy || 'no source worked'}. To get it anyway: ${hint}` };
 }
 
 export async function syncAll(root, opts = {}) {
@@ -165,8 +167,12 @@ export async function syncAll(root, opts = {}) {
   if (only && !list.length) throw new Plain(`@${only} is not on the list: add it first`);
   let api; try { api = connect(root); } catch { api = null; }
   const results = [];
+  let blocked = null;                                         // a permission problem is the same for every account: say it once, ask Meta once
   for (const a of list) {
-    results.push(await syncOne(root, a.handle, { ...opts, api }));
+    if (blocked && !opts.useApify) { results.push({ ...blocked, handle: clean(a.handle) }); setAccount(root, clean(a.handle), { note: `not read: ${blocked.error.split('. To get it anyway')[0]}` }); continue; }
+    const res = await syncOne(root, a.handle, { ...opts, api });
+    if (res.permission) blocked = res;
+    results.push(res);
     if (api) await sleep(350);                                // be gentle with Meta's rate limit
   }
   return results;

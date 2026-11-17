@@ -7,6 +7,8 @@
    On-screen words come from uiText() (reel.json "language" and "ui"); the DM line is uiText('sentLink').
    The comment counter is off by default, because invented engagement numbers are not ok. Switch it on only with a real number:
    reel.json "cta": { "keyword": "REEL", "counter": 1480 } adds a red odometer badge to the sheet that rolls up to it after Post.
+   reel.json "cta": { "keyword": "REEL", "text": "I'll send you the link" } adds a short line (cta.text, up to 48 characters) under the big keyword.
+   Everything here sits inside the safe zone (top 250, bottom 300, left 60, right 120 px): the big keyword is capped to a 840 px wide pill.
    Sound only on the beats that matter (typing, the Post click and pop, the DM pop, the closing shimmer); toasts and replies are silent. */
 (() => {
   const S0 = CUT_CTA, S1 = DUR_END();
@@ -48,6 +50,7 @@
     return lerp(va, vb, ease(clamp((t - a) / (b - a))));
   }
 
+  const CTA_TEXT = String((REEL.cta && REEL.cta.text) || '').trim().slice(0, 48);   // the optional line under the keyword
   const SOUNDS = [['cue', T_SEND, 'click', 0], ['cue', T_SEND + 0.05, 'pop', -2], ['kick', T_SEND + 0.04, 0.6, 0.45], ['cue', T_TYPE, 'type', -8]];
   if (KEYWORD.length > 3) SOUNDS.push(['cue', T_TYPE + KEYWORD.length / 32, 'type', -9]);   // two keystrokes, not one per letter
   SOUNDS.push(['cue', T_DM, 'pop', -4], ['cue', T_THUMB, 'shimmer', -6]);
@@ -92,6 +95,8 @@
   function ctaBigKeyword(T, K, t) {
     const grown = clamp(pop(t - T_SEND - 0.02, 2.6, 0.5), 0, 1.25);
     const face = { font: F.grot, weight: 700, size: 132, ls: -2 };
+    // a long keyword shrinks until its pill (the word plus 130 px) fits 840 px, so it never leaves x 60 to 960
+    while (face.size > 60 && measure(K, KEYWORD, face) + 130 > 840) face.size -= 6;
     impact(T, K, BIG_AT.x, BIG_AT.y, t - T_SEND - 0.06, 1.1, 6);
     const y = BIG_AT.y + Math.sin(t * 2.2) * 5 * clamp(t - T_SEND - 0.5);
     const tilt = lerp(-9, -3, clamp(grown)) + Math.sin(t * 1.7) * 0.8;
@@ -99,8 +104,14 @@
       const w = measure(K, KEYWORD, face) + 130;
       fillRR(T, -w / 2 + 18, -80, w, 196, 98, C.k60);   // the printed drop shadow
       fillRR(K, -w / 2, -98, w, 196, 98, C.red);
-      text(K, KEYWORD, 0, 48, Object.assign({}, face, { color: '#FFFFFF' }));
+      text(K, KEYWORD, 0, face.size * 0.36, Object.assign({}, face, { color: '#FFFFFF' }));
     });
+    if (CTA_TEXT) {
+      const line = { font: F.grot, weight: 700, size: 46, color: C.ink };
+      while (line.size > 28 && measure(K, CTA_TEXT, line) > 840) line.size -= 2;
+      const rise = clamp(pop(t - T_SEND - 0.3, 2.6, 0.5), 0, 1);
+      text(K, CTA_TEXT, BIG_AT.x, BIG_AT.y + 150 + (1 - rise) * 24, line);   // y 1200: between the pill and the DM bubble
+    }
   }
   // the DM bubble springs out of the presenter, then a check pops on it
   function ctaDM(T, K, t) {

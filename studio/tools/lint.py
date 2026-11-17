@@ -21,7 +21,7 @@ Rule codes
   DEVICE-REPEAT  warning  the same prop or card id is used in three shots in a row (only when the shot data names its props)
 
 Where the shots come from (first match wins)
-  build/shots.json   written by a mode page or by hand; works for every mode. Either a list or {"shots": [...]} of
+  build/shots.json   written by `kit render` (print) or by hand; works for every mode. Either a list or {"shots": [...]} of
                      {"id": "01-hook", "t0": 0.0, "t1": 2.4, "layout": "SPLIT", "face": true, "props": ["card:pricing"]}
                      (t0/t1 may be written s/e or start/end; only id, t0 and t1 are required; layout, face, props switch on
                      the rules that need them)
@@ -29,7 +29,11 @@ Where the shots come from (first match wins)
                      the face is on screen when the scene masks a face region
   depth              cuts.js, evaluated with the mode's own cut planner (node) against build/words.json; the layout is the set
                      and view named in shots/<id>.js when they are written out plainly, otherwise unknown (ADJ-SAME skips it)
-  print              the print engine keeps its scene list only in the page, not in a file, so a print reel needs build/shots.json
+  print              `kit render` writes build/shots.json from the print page's own scene list (window.studio.shots(): scene key, start,
+                     end), so no hand-written file is needed. A shot here is a scene of the print timeline (a chapter, usually well
+                     over 5 s), so SHOT-LEN reports every scene past 5 s. The page knows no layout, face or props unless a scene file
+                     declares sc.layout, sc.face or sc.props, so those are null and ADJ-SAME, FACE-LEN and DEVICE-REPEAT have nothing
+                     to judge; CUT-WORD, RHYTHM and FIRST-MOVE still apply. A build/shots.json written by hand is never overwritten.
 If no shot data is found: "lint: no shot data for mode <x>, nothing checked" and exit 0. Nothing is guessed.
 """
 import json, re, subprocess, sys

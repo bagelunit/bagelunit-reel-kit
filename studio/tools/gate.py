@@ -32,9 +32,12 @@ that is written into the record:
   --skip-order "reason"          GATE ORDER SKIPPED: reason              (gates B and C: an earlier gate is not recorded)
   --skip-qa "reason"             QA NOT PASSED: reason                   (gate C: qa.json missing, failing or for another file)
   --skip-review "reason"         REVIEW BELOW THE BAR: reason            (gate C: under 90, no score, or not for this file)
+Gate C also refuses when  kit licensed check <reel>  fails (an asset the reel uses is not recorded in brand/licensed/assets.json, its file is
+missing or changed). That one has no override. The licensed assets the reel uses (title, artist, source, plan, credit) are written into the
+Gate C block as "- Licensed asset:" lines (or "- Licensed assets: none used").
 No network, no keys.
 """
-import re, sys
+import json, re, shutil, subprocess, sys
 from datetime import datetime
 from pathlib import Path
 
@@ -73,6 +76,25 @@ def qa_problem(project, video):
             return f'kit qa checked an earlier version of out/{video.name} (the file changed after kit qa ran)', text
         return f'kit qa checked {seen}, not out/{video.name}', text
     return None, text
+
+
+def licensed_state(project):
+    """(problems, credit lines). Every licensed asset the reel uses (kit licensed: look.lut, music, scene clips and overlays) must be in
+    brand/licensed/assets.json, unchanged and inside brand/licensed/. Runs tools/licensed.mjs check <reel> --json. There is no owner
+    override: a licence is not a quality bar."""
+    tool, node = Path(__file__).with_name('licensed.mjs'), shutil.which('node')
+    if not tool.exists() or not node:
+        return [], []
+    done = subprocess.run([node, str(tool), 'check', str(project), '--json'], capture_output=True, text=True)
+    try:
+        data = json.loads((done.stdout or '').strip().splitlines()[-1])
+    except (ValueError, IndexError):
+        return [f'the licensed-assets check could not run ({(done.stderr or done.stdout or "no output").strip()[-200:]})'], []
+    if data.get('ok'):
+        return [], list(data.get('credits') or [])
+    bad = [l for l in data.get('lines', []) if str(l).startswith('FAIL')]
+    return [f'a licensed asset this reel uses is not in order: {"; ".join(b[6:] for b in bad) or "kit licensed check says FAIL"}. '
+            f'Run  kit licensed check <reel>  and fix it (record the download with kit licensed add, or take the asset out of the reel)'], []
 
 
 def review_problem(text, video_hash):
@@ -231,6 +253,11 @@ def main():
             if line:
                 review_line = f'{line} (latest: {verdict or "none recorded"})'
 
+    credits = []
+    if gate == 'C':
+        lic_bad, credits = licensed_state(project)
+        problems.extend(lic_bad)
+
     if problems:
         fail(TOOL, f'Gate {gate} ({NAMES[gate]}) is not recorded:\n' + '\n'.join(f'  - {p}' for p in problems))
 
@@ -241,6 +268,7 @@ def main():
         if cover.exists():
             lines.append(f'- Cover: {cover.name} | sha256: {sha256(cover)[:12]}')
         lines += [f'- QA: {qa_text}', f'- {verdict or "none recorded"}', f'- {facts_line}']
+        lines += [f'- Licensed asset: {c}' for c in credits] or ['- Licensed assets: none used']
         lines += [f'- {x}' for x in extra] + ([f'- {review_line}'] if review_line else [])
         if note:
             lines.append(f'- Note: {note}')

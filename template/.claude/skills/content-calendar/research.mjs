@@ -25,13 +25,32 @@ function writeCsv(root, name, rows) {
   return path.relative(root, file);
 }
 
+// The permissions reading other accounts needs (Meta's business discovery) that this token does not hold. null = could not tell.
+export const RESEARCH_PERMISSIONS = ['instagram_basic', 'instagram_manage_insights', 'pages_read_engagement'];
+export async function missingPermissions(api) {
+  try {
+    const granted = new Set(((await api.get('me/permissions')).data || []).filter((x) => x.status === 'granted').map((x) => x.permission));
+    if (!granted.size) return null;
+    return RESEARCH_PERMISSIONS.filter((x) => !granted.has(x) && !(x === 'pages_read_engagement' && granted.has('pages_show_list')));
+  } catch { return null; }
+}
+
 // one account's public posts through business discovery -> brand/research/<username>.csv and its row in accounts.json.
 // competitors.mjs calls this for every account on the list; `research.mjs competitor` calls it for one.
 export async function pullCompetitor(root, api, name, n = 50) {
   const user = String(name).replace(/^@/, '');
   if (!USERNAME.test(user)) throw new Plain(`"${name}" is not an Instagram username (letters, numbers, dots and underscores, up to 30)`);
   fs.mkdirSync(path.join(root, 'brand', 'research'), { recursive: true });
-  const r = await api.get(api.me, { fields: `business_discovery.username(${user}){username,followers_count,media_count,media.limit(${n}){${FIELDS},view_count}}` });
+  let r;
+  try { r = await api.get(api.me, { fields: `business_discovery.username(${user}){username,followers_count,media_count,media.limit(${n}){${FIELDS},view_count}}` }); }
+  catch (e) {
+    if (!(e instanceof Plain) || (e.code !== 10 && e.code !== 200)) throw e;
+    const missing = await missingPermissions(api);          // Meta's (#10) does not say which permission; the token's own list does
+    if (!missing) throw e;
+    throw Object.assign(new Plain(missing.length
+      ? `this token was made without ${missing.join(' and ')}, which reading other accounts needs: make a new token with ${missing.length === 1 ? 'it' : 'them'} (docs/connect.md, step 2B, point 5)`
+      : 'the token has the permissions, so Meta\'s app itself is refusing business discovery: in the Meta app check that the app is Live or the Instagram account has a role on it, and that Business Discovery is not restricted (docs/connect.md, step 2B)'), { code: e.code, permission: true });
+  }
   const bd = r.business_discovery;
   if (!bd) throw new Plain(`no public data for @${user}: it must be a business or creator account (and not age-gated)`);
   const posts = bd.media?.data || [];

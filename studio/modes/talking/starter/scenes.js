@@ -69,7 +69,7 @@ const KEYWORD = String((REEL.cta && REEL.cta.keyword) || 'REEL').toUpperCase();
 
 // 8 · CTA (FACE): comment KEYWORD, the keyword slams on the tape; captions off (the CTA replaces them)
 { const s = TH.scene('cta', T('comment') - 0.03, 'FACE', { noCap: true });
-  TH.cta(s.ov, KEYWORD, T(KEYWORD, s.t0) - 0.05, { preAt: s.t0, sub: "I'll send you the link", subAt: T('send', s.t0) - 0.05 }); }
+  TH.cta(s.ov, KEYWORD, T(KEYWORD, s.t0) - 0.05, { preAt: s.t0, sub: String((REEL.cta && REEL.cta.text) || "I'll send you the link").trim().slice(0, 48), subAt: T('send', s.t0) - 0.05 }); }
 
 // ── captions: KEY words land on the accent tape (HOT ones on the second ink); numbers count up inside the caption
 TH.captions(['free', 'reel', 'kit', '12,000', 'record', 'pauses', 'captions', 'graphic', 'best', 'laptop', '20', 'hours', KEYWORD], { hot: ['free', '20'] });

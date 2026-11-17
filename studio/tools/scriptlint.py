@@ -82,7 +82,7 @@ def pace_for(root):
     return (round(statistics.median(rates), 2), f'median of {len(rates)} reels') if len(rates) >= 3 else (DEFAULT_PACE, 'default')
 
 
-def lint(text, plan=None, jargon_extra=(), seconds=45, pace=DEFAULT_PACE):
+def lint(text, plan=None, jargon_extra=(), seconds=45, pace=DEFAULT_PACE, cta_keyword=None):
     """-> list of (level, where, message). where is a sentence number or a name."""
     out = []
     add = lambda lvl, where, msg: out.append((lvl, where, msg))
@@ -213,6 +213,12 @@ def lint(text, plan=None, jargon_extra=(), seconds=45, pace=DEFAULT_PACE):
         if new:
             add('WARN', 'script', f'new name(s) only in the last quarter: {", ".join(sorted(set(new))[:4])}. A tangent, or does the hook promise it?')
 
+    # the call to action: reel.json cta.keyword is what the closing scene shows large, so the voice has to say it too
+    kw = str(cta_keyword or '').strip()
+    if kw and sents:
+        if not re.search(r'(?<![A-Za-z0-9])' + re.escape(kw) + r'(?![A-Za-z0-9])', sents[-1], re.I):
+            add('WARN', len(sents), f'reel.json cta.keyword is "{kw}" but the last sentence does not say it ("{sents[-1][:60]}"). End on the line that asks for it (for example "Comment {kw.upper()} and I\'ll send it"), or fix the keyword in reel.json')
+
     # plan checks
     if plan:
         beats = plan.get('beats', [])
@@ -275,6 +281,14 @@ def selftest():
     r, _, _ = lint(good, plan=plan)
     msgs = [m for lvl, _, m in r if lvl == 'ERROR']
     assert any('no later beat closes' in m for m in msgs) and any('no so-what' in m for m in msgs), msgs
+    # the keyword CTA: the last sentence has to say reel.json cta.keyword; no keyword, no check
+    ends = "Three checks before launch. Do them in this order, every time.\nComment BAKE and I'll send you the whole setup."
+    assert not [m for _, _, m in lint(ends, cta_keyword='bake')[0] if 'cta.keyword' in m]
+    miss = [m for _, _, m in lint(ends, cta_keyword='LINK')[0] if 'cta.keyword' in m]
+    assert miss and '"LINK"' in miss[0], miss
+    assert not [m for _, _, m in lint(ends)[0] if 'cta.keyword' in m]
+    assert [m for _, _, m in lint("Comment BAKE for the setup. Then wait.", cta_keyword='BAKE')[0] if 'cta.keyword' in m], 'keyword said early only'
+    assert [m for _, _, m in lint("Say BAKERY loudly.", cta_keyword='BAKE')[0] if 'cta.keyword' in m], 'BAKERY is not BAKE'
     print('scriptlint selftest: ok')
 
 
@@ -310,7 +324,13 @@ def main():
             plan = json.loads(pf.read_text())
         except Exception as e:
             sys.exit(f'scriptlint: script-plan.json is not valid JSON: {e}')
-    res, nwords, est = lint('' if plan_only else f.read_text(), plan, extra, seconds, pace)
+    cta_kw = None
+    try:
+        cta = (json.loads((reel / 'reel.json').read_text(encoding='utf-8')) or {}).get('cta')
+        cta_kw = cta.get('keyword') if isinstance(cta, dict) else None
+    except Exception:
+        pass   # no reel.json, or one that is not valid JSON yet: no keyword check
+    res, nwords, est = lint('' if plan_only else f.read_text(), plan, extra, seconds, pace, cta_kw)
     if plan_only:
         res = [r for r in res if r[1] != 'script']
     errs = [r for r in res if r[0] == 'ERROR']

@@ -20,6 +20,19 @@ def rec_possible():
     return (here / 'ocr').exists() or (platform.system() == 'Darwin' and bool(shutil.which('swiftc'))) or bool(shutil.which('tesseract'))
 
 
+def licensed_problem(reel):
+    """The reel's licensed assets (Uppbeat, recorded with kit licensed add) must be in order: runs the engine's
+    `licensed.mjs check`. Returns a message, or None when all is well or the engine tool is not installed here."""
+    import shutil, subprocess
+    tool = pathlib.Path.home() / '.claude' / 'skills' / 'bagelunit-reels' / 'tools' / 'licensed.mjs'
+    node = shutil.which('node')
+    if not tool.exists() or not node: return None
+    r = subprocess.run([node, str(tool), 'check', str(reel)], capture_output=True, text=True)
+    if r.returncode == 0: return None
+    bad = [l for l in r.stdout.splitlines() if l.startswith('FAIL')]
+    return 'a licensed asset this reel uses is not in order (' + ('; '.join(b[6:] for b in bad) or r.stderr.strip()[-200:]) + '). Run `node ~/.claude/skills/bagelunit-reels/tools/kit.mjs licensed check ' + reel.name + '`, fix it, then record Gate C.'
+
+
 def main():
     try: ev = json.load(sys.stdin)
     except Exception: return 0
@@ -32,7 +45,11 @@ def main():
     hits = [d for d in (ROOT / 'reels').rglob(slug) if d.is_dir() and (d / 'reel.json').exists()]
     if len(hits) != 1: return 0                       # not one of this workspace's reels: nothing to check here
     if not rec_possible(): return 0                    # no text reader on this computer (see reel_qa.py): do not lock the owner out
-    reel = hits[0]; rec_file = reel / 'build' / 'qa-gate.json'
+    reel = hits[0]
+    lic = licensed_problem(reel)
+    if lic:
+        print(f'Gate C blocked: {lic}', file=sys.stderr); return 2
+    rec_file = reel / 'build' / 'qa-gate.json'
     how = f'python3 scripts/qa/gate_qa.py {slug}'
     if not rec_file.exists():
         print(f'Gate C blocked: no QA record for {slug}. Run `{how}` on the final, fix what it names, then record Gate C. (Only the owner skips it: `{how} --skip "reason"`.)', file=sys.stderr); return 2

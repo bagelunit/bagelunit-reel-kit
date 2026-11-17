@@ -20,6 +20,22 @@ import { connected, pullFacebook, pullThreads } from './platforms.mjs';
 import { due as competitorsDue, syncAll as syncCompetitors } from './competitors.mjs';
 import { retimeStep } from './best-times.mjs';
 
+
+// The reason most failed accounts share, in plain words, with the fix: a nine-account failure is nearly always one cause
+// (no Meta connection, an Instagram Login connection, or personal accounts), and a bare count hides it.
+export function mainReason(failed) {
+  const why = failed.map((r) => String(r.error || '').split('. To get it anyway')[0]).filter(Boolean);
+  if (!why.length) return '';
+  const tally = new Map(); for (const w of why) tally.set(w, (tally.get(w) || 0) + 1);
+  const [top, n] = [...tally.entries()].sort((a, b) => b[1] - a[1])[0];
+  const fix = /made without .*(instagram_manage_insights|pages_read_engagement)/i.test(top) ? 'make a new token with the permissions named above (docs/connect.md, step 2B, point 5), then run /content-calendar competitors'
+    : /Instagram Login connection cannot read other accounts/i.test(top) ? 'connect with "login": "unified" (docs/connect.md step 2B)'
+    : /no Meta connection|connect|token|not connected/i.test(top) ? 'connect Instagram through Unified or Facebook Login (docs/connect.md step 2B)'
+    : /personal|business|creator|not found|cannot be found/i.test(top) ? 'Meta only shows business and creator accounts: give an export with competitors.mjs import, or use --apify by hand'
+    : 'run node .claude/skills/content-calendar/competitors.mjs sync to see each account\'s reason';
+  return `${n === failed.length ? 'all' : n + ' of them'}: ${top}. Fix: ${fix}`;
+}
+
 export async function refresh(root, { instagram = true, telegram = true } = {}) {
   const dash = readJSON(path.join(root, 'brand', 'brand.json')).dashboard || {};
   const lines = [];
@@ -61,8 +77,9 @@ export async function refresh(root, { instagram = true, telegram = true } = {}) 
       else {
         const res = await syncCompetitors(root, { useApify: false });
         const ok = res.filter((r) => r.source).length;
-        writeStatus(root, 'competitors', { ok: ok === res.length, error: ok === res.length ? undefined : `${res.length - ok} account${res.length - ok === 1 ? '' : 's'} could not be read` });
-        say(`Competitors: ${ok} of ${res.length} account${res.length === 1 ? '' : 's'} read${ok < res.length ? ` (${res.filter((r) => !r.source).map((r) => '@' + r.handle).join(', ')} need an export, /content-calendar competitors)` : ''}.`);
+        const failed = res.filter((r) => !r.source), why = mainReason(failed);
+        writeStatus(root, 'competitors', { ok: ok === res.length, error: ok === res.length ? undefined : `${failed.length} account${failed.length === 1 ? '' : 's'} could not be read${why ? `: ${why}` : ''}` });
+        say(`Competitors: ${ok} of ${res.length} account${res.length === 1 ? '' : 's'} read${ok < res.length ? ` (${res.filter((r) => !r.source).map((r) => '@' + r.handle).join(', ')} need an export, /content-calendar competitors)${why ? `. Why: ${why}` : ''}` : ''}.`);
       }
     } catch (e) { const msg = e instanceof IgError ? e.message : 'unexpected error (details hidden so no token can show)'; writeStatus(root, 'competitors', { ok: false, error: msg }); say(`Competitors: ${msg}`); }
   }

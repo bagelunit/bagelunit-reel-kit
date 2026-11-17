@@ -111,4 +111,5 @@ def frange(a, b, s):
     t = a
     while t < b: yield t; t += s
 
-main()
+if __name__ == '__main__':
+    main()

@@ -54,3 +54,7 @@ scripts/qa/ocr
 brand/library/3d/**/frames/
 brand/library/3d/manim/media/
 brand/library/sfx/files/
+
+# Licensed assets (Uppbeat): the registry (assets.json), README.md and .gitkeep files stay in git; the downloaded media never does
+brand/licensed/*/*
+!brand/licensed/*/.gitkeep

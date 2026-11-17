@@ -180,9 +180,16 @@ else {
   const inputOf = (n) => JSON.parse(html(n).match(/__SCENE_INPUT__ = (\{.*?\});<\/script>/s)[1].replace(/\\u003c/g, '<'));
   check(inputOf(1).enter === 'none' && inputOf(2).enter === undefined, 'the first scene opens on its finished picture ("enter": "none"), the others keep their build-in');
   check(sfx.length === 2 && sfx.every((c) => c.name === 'swoosh' && c.t > 0.5), `kit render writes build/sfx.json with a swoosh on each of the 2 cuts (${sfx.length} cues)`);
+  // the text of the reel (tools/ontext.mjs + tools/scenes.mjs): build/on_screen_text.txt, one "[t0-t1s scene N ...] text" line per text
+  const textLines = () => fs.readFileSync(path.join(R, 'build', 'on_screen_text.txt'), 'utf8').trim().split('\n');
+  const tl1 = textLines();
+  check(tl1.length > 3 && tl1.every((l) => /^\[\d+\.\d\d-\d+\.\d\ds scene [123][^\]]*\] \S/.test(l)), `kit render writes build/on_screen_text.txt, one line per text, tagged with its scene (${tl1.length} lines)`);
+  check(tl1.some((l) => /scene 2\] sunlight = all colours/.test(l)) && tl1.some((l) => /scene 3 [^\]]*\] |scene 3\] /.test(l)), 'the text a scene style draws (S.inspect labels) and the text props of the plan are both in it');
   short[1].props = { ...short[1].props, label: 'all colours, mixed' };
   fs.writeFileSync(path.join(R, 'scenes.json'), JSON.stringify({ scenes: short }, null, 2));
   check(/1 rendered, 2 reused/.test(out(k2('render', 'reels/short'))), 'changing one scene re-renders only that scene');
+  const tl2 = textLines();
+  check(tl2.some((l) => /all colours, mixed/.test(l)) && !tl2.some((l) => /sunlight = all colours/.test(l)), 'changing a prop changes the on-screen text file (the old text is gone)');
   const one = k2('render', 'reels/short', '--scene', '3');
   check(one.status === 0 && /scene 3: build\/scenes\/003\.mp4/.test(out(one).replace(/\\/g, '/')), 'kit render --scene 3 renders that scene alone');
   const qa = spawnSync(PY, [path.join(eng, 'tools', 'qa.py'), R, path.join(R, 'build', 'video.mp4')], { encoding: 'utf8' });

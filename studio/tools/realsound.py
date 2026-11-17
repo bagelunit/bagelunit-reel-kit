@@ -258,6 +258,18 @@ def main():
     vo = os.path.join(reel, "audio", "vo.mp3")
     if os.path.exists(vo): sheet["voice"] = [{"file": vo, "start_s": 0}]
     music = reel_json.get("music")
+    if isinstance(music, list):   # licensed beds (kit licensed): the first one, as sound.py recorded it with its hash in build/music.json
+        beds = []
+        try: beds = json.load(open(os.path.join(reel, "build", "music.json")))
+        except (OSError, ValueError): pass
+        if not beds: sys.exit('reel.json "music" lists licensed beds, but there is no build/music.json: run  kit sound <reel>  first, so the beds are checked and recorded')
+        d = os.path.abspath(reel)
+        while d != os.path.dirname(d) and not os.path.isfile(os.path.join(d, "brand", "brand.json")): d = os.path.dirname(d)
+        bp = os.path.join(d, beds[0]["file"])
+        if not os.path.exists(bp): sys.exit(f"the licensed bed {beds[0]['asset']} is missing: {beds[0]['file']}")
+        sheet["music"] = {"file": bp, "start_s": beds[0].get("from", 0), "loop": True, "fade_out_s": 1.0}
+        if len(beds) > 1: print(f"note: only the first of {len(beds)} licensed beds goes into the real-sound mix")
+        music = None
     if music:
         mp = music if os.path.isabs(music) else os.path.join(reel, music)
         if os.path.exists(mp): sheet["music"] = {"file": mp, "start_s": 0, "loop": True, "fade_out_s": 1.0}

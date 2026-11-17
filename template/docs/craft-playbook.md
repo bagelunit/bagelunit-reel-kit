@@ -102,7 +102,7 @@ Pictures may run into the margins; text may not.
 |---|---|
 | `kit pace` | reads the rendered draft and lists every stretch where almost nothing changes (about 1.5 s or more), with the words spoken there, against the mode's movement bar |
 | `kit effort` | whether the reel was built for its own script: the amount of its own scene code and its own prop makers per second, against how much leans on the mode's ready-made props |
-| `kit lint` | shot grammar: shot length (1 to 5 s), how long a face stays on screen, the same layout twice in a row, cuts that fall in the middle of a word, three shots of the same length in a row, no movement in the first second, one prop carrying three shots. It needs shot data, so print reels print "nothing checked" until the print page publishes its shots |
+| `kit lint` | shot grammar: shot length (1 to 5 s), how long a face stays on screen, the same layout twice in a row, cuts that fall in the middle of a word, three shots of the same length in a row, no movement in the first second, one prop carrying three shots. It needs shot data, print reels use the scene list that `kit render` writes to `build/shots.json` (layout, face and props only where a scene declares them), scene styles print "nothing checked" |
 | `kit qa` | the finished file: size and format, loudness and peak, black or frozen stretches, and whether the first word lines up with the first sound. Text size and safe areas are checked from the pixels by `gate_qa.py` (next rows), and by eye in `/reel-review` |
 | `kit script` | the script's own checks before Gate A: length, shape, sentence rules and leftover `{{needs cleared fact}}` (run by `/reel-scripter`) |
 | `python3 scripts/qa/gate_qa.py <slug>` | the reel QA on the exact video: the frame-0 hook, text in the bottom 300 px or right 120 px, and text size, read from the pixels. It writes `build/qa-gate.json`, and Gate C is refused until it passes for the file on disk. Only the owner skips it, with `--skip "reason"` |
@@ -154,6 +154,10 @@ Names on screen (every person, company or product name shown, for the fact check
 Library items used (file names):
 Colour jobs (accent / ink / ground / warning):
 ```
+
+## Licensed material
+
+Music, sound effects, stock video, motion graphics and LUTs come only from Uppbeat, downloaded by the owner and recorded with `kit licensed add` (`/licensed-assets`). Use them by id: `look.lut` for a colour look, `music` for a bed under the voice, a `clip` scene for a stock-video cutaway, an `overlay` for a light leak or graphic. An overlay or cutaway is picture, not text: the safe zone and text-size rules apply to the words you put on top of it. Name each licensed piece in "Tools per scene" at Gate B. Never commit the media.
 
 ## Before you hand over
 

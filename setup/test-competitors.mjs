@@ -95,5 +95,27 @@ assert.equal(lib.load(root).competitors.configured, 2);
 assert.ok(!lib.load(root).competitors.accounts.some((a) => a.handle === 'third_acct'), 'removed account does not come back as Other');
 c.add(root, ['third_acct'], 'adjacent');
 assert.ok(lib.load(root).competitors.accounts.some((a) => a.handle === 'third_acct' && a.tag === 'adjacent'), 'adding it again brings it back');
+// Meta's (#10) alone does not say what is missing: the token's own permission list does, and Meta is asked once, not once per account
+{
+  let bdCalls = 0;
+  const denied = { login: 'unified', me: '1', get: async (p) => {
+    if (p === 'me/permissions') return { data: [{ permission: 'instagram_basic', status: 'granted' }, { permission: 'instagram_manage_comments', status: 'granted' }] };
+    bdCalls++; throw Object.assign(new (await import(K('instagram.mjs'))).Plain('(#10) Application does not have permission for this action'), { code: 10 });
+  } };
+  c.add(root, ['perm_a', 'perm_b', 'perm_c'], 'niche');
+  const one = await c.syncOne(root, 'perm_a', { api: denied });
+  assert.equal(one.source, null);
+  assert.match(one.error, /made without instagram_manage_insights and pages_read_engagement/);
+  assert.equal(one.permission, true);
+  assert.equal(bdCalls, 1);
+  c.remove(root, 'perm_a'); c.remove(root, 'perm_b'); c.remove(root, 'perm_c');
+}
+// when many accounts fail, the status names the shared reason and the fix, not just a count
+const { mainReason } = await import(K('refresh.mjs'));
+const failedAcct = (e) => ({ handle: 'x', source: null, error: `${e}. To get it anyway: give an export` });
+const nine = mainReason(Array.from({ length: 9 }, () => failedAcct('no Meta connection')));
+assert.match(nine, /^all: no Meta connection\. Fix: connect Instagram through Unified or Facebook Login/);
+assert.match(mainReason([failedAcct('the Instagram Login connection cannot read other accounts (Meta\'s rule)'), failedAcct('other')]), /^1 of them: .*"login": "unified"/);
+assert.equal(mainReason([]), '');
 fs.rmSync(root, { recursive: true, force: true });
 console.log('competitors: OK');

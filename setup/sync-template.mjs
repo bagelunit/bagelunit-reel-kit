@@ -11,7 +11,7 @@
 //       Updates ONE brand workspace (a copy you already set up) with the newer kit files.
 //       It updates only what the kit owns: CLAUDE.md, README.md, LICENSE, .gitignore, docs/, .claude/skills/,
 //       .claude/settings.json (the kit's hooks; scripts/, brand/library/3d and brand/library/sfx/sfx_add.py (the reel QA, effects, Blender and Manim tools); a brand's own settings go in .claude/settings.local.json), reels/_example/.
-//       It NEVER touches brand/ or reels/ (the brand's own data), except that brand/brand.json gains any NEW
+//       It NEVER touches brand/ or reels/ (the brand's own data; brand/licensed/ gets its README and empty folders, never assets.json or media), except that brand/brand.json gains any NEW
 //       setting (at any depth, existing values are never changed) and brand starter files that do not exist yet
 //       (log.md, swipe.md, insights.csv) are added.
 //       Files it overwrites are first saved next to them as <name>.bak-<date>.
@@ -30,7 +30,9 @@ const SRC = path.join(REPO, 'template');
 // a generic copy-from folder only when one is wanted: never create one in a synced Documents folder by default
 const LEGACY = path.join(os.homedir(), 'Documents', 'Claude', 'Reel Template');
 const GENERIC = process.env.REEL_TEMPLATE_HOME || (fs.existsSync(path.join(LEGACY, 'CLAUDE.md')) ? LEGACY : null);
-const PATHS = ['CLAUDE.md', 'README.md', 'LICENSE', '.gitignore', 'docs', '.claude/skills', '.claude/settings.json', 'reels/_example', 'publisher', 'scripts', 'brand/library/3d', 'brand/library/sfx/sfx_add.py'];   // kit-owned; brand/ and the brand's own reels/ are absent on purpose
+// brand/licensed/: the kit adds the README and the empty folders; the brand's assets.json and downloaded media are never touched (assets.json is created only when absent)
+const LICENSED_KEEP = ['music', 'sfx', 'stock-video', 'motion-graphic', 'lut'].map((t) => `brand/licensed/${t}/.gitkeep`);
+const PATHS = ['CLAUDE.md', 'README.md', 'LICENSE', '.gitignore', 'docs', '.claude/skills', '.claude/settings.json', 'reels/_example', 'publisher', 'scripts', 'brand/library/3d', 'brand/library/sfx/sfx_add.py', 'brand/licensed/README.md', ...LICENSED_KEEP];   // kit-owned; brand/ and the brand's own reels/ are absent on purpose
 const stamp = () => new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
 const bytes = (f) => fs.readFileSync(f);
 const same = (a, b) => bytes(a).equals(bytes(b));
@@ -117,6 +119,8 @@ const missing = missingKeys(newBrand, oldBrand).filter((k) => !k.split('.').pop(
 // brand starter files the template added (log, swipe, insights...): created only when absent, never overwritten
 const BRAND_STARTERS = fs.readdirSync(path.join(SRC, 'brand')).filter((f) => f !== 'brand.json' && fs.statSync(path.join(SRC, 'brand', f)).isFile());
 const newStarters = BRAND_STARTERS.filter((f) => !fs.existsSync(path.join(DEST, 'brand', f)));
+const LICENSED_REGISTRY = 'brand/licensed/assets.json';
+if (fs.existsSync(path.join(SRC, LICENSED_REGISTRY)) && !fs.existsSync(path.join(DEST, LICENSED_REGISTRY))) newStarters.push('licensed/assets.json');
 
 if (!apply) {
   console.log(`DRY RUN for: ${DEST}   (nothing changed; add --apply to do it)`);
@@ -154,7 +158,7 @@ if (missing.length) {
   fs.writeFileSync(oldBrandPath, JSON.stringify(oldBrand, null, 2) + '\n');
 }
 console.log(`brand.json gained: ${missing.length ? missing.join(', ') : 'nothing (already current)'}`);
-for (const f of newStarters) fs.copyFileSync(path.join(SRC, 'brand', f), path.join(DEST, 'brand', f));
+for (const f of newStarters) { fs.mkdirSync(path.dirname(path.join(DEST, 'brand', f)), { recursive: true }); fs.copyFileSync(path.join(SRC, 'brand', f), path.join(DEST, 'brand', f)); }
 if (newStarters.length) console.log(`new brand files: ${newStarters.map((f) => 'brand/' + f).join(', ')}`);
 fs.writeFileSync(path.join(DEST, '.kit-synced'), new Date().toISOString().slice(0, 10) + '\n');
 fs.writeFileSync(path.join(DEST, '.kit-version'), kitVersion + '\n');

@@ -51,6 +51,9 @@ A mode's page fills one object, `window.studio`, and `tools/session.mjs` reads i
 | `grab` | `'canvas'` when the frame is `<canvas id="c">` at 1080×1920, `'screen'` when the whole page must be captured (WebGL, HTML layers) |
 | `cues` | optional sound cues `[{t, name, gain}]`; `tools/sound.py` synthesises them, so no mode carries audio files. Names: whoosh, swoosh, pop, click, tick, thud, boom, shimmer, riser, type, cash, stamp (the real-sound step skips any other name and lists it in `build/realsound/report.txt`). |
 | `quiet` | optional regions the motion check leaves out (the talking mode uses it for the face) |
+| `shots` | optional function returning the page's scene list `[{id, t0, t1, layout, face, props}]`; `kit render` writes it to `build/shots.json` for `kit lint` (the print mode publishes it; depth and talking have their own sources). Give `layout`, `face` and `props` only when the page really knows them, else null |
+
+`kit render` also injects a text probe (`tools/ontext.mjs`) before the page loads and reads the DOM text and the 2D canvas text every 0.1 s, so a page needs nothing to be fact checked and measured: a whole-reel render writes `build/on_screen_text.txt` (read by `kit facts`) and `build/text_boxes.json` (read by `kit qa`). A page can label text by setting `window.__ontextKind` (print uses `chrome`, `readout` and `caption`) while it draws it.
 
 Every page understands three query switches: `?t=3.5` for a single frame, `?play` for real-time playback with `audio/vo.mp3` (click to start) and `?only=<shotId>` to draw one shot by itself.
 
@@ -63,7 +66,7 @@ Every page understands three query switches: `?t=3.5` for a single frame, `?play
 ## Every mode, without exception
 
 - **Fonts** come only from `/fonts/`, and they are all open-licensed. Every font stack names `"Fallback"` (the non-Latin font fetched when needed) before its generic family.
-- **Nothing from outside the kit:** no absolute paths, no tools except the ones the installer sets up (the real-sound step uses the earshot and sound libraries it installs), no personal handles, and no other company's brands, logos, footage, music or sound files.
+- **Nothing from outside the kit:** no absolute paths, no tools except the ones the installer sets up (the real-sound step uses the earshot and sound libraries it installs), no personal handles, and no other company's brands, logos, footage, music or sound files, except Uppbeat assets the brand recorded with `kit licensed add` (never shipped in the kit).
 - **Output** is deterministic, 1080×1920, and respects the platform chrome: the bottom ~300 px and right ~120 px are covered by Instagram's and TikTok's own interface, so keep anything important inside the safe zone: x 60 to 960, y 250 to 1620. The single source is `docs/craft-playbook.md`, "Safe zones and text size".
 - **Readability:** one hero per beat, on-screen text of 40 px or more, and every state the viewer must read held for at least 0.4 s.
 
@@ -93,6 +96,8 @@ styles/
 ```
 
 A style appears in `kit start` as soon as it is in `STYLES.json` with `tall` among its formats and its `engine.js` is there.
+
+**Licensed pieces in the plan** (`tools/licensed.mjs`, `studio/KIT.md` section L): a scene may be `{"clip": {"asset", "start", "duration", "mute"}, "narration"}` (a stock-video cutaway instead of a drawn scene) and any scene may carry `"overlay": {"asset", "blend": "normal|screen", "opacity", "at", "duration"}` (a motion graphic composited after the scene renders). Both are picture only: they add no text and do not count for the safe zone; assets are resolved by id in the brand's `brand/licensed/assets.json`.
 
 **The plan: `scenes.json`** in the reel folder, next to `reel.json` (`{style: "<id>", name, cta, seed?, tail?, music?, music_volume?}`) and `script.txt`:
 

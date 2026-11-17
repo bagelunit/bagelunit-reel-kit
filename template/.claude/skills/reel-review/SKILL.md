@@ -36,6 +36,13 @@ never from an old stills folder.
    frame-0 hook, text in the bottom 300 px or right 120 px, and text size, and writes `build/qa-gate.json`.
    Gate C is refused until it passes (only the owner skips it, with `--skip "reason"`). If no text reader
    is installed on this computer the check cannot run: say so, and judge safe zone and size by eye.
+5. Caption reading speed: run `python3 ~/.claude/skills/bagelunit-reels/tools/captions.py reels/<slug>` (on Windows `python`).
+   It groups `build/words.json` into caption groups the way the print captions do and prints the characters per second and
+   words per minute of each, with the times. It flags any group over 17 characters per second (the usual subtitle limit)
+   and any group of three or more words that is up for under 1.0 s. A flag fails check 5 ("a payoff stays on screen at
+   least a second") when it is a payoff line, and otherwise goes in the verdict with its time. Fast narration can flag many
+   groups: name the worst three and say whether the voice or the caption grouping is the cause (`--max-words 4` shows the
+   effect of shorter groups). For a subtitle file use `captions.py --srt <file.srt|file.vtt>`.
 
 If earshot is not installed, use `ffmpeg` for frames and `ffprobe` or the kit's sound report for the
 numbers, and say which checks you could not make.

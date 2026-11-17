@@ -15,6 +15,8 @@
 //   build/scenes/NNN.mp4 + NNN.json           each rendered scene and its manifest (content hash, errors, S.inspect boxes)
 //   build/video.mp4, build/draft.mp4          the reel at 1080x1920 and half size, where kit render writes them for modes
 //   build/scene_boxes.json                    resting S.inspect boxes on the reel's clock (tools/qa.py checks the safe zone)
+//   build/on_screen_text.txt                  every text the scenes drew (tools/ontext.mjs, read while rendering) and every text prop of the
+//                                             plan the page did not draw as one piece; tools/facts.py checks it in the final scope
 import { createHash } from 'node:crypto';
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -22,6 +24,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { SKILL } from './server.mjs';
 import { launch } from './chromium.mjs';
+import * as ontext from './ontext.mjs';
+import * as licensed from './licensed.mjs';
+import { findBrand } from './folders.mjs';
 
 export const STYLES_DIR = path.join(SKILL, 'styles');
 const CORE = path.join(STYLES_DIR, '_core');
@@ -29,7 +34,7 @@ const W = 1080, H = 1920, FPS = 30;
 const SAFE = { top: 250, bottom: 300, left: 60, right: 120 };      // the same numbers as tools/qa.py: the kit's one safe zone
 const SAFE_BOX = [SAFE.left, SAFE.top, W - SAFE.right, H - SAFE.bottom];
 const TOL = 6;                                          // px of slack on the safe area, as in the styles repo's tester
-const RENDER_VERSION = 'scenes-1';                      // change it when the frame loop or the codec settings change
+const RENDER_VERSION = 'scenes-3';                      // change it when the frame loop or the codec settings change (2: scenes also read their on-screen text; 3: clip scenes and overlays)
 const MIN_SCENE = 0.5;                                  // s; a scene shorter than this is squeezed out of its neighbours
 
 const readJSON = (f, d) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return d; } };
@@ -86,6 +91,29 @@ export function fakeWords(text, pace = 0.38, start = 0.35) {
 // scenes.json: {"scenes": [{"template": "<id>", "props": {...}, "narration": "the words this scene covers"}, ...]}
 // (a bare list works too). Optional per scene: "id", "seed", or "code": "scenes/02.js" (the body of scene(V, S, root),
 // the style's docs.md API) instead of "template". Times are never typed: they come from build/words.json.
+// Licensed material (tools/licensed.mjs, assets recorded with kit licensed add):
+//   {"clip": {"asset": "<stock-video id>", "start": 2, "duration": 5, "mute": true}, "narration": "..."}   a cutaway instead of a drawn scene:
+//        the clip is scaled and cropped to fill 1080x1920, held on its last frame if the scene outlasts it; "mute" (default true) drops its own sound
+//   any scene may add  "overlay": {"asset": "<motion-graphic id>", "blend": "normal|screen", "opacity": 0-1, "at": s, "duration": s}
+//        composited over the finished scene by ffmpeg (alpha kept for .mov/.webm; "screen" for black-background light leaks). It is picture only:
+//        it never counts as text for the safe zone or the on-screen text.
+const num = (v, name, k, { min = 0, max = Infinity, def = null, above = false } = {}) => {
+  if (v == null) return def;
+  const x = Number(v);
+  if (!Number.isFinite(x) || x < min || x > max || (above && x <= min)) throw new Error(`scene ${k}: ${name} must be a number ${above ? 'above' : 'from'} ${min}${max < Infinity ? ` to ${max}` : ''} (got ${JSON.stringify(v)})`);
+  return x;
+};
+function normClip(c, k) {
+  if (!c || typeof c !== 'object' || Array.isArray(c) || typeof c.asset !== 'string' || !c.asset.trim()) throw new Error(`scene ${k}: "clip" needs {"asset": "<stock-video id>"}`);
+  return { asset: c.asset.trim(), start: num(c.start, 'clip.start', k, { def: 0 }), duration: num(c.duration, 'clip.duration', k, { min: 0, above: true }), mute: c.mute !== false };
+}
+function normOverlay(o, k) {
+  if (!o || typeof o !== 'object' || Array.isArray(o) || typeof o.asset !== 'string' || !o.asset.trim()) throw new Error(`scene ${k}: "overlay" needs {"asset": "<motion-graphic id>"}`);
+  const blend = o.blend == null ? 'normal' : String(o.blend);
+  if (!['normal', 'screen'].includes(blend)) throw new Error(`scene ${k}: overlay.blend must be normal or screen (got "${blend}")`);
+  return { asset: o.asset.trim(), blend, opacity: num(o.opacity, 'overlay.opacity', k, { max: 1, def: 1 }), at: num(o.at, 'overlay.at', k, { def: 0 }), duration: num(o.duration, 'overlay.duration', k, { min: 0, above: true }) };
+}
+
 export function planOf(dir, style) {
   const file = path.join(dir, 'scenes.json');
   if (!fs.existsSync(file)) throw new Error(`no scenes.json in ${dir}: write the scene plan first (modes/MODE-RULES.md, "Scene styles")`);
@@ -98,7 +126,9 @@ export function planOf(dir, style) {
   const notes = [];
   const scenes = list.map((s, k) => {
     if (!s || typeof s !== 'object') throw new Error(`scene ${k + 1} in scenes.json is not an object`);
-    if (!s.template && !s.code) throw new Error(`scene ${k + 1} has no "template" (or "code")`);
+    if (!s.template && !s.code && s.clip == null) throw new Error(`scene ${k + 1} has no "template" (or "code", or "clip")`);
+    if (s.clip != null && (s.template || s.code)) throw new Error(`scene ${k + 1}: a "clip" scene is the cutaway itself; it cannot also have a "template" or "code"`);
+    const clip = s.clip == null ? null : normClip(s.clip, k + 1), overlay = s.overlay == null ? null : normOverlay(s.overlay, k + 1);
     if (s.template && !known.has(s.template)) throw new Error(`scene ${k + 1}: ${style} has no template "${s.template}". It has: ${[...known].join(', ')}`);
     if (s.code && !fs.existsSync(path.join(dir, s.code))) throw new Error(`scene ${k + 1}: its code file ${s.code} does not exist`);
     if (s.props != null && (typeof s.props !== 'object' || Array.isArray(s.props))) throw new Error(`scene ${k + 1}: "props" must be an object`);
@@ -107,8 +137,8 @@ export function planOf(dir, style) {
     const extra = allowed.length ? Object.keys(s.props || {}).filter((p) => !allowed.includes(p)) : [];
     if (extra.length) notes.push(`scene ${k + 1} (${s.template}): props the template does not know, ignored by the engine: ${extra.join(', ')}`);
     if (!String(s.narration || '').trim()) notes.push(`scene ${k + 1}: no "narration", so its time can only be guessed (even split)`);
-    return { n: k + 1, file: pad(k + 1), id: String(s.id || `${String(k + 1).padStart(2, '0')}-${s.template || 'custom'}`),
-      template: s.template || null, code: s.code || null, props: s.props || {}, narration: String(s.narration || ''), seed: s.seed, sfx: s.sfx ?? null, enter: s.enter ?? null };
+    return { n: k + 1, file: pad(k + 1), id: String(s.id || `${String(k + 1).padStart(2, '0')}-${s.template || (clip ? 'clip' : 'custom')}`),
+      template: s.template || null, code: s.code || null, clip, overlay, props: s.props || {}, narration: String(s.narration || ''), seed: s.seed, sfx: s.sfx ?? null, enter: s.enter ?? null };
   });
   return { scenes, notes };
 }
@@ -197,11 +227,19 @@ function buildPages(reel, prep) {
   fs.mkdirSync(out, { recursive: true });
   const seed = Number(reel.cfg.seed ?? 1);
   const voHash = prep.vo ? sha(fs.readFileSync(prep.vo)) : 'silent';
+  const brand = findBrand(reel.dir);
   return prep.scenes.map((s, k) => {
     const t = prep.times[k], dur = t.frames / FPS;
     const base = path.join(out, s.file);
+    // licensed pieces: the asset must be in the registry with the right type and an unchanged file; its hash goes into the scene's hash
+    const where = `scene ${s.n}`;
+    const clip = s.clip ? { ...s.clip, ...licensed.resolveAsset(brand, s.clip.asset, 'stock-video', `${where} clip`) } : null;
+    const overlay = s.overlay ? { ...s.overlay, ...licensed.resolveAsset(brand, s.overlay.asset, 'motion-graphic', `${where} overlay`) } : null;
+    for (const [what, x] of [['clip', clip], ['overlay', overlay]]) if (x && licensed.sha256File(x.file) !== x.asset.sha256) throw new Error(`${where} ${what}: asset "${x.asset.id}" changed since it was recorded (kit licensed check)`);
+    const lic = [clip && ['clip', clip.asset.sha256, clip.start, clip.duration, clip.mute], overlay && ['overlay', overlay.asset.sha256, overlay.blend, overlay.opacity, overlay.at, overlay.duration]].filter(Boolean);
     const words = prep.words.filter((w) => w.s >= t.t0 - 1e-6 && w.s < t.t1 - 1e-6).map((w) => ({ word: w.w, start: r3(w.s - t.t0), end: r3(Math.min(w.e, t.t1) - t.t0) }));
     fs.writeFileSync(`${base}.words.json`, JSON.stringify(words));
+    if (clip) return { scene: s, time: t, dur, base, html: '', hash: sha(RENDER_VERSION, JSON.stringify(lic), voHash, `${t.t0}|${dur}`), clip, overlay };
     const args = [path.join(CORE, 'build-scene.mjs'), '--style', path.join(STYLES_DIR, reel.cfg.style), '--out', `${base}.html`,
       '--duration', dur.toFixed(6), '--width', String(W), '--height', String(H), '--seed', String(s.seed ?? seed),
       '--narration', s.narration, '--words', `${base}.words.json`];
@@ -214,14 +252,15 @@ function buildPages(reel, prep) {
     if (b.status !== 0) throw new Error(`building scene ${s.n} failed: ${(b.stderr || b.stdout).trim().slice(0, 600)}`);
     const html = fs.readFileSync(`${base}.html`);
     // the page holds everything the picture depends on (runtime, engine, props, words, length, size, seed); the sound adds the voice slice
-    const hash = sha(RENDER_VERSION, html, voHash, `${t.t0}|${dur}`);
-    return { scene: s, time: t, dur, base, html: html.toString('utf8'), hash };
+    const hash = sha(RENDER_VERSION, html, voHash, `${t.t0}|${dur}`, JSON.stringify(lic));
+    return { scene: s, time: t, dur, base, html: html.toString('utf8'), hash, clip: null, overlay };
   });
 }
 
 /* ── one browser page per scene ─────────────────────────────────────────────────────────────────────────────────────── */
 async function openScene(browser, html, scale = 1) {
   const ctx = await browser.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: scale });
+  await ctx.addInitScript(ontext.PROBE_INIT);       // sees the text the scene draws; does nothing until renderOne switches it on
   const blocked = [], pageErrors = [];
   await ctx.route('**/*', (r) => { blocked.push(r.request().url().slice(0, 120)); return r.abort('blockedbyclient'); });
   const page = await ctx.newPage();
@@ -238,7 +277,9 @@ async function openScene(browser, html, scale = 1) {
 
 // resting boxes only: entrances, exits and camera moves are marked moving; boxes fully off camera are there on purpose
 const resting = (boxes) => (boxes || []).filter((b) => b && !b.moving && b.w > 0 && b.h > 0 && !(b.x > W || b.y > H || b.x + b.w < 0 || b.y + b.h < 0));
-const outside = (b) => b.x < SAFE_BOX[0] - TOL || b.y < SAFE_BOX[1] - TOL || b.x + b.w > SAFE_BOX[2] + TOL || b.y + b.h > SAFE_BOX[3] + TOL;
+const SCENE_EDGE = 60;   // the scene styles were laid out for 60 px sides; the right 120 px strip inside that is a note, not a problem, until the styles repo is re-laid out
+const outside = (b) => b.x < SAFE_BOX[0] - TOL || b.y < SAFE_BOX[1] - TOL || b.x + b.w > W - SCENE_EDGE + TOL || b.y + b.h > SAFE_BOX[3] + TOL;
+const inStrip = (b) => !outside(b) && b.x + b.w > SAFE_BOX[2] + TOL;
 
 // samples [{t, boxes}] → [{t0, t1, kind, label, x, y, w, h}]: a box that stays put (within a few px: line boil, breathing)
 // is one entry over all its samples, grown to cover every sample
@@ -278,32 +319,98 @@ function encoder(out, audio, t0, dur, frames) {
   return { ff, done };
 }
 
+// the voice slice of a scene, the same for every scene
+function sliceFilter(audio, frames) {
+  const samples = Math.round((frames / FPS) * 48000);
+  return audio
+    ? `aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,apad=whole_len=${samples},atrim=end_sample=${samples},asetpts=N/SR/TB`
+    : `atrim=end_sample=${samples},asetpts=N/SR/TB`;
+}
+const SCENE_CODEC = ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-profile:v', 'high', '-pix_fmt', 'yuv420p', '-r', String(FPS), '-g', String(FPS * 2), '-video_track_timescale', '90000',
+  '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-ac', '2'];
+const IMAGE = /\.(png|jpe?g|webp|gif)$/i;
+
+// a stock-video cutaway as a scene: scaled and cropped to fill 1080x1920, held on its last frame, the scene's slice of the voice (the clip's own sound
+// only when "mute": false, under the voice), the same codec settings as every other scene so the scenes join without encoding again
+function renderClip(item, vo) {
+  const { clip, time, dur, base } = item, frames = time.frames, tmp = `${base}.part.mp4`;
+  const hold = clip.duration ? Math.min(dur, clip.duration) : dur;
+  const voiceIn = vo ? ['-ss', time.t0.toFixed(6), '-t', dur.toFixed(6), '-i', vo] : ['-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=stereo'];
+  const hasSound = !clip.mute && spawnSync('ffprobe', ['-v', 'error', '-select_streams', 'a', '-show_entries', 'stream=index', '-of', 'csv=p=0', clip.file], { encoding: 'utf8' }).stdout.trim() !== '';
+  const picture = `[0:v]scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},setsar=1,fps=${FPS},trim=duration=${hold.toFixed(6)},setpts=PTS-STARTPTS,tpad=stop_mode=clone:stop_duration=${dur.toFixed(6)},trim=duration=${dur.toFixed(6)},format=yuv420p[v]`;
+  const voice = `[1:a]${sliceFilter(vo, frames)}`;
+  const graph = hasSound
+    ? `${picture};${voice}[va];[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,volume=0.5,apad=whole_len=${Math.round(dur * 48000)}[ca];[va][ca]amix=inputs=2:duration=first:normalize=0,atrim=end_sample=${Math.round((frames / FPS) * 48000)},asetpts=N/SR/TB[a]`
+    : `${picture};${voice}[a]`;
+  ffmpeg(['-ss', clip.start.toFixed(6), '-i', clip.file, ...voiceIn, '-filter_complex', graph, '-map', '[v]', '-map', '[a]', ...SCENE_CODEC, '-t', (frames / FPS).toFixed(6), '-movflags', '+faststart', tmp]);
+  if (item.overlay) applyOverlay(tmp, item);
+  fs.renameSync(tmp, `${base}.mp4`);
+  const manifest = { hash: item.hash, n: item.scene.n, id: item.scene.id, template: null, clip: clip.asset.id, t0: time.t0, t1: time.t1, frames, errors: [], inspect: false, boxes: [], texts: [], textures: [] };
+  fs.writeFileSync(`${base}.json`, JSON.stringify(manifest, null, 1));
+  return manifest;
+}
+
+// a motion graphic over the finished scene (file in place): "normal" is a real alpha composite (a .mov or .webm with alpha keeps it, a PNG too), "screen" adds
+// light on top (black stays clear: light leaks). The overlay starts at "at" seconds into the scene, runs for "duration" (default: its own length) and is
+// scaled and cropped to the frame. The scene's picture and sound timings are untouched; the audio is copied.
+function applyOverlay(file, item) {
+  const o = item.overlay, dur = item.dur, still = IMAGE.test(o.file), end = o.duration ? Math.min(dur, o.at + o.duration) : dur;
+  const fit = `scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H}`;
+  const src = [...(still ? ['-loop', '1'] : []), '-i', o.file];
+  let graph;
+  if (o.blend === 'screen') {
+    const lead = o.at > 0 ? `,tpad=start_mode=add:start_duration=${o.at.toFixed(6)}:color=black` : '';
+    graph = `[1:v]${fit},format=gbrp${lead},trim=duration=${dur.toFixed(6)},setpts=PTS-STARTPTS[o];[0:v]format=gbrp[b];[b][o]blend=all_mode=screen:all_opacity=${o.opacity}:enable='between(t,${o.at.toFixed(6)},${end.toFixed(6)})':eof_action=pass,format=yuv420p[v]`;
+  } else {
+    graph = `[1:v]${fit},format=rgba,colorchannelmixer=aa=${o.opacity},setpts=PTS-STARTPTS+${o.at.toFixed(6)}/TB[o];[0:v][o]overlay=format=auto:eof_action=pass:enable='between(t,${o.at.toFixed(6)},${end.toFixed(6)})',format=yuv420p[v]`;
+  }
+  const out = `${file}.ov.mp4`;
+  ffmpeg(['-i', file, ...src, '-filter_complex', graph, '-map', '[v]', '-map', '0:a', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-profile:v', 'high', '-pix_fmt', 'yuv420p', '-r', String(FPS), '-g', String(FPS * 2),
+    '-video_track_timescale', '90000', '-c:a', 'copy', '-t', dur.toFixed(6), '-movflags', '+faststart', out]);
+  fs.renameSync(out, file);
+}
+
 async function renderOne(browser, item, vo) {
   const { scene, time, base, html, hash } = item, frames = time.frames;
   const mp4 = `${base}.mp4`, tmp = `${base}.part.mp4`;
   const view = await openScene(browser, html, 1);
   const cdp = await view.ctx.newCDPSession(view.page);
   const { ff, done } = encoder(tmp, vo, time.t0, item.dur, frames);
-  const samples = [];
+  const samples = [], text = new ontext.TextLog(), probed = await ontext.attach(view.page, 'window.__scene', 'seek');
+  const every = Math.max(1, Math.round(FPS * ontext.SAMPLE_DT));
   try {
     for (let i = 0; i < frames; i++) {
       const t = i / FPS;
       const r = await cdp.send('Runtime.evaluate', { expression: `window.__scene.seek(${t})` });
       if (r.exceptionDetails) throw new Error(`scene ${scene.n}: seek(${t}) failed: ${r.exceptionDetails.text}`);
-      if (i % 15 === 0 || i === frames - 1) samples.push({ t, boxes: await view.inspect(t) });
+      const sampleText = probed && (i % every === 0 || i === frames - 1);
+      let told = null;
+      if (i % 15 === 0 || i === frames - 1 || sampleText) { told = await view.inspect(t); if (i % 15 === 0 || i === frames - 1) samples.push({ t, boxes: told }); }
+      if (sampleText) text.add(t, { ...(await ontext.collect(view.page)), inspect: Array.isArray(told) ? told.filter((b) => b && TEXT_KINDS.has(b.kind)) : [] });
       const shot = await cdp.send('Page.captureScreenshot', { format: 'jpeg', quality: 90, fromSurface: true, optimizeForSpeed: true });
       if (!ff.stdin.write(Buffer.from(shot.data, 'base64'))) await new Promise((res) => ff.stdin.once('drain', res));
     }
   } finally { ff.stdin.end(); }
   await done;
+  if (item.overlay) applyOverlay(tmp, item);
   const errors = [...(await view.errors()), ...view.pageErrors, ...view.blocked.map((u) => `network blocked: ${u}`)];
   await view.ctx.close();
   fs.renameSync(tmp, mp4);
   const inspected = samples.some((s) => Array.isArray(s.boxes));
-  const manifest = { hash, n: scene.n, id: scene.id, template: scene.template, t0: time.t0, t1: time.t1, frames, errors, inspect: inspected, boxes: inspected ? mergeBoxes(samples) : [] };
+  // the text the page drew, on the scene's own clock (no boxes: scene styles keep their own safe-zone check); null = the page could not be read
+  const seen = probed && !text.broken && text.samples ? text.finish(frames / FPS).map((x) => ({ t0: x.t0, t1: x.t1, text: x.text, src: x.src })) : null;
+  const manifest = { hash, n: scene.n, id: scene.id, template: scene.template, t0: time.t0, t1: time.t1, frames, errors, inspect: inspected, boxes: inspected ? mergeBoxes(samples) : [],
+    texts: seen, textures: seen ? [...text.build] : null };
   fs.writeFileSync(`${base}.json`, JSON.stringify(manifest, null, 1));
   return manifest;
 }
+
+// What a scene style's engine reports through S.inspect with a string for a label, by the kind it gives it. The engines draw their
+// lettering as shapes, so the page has no text to read; these kinds are the ones that, across the 20 styles, carry text as their label
+// (titles, captions, balloons, stats, tags...). Kinds that name a thing (figure, doodle, object, character, map...) are not text and
+// are left out; their words, when they have any, come from the text props of the plan.
+export const TEXT_KINDS = new Set(['text', 'title', 'headline', 'caption', 'subtitle', 'kicker', 'stat', 'banner', 'lowerthird', 'lower-third', 'lowerThird', 'bubble',
+  'balloon', 'dialog', 'sfx', 'tag', 'note', 'label', 'thumb', 'date', 'datestamp', 'nameplate', 'logo', 'plate', 'callout', 'prompt', 'stamp', 'chip', 'indicator', 'year']);
 
 const freshManifest = (item) => {
   const m = readJSON(`${item.base}.json`, null);
@@ -346,6 +453,46 @@ export function sfxCues(items, cfg = {}) {
 }
 
 /* ── kit render <dir> for a scene style ─────────────────────────────────────────────────────────────────────────────── */
+/* ── the text of the reel: what the pages drew, plus the text props of the plan ───────────────────────────────────────── */
+// every string of a scene's props that is text for the viewer: not a choice from a list (enum), not a number, colour, link or path
+function propStrings(props, schema, base = '') {
+  const out = [];
+  const walk = (v, sc, key) => {
+    if (typeof v === 'string') {
+      const odd = /^(#[0-9a-f]{3,8}|https?:|\/|\.{1,2}\/)/i.test(v) || /\.(png|jpe?g|svg|gif|webp|mp3|mp4|json)$/i.test(v);
+      if (sc && (sc.enum || (sc.type && sc.type !== 'string'))) return;
+      if (!sc && odd) return;
+      if (/[\p{L}\p{N}]/u.test(v)) out.push({ key, text: v });
+    } else if (Array.isArray(v)) v.forEach((x, i) => walk(x, sc?.items, `${key}[${i + 1}]`));
+    else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) walk(x, sc?.properties?.[k], key ? `${key}.${k}` : k);
+  };
+  walk(props, schema, base);
+  return out;
+}
+const fold = (t) => String(t).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+
+// build/on_screen_text.txt for a whole-reel render: the pages' text per scene (on the reel's clock), then each text prop the page
+// did not draw as one piece. Returns the lines, or null when a scene's text could not be read (no file is written then).
+export function onScreenLines(reel, items, manifests) {
+  if (manifests.some((m) => !m || !Array.isArray(m.texts))) return null;
+  const defs = styleInfo(reel.cfg.style)?.templateDefs || [];
+  const lines = [];
+  for (const it of items) {
+    const m = manifests.find((x) => x.n === it.scene.n);
+    const tag = `scene ${m.n}`;
+    const spans = m.texts.map((x) => ({ ...x, t0: r3(x.t0 + m.t0), t1: r3(x.t1 + m.t0), kind: tag }));
+    for (const x of spans) lines.push(ontext.lineOf(x));
+    for (const text of m.textures || []) lines.push(`[${m.t0.toFixed(2)}-${m.t1.toFixed(2)}s ${tag} in-scene] ${text}`);
+    const drawn = fold([...m.texts.map((x) => x.text), ...(m.textures || [])].join(' '));
+    const schema = defs.find((d) => d.id === it.scene.template)?.propsSchema;
+    for (const p of propStrings(it.scene.props || {}, schema)) {
+      if (fold(p.text) && drawn.includes(fold(p.text))) continue;
+      lines.push(`[${m.t0.toFixed(2)}-${m.t1.toFixed(2)}s ${tag} prop ${p.key}] ${p.text}`);
+    }
+  }
+  return lines;
+}
+
 export async function renderScenes(reel, { only = null, force = false } = {}) {
   const began = Date.now();
   const prep = prepare(reel);
@@ -370,16 +517,16 @@ export async function renderScenes(reel, { only = null, force = false } = {}) {
   const todo = pick.filter((it) => force || only != null || !freshManifest(it));
   const manifests = new Map(items.map((it) => [it.scene.n, freshManifest(it)]));
   if (todo.length) {
-    const browser = await launch();
+    const browser = todo.every((it) => it.clip) ? null : await launch();
     try {
       for (const it of todo) {
         process.stdout.write(`scene ${it.scene.n}/${items.length} ${it.scene.id} (${it.dur.toFixed(2)} s, ${it.time.frames} frames)... `);
         const t = Date.now();
-        const m = await renderOne(browser, it, prep.vo);
+        const m = it.clip ? renderClip(it, prep.vo) : await renderOne(browser, it, prep.vo);
         manifests.set(it.scene.n, m);
         console.log(`${((Date.now() - t) / 1000).toFixed(1)} s${m.errors.length ? `  ${m.errors.length} error(s)` : ''}`);
       }
-    } finally { await browser.close().catch(() => {}); }
+    } finally { await browser?.close().catch(() => {}); }
   }
   const reused = pick.length - todo.length;
   const all = items.map((it) => manifests.get(it.scene.n));
@@ -403,7 +550,9 @@ export async function renderScenes(reel, { only = null, force = false } = {}) {
   const video = path.join(build, 'video.mp4'), draft = path.join(build, 'draft.mp4');
   const norm = 'loudnorm=I=-14:TP=-1.5:LRA=11,aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo';
   const voice = '[1:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,apad';
-  const music = reel.cfg.music ? path.resolve(reel.dir, String(reel.cfg.music)) : null;
+  // a list in "music" is licensed beds: kit sound mixes those (ducked, recorded in build/music.json) into the final; this draft carries none
+  const music = typeof reel.cfg.music === 'string' && reel.cfg.music ? path.resolve(reel.dir, reel.cfg.music) : null;
+  if (Array.isArray(reel.cfg.music) && reel.cfg.music.length) console.log('note: reel.json "music" lists licensed beds; they are mixed by kit sound / kit export, not into build/video.mp4');
   if (music && !fs.existsSync(music)) throw new Error(`reel.json "music" points at ${music}, which does not exist`);
   const vol = Number(reel.cfg.music_volume ?? 0.18);
   if (!prep.vo) ffmpeg(['-i', joined, '-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=stereo', '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-t', seconds.toFixed(6), '-movflags', '+faststart', video]);
@@ -420,6 +569,11 @@ export async function renderScenes(reel, { only = null, force = false } = {}) {
   const boxFile = path.join(build, 'scene_boxes.json');
   if (all.some((m) => m?.inspect)) fs.writeFileSync(boxFile, JSON.stringify(boxes)); else fs.rmSync(boxFile, { force: true });
 
+  const onScreen = onScreenLines(reel, items, all);
+  const textFile = path.join(build, 'on_screen_text.txt');
+  if (onScreen) { fs.writeFileSync(textFile, onScreen.join('\n') + (onScreen.length ? '\n' : '')); console.log(`on-screen text: ${onScreen.length} line(s) in build/on_screen_text.txt`); }
+  else { fs.rmSync(textFile, { force: true }); console.log('on-screen text: a scene page could not be read, so build/on_screen_text.txt was NOT written'); }
+
   console.log(`render: build/video.mp4 (1080x1920) and build/draft.mp4 (540x960), ${seconds.toFixed(2)} s, ${items.length} scenes: ${todo.length} rendered, ${reused} reused unchanged, ${Math.round((Date.now() - began) / 1000)} s`);
   if (!prep.vo) console.log('note: no audio/vo.mp3 yet, so the video is silent');
   else if (Math.abs(seconds - prep.voLength) > 1) console.log(`note: the video (${seconds.toFixed(2)} s) and the voice (${prep.voLength.toFixed(2)} s) differ by more than 1 s`);
@@ -435,6 +589,11 @@ export async function openScenes(reel, { scale = 0.5 } = {}) {
   async function frameAt(t, quality = 0.92) {
     const k = items.findIndex((it) => t < it.time.t1 - 1e-9);
     const it = k === -1 ? items.at(-1) : items[k];
+    if (it.clip) {   // a cutaway has no page: one frame of the clip itself, with its overlay left out
+      const at = it.clip.start + Math.min(Math.max(0, t - it.time.t0), Math.max(0, (it.clip.duration ?? it.dur) - 1 / FPS));
+      const r = spawnSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-ss', at.toFixed(3), '-i', it.clip.file, '-frames:v', '1', '-vf', `scale=${Math.round(W * scale)}:${Math.round(H * scale)}:force_original_aspect_ratio=increase,crop=${Math.round(W * scale)}:${Math.round(H * scale)}`, '-f', 'image2pipe', '-c:v', 'mjpeg', '-'], { maxBuffer: 1 << 26 });
+      return r.stdout;
+    }
     if (!views.has(it.scene.n)) views.set(it.scene.n, await openScene(browser, it.html, scale));
     const view = views.get(it.scene.n);
     await view.seek(Math.min(Math.max(0, t - it.time.t0), it.dur - 1 / FPS));
@@ -457,11 +616,12 @@ export async function checkScenes(reel, { only = null, times = null } = {}) {
   const out = path.join(reel.dir, 'build', 'scenes', 'check');
   fs.rmSync(out, { recursive: true, force: true });
   fs.mkdirSync(out, { recursive: true });
-  const report = [], sheets = [];
+  const report = [], sheets = [], stripNotes = new Set();
   const browser = await launch();
   try {
     for (const it of items) {
       const { scene, dur } = it, name = `${scene.file}`;
+      if (it.clip) { console.log(`note: scene ${scene.n} (${scene.id}): a licensed clip cutaway, no drawn text to check (look at build/scenes/${scene.file}.mp4)`); continue; }
       const view = await openScene(browser, it.html, 1);
       const at = (times || ['20%', '45%', '70%', 'end']).map((x) => {
         x = String(x).trim();
@@ -475,7 +635,8 @@ export async function checkScenes(reel, { only = null, times = null } = {}) {
         await view.seek(t);
         const boxes = await view.inspect(t);
         if (Array.isArray(boxes)) inspected = true;
-        for (const b of resting(boxes)) if (outside(b))
+        for (const b of resting(boxes)) if (!outside(b) && inStrip(b)) stripNotes.add(`scene ${scene.n} (${scene.id}): ${b.kind} "${String(b.label).slice(0, 30)}" reaches x ${Math.round(b.x + b.w)}, inside the right 120 px button strip`);
+        else if (outside(b))
           report.push(`scene ${scene.n} (${scene.id}) @${t.toFixed(2)}s: ${b.kind} "${String(b.label).slice(0, 30)}" outside the safe area [${Math.round(b.x)},${Math.round(b.y)} ${Math.round(b.w)}x${Math.round(b.h)}]`);
         await view.page.evaluate(([x0, y0, x1, y1]) => {
           let g = document.getElementById('__guides');
@@ -513,6 +674,7 @@ export async function checkScenes(reel, { only = null, times = null } = {}) {
   console.log(`scene check (${reel.cfg.style}, ${items.length} scene(s), safe area x ${SAFE_BOX[0]}..${SAFE_BOX[2]}, y ${SAFE_BOX[1]}..${SAFE_BOX[3]})`);
   for (const s of sheets) console.log(`  sheet ${s}`);
   console.log('  LOOK at every sheet (the magenta box is the safe area): "no problems" is necessary, not sufficient.');
+  if (stripNotes.size) console.log(`\nNOTES (not failures: the scene styles were laid out for 60 px sides; keep anything the viewer must read left of x 960):\n  ${[...stripNotes].slice(0, 12).join('\n  ')}${stripNotes.size > 12 ? `\n  ... and ${stripNotes.size - 12} more` : ''}`);
   console.log(report.length ? `\nPROBLEMS (${report.length}):\n  ${report.join('\n  ')}` : '\nscene check: no errors, nothing outside the safe area, every scene seekable');
   if (report.some((r) => !/was NOT checked/.test(r))) process.exitCode = 2;
 }
@@ -523,7 +685,7 @@ export function printPlan(reel) {
   console.log(`scene plan (${reel.cfg.style}, ${prep.scenes.length} scenes, ${prep.length.toFixed(2)} s${prep.voLength ? `, voice ${prep.voLength.toFixed(2)} s` : ''})`);
   for (const t of prep.times) {
     const s = prep.scenes[t.n - 1];
-    console.log(`  ${String(t.n).padStart(2)}  ${t.t0.toFixed(2).padStart(6)}-${t.t1.toFixed(2).padStart(6)}s  ${(t.t1 - t.t0).toFixed(2).padStart(5)} s  ${(s.template || `code ${s.code}`).padEnd(20)} ` +
+    console.log(`  ${String(t.n).padStart(2)}  ${t.t0.toFixed(2).padStart(6)}-${t.t1.toFixed(2).padStart(6)}s  ${(t.t1 - t.t0).toFixed(2).padStart(5)} s  ${(s.template || (s.clip ? `clip ${s.clip.asset}` : `code ${s.code}`)).padEnd(20)}${s.overlay ? ` +overlay ${s.overlay.asset} (${s.overlay.blend})` : ''} ` +
       (t.source === 'words' ? `words ${t.found}/${t.of}: "${t.first}" .. "${t.last}"` : `even split (${t.found}/${t.of} words found)`));
   }
   for (const n of prep.notes) console.log(`note: ${n}`);
