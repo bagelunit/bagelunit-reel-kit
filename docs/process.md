@@ -19,7 +19,7 @@ Type `/brand-setup` in the kit's folder: it copies `template/` to a new brand fo
 
 - Pick 6 to 12 accounts: about 4 in your niche and a bit ahead of you, 4 adjacent (same audience, other topic), 2 to 4 big ones for format ideas only. Stay within about 10x of your own follower count.
 - Read reels in the browser at human speed, with the person present. No scraping services unless the brand owner turned on `autopilot.scrape`: then `/account-audit` computes the 3x rule from Apify data (cost shown first, token in `~/.config/bagelunit-reels/apify.key`). Claude never logs in with the brand's password.
-- **The 3x rule:** for each reel, views divided by that account's median views over its last 12 reels. Under 1.5x ignore, 1.5x to 3x note, 3x and up is a formula worth studying. By hand in the browser, the Instagram plugin's `/ig-viral` does this; from an export or Apify data, `/account-audit` does. Either way the outliers go in `brand/swipe.md`.
+- **The 3x rule:** for each reel, views divided by that account's median views over its last 12 reels. Under 1.5x ignore, 1.5x to 3x note, 3x and up is a formula worth studying. By hand in the browser, `/ig-viral` does this; from an export or Apify data, `/account-audit` does. Either way the outliers go in `brand/swipe.md`.
 - Copy the shape (hook, structure, length), never the video, its script, colours or characters.
 - **Teardown:** for a reel worth studying (an outlier, or the brand's own best), the person supplies the file; Claude pulls frames and a transcript and runs `/reel-analyzer` (hook, beats, pacing, visual technique, reusable moves, one-line remake). Save it in `brand/swipe.md`. See [hook-and-review-playbook.md](../template/docs/hook-and-review-playbook.md).
 - **Comment mining:** with 30 or more real comments or DMs, run `/comment-mining`; every idea must trace to a real comment.
@@ -32,7 +32,7 @@ Pick ONE goal (save, share, follow or lead) and an angle (result first, self-pro
 
 ## 3. Style question (always)
 
-Before anything else, Claude asks one question block: **Print**, **3D** or **Talking head** (only if there is a video of the person talking: any phone video, filmed upright; `take.py` cuts the pauses, never speeds the person up, and spends no voice credits), with a recommendation first and why. It never picks a style silently. Print is the only style that uses the sticker presenter.
+Before anything else, Claude asks one question block: **Print**, **3D**, **Talking head** (only if there is a video of the person talking: any phone video, filmed upright; `take.py` cuts the pauses, never speeds the person up, and spends no voice credits) or one of the 20 scene styles (`kit scene list` names them and what each is for; Claude offers the two or three that fit the brand's niche, plus "see all"), with a recommendation first and why. It never picks a style silently. Print is the only style that uses the sticker presenter.
 
 ## 4. Facts
 
@@ -40,18 +40,17 @@ Read the official source for every claim the reel makes (for a how-to, the produ
 
 ## 5. Hook and script
 
-- Write 3 or 4 hooks, score them with the Instagram plugin's hook scorer, keep one scoring 75 or more and passing the eight-point frame-0 checklist in [hook-and-review-playbook.md](../template/docs/hook-and-review-playbook.md). The hook gives the value in the first 1.5 to 3 seconds; it does not tease. (Only a numbered series reel may promise a payoff for the end, and it must pay it off.)
 - Start the reel folder first: `kit start <reel> --style <style>`, always inside the brand's `<brand>-reels` folder (it refuses anywhere else). It fills a new folder with a sample `script.txt` (a script already in the folder is kept).
-- Script: about 110 to 125 words for about 40 seconds, the usual length (about 85 words for 30 seconds, at most 130 for 45). Shape: hook > proof (a name, a number from facts.md) > 3 or 4 steps > your own proof or twist > one ask.
-- Write for the ear. Commands, URLs and codes go on screen, not in the voice. Spell tricky names by sound. The generated voice never says a word in `brand.json` > `voice.never_say`; show it as text instead.
-- No em dashes. Run the Instagram plugin's `/ig-human` detector on the script, then `/humanizer` to rewrite anything it flags.
-- End with "Save this" (or follow) unless a comment keyword has a DM auto-reply that was tested from a second account.
+- The script is written by `/reel-scripter`, in stages, each saving its output in the reel folder: `/script-plan` (one viewer, one promise, a beat outline: `script-brief.md`, `script-plan.json`), the hooks (`/viral-hook-writer`: triple hooks that open the loop the outline closes), the draft, `kit script` (a no-model check: announced count against the items, long sentences, jargon, spoken menu paths, loops, seconds at the brand's pace), `/script-coldread` (a fresh reader who sees only the spoken words), the fact check and the human score, then `/script-score` (a 100-point rubric judged by a fresh agent; 90 or more). The word band, the shape and the rules for each stage are in `/script-plan` and `/reel-scripter`; this file does not repeat them.
+- The hook is a triple hook (context, lean, contrarian snapback: [hook-and-review-playbook.md](../template/docs/hook-and-review-playbook.md) section 0). The eight-point frame-0 checklist in the same file is checked on frames, never on the script alone: on the Gate B stills, the draft and the final.
+- Write for the ear. Commands, URLs, menu paths and codes go on screen, not in the voice. Spell tricky names by sound. The generated voice never says a word in `brand.json` > `voice.never_say`; show it as text instead. No em dashes.
+- The human score (`/ig-human`) must reach 90 (`brand.json` > `writing.human_score_min`); `/humanizer` rewrites what it flags. End with "Save this" (or follow) unless a comment keyword has a DM auto-reply that was tested from a second account.
 
 Before the approver sees the script, run the credit check (`python3 ~/.claude/skills/bagelunit-reels/tools/budget.py reels/<slug>/script.txt`): it counts the script's characters and compares them with the ElevenLabs credits left.
 
 **Fact check, before the approver sees the script.** Run `/reel-factcheck` (scope `script`). A mechanical pass (`kit facts <dir> check`) catches uncleared numbers, missing sources, old clearances and absolute wording. Then a fresh reader re-reads every source and gives each claim a verdict: supported, overstated, not found, changed or unsourced. Only a PASS is recorded (`kit facts <dir> record --scope script --result PASS`). Gate A will not record without a current PASS. A wrong claim is far cheaper to fix here than after the voice is made.
 
-**GATE A: the approver approves the script** (a question block: Approve, Change something, or Stop this reel). No voice credits are spent before this.
+**GATE A: the approver approves the script** (a question block: Approve, Change something, or Stop this reel). `kit gate <reel> record --gate A` refuses without a current fact check and a `Script review: meets the bar (NN/100; ...) [script <fingerprint>]` line of 90 or more for these exact words (the owner alone overrides it, with `--skip-script-review "reason"`). No voice credits are spent before this: `voice.py` refuses until Gate A is recorded.
 
 ## 6. Voice
 
@@ -93,7 +92,7 @@ Pull frames from the CURRENT `build/draft.mp4`, not the stills folder (it can ho
 - text size (aim for 40 px or more on screen); no em dash reaches the screen;
 - the hook on frames at 0, 0.5, 1, 2 and 3 s of the draft: moving on frame 0, biggest element at least 40 percent of the frame, claim landing about 1.2 to 1.6 s, readable on mute (checklist in the playbook).
 
-Run `/reel-review` on the draft: seven must-pass checks, eight scored checks and a one-line verdict with a score out of 100. Under 90 you redo what it named and review again until it reaches 90; Gate C refuses less. Give the person the draft (with real sound, step 11) to watch on a phone. Apply changes as the smallest possible edits and verify again.
+Run the reel QA on the draft (`python3 scripts/qa/gate_qa.py <slug> --gate B`: it reads the pixels for the frame-0 hook, text in the bottom 300 px or right 120 px, and text size) and fix what it names; the same check on the final is what unlocks Gate C. Then run `/reel-review` on the draft: seven must-pass checks, eight scored checks and a one-line verdict with a score out of 100. Under 90 you redo what it named and review again until it reaches 90; Gate C refuses less. Give the person the draft (with real sound, step 11) to watch on a phone. Apply changes as the smallest possible edits and verify again.
 
 ## 11. Real sound
 
@@ -102,7 +101,7 @@ After `kit export`, run the real-sound step (see [sound.md](sound.md)). It repla
 ## 12. Final, cover and caption
 
 - `kit render <reel> --final`, `kit export <reel>`, then the real-sound step on `out/<name>.mp4`.
-- **Caption:** `out/caption.txt`. The first line is under 125 characters, one ask, 3 to 5 hashtags, no em dashes. Lint it with the Instagram plugin's caption checker.
+- **Caption:** `out/caption.txt`. The first line is under 125 characters, one ask, 3 to 5 hashtags, no em dashes. Check it with `node .claude/skills/caption-and-hashtags/caption.mjs check` (the layout, the 5-hashtag limit, the keyword line).
 - **Cover rule:** every reel gets a dedicated cover, never a frame grabbed from the hook. Make a still-only `scenes/cover.js` with a big topic title, a prop that shows the subject, the presenter (if the brand has one) and the handle. Render it with `kit frames <reel> 0 --only cover` to `out/cover.jpg`. Keep the title, prop and face inside the centre 1080x1440 band, which is what the profile grid shows. Title of 3 to 5 words; shrink the cover to 150 px wide and simplify if it is unreadable; it should look like family next to the last 8 covers without disappearing (`/cover-thumbnail-brief`).
 
 Run `/reel-review` again on the final and put its verdict line in `approvals.md`.

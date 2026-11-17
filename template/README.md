@@ -51,14 +51,14 @@ Two kit guides live in the kit's own folder, not in this copy: [the sticker host
 | `craft-playbook.md` | what goes on screen: one world, a through-line, a picture for each kind of line |
 | `style-ideas.md` | style concepts that are not built yet |
 
-**`.claude/skills/`: 27 skills** (Claude loads the right one for each step; you can also type its name)
+**`.claude/skills/`: the skills** (`COMMANDS.md` in the kit lists every one; Claude loads the right one for each step; you can also type its name)
 
 | Skill | What it does |
 |---|---|
 | `/brand-setup` | sets up or changes this brand |
 | `/sticker-host` | makes the brand's sticker host (a cartoon of you or a mascot) from one photo, then adds any pose a reel needs |
 | `/kit-update` | updates this workspace to the newest kit |
-| `/account-audit` | finds the reels that beat an account's own median (the 3x rule), from an export or Apify data; `/ig-viral` from the Instagram plugin does the same by hand in the browser |
+| `/account-audit` | finds the reels that beat an account's own median (the 3x rule), from an export or Apify data; `/ig-viral` does the same by hand in the browser |
 | `/reel-sources` | finds what your audience asks and reels to model |
 | `/reel-analyzer` | breaks down why a reel works: hook, beats, pacing, visuals |
 | `/comment-mining` | turns your comments and DMs into content ideas |
@@ -70,7 +70,7 @@ Two kit guides live in the kit's own folder, not in this copy: [the sticker host
 | `/reel-repurpose` | the same approved reel for TikTok and YouTube Shorts (captions, titles, a check of where each app's buttons sit), plus a carousel and a blog post |
 | `/reel-scripter` | writes the script |
 | `/reel-builder` | turns an idea into a shoot plan without rendering |
-| `/humanizer` | makes text sound like you, not like AI (after the Instagram plugin's `/ig-human` detector flags it) |
+| `/humanizer` | makes text sound like you, not like AI (after the `/ig-human` detector flags it) |
 | `/reel-factcheck` | re-reads every source, before the script is approved and again on the final |
 | `/reel-review` | checks a draft or final and gives one verdict line |
 | `/reel-predict` | measures a reel, and estimates how it will hold viewers once 8 posted reels have numbers |
