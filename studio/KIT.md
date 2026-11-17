@@ -64,8 +64,8 @@ Follow `playbook/writing.md`:
 - line 2 opens a loop;
 - the stakes are concrete;
 - the answer comes only after the problem is felt;
-- it's conversational, 110–170 words (≈ 35–60 s) by default. When they ask for a short reel, size it to the ask: 10–15 s ≈ 40–48 words in 3–5 shots, 20–30 s ≈ 80–110 words in 5–8 shots (the voice step trims pauses and speeds up ×1.15, so you fit more words than the clock suggests), built as hook → one turn → ask (`playbook/writing.md`, "Short reels");
-- it ends on "Comment KEYWORD and I'll send you …".
+- it's conversational, about 110–130 words (≈ 35–45 s) by default (`kit script <dir>` checks the length against the brand's own pace; for a longer reel pass `--seconds 60`). When they ask for a short reel, size it to the ask: 10–15 s ≈ 40–48 words in 3–5 shots, 20–30 s ≈ 80–110 words in 5–8 shots (the voice step trims pauses and speeds up ×1.15, so you fit more words than the clock suggests), built as hook → one turn → ask (`playbook/writing.md`, "Short reels");
+- it ends on ONE ask: the brand's `cta.style` in `brand.json` (save this, follow, or visit the link). "Comment KEYWORD and I'll send you …" only when that keyword is listed in `cta.tested_keywords` (its DM auto-reply was tested), or when there is no brand folder and the person asked for it.
 
 In a brand folder the words come through the staged flow (`/reel-scripter`): `/script-plan` (viewer, one promise, a beat outline), the draft, `kit script <project>` (the lint), `/script-coldread`, then `/script-score` (90 or more). Where this section and the brand's own word band differ, the brand folder's `CLAUDE.md` and `docs/` win. Outside a brand folder run at least `kit script <project>` on the draft.
 

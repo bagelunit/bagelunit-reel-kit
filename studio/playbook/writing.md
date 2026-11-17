@@ -4,16 +4,16 @@ Use this only when you write the words yourself. A script the user pastes is use
 
 ## Short reels
 
-The default is 35–60 s. When they ask for something shorter, keep one idea and cut everything else:
+The default is 35–45 s (about 110–130 words). When they ask for something shorter, keep one idea and cut everything else:
 
 | Ask | Words | Shots | Shape |
 |---|---|---|---|
 | 10–15 s | 40–48 | 3–5 | hook · one turn (the surprising fact) · ask |
 | 20–30 s | 80–110 | 5–8 | hook · problem · one turn · payoff · ask |
 
-The ask still ends the reel ("Comment KEYWORD …"), but keep it to one short sentence. Every shot needs a hero you can read in under a second.
+The ask still ends the reel (the brand's own ask; "Comment KEYWORD …" only when that keyword is tested), but keep it to one short sentence. Every shot needs a hero you can read in under a second.
 
-## The skeleton (110–170 words, about 35–60 s)
+## The skeleton (about 110–130 words, about 35–45 s)
 
 ```
 1  HOOK      who it's for, what's at stake, or what's surprising. Under 1.5 s.
@@ -22,10 +22,10 @@ The ask still ends the reel ("Comment KEYWORD …"), but keep it to one short se
 4  TURN      the answer, tool or method, framed as what it does for the viewer.
 5  PROOF     one hard fact the user gave you (a number, a result, a screenshot).
 6  CLOSE     one line that restates the takeaway, then the loop pays off.
-7  ASK       "Comment KEYWORD and I'll send you …"
+7  ASK       the brand's one ask ("Save this", "Follow" or, only when tested, "Comment KEYWORD and I'll send you …")
 ```
 
-KEYWORD is one uppercase word tied to the topic (KIT, AIRPORT, TEMPLATE). It also goes into `reel.json` → `cta.keyword`.
+When a keyword ask is used (only a tested keyword), KEYWORD is one uppercase word tied to the topic (KIT, AIRPORT, TEMPLATE). It also goes into `reel.json` → `cta.keyword`.
 
 ## Hooks: pick a shape, write it new
 
@@ -59,5 +59,5 @@ Only state what you're sure of or what the user told you. Product claims use the
 - [ ] Line 2 opens a loop, and the ending closes it.
 - [ ] The answer arrives only after the problem is felt.
 - [ ] Every sentence can be drawn as one clear picture.
-- [ ] 110–170 words (or the short-reel size they asked for), ending on "Comment KEYWORD …".
+- [ ] About 110–130 words (or the short-reel size they asked for), ending on one ask: the brand's `cta.style`, or "Comment KEYWORD …" only when the keyword is tested.
 - [ ] Read aloud, it sounds like a person.
