@@ -13,6 +13,8 @@ import * as scenes from './scenes.mjs';
 import * as ontext from './ontext.mjs';
 import * as licensed from './licensed.mjs';
 import { applyBrandCta } from './ctafill.mjs';
+import * as suggest from './suggest.mjs';
+import { printTip } from './tips.mjs';
 
 const MODES_DIR = path.join(SKILL, 'modes');
 const MODES = fs.readdirSync(MODES_DIR).filter((m) => fs.existsSync(path.join(MODES_DIR, m, 'starter')));
@@ -435,6 +437,7 @@ async function scene() {
 }
 
 // the brand's licensed assets (any source): kit licensed add|list|check|remove (tools/licensed.mjs)
+async function suggestVerb() { process.exitCode = await suggest.cli(argv.slice(1)); }
 async function licensedVerb() { process.exitCode = await licensed.cli(target, loose, flags); }
 
 const COMMANDS = {
@@ -463,6 +466,7 @@ const COMMANDS = {
     'scene styles: list them and their templates; the plan with each scene\'s time from build/words.json; check every scene (errors, safe area, seeking) with stills in build/scenes/check/; a stand-in voice (a tone, fake word times, no key) for previews'],
   licensed: [licensedVerb, 'add <file> --type music|sfx|stock-video|motion-graphic|lut|generated-image|generated-video --title "..." [--artist --url --channels a,b --credit --id --notes --licence --move]  (generated: --tool "..." [--prompt ".." --onscreen-label ".." --no-label "reason"])  |  list [--type T]  |  check [<reel>]  |  remove <id> [--keep-file]',
     'the brand\'s recorded assets (licensed or AI-generated, from any source): record a file with its hash, credit and, for generated media, the tool and the on-screen label; list them, check that every asset a reel uses exists, is unchanged and (generated) shows its label (Gate C refuses a reel that fails), remove one. Your own renders need no record: a scene\'s {"file": ...}'],
+  suggest: [suggestVerb, '[<tool id>] [--have a,b | --none | --other "text"] [--dismiss <id>] [--undismiss <id>] [--json]', 'optional outside tools (none are required): the catalog with what each adds, what you have, how to connect one; saves your answers in brand/brand.json; nothing is sent anywhere'],
   host: [host, '<dir> [--dir <poses folder>] [--check]', 'sticker host: link the brand\'s pose set into the reel, list every pose in reel.json, and name any pose the cues need that the set lacks'],
 };
 
@@ -472,3 +476,9 @@ if (!COMMANDS[verb]) {
   process.exit(verb ? 1 : 0);
 }
 await COMMANDS[verb][0]();
+// one short optional-tool tip on stderr after the command (tools/tips.mjs: off with --no-tips, BAGELUNIT_NO_TIPS=1 or brand.json tools.tips=false);
+// never changes the exit code or stdout, and says nothing when the command failed
+const TIP_STEP = { start: 'start', cover: 'cover', sound: 'sound', export: 'export', render: flags.final ? 'render' : null };
+if (TIP_STEP[verb] && !process.exitCode) {
+  try { printTip(TIP_STEP[verb], { brandDir: folders.findBrand(target ? folders.resolveReelArg(target) : process.cwd()), flags }); } catch { /* a tip is never worth a failure */ }
+}

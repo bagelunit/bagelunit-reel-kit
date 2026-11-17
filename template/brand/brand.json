@@ -41,7 +41,7 @@
     "tags": []
   },
   "voice": {
-    "provider": "elevenlabs",
+    "provider": "auto",
     "voice_id": "",
     "voice_name": "",
     "style": "",
@@ -115,5 +115,14 @@
   "updates": {
     "_note": "ON by default. true = at the start of a session, Claude checks once whether a newer kit version is out and tells you. It reads two small public files from GitHub (the version and the build stamp) and never updates anything by itself.",
     "check_on_start": true
+  },
+  "tools": {
+    "_note": "Optional outside tools (none are required: the kit works on its own code). Filled in by /suggested-tools or kit suggest. have = tool ids you use (see kit suggest), none = you said you have none of them, other = tools you named yourself, dismissed = tips you turned off, asked = the date you were asked, tips = false turns off the one-line tips. Saved only in this folder; nothing is sent anywhere.",
+    "have": [],
+    "none": false,
+    "other": [],
+    "dismissed": [],
+    "asked": "",
+    "tips": true
   }
 }

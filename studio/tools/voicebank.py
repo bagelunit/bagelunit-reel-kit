@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Find, hear and save the voice your reels speak with (ElevenLabs).
+"""Find, hear and save the voice your reels speak with (ElevenLabs, or the free built-in voice).
 
   python3 tools/voicebank.py mine                                  voices already in your ElevenLabs account
   python3 tools/voicebank.py search "warm deep male narrator" [--lang en] [--gender male] [--age middle_aged]
@@ -8,7 +8,9 @@
   python3 tools/voicebank.py add <owner_id> <voice_id> "<name>"     copy a Library voice into your account (needed before using it)
   python3 tools/voicebank.py use <voice_id> [--name Sam] [--speed 1.15] [--model eleven_v4] [--language en]
                                                                     make it the default voice for every reel
-  python3 tools/voicebank.py provider elevenlabs|openai|file [--openai-voice ash]
+  python3 tools/voicebank.py provider elevenlabs|local|command|auto|openai|file [--openai-voice ash] [--local-voice Samantha] [--local-rate 185]
+                                                                    local = the free built-in voice (no account); command = your own (brand.json voice.command)
+  python3 tools/voicebank.py local                                  the free built-in voice: the engine found, its voices, how words are timed
   python3 tools/voicebank.py show                                   what's saved (keys are never printed, only found/missing)
 """
 import json, os, subprocess, sys, urllib.error, urllib.parse, urllib.request
@@ -105,20 +107,39 @@ def use(flags):
 def provider(flags):
     settings = saved_settings()
     voice = settings.setdefault('voice', {})
-    voice['provider'] = flags.positional()[1]
+    names = flags.positional()
+    if len(names) < 2 or names[1] not in ('elevenlabs', 'local', 'command', 'auto', 'openai', 'file'):
+        print('provider: say one of elevenlabs, local, command, auto, openai, file')
+        return
+    voice['provider'] = names[1]
+    for flag, field, kind in (('local-voice', 'local_voice', str), ('local-rate', 'local_rate', int)):
+        if flags.get(flag) not in (None, True):
+            voice[field] = kind(flags.get(flag))
     if flags.get('openai-voice'):
         voice['openai_voice'] = flags.get('openai-voice')
     store_settings(settings)
     print('voice provider:', voice['provider'])
 
 
+def local(flags):
+    sys.argv[1:] = ['check']
+    import localvoice
+    localvoice.main()
+    engine, exe = localvoice.find_engine(saved_settings().get('voice') or {})
+    if engine:
+        print(localvoice.voices(engine, exe))
+
+
 def show(flags):
     print(json.dumps(saved_settings(), indent=2))
     for name in ('elevenlabs', 'openai'):
         print(f'{name} key: {"found" if has_key(name) else "missing"}')
+    import localvoice
+    engine, why = localvoice.find_engine(saved_settings().get('voice') or {})
+    print(f'built-in voice: {engine or "none (" + why + ")"}')
 
 
-ACTIONS = {'mine': list_mine, 'search': search, 'preview': preview, 'add': add, 'use': use, 'provider': provider, 'show': show}
+ACTIONS = {'mine': list_mine, 'search': search, 'preview': preview, 'add': add, 'use': use, 'provider': provider, 'local': local, 'show': show}
 
 if __name__ == '__main__':
     flags = Flags()

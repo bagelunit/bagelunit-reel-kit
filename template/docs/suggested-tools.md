@@ -2,6 +2,18 @@
 
 Everything in the kit works with the kit's own parts. These outside tools are ones we use ourselves and suggest. You can use them, use others that do the same job, or use none. Anything you connect is your choice and your account. Before you use any of them, check the tool's own site for its current price, plan and licence terms: this page does not state any.
 
+## How the kit prompts you
+
+The kit does not wait for you to find these tools. It shows them and asks, and every question is a clickable question block, never a typed guess:
+
+- **Once at setup.** `/brand-setup` ends with "Show me optional tools that improve results", "Later" or "No, pure code is fine". Yes runs `/suggested-tools`.
+- **`/suggested-tools`** shows the list, asks one question per group (voice, music and effects, 3D, generated video, design: "do you have any of these?", with "I have none of these" and room to type what else you use), saves your answers, and walks you through connecting each tool you have. For each tool you do not have it says once what it would add, with an example, and never pushes.
+- **`kit suggest`** any time: the list with each tool's status (connected, not connected, dismissed) and what it adds; `kit suggest <id>` for one tool's example and connect steps; `kit suggest --have elevenlabs,canva`, `--none` or `--other "my tool"` to record what you have; `kit suggest --dismiss <id>` (or a group such as `design`) to stop hearing about one, `--undismiss <id>` to bring it back; `--json` for Claude.
+- **One-line tips.** At the step where a tool would help (starting a reel, the cover, the sound and export, a render, the voice) the kit may print one short line on stderr, for example "Tip: Canva or Adobe Firefly could design this cover from your brand template (kit suggest canva). Dismiss: kit suggest --dismiss canva". At most one tip per command, a tool at most once a week, only for a tool you do not have, have not declared and have not dismissed. A tip never changes what a command does or prints on its normal output. Turn them off with `tools.tips: false` in `brand/brand.json`, `BAGELUNIT_NO_TIPS=1`, or `--no-tips` on a command.
+- **`kit checkup`** ends with what the kit does on its own code and which optional upgrades you could add, by name.
+
+What it checks and what it saves: whether a program (such as `blender`) is on your computer, whether an app is installed, whether a key file exists (it never opens it), whether a connector is listed by `claude mcp list` (skipped if that command is not there), and what you told it. Your answers go in `brand/brand.json` under `tools`, and the tip timestamps in `brand/.tips.json`. Nothing is sent anywhere.
+
 Three ways a tool joins the kit:
 
 - **By hand.** You make or download a file in the tool, then record it with `kit licensed add` (see `/licensed-assets`). The kit stores the file's hash and where it came from.

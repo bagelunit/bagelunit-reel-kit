@@ -163,7 +163,7 @@ go in `reels/<slug>/out/carousel/` named in posting order (`01.jpg`, `02.jpg`, .
 1. `node publisher/scripts/carousel.mjs files reels/<slug>` lists the items in order and every check (JPEG or MP4
    only, sizes, one shape for every slide, the caption). Fix what it names.
 2. Show the approver every slide (a contact sheet or the files) and the caption, then ask "Approve this carousel?"
-   (question block: "Approve (Recommended)", "Change something", "Stop"). After the yes:
+   (a question block, AskUserQuestion: "Approve (Recommended)", "Change something", "Stop"). After the yes:
    `node publisher/scripts/carousel.mjs approve reels/<slug>` records one fingerprint over every slide and the
    caption under `## Carousel` in `approvals.md`. A slide or the caption changed afterwards needs this step again.
 3. `node publisher/scripts/carousel.mjs schedule reels/<slug> --at <ISO time with offset> --preview`, show its summary,

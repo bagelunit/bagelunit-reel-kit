@@ -217,7 +217,7 @@ Claude's step (no script writes ideas). It turns the competitors' winners into t
    the last `dashboard.competitors_days` days (default 7)**, with a post's ratio being its views over that account's
    median of its last 12 posts (3x or more is STUDY, 1.5x NOTE; the dashboard shows the same list) and at least
    `dashboard.competitors_min_views` views (default 5000), at most 2 from one account. Older posts are judged
-   against today's median, so they are not "working now". If fewer than 3 recent posts qualify, say so and ask whether to
+   against today's median, so they are not "working now". If fewer than 3 recent posts qualify, say so and ask with a question block ("Widen the window", "Keep it short (Recommended)") whether to
    widen the window instead of reaching back quietly. Then read
    `brand/voice.md`, `brand/facts.md`, `brand/tests.md`, `brand/log.md` (so no idea repeats a recent angle) and
    `brand/swipe.md`, and `brand/ideas-removed.md` (ideas the owner took off the dashboard: never draft those again, or the same
@@ -324,12 +324,12 @@ no research).
    `{"access_token": "PASTE-YOUR-TOKEN-HERE"}` (Instagram Login) or `{"access_token": "PASTE-YOUR-TOKEN-HERE",
    "login": "unified"}`, make it readable by the owner only (`chmod 600`), and open it in their editor; stop at
    Generate token. With Unified Login, pick **Never** for the token's end date in the configuration preview. If Meta
-   offers no Never, ask the owner for the end date the preview shows and add it to the file you write as
+   offers no Never, ask the owner (question block: "Never is not offered, I'll type the date", "Skip the date"; the date is typed under Other) for the end date the preview shows and add it to the file you write as
    `"expires_at": "YYYY-MM-DD"` (a date, not a secret), so the dashboard warns a week ahead; that token does not
    renew itself. Never ask for the token, never read the file once the owner has pasted into it, never print
    it. `<slug>` is `brand.json` -> `slug`. Without the browser tool, give the written steps one at a time.
 3. Run `node .claude/skills/content-calendar/instagram.mjs --check`. It prints the handle and follower count
-   (and saves the account's id in the owner's file, which the publisher's `setup.mjs secrets` uses). Ask the owner to
+   (and saves the account's id in the owner's file, which the publisher's `setup.mjs secrets` uses). Ask with a question block ("Yes, that is my account (Recommended)", "No, a different account") to
    confirm it is the right account.
 4. Set `dashboard.instagram` to `true` in `brand/brand.json`, run `refresh.mjs --no-telegram`, and report what
    it found (posts, how many matched this folder's reels). For a reel it could not match, the fix is the post's
@@ -346,7 +346,7 @@ clicks, each post's views and replies). Walk `docs/connect.md` step 3 (Facebook)
    guide, ids filled in and `PASTE-...` where the token and app secret go, `chmod 600`, and open it. Never ask for,
    read or print a token or app secret. The first check trades the short token for a lasting one and removes the app secret from the file.
 3. Run `node .claude/skills/content-calendar/platforms.mjs facebook --check` (or `threads`). A Threads token from
-   the Explorer lasts one hour, so the check must run within the hour. Ask the owner to confirm the Page or handle.
+   the Explorer lasts one hour, so the check must run within the hour. Ask with a question block ("Yes, that is right (Recommended)", "No, a different one") to confirm the Page or handle.
 4. Set `dashboard.facebook` (or `dashboard.threads`) to `true` in `brand/brand.json`, run `refresh.mjs --no-telegram`,
    and report the followers and how many posts matched this folder's reels. A post that did not match gets its link
    in the reel's "Posting" lines: `- 2026-11-09 21:05 Posted on Facebook: https://www.facebook.com/reel/...`.

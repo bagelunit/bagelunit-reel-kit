@@ -86,16 +86,49 @@ def has_key(provider):
         or (Path.home() / '.config' / provider / 'key').is_file()
 
 
+def key_ready(provider):
+    """True when a non-empty key is saved for the provider (environment variable or key file). Reads the key only to see that it is
+    not blank (an empty elevenlabs.key is what setup leaves for the user to fill in); it is never printed or returned."""
+    if (os.environ.get(KEY_ENV[provider]) or '').strip():
+        return True
+    for candidate in (HOME_CFG / f'{provider}.key', Path.home() / '.config' / provider / 'key'):
+        try:
+            if candidate.is_file() and candidate.read_text(encoding='utf-8').strip():
+                return True
+        except OSError:
+            pass
+    return False
+
+
 def reel_settings(project):
     return read_json(Path(project) / 'reel.json', {}) or {}
 
 
+# the brand's own voice choices (brand/brand.json "voice"): which provider, the built-in voice's settings, a user-supplied command
+BRAND_VOICE_KEYS = ('provider', 'command', 'local_engine', 'local_voice', 'local_rate', 'local_model', 'chunk_chars', 'timings')
+OWN_PROVIDERS = ('local', 'command', 'auto')
+
+
+def brand_voice(project):
+    """The voice choices a brand folder's brand.json holds (only BRAND_VOICE_KEYS, only non-empty), or {} outside a brand folder."""
+    root = brand_root(project)
+    cfg = read_json(root / 'brand' / 'brand.json', {}) if root else {}
+    voice = (cfg or {}).get('voice') if isinstance(cfg, dict) else None
+    return {k: v for k, v in (voice or {}).items() if k in BRAND_VOICE_KEYS and v not in ('', None)} if isinstance(voice, dict) else {}
+
+
 def voice_settings(project):
-    """Voice options, lowest priority first: built-in defaults < saved config < the reel's own reel.json."""
+    """Voice options, lowest priority first: built-in defaults < saved config < the brand's brand.json "voice" < the reel's own
+    reel.json. The reel's "elevenlabs" is what the kit copies from the template, so it does not override a brand that chose
+    its own provider (local, command or auto); a CLI --provider does."""
     opts = dict(VOICE_DEFAULTS)
     opts.update(saved_settings().get('voice') or {})
+    brand = brand_voice(project)
+    opts.update(brand)
     reel = reel_settings(project)
     opts.update(reel.get('voice') or {})
+    if brand.get('provider') in OWN_PROVIDERS and (reel.get('voice') or {}).get('provider') in (None, '', 'elevenlabs'):
+        opts['provider'] = brand['provider']
     if reel.get('language') and not (reel.get('voice') or {}).get('language'):
         opts['language'] = reel['language']               # the reel's language also sets the voice accent
     return opts
@@ -157,6 +190,27 @@ def tidy_word(text):
     return text.translate(QUOTES)
 
 
+def whisper_model(opts):
+    """The ggml model whisper.cpp would use (opts["whisper_model"], then the kit's own folder, then the usual cache), or None."""
+    models = [Path(opts['whisper_model']) if opts.get('whisper_model') else None, HOME_CFG / 'ggml-base.bin',
+              Path.home() / '.cache/whisper-cpp/ggml-base.bin', Path.home() / '.cache/whisper-cpp/ggml-base.en.bin']
+    return next((m for m in models if m and m.is_file()), None)
+
+
+def whisper_available(opts):
+    """Is a local word-timing step installed (whisper.cpp with a model, or faster-whisper)? The environment variable
+    BAGELUNIT_VOICE_TIMINGS=estimated says no on purpose (a test, or a user who does not want Whisper run)."""
+    import importlib.util, shutil
+    if os.environ.get('BAGELUNIT_VOICE_TIMINGS') == 'estimated':
+        return False
+    if shutil.which('whisper-cli') and whisper_model(opts):
+        return True
+    try:
+        return importlib.util.find_spec('faster_whisper') is not None
+    except (ImportError, ValueError):
+        return False
+
+
 def whisper_words(audio, opts):
     """Word timings for any audio file: whisper.cpp (whisper-cli + a ggml model) if present, else faster-whisper."""
     import shutil
@@ -165,9 +219,7 @@ def whisper_words(audio, opts):
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(audio), '-ar', '16000', '-ac', '1', str(wav16)], check=True)
     lang = opts.get('language') or 'auto'
     cli = shutil.which('whisper-cli')
-    models = [Path(opts['whisper_model']) if opts.get('whisper_model') else None, HOME_CFG / 'ggml-base.bin',
-              Path.home() / '.cache/whisper-cpp/ggml-base.bin', Path.home() / '.cache/whisper-cpp/ggml-base.en.bin']
-    model = next((m for m in models if m and m.is_file()), None)
+    model = whisper_model(opts)
     if cli and model:
         stem = audio.parent / 'whisper'
         subprocess.run([cli, '-m', str(model), '-f', str(wav16), '-ml', '1', '-sow', '-oj', '-l', lang, '-of', str(stem)],

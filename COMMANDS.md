@@ -1,6 +1,6 @@
 # BagelUnit Reel Kit commands
 
-Every command in the kit (version 1.2.0) and what it does. Also as a [PDF](docs/commands.pdf) and a [spreadsheet](docs/commands.csv) (opens in Excel).
+Every command in the kit (version 1.3.0) and what it does. Also as a [PDF](docs/commands.pdf) and a [spreadsheet](docs/commands.csv) (opens in Excel).
 
 Most of the time you only need four: `/brand-setup`, `/bagelunit-reels` with your topic, `/analytics-readout` with your numbers, and `/kit-update`.
 
@@ -25,6 +25,7 @@ Type these in Claude Code inside a brand folder.
 | `/brand-setup` | Sets up the brand (name, handle, colours, logo, fonts, presenter, voice, call to action) or changes it later. |
 | `/sticker-host` | Makes your sticker host, a cartoon of you or your mascot for Print reels: a base pose from one photo, then a starter 10, then any pose a reel needs (new, add <pose>, check <reel>, status). |
 | `/logo-library` | Adds and checks the logos and app icons your reels show: finds the brand's own artwork (it asks before downloading anything), records the rights, puts the SVG in a reel, and blocks posting a reel whose logos are not approved. The kit ships no logos. |
+| `/suggested-tools` | Shows the optional outside tools (voice, music, 3D, generated video, design), asks which you have as clickable questions (with "none of these"), saves your answers, and walks you through connecting each one. None are required. |
 | `/generated-shots` | Makes and records an AI-generated shot for a reel with any tool (Higgsfield is one we suggest): labelled on screen, used by asset id, never carrying the story. |
 | `/thumbnail-design` | Takes a cover brief to Canva, Adobe or a Blender still (any tool works), saves the picture in the brand folder and puts it on the reel with kit cover --image. |
 | `/licensed-assets` | Records music, sound effects, stock video, motion graphics and LUTs you downloaded by hand from any source, such as Uppbeat (the kit ships none), says what each does in a reel, and checks them before Gate C. Nothing licensed is ever committed. |
@@ -134,6 +135,7 @@ Run on every reel; Claude runs them at the approvals.
 | `kit sound` | Mixes the voice, effects and music (a licensed music bed is ducked under the voice). |
 | `kit export` | Joins picture and sound into the finished mp4 for Instagram. |
 | `kit scene` | Scene styles (the 20 looks, for example stick-figure-folk, comic, map, deep-zoom): list them, plan the scenes of a reel, check them, or make a preview voice that needs no key (list, plan, check, stand-in). |
+| `kit suggest` | The optional outside tools, none required: the catalog with what each adds, what you have and how to connect it; --have, --none, --other save your answers in brand/brand.json; --dismiss silences a tip. Nothing is sent anywhere. |
 | `kit cover` | Renders the reel's cover to out/cover.jpg at Meta's size, plus a sheet showing how it crops in the grid. --image <file> [--fit cover\|contain] builds it from a picture you made (a Blender still, a design from any tool). |
 | `kit organize` | Files your reel folders by post date (reels/2026/11 November/November 12/<slug>) or back to reels/<slug>. Shows the moves first; --apply does them. |
 | `kit tidy` | Frees disk space in posted reels: removes build files and unapproved exports, keeps the words and the approved video. Shows the list first; --apply deletes. |

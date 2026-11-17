@@ -1,0 +1,287 @@
+{
+  "version": 1,
+  "_note": "The catalog of OPTIONAL outside tools the kit suggests (read by tools/suggest.mjs and tools/tips.mjs). The kit works on its own code without any of them. detect = existence checks only (a command on PATH, an app path, a non-empty key FILE, an MCP server name): keys are never read, nothing goes over the network. No prices and no plan claims here: the user checks each site.",
+  "baseline": [
+    "a free built-in voice (your computer's own speech engine; basic quality, no account), so a whole reel can be made with no outside tool",
+    "scripts, hooks and captions, fact checks and the Gate A, B and C approvals",
+    "animated reels drawn from code in every style (print, depth, talking and the scene styles), rendered on your own computer",
+    "the built-in cover from your brand template, the on-screen text checks and the final-file checks",
+    "the content calendar, the dashboard and the analytics read-outs from your own numbers"
+  ],
+  "categories": [
+    {
+      "id": "voice",
+      "title": "Voice",
+      "question": "Do you have a voice service for the voice-over?",
+      "tools": [
+        {
+          "id": "elevenlabs",
+          "name": "ElevenLabs",
+          "what_you_get": "A natural, steady voice-over for the whole reel, in a voice you pick or your own recorded voice, instead of the free built-in voice (your computer's own speech engine, basic quality).",
+          "example": "a natural voice for the whole reel instead of the built-in basic voice",
+          "kind": "key",
+          "detect": {
+            "file": [
+              "~/.config/bagelunit-reels/elevenlabs.key",
+              "~/.config/elevenlabs/key"
+            ]
+          },
+          "url": "https://elevenlabs.io",
+          "connect": [
+            "Check the site for the current plan and licence terms, and that your plan allows commercial use. A cloned voice must be your own, or you need written permission.",
+            "Claude makes the empty file ~/.config/bagelunit-reels/elevenlabs.key and opens it (SETUP.md section 3).",
+            "You paste the key into that file yourself and save it. Never paste it into the chat.",
+            "Run kit checkup to confirm the kit finds it (it tests the key and never shows it)."
+          ],
+          "tips": [
+            "voice"
+          ],
+          "tip_lines": {
+            "voice": "could give this reel a natural voice instead of the built-in basic voice"
+          }
+        },
+        {
+          "id": "other-voice",
+          "name": "Another voice service",
+          "what_you_get": "Any other text-to-speech service (Azure, Google, Amazon Polly, OpenAI, a local model) or your own recording as the reel's voice.",
+          "example": "a take you recorded yourself, or an export from a voice tool you already pay for",
+          "kind": "app",
+          "detect": {},
+          "url": "",
+          "connect": [
+            "Check the service's terms for commercial use.",
+            "Put a tiny script around the service's API (its key stays in the script's own environment, never in the kit), then set brand/brand.json voice to {\"provider\": \"command\", \"command\": \"python3 /path/my-tts.py --in {text_file} --out {audio_file}\"}. The command must write an audio file to the second path. A wrapper example is in docs/sound.md, section 'The voice itself'.",
+            "Or record the voice yourself and drop the audio file in the reel folder as the kit's voice step describes (studio/KIT.md, own recordings)."
+          ],
+          "tips": [],
+          "tip_lines": {}
+        }
+      ]
+    },
+    {
+      "id": "music-and-effects",
+      "title": "Music and sound effects",
+      "question": "Do you have a music or sound-effects library?",
+      "tools": [
+        {
+          "id": "uppbeat",
+          "name": "Uppbeat",
+          "what_you_get": "Licensed music beds you download by hand and record in the kit with their licence.",
+          "example": "a music bed that ducks under your voice, recorded with its licence",
+          "kind": "download",
+          "detect": {},
+          "url": "https://uppbeat.io",
+          "connect": [
+            "Check the site for what your plan covers and the credit line it asks for on the channel you post on.",
+            "Download the track from the site (there is no API).",
+            "Record it with kit licensed add <file> --type music --title \"...\" --artist \"...\" --url ... so its licence and credit are kept (see /licensed-assets)."
+          ],
+          "tips": [
+            "sound",
+            "export"
+          ],
+          "tip_lines": {
+            "sound": "could supply a licensed music bed that ducks under your voice, recorded with its licence",
+            "export": "could supply a licensed music bed for this reel, recorded with its licence"
+          }
+        },
+        {
+          "id": "epidemic-sound",
+          "name": "Epidemic Sound",
+          "what_you_get": "Licensed music and sound effects, searchable from Claude if you have its connector.",
+          "example": "a search for a calm 40-second track and a door-slam effect, both recorded with their licence",
+          "kind": "mcp",
+          "detect": {
+            "mcp": "epidemic"
+          },
+          "url": "https://www.epidemicsound.com",
+          "connect": [
+            "Check the site for what your plan covers for the channel you post on.",
+            "Add the Epidemic Sound connector in Claude (Settings, Connectors) and sign in yourself.",
+            "Search and download through it, then record each file with kit licensed add (see /licensed-assets)."
+          ],
+          "tips": [
+            "sound",
+            "export"
+          ],
+          "tip_lines": {
+            "sound": "could supply licensed music and effects you can search from Claude",
+            "export": "could supply licensed music and effects you can search from Claude"
+          }
+        }
+      ]
+    },
+    {
+      "id": "3d",
+      "title": "3D",
+      "question": "Do you have a 3D tool?",
+      "tools": [
+        {
+          "id": "blender",
+          "name": "Blender (with the Blender Lab MCP)",
+          "what_you_get": "Real 3D shots rendered on your own computer: a product, a label, a phone mock-up, a 3D title or a map as a short clip or a still. The MCP lets Claude open a .blend and look at it; the kit's scripts do not need it.",
+          "example": "a 3D product shot or a shaded-relief terrain map",
+          "kind": "app",
+          "detect": {
+            "command": "blender",
+            "paths": [
+              "/Applications/Blender.app",
+              "C:/Program Files/Blender Foundation"
+            ],
+            "mcp": "blender"
+          },
+          "url": "https://www.blender.org",
+          "connect": [
+            "Blender is free from blender.org. Install it the usual way for your system.",
+            "Run kit checkup, or ask Claude to run /blender-shot: the kit renders from the command line.",
+            "Optional: add the Blender Lab MCP so Claude can open a .blend and take screenshots (Blender's own docs have the steps; check them for the current ones).",
+            "Models, textures and fonts you bring in carry their own licences: keep them in your brand folder."
+          ],
+          "tips": [
+            "start",
+            "cover",
+            "render"
+          ],
+          "tip_lines": {
+            "start": "could add a 3D product shot or a shaded-relief terrain map to this reel",
+            "cover": "could render a 3D still for this cover",
+            "render": "could add a 3D shot or a terrain map (/blender-shot)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "generated-video",
+      "title": "Generated video",
+      "question": "Do you have a generated-video tool?",
+      "tools": [
+        {
+          "id": "higgsfield",
+          "name": "Higgsfield",
+          "what_you_get": "Short generated shots or stills for atmosphere you cannot film, always labelled on screen and never carrying the claim.",
+          "example": "a 5 second establishing shot of a 1900s factory floor, labelled Re-creation",
+          "kind": "mcp",
+          "detect": {
+            "mcp": "higgsfield"
+          },
+          "url": "https://higgsfield.ai",
+          "connect": [
+            "Check the site for its current plan, credits and commercial-use terms. The kit never starts a paid generation without your yes to that exact job.",
+            "Add the Higgsfield connector in Claude (Settings, Connectors) and sign in yourself, or make the shot on the site and download it.",
+            "Record the file with kit licensed add <file> --type generated-video --tool \"Higgsfield\" (see /generated-shots). Label it on screen as a re-creation."
+          ],
+          "tips": [
+            "start"
+          ],
+          "tip_lines": {
+            "start": "could make a short labelled re-creation shot for this reel (/generated-shots)"
+          }
+        },
+        {
+          "id": "other-generated-video",
+          "name": "Another generated-video tool",
+          "what_you_get": "Any other generator: download the clip and the kit records it the same way, with its tool and label.",
+          "example": "a short atmosphere clip from the generator you already use, recorded and labelled",
+          "kind": "app",
+          "detect": {},
+          "url": "",
+          "connect": [
+            "Make the shot in that tool and check its terms for commercial use.",
+            "Record it with kit licensed add <file> --type generated-video --tool \"<name>\" (see /generated-shots)."
+          ],
+          "tips": [],
+          "tip_lines": {}
+        }
+      ]
+    },
+    {
+      "id": "design",
+      "title": "Design",
+      "question": "Do you have a design tool?",
+      "tools": [
+        {
+          "id": "canva",
+          "name": "Canva",
+          "what_you_get": "Covers and graphics designed from your own brand template, through Claude's Canva connector or by hand.",
+          "example": "a branded cover from your template in two minutes",
+          "kind": "mcp",
+          "detect": {
+            "mcp": "canva"
+          },
+          "url": "https://www.canva.com",
+          "connect": [
+            "Check the site for what your plan includes and the licence of any template or stock element you use.",
+            "Add the Canva connector in Claude (Settings, Connectors) and sign in yourself, or design by hand and export a JPG or PNG.",
+            "Put the picture in your brand folder and run kit cover <reel> --image <file> (see /thumbnail-design)."
+          ],
+          "tips": [
+            "cover"
+          ],
+          "tip_lines": {
+            "cover": "could design this cover from your brand template"
+          }
+        },
+        {
+          "id": "adobe-firefly",
+          "name": "Adobe Firefly or Adobe Express",
+          "what_you_get": "Images, backgrounds and cover layouts you make by hand and bring into the kit.",
+          "example": "a background plate or a cover picture made in Firefly, placed behind your title",
+          "kind": "app",
+          "detect": {},
+          "url": "https://www.adobe.com",
+          "connect": [
+            "Check the site for its current terms on commercial use of generated images.",
+            "Make the picture and export a JPG or PNG into your brand folder.",
+            "Run kit cover <reel> --image <file>. No other brand's logos, no real people."
+          ],
+          "tips": [
+            "cover"
+          ],
+          "tip_lines": {
+            "cover": "could make a cover or background picture"
+          }
+        },
+        {
+          "id": "adobe-connector",
+          "name": "Adobe connector for Claude",
+          "what_you_get": "Lets Claude work in your Adobe apps for you, if you have it.",
+          "example": "Claude resizing and exporting a cover from your Adobe file",
+          "kind": "mcp",
+          "detect": {
+            "mcp": "adobe"
+          },
+          "url": "https://www.adobe.com",
+          "connect": [
+            "Check the site for which Adobe plan the connector needs.",
+            "Add the Adobe connector in Claude (Settings, Connectors) and sign in yourself.",
+            "Export the result into your brand folder and use kit cover <reel> --image <file>."
+          ],
+          "tips": [],
+          "tip_lines": {}
+        }
+      ]
+    }
+  ],
+  "tip_order": {
+    "start": [
+      "3d",
+      "generated-video"
+    ],
+    "cover": [
+      "design",
+      "3d"
+    ],
+    "sound": [
+      "music-and-effects"
+    ],
+    "export": [
+      "music-and-effects"
+    ],
+    "render": [
+      "3d"
+    ],
+    "voice": [
+      "voice"
+    ]
+  }
+}

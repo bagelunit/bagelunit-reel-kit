@@ -25,7 +25,7 @@ The tool is `.claude/skills/logo-library/logos.mjs` (run with `node`). Ask every
 1. **Identify every brand and app in it** from the full-size picture, not a thumbnail. If a mark cannot be named, say so and ask.
 2. **Look each one up:** `logos.mjs need <id> ...`. `ok` means use it; `APPROX` means only a stand-in exists; `MISSING` means find it.
 3. **Find the brand's own artwork** (its press or brand page, the app's store listing, a public icon set, or a clear crop of the
-   reference to trace). **Ask the user before downloading any file**, naming the file and where it comes from. Then add it:
+   reference to trace). **Ask before downloading any file** with a question block (AskUserQuestion): name the file and where it comes from, options "Download it (Recommended)", "I'll give you a file instead", "Skip this logo". Only on the first, add it:
    `logos.mjs add <id> --file x.svg | --url https://... --yes --name "..." --brand "..." --fidelity official|traced|approx --rights approved|test-only|pending --source "..."`.
    An SVG only (no scripts, 200 KB at most). An `approx` stand-in is allowed in a test and never in a post.
 4. **Rights (house rule 9).** Another company's mark is posted only after the owner reads its usage terms and approves that one

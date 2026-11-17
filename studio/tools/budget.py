@@ -5,6 +5,7 @@
   python3 budget.py --left [--json]       just the account: characters left, the monthly allowance, the reset date
   python3 budget.py --selftest
 
+Only ElevenLabs has credits: when the brand voices with the built-in voice (or your own command), it says so and passes.
 Counts the script's characters (what the voice step sends), asks ElevenLabs how many characters the account has left
 (a free read of your own subscription, using your saved key; the key is never printed), and says OK / TIGHT / NOT ENOUGH.
 --takes is how many times you might voice it (default 2: one take plus one redo). Standard library only.
@@ -69,6 +70,20 @@ def account(sub):
     return {'left': limit - int(sub.get('character_count', 0) or 0), 'limit': limit, 'reset': when, 'tier': sub.get('tier')}
 
 
+def free_provider(folder):
+    """A sentence when voice.py would not use ElevenLabs for this folder (the built-in voice, or the brand's own command), else None."""
+    from kitcore import key_ready, voice_settings
+    import localvoice
+    opts = voice_settings(folder)
+    engine, _ = localvoice.find_engine(opts)
+    provider, _ = localvoice.choose_provider(opts, None, key_ready('elevenlabs'), bool(engine))
+    if provider == 'local':
+        return 'this brand voices with the built-in voice (free)'
+    if provider == 'command':
+        return "this brand voices with its own command (voice.command); any charges are that service's"
+    return None
+
+
 def selftest():
     assert count_chars("Save   this.\n\n# note\n[pause]\nThree steps.") == len("Save this. Three steps.")
     assert verdict(800, 5000)[0] == 'OK' and verdict(800, 900)[0] == 'TIGHT' and verdict(800, 100)[0] == 'NOT ENOUGH'
@@ -97,8 +112,15 @@ def main():
         sys.exit(__doc__)
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from kitcore import resolve_in_reel          # reels/<slug>/script.txt works for a reel filed by date, or just <slug>/script.txt
-    text = resolve_in_reel(a[0]).read_text(encoding='utf-8')
+    script = resolve_in_reel(a[0])
+    text = script.read_text(encoding='utf-8')
     one = count_chars(text)
+    other = free_provider(script.parent)
+    if other:
+        print(f'script: {one:,} characters')
+        print(f'credits: not needed, {other}')
+        print('verdict: OK')
+        return
     need = one * takes
     print(f'script: {one:,} characters; for {takes} take(s) about {need:,}')
     left, why = credits_left()

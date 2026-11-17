@@ -58,3 +58,6 @@ brand/library/sfx/files/
 # Licensed assets (Uppbeat): the registry (assets.json), README.md and .gitkeep files stay in git; the downloaded media never does
 brand/licensed/*/*
 !brand/licensed/*/.gitkeep
+
+# the kit's tip memory (which optional-tool tip was shown when)
+brand/.tips.json

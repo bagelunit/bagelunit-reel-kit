@@ -2,6 +2,18 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.3.0 (2026-11-17)
+
+**The kit works with no outside tool, and offers better ones.** A whole reel can now be made on pure code with a free built-in voice. Every outside tool (ElevenLabs, Uppbeat, Blender, Higgsfield, Canva, Adobe Firefly and others) is only a suggestion: the kit shows what each would add, with an example, and asks which you have.
+
+**New in this version**
+
+- **A real voice with no outside tool.** When no ElevenLabs key is saved, `tools/voice.py` speaks the script with this computer's own speech engine (macOS `say`, Windows System.Speech, Linux `piper` or `espeak-ng`): free, no account, basic quality. It is a real voice, so QA and upload accept it. Words are timed by Whisper when it is installed, otherwise estimated from the audio length (`build/voice_source.json` says which, and a note tells you to install Whisper if captions drift). Long scripts are voiced in pieces and a piece already made is never made again.
+- **Connect any voice service.** `brand.json` `voice.provider` takes `elevenlabs`, `local`, `command` or `auto`. `command` runs your own text-to-speech command with no shell; only `{text_file}` and `{audio_file}` are replaced. ElevenLabs stays the suggested upgrade (`kit suggest elevenlabs`). An empty key file now counts as no key. `kit checkup` no longer treats a missing ElevenLabs key as a problem.
+- **A catalog of suggested tools.** `kit suggest` lists them by category (voice, music and effects, 3D, generated video, design) with what each adds, an example and how to connect it, and saves what you have in `brand/brand.json`. Detection looks only for a program, an app, a key file or a connector (never reads a key, never uses the network). `/suggested-tools` asks it as selectable questions, one per category, each with "I have none of these" and room to type another.
+- **Tips at the right step.** One short line at start, cover, sound, export and the final render when a tool would help: at most one per command, each tool once a week, never blocking. Silence them with `kit suggest --dismiss`, `--no-tips`, `BAGELUNIT_NO_TIPS=1` or `tools.tips: false`. `/brand-setup` asks once near the end whether to show optional tools. `kit checkup` ends with what works without any tool.
+- **Questions are clickable.** Setup and posting questions that were asked as plain text (logo downloads, viral account lists, caption type, Meta confirmations, carousel approval) are now selectable question blocks.
+
 ## 1.2.0 (2026-11-17)
 
 **Your own renders, generated shots, terrain and better checks.** Your own Blender or code renders drop into a reel as clips and overlays, AI-generated shots are recorded and labelled honestly, and the 3D library can build real terrain maps. Every outside tool named here (Blender, Higgsfield, Canva, Firefly, Adobe and others) is only a suggestion: the kit works without any of them.

@@ -43,3 +43,29 @@ Results go to `build/realsound/report.txt`: every picture check, the loudness, a
 - Low whooshes and thumps can hide under a deep voice. The checks flag them; try `--hits louder` or a brighter sound.
 - The 7 Kenney packs must be downloaded in a browser; the installer opens the pages and takes the zips from Downloads (see SETUP.md). Without them the library has about 830 sounds instead of about 1,140: the `ui` and `zap` sound types are empty and the impact and sci-fi sounds are thin. The kit checkup shows the count.
 - earshot's first use downloads about 1.1 GB of open models; after that it works offline.
+
+## The voice itself (a real voice with no outside tool)
+
+`tools/voice.py` speaks `script.txt` and writes `audio/vo.mp3`, `build/words.json` and `build/word_index.txt` whichever voice it uses. `brand/brand.json` `voice.provider` picks it:
+
+| `voice.provider` | What speaks | Cost |
+|---|---|---|
+| `"elevenlabs"` (default) or `"auto"` | ElevenLabs when a key is saved; otherwise the built-in voice | credits |
+| `"local"` | the built-in voice: macOS `say`, Windows System.Speech, Linux `piper` (needs `voice.local_model`, a `.onnx` file) or `espeak-ng` | free, basic quality |
+| `"command"` | your own text-to-speech command, `voice.command` | whatever that service charges |
+
+A built-in voice is a real voice (QA and upload accept it, unlike the stand-in tone of `kit scene <reel> stand-in`) and ends every run with a note that a natural voice service such as ElevenLabs is a suggested upgrade (`kit suggest elevenlabs`). Optional settings in `voice`: `local_engine`, `local_voice` (the engine's voice name; `python3 tools/voicebank.py local` lists them), `local_rate`, `local_model`, `chunk_chars`.
+
+**Word timings.** The words are always the script's own. If Whisper is installed (`brew install whisper-cpp` plus a ggml model in `~/.config/bagelunit-reels/ggml-base.bin`, or `pip3 install faster-whisper`) it times them from the audio. Without it they are estimated from the length of each piece of audio and each word's syllables; `build/voice_source.json` says `"timings": "estimated"` and captions and cuts may drift a little.
+
+**Any other service.** Put a command in `brand.json`: `"voice": { "provider": "command", "command": "python3 /path/my-tts.py --in {text_file} --out {audio_file}" }`. The kit splits it into words (quotes group; no shell runs it, so `$VAR`, `~`, `;` and `|` do nothing), replaces only `{text_file}` (a UTF-8 file with the words) and `{audio_file}` (where to write audio in any format ffmpeg reads) and runs it once per piece of the script (a piece already made is not made again). Your wrapper calls the service; any key stays in the wrapper's own environment, never in the kit. A minimal wrapper:
+
+```python
+import sys, urllib.request
+text = open(sys.argv[sys.argv.index('--in') + 1], encoding='utf-8').read()
+out = sys.argv[sys.argv.index('--out') + 1]
+# ... call the service here with your key from its own environment, then write the audio bytes:
+open(out, 'wb').write(audio_bytes)
+```
+
+Because a command may call a paid service, it waits for Gate A in a brand folder; the built-in voice, which is free, does not.

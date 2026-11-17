@@ -3,12 +3,19 @@
 
   python3 tools/voice.py <project>                         speak the script with your saved voice
   python3 tools/voice.py <project> --voice <voice_id>      a different voice, this time only
+  python3 tools/voice.py <project> --provider local        the free built-in voice (this computer's speech engine; no account, no credits)
+  python3 tools/voice.py <project> --provider command      your own command (brand.json voice.command, see tools/localvoice.py)
   python3 tools/voice.py <project> --provider openai       OpenAI speech (word clock from Whisper)
   python3 tools/voice.py <project> --provider file --audio take.mp3    your own recording (word clock from Whisper)
   python3 tools/voice.py <project> --reuse                 re-cut the last take instead of paying for a new one
   python3 tools/voice.py <project> --before-gate-a "why"   the owner's override: pay for the voice before Gate A (a brand folder refuses otherwise)
   python3 tools/voice.py <project> --force                 pay for a new take even though the same one was already made
   tuning: --speed 1.15 (tempo once the pauses are cut)  --gap 0.28 (breath left where a long pause was)  --no-cut
+
+Which provider: --provider, else brand.json / config voice.provider. "elevenlabs" (the default) and "auto" use ElevenLabs when a key is
+saved, otherwise the built-in voice (macOS say, Windows SAPI, Linux piper or espeak-ng), a real voice that costs nothing; with
+neither, this stops and says what to install. "local" and "command" are free of credits, so only "command" (it may call a paid
+service) waits for Gate A in a brand folder. build/voice_source.json says which provider made the voice and how the words were timed.
 
 Credit guard: before a paid call the script, provider, model, voice and settings are hashed and compared with
 build/.markers/voice.json (tools/markers.py). The same request again prints "voice: reused (no credits spent)" and sends nothing.
@@ -19,6 +26,7 @@ Every mode reads what this writes:
   audio/vo.mp3           the finished voice: long pauses shortened, sped up, levelled to -14 LUFS
   build/words.json       [{"w": word, "s": start, "e": end}], seconds on the finished audio
   build/word_index.txt   "index  start  end  word", the list cue words are picked from
+  build/voice_source.json  {"provider", "engine", "voice", "timings": "provider|whisper|estimated", "at"}: who spoke it
   vo_raw/                the untouched take and its alignment
 
 Which voice and which defaults: tools/voicebank.py (saved in ~/.config/bagelunit-reels/config.json); reel.json "voice" overrides per reel.
@@ -26,8 +34,10 @@ Which voice and which defaults: tools/voicebank.py (saved in ~/.config/bagelunit
 import base64, io, json, re, shutil, subprocess, sys, time, urllib.error, urllib.request
 from pathlib import Path
 
-from kitcore import (resolve_reel, Flags, CJK_CHAR, api_key, fail, ffmpeg, gate_a_problem, media_length, tidy_word, voice_settings, whisper_words, write_words)
-from markers import Markers, MaybeBilled, digest
+from kitcore import (resolve_reel, Flags, CJK_CHAR, api_key, fail, ffmpeg, gate_a_problem, key_ready, media_length, saved_settings, reel_settings,
+                     tidy_word, voice_settings, whisper_words, write_words, brand_root)
+from markers import Markers, MaybeBilled, digest, file_sha
+import localvoice
 
 TOOL = 'voice'
 LONG_PAUSE = 0.45                 # a pause longer than this is shortened to --gap
@@ -160,6 +170,21 @@ class Cut:
         return f'{pieces}{joins}concat=n={len(self.spans)}:v=0:a=1,atempo={self.speed},loudnorm=I=-14:TP=-1.5:LRA=11,aresample=44100[out]'
 
 
+def gate_guard(project, flags):
+    """In a brand folder a paid voice waits for Gate A (and for the words that were approved)."""
+    why = gate_a_problem(project)
+    skip = flags.get('before-gate-a')
+    if skip is True:
+        fail(TOOL, '--before-gate-a needs a reason in quotes')
+    if why and not skip:
+        fail(TOOL, why + ' (Only the owner goes ahead anyway, with  --before-gate-a "reason".)')
+    if why and skip:
+        print(f'voice: paying before Gate A, owner override: {skip}', file=sys.stderr)
+
+
+SOURCE = {}          # what the last record() learned about who spoke (voice_source.json)
+
+
 def record(project, flags, opts, provider, take, saved):
     """The raw take's words as [word, start, end]: from your file, the saved last take (--reuse) or a new synthesis."""
     if provider == 'file':
@@ -170,8 +195,15 @@ def record(project, flags, opts, provider, take, saved):
     script = Path(flags.get('script') or project / 'script.txt')
     if not script.exists():
         fail(TOOL, f'no script found at {script}')
-    speak = {'elevenlabs': elevenlabs, 'openai': openai}.get(provider) or fail(TOOL, f'unknown provider "{provider}" (elevenlabs, openai or file)')
     text = re.sub(r'\s+', ' ', script.read_text(encoding='utf-8')).strip()
+    if provider in ('local', 'command'):
+        # free of credits: nothing is marked or logged as spent. A command may call a paid service, so it waits for Gate A.
+        if provider == 'command':
+            gate_guard(project, flags)
+        words, info = localvoice.speak(text, opts, take, provider, flags.on('force'), brand_root(project) or project)
+        SOURCE.update(info)
+        return words
+    speak = {'elevenlabs': elevenlabs, 'openai': openai}.get(provider) or fail(TOOL, f'unknown provider "{provider}" (elevenlabs, local, command, openai or file)')
 
     # credit guard: the same request again costs nothing; an unconfirmed one is not resent without --force
     keys = ('model', 'voice_id', 'stability', 'similarity', 'style', 'language', 'openai_model', 'openai_voice', 'instructions')
@@ -193,14 +225,7 @@ def record(project, flags, opts, provider, take, saved):
         return json.loads(saved.read_text(encoding='utf-8'))
     if state == 'blocked':
         marks.blocked('voice')
-    why = gate_a_problem(project)
-    skip = flags.get('before-gate-a')
-    if skip is True:
-        fail(TOOL, '--before-gate-a needs a reason in quotes')
-    if why and not skip:
-        fail(TOOL, why + ' (Only the owner goes ahead anyway, with  --before-gate-a "reason".)')
-    if why and skip:
-        print(f'voice: paying before Gate A, owner override: {skip}', file=sys.stderr)
+    gate_guard(project, flags)
     words = marks.paid('voice', h, lambda: speak(text, opts, take), 'voice')
     saved.write_text(json.dumps(words))
     marks.done('voice', h, outputs)
@@ -219,6 +244,29 @@ def log_spend(project, provider, opts, text):
         pass                                                   # a missing log never stops the voice step
 
 
+def explicit_speed(project):
+    """Was a tempo chosen on purpose (saved config, brand.json or reel.json)? The built-in voice is not sped up unless it was."""
+    return any('speed' in (d or {}) for d in (saved_settings().get('voice'), reel_settings(project).get('voice')))
+
+
+def write_source(project, provider, info):
+    """build/voice_source.json: who spoke audio/vo.mp3. A built-in or command voice is a real voice (not the stand-in tone of
+    kit scene stand-in, which leaves build/voice-stand-in.json instead); "timings" says how the word clock was made."""
+    old = {}
+    try:
+        old = json.loads((project / 'build' / 'voice_source.json').read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        pass
+    if not info and old.get('provider') == provider:
+        info = {k: old[k] for k in ('engine', 'voice', 'timings') if k in old}           # a re-cut of the same take (--reuse)
+    entry = {'provider': provider, **{k: v for k, v in (info or {}).items() if k != 'provider'}}
+    entry.setdefault('timings', 'whisper' if provider in ('openai', 'file') else 'provider')
+    entry['at'] = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+    entry['vo_sha256'] = file_sha(project / 'audio' / 'vo.mp3')
+    (project / 'build' / 'voice_source.json').write_text(json.dumps(entry, indent=1), encoding='utf-8')
+    return entry
+
+
 def main():
     flags = Flags()
     names = flags.positional()
@@ -228,13 +276,27 @@ def main():
     project = resolve_reel(names[0])
     opts = voice_settings(project)
     if flags.get('voice'):
-        opts['voice_id'] = flags.get('voice')
-    provider = flags.get('provider', opts['provider'])
+        if localvoice.choose_provider(opts, flags.get('provider'), True, True)[0] in ('local', 'command'):
+            print('voice: --voice is an ElevenLabs voice id and is ignored by the built-in voice (set voice.local_voice instead)', file=sys.stderr)
+        else:
+            opts['voice_id'] = flags.get('voice')
+    engine, why = localvoice.find_engine(opts)
+    provider, note = localvoice.choose_provider(opts, flags.get('provider'), key_ready('elevenlabs'), bool(engine))
+    if provider == 'standin':
+        fail(TOOL, 'no real voice is possible yet: there is no ElevenLabs key and ' + why + '. Any one fixes it: install a speech engine (Linux: espeak-ng or piper), '
+                   'connect a key (SETUP.md section 3), or set brand.json voice.provider "command" with your own text-to-speech command. '
+                   'For a silent preview only: kit scene <reel> stand-in (a tone, never for posting).')
+    if note:
+        print(note, file=sys.stderr)
+    own = provider in ('local', 'command')
+    if own and flags.get('speed') is None and not explicit_speed(project):
+        opts['speed'] = 1.0                                     # the built-in voice is already brisk: no extra x1.15
     speed, gap = float(flags.get('speed', opts['speed'])), float(flags.get('gap', opts['gap']))
     for sub in ('vo_raw', 'audio', 'build'):
         (project / sub).mkdir(exist_ok=True)
     take, saved = project / 'vo_raw' / 'raw.mp3', project / 'vo_raw' / 'words_raw.json'
 
+    SOURCE.clear()
     words = record(project, flags, opts, provider, take, saved)
     saved.write_text(json.dumps(words))
     cut = Cut(take, words, gap, not flags.on('no-cut'), speed)
@@ -242,8 +304,17 @@ def main():
     ffmpeg(['-i', str(take), '-filter_complex', cut.filter_graph(), '-map', '[out]', '-ac', '1', '-b:a', '192k', str(final)], TOOL)
     timed = [{'w': tidy_word(w), 's': round(cut.final_time(a), 3), 'e': round(cut.final_time(b), 3)} for w, a, b in words if tidy_word(w)]
     write_words(project, timed)
+    (project / 'build' / 'voice-stand-in.json').unlink(missing_ok=True)      # a real voice replaces a stand-in tone
+    source = write_source(project, provider, dict(SOURCE))
     print(f'voice: audio/vo.mp3 {media_length(final):.2f} s (take {media_length(take):.2f} s, {len(cut.spans) - 1} pauses shortened, '
           f'tempo x{speed}) · {len(timed)} words → build/words.json + build/word_index.txt')
+    if provider == 'local':
+        print(localvoice.NOTE, file=sys.stderr)
+    elif provider == 'command':
+        print('voice: voiced by your own command (voice.command).', file=sys.stderr)
+    if own and source.get('timings') == 'estimated':
+        print('voice: estimated timings (Whisper is not installed or not used), so captions and cuts may drift a little. Install it for exact word timings: '
+              'brew install whisper-cpp (and put a ggml model in ~/.config/bagelunit-reels/ggml-base.bin), or pip3 install faster-whisper.', file=sys.stderr)
 
 
 if __name__ == '__main__':

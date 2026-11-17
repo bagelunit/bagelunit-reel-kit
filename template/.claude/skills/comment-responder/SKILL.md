@@ -98,7 +98,7 @@ finish later; next time, read `brand.json` -> `cta.dm_tool` and `cta.tested_keyw
    - the kit's publisher: write `publisher/rules.json` from the approved texts (`rules.example.json` shows the
      shape, `"tested": false`), then follow `docs/connect.md` step 7 in order: upload the rule, the app secret and
      the webhook, turning the account's notifications on (`node publisher/scripts/setup.mjs subscribe --dry-run`, then
-     `node publisher/scripts/setup.mjs subscribe`), the App Review request, Business Verification, then Live. Ask the owner before sending anything
+     `node publisher/scripts/setup.mjs subscribe`), the App Review request, Business Verification, then Live. Ask the owner with a question block ("Go ahead", "Not yet (Recommended until tested)") before sending anything
      to Meta and before switching the app to Live;
    - no-code tool: do the clicks in the tool (connect the Instagram professional account, new "comment keyword"
      automation, paste the keyword, the public reply and the DM, limit it to one reel), or give them in plain words.

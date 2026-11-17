@@ -49,7 +49,9 @@ If a copy not installed by this repo is already at `~/.claude/skills/bagelunit-r
 
 **Only if you used the kit before it was renamed BagelUnit Reel Kit** (new users skip this): the installer copies your old settings folder (keys, saved voice, handle, theme) to `~/.config/bagelunit-reels/` once and keeps the old folder. It does not touch an old skill folder under its previous name; it prints a note instead. Remove that old skill folder yourself once the new one works, because two installed copies would both answer reel requests.
 
-## 3. Your ElevenLabs key
+## 3. Your ElevenLabs key (optional)
+
+The kit works without it: with no key it speaks with your computer's free built-in voice (basic quality, no account). An ElevenLabs key is the suggested upgrade for a natural voice; skip this section if you do not want it, and run `kit suggest elevenlabs` any time.
 
 **With the browser tool:** Claude makes the key file (step 2 below, empty), opens it in your editor, and opens elevenlabs.io. You sign up or log in; Claude picks the plan you choose (it asks before a paid one), opens the API keys page, names a new key and ticks the permissions below, and stops at **Create**. You click it, copy the key into the open file, save, and say "done". Claude never sees the key. Then it closes that tab. **By hand:**
 

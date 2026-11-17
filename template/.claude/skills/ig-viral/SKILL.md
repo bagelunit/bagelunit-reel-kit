@@ -37,7 +37,7 @@ works at 2M followers often works because it is at 2M followers.
 
 ## Step 1: pick the accounts
 
-Ask the user for 6 to 12 accounts, or propose them and get approval:
+Propose 6 to 12 accounts and ask with a question block (AskUserQuestion): "Use these (Recommended)", "I'll name my own" (they type them under Other), "Change some". The mix:
 
 - **4 direct** - same niche, same offer, slightly ahead.
 - **4 adjacent** - different niche, same audience. This is where formats get
@@ -45,7 +45,7 @@ Ask the user for 6 to 12 accounts, or propose them and get approval:
 - **2 to 4 outsized** - much bigger accounts, for format only, never for
   cadence or tone.
 
-Also ask them to open their own **Saved collection**. It is the fastest and
+Also ask with a question block ("I'll paste my Saved collection (Recommended)", "Skip it") for their own **Saved collection**. It is the fastest and
 most relevant corpus that exists and it is already filtered by their taste.
 
 ## Step 2: go and look

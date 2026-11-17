@@ -41,8 +41,8 @@ that makes the ask make sense, and the words people search.
 cover that opens a loop. Here line one is the hook and it works exactly like a
 Reel hook: concrete, short, and cut off at a cliff rather than mid-clause.
 
-Ask which one you are writing. If the user has a Reel with a strong hook,
-write A and say why.
+Ask which one you are writing with a question block (AskUserQuestion), recommended first. If the user has a Reel with a strong hook,
+recommend A and say why.
 
 ## The shape
 

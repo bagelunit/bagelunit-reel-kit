@@ -9,6 +9,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { SKILL } from './server.mjs';
+import * as suggest from './suggest.mjs';
 
 const NEW_CONFIG_DIR = path.join(os.homedir(), '.config', 'bagelunit-reels');
 const OLD_CONFIG_DIR = path.join(os.homedir(), '.config', 'susanoo-reels');   // migration fallback: the folder used before the BagelUnit rename (2026-11-08)
@@ -91,7 +92,7 @@ async function elevenlabsKey() {
   const file = [path.join(CONFIG_DIR, 'elevenlabs.key'), path.join(os.homedir(), '.config', 'elevenlabs', 'key')].find((f) => fs.existsSync(f));
   const key = process.env.ELEVENLABS_API_KEY || (file ? fs.readFileSync(file, 'utf8').trim() : '');
   if (!key) {
-    return bad('ElevenLabs API key', `make one at https://elevenlabs.io/app/settings/api-keys (the free plan works) and save it as ONE line in\n           ${path.join(CONFIG_DIR, 'elevenlabs.key')}\n           (or set ELEVENLABS_API_KEY). Never paste a key into the chat.`);
+    return maybe('ElevenLabs key (optional)', `not set: the free built-in voice speaks instead (basic quality). For a natural voice make a key at https://elevenlabs.io/app/settings/api-keys and save it as ONE line in\n           ${path.join(CONFIG_DIR, 'elevenlabs.key')}\n           (or set ELEVENLABS_API_KEY), or run kit suggest elevenlabs. Never paste a key into the chat.`);
   }
   let res;
   try { res = await fetch('https://api.elevenlabs.io/v1/user/subscription', { headers: { 'xi-api-key': key } }); }
@@ -114,7 +115,7 @@ async function voice() {
     process.env.OPENAI_API_KEY || fs.existsSync(path.join(CONFIG_DIR, 'openai.key')) ? ok('OpenAI API key') : bad('OpenAI API key', `save it as one line in ${path.join(CONFIG_DIR, 'openai.key')}`);
   }
   if (cfg.voice?.voice_id || provider !== 'elevenlabs') ok('voice', cfg.voice?.name || cfg.voice?.voice_id || provider);
-  else bad('no voice picked yet', 'ask Claude "help me pick a voice" (python3 tools/voicebank.py search "...")');
+  else maybe('no ElevenLabs voice picked yet (optional)', 'the free built-in voice is used until you pick one: ask Claude "help me pick a voice" (python3 tools/voicebank.py search "...")');
 }
 
 // the AI can't see the user's subscription, so it asks once and saves the answer
@@ -154,6 +155,20 @@ function soundLibrary() {
   else maybe(`sound library (optional) is missing ${missing.length} of 7 Kenney packs (${sounds.length} sounds; complete is about 1,140). Reels work without them`, rerun);
 }
 
+// the optional outside tools: what the kit does on its own code, and which upgrades could be added (names only, no nagging).
+// Existence checks only: no key is read and nothing goes over the network.
+function optionalTools() {
+  try {
+    const catalog = suggest.loadCatalog(), brand = suggest.findBrandDir(process.cwd());
+    const state = brand ? suggest.stateOf(suggest.readBrandJson(brand).data) : { have: [], dismissed: [], none: false, other: [], asked: '', tips: true };
+    const rows = suggest.statusAll(catalog, state, args.includes('--quick') ? null : suggest.mcpServers(5000));
+    const have = rows.filter((r) => r.status === 'connected').map((r) => r.name), could = rows.filter((r) => r.status === 'not connected' && !r.id.startsWith('other-')).map((r) => r.name);
+    report.push(`\n  Works without any outside tool: ${catalog.baseline.join('; ')}.`);
+    if (have.length) report.push(`  Connected optional tools: ${have.join(', ')}.`);
+    if (could.length) report.push(`  Optional upgrades you could add: ${could.join(', ')}.  (kit suggest shows what each adds; none is required)`);
+  } catch { /* the catalog is a nicety: the checkup never fails on it */ }
+}
+
 const hasPython = tools();
 await browser();
 await voice();
@@ -161,6 +176,7 @@ plan();
 whisper(hasPython);
 soundLibrary();
 look();
+optionalTools();
 console.log(`BagelUnit Reel Kit · setup check  (${SKILL})\n${report.join('\n')}`);
 console.log(toFix ? `\n${toFix} thing(s) to fix. Work top to bottom, then run this again.` : '\nAll set. Ask for a reel!');
 process.exit(toFix ? 1 : 0);

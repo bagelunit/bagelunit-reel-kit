@@ -77,8 +77,11 @@ actually gets watched. Use a **hybrid engine**, matched to the tier:
    pose set back-and-forth (A→B→A→B) reads as "replaying" and plays actions in reverse. Each beat is ONE
    forward action, start to finish. Seedance i2v does this natively; posed-frame code renders do NOT (they
    loop and read choppy - avoid them for real acting).
-3. **Sync the visual to the VOICEOVER, not a wall-clock.** Transcribe the VO (word timestamps) and cut/act
-   ON the word - the action must match what's being said. Lead the cut ~10 frames.
+3. **Sync the visual to the VOICEOVER, not a wall-clock.** Use the VO's word timestamps (`build/words.json`) and cut/act
+   ON the word - the action must match what's being said. Lead the cut ~10 frames. The voice itself needs no
+   outside tool: with no ElevenLabs key `tools/voice.py` uses the free built-in voice (suggested upgrade: ElevenLabs,
+   `kit suggest elevenlabs`; any other service through `brand.json` `voice.provider` "command"). If
+   `build/voice_source.json` says `"timings": "estimated"`, the word times are approximate: leave extra room on cuts.
 4. **Emphasis text must be high-contrast and readable** on every background (e.g. bright amber `#FFCC33`
    with a dark outline stroke reads on both dark and light beats).
 5. **Close on an on-screen CTA card that matches the brand's CTA setting.** If the keyword is listed in

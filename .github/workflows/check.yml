@@ -100,6 +100,11 @@ jobs:
         run: node setup/test-mixcheck.mjs
       - name: Own clips and overlays in scenes, and kit cover --image (own renders, never licensed, refused outside the brand folder)
         run: node setup/test-own-media.mjs
+      - name: Suggested tools (catalog, detection, tips, checkup section)
+        run: node setup/test-suggest.mjs
+      - name: Free built-in voice works (provider choice, command splitting with no shell, word timing, pieces made once, Gate A still guards a paid voice; fake engines, no network)
+        shell: bash
+        run: node setup/test-localvoice.mjs
 
       - name: Keyword CTA, A/B winner rule, caption reading speed and cover check (brand keyword into reel.json, scriptlint keyword warning, 95 percent bar, chars per second, safe centre 1010x1350)
         shell: bash

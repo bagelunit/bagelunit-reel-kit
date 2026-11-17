@@ -42,8 +42,8 @@ Gate A approves the script, Gate B the visual plan, Gate C the final video. The 
 - **What you may run** (with the user's OK): `npm install` and `npm run browser` in `$KIT_DIR`, and `pip3 install numpy`. For anything else, point to `bash setup/install.sh` (Windows: `node setup/install.mjs`).
 - **Keys:** the user saves their key in the file the checkup names. Never ask for a key in chat; never print or log one.
 - **Voice** (animated modes only): if none is saved, pick one with them (section D). It's saved for every future reel.
-- **Plan:** ask once which AI plan they're on. You can't detect it. Save it with `checkup.mjs --set-plan <max|pro|api|team|codex|cursor|other>`. Max, API and Team plans build shots with several helpers at once (crew build); other plans build one shot at a time (solo build), see section F.
-- **Brand:** ask once for their handle and theme (show the four), and save them with `checkup.mjs --set-brand @handle --set-theme <studio|harbor|ochre|ink>` (either flag works alone). `kit start` copies them into each project.
+- **Plan:** ask once, as an AskUserQuestion block, which AI plan they're on. You can't detect it. Save it with `checkup.mjs --set-plan <max|pro|api|team|codex|cursor|other>`. Max, API and Team plans build shots with several helpers at once (crew build); other plans build one shot at a time (solo build), see section F.
+- **Brand:** ask once, as an AskUserQuestion block, for their handle and theme (the four themes as options), and save them with `checkup.mjs --set-brand @handle --set-theme <studio|harbor|ochre|ink>` (either flag works alone). `kit start` copies them into each project.
 - **Host look** (print only): in a brand folder offer the sticker host first (`/sticker-host`, then `kit host <project>`); otherwise offer to build the drawn host from a photo (`playbook/host.md`), or no host. It's saved in their config.
 - **Ask only what is still missing** (local addition). In a brand folder, `/brand-setup` already answered most of this: take the handle from `brand/brand.json` > `handle`, the theme from `colors.theme`, the voice from `voice.voice_id` and the presenter from `host`, and save them with the flags above without asking again. Skip the plan question when the checkup already shows a saved plan.
 
@@ -93,7 +93,7 @@ python3 "$KIT_DIR/tools/voice.py" reels/<slug>
   - `audio/vo.mp3`: pauses over 0.45 s cut to 0.28 s, ×1.15, −14 LUFS;
   - `build/words.json` and `build/word_index.txt`: every word with its time.
 - **Every animation is cued on those words.**
-- **Reels are made only in a brand folder** (local addition): `<brand>-reels`, with `brand/brand.json`. If Claude Code was opened anywhere else, ask which brand and tell the owner to open Claude Code in its folder. If there is no brand folder yet, point them to `/brand-setup` in the kit's folder. `kit start` refuses any other folder (`--anywhere` is for tests only).
+- **Reels are made only in a brand folder** (local addition): `<brand>-reels`, with `brand/brand.json`. If Claude Code was opened anywhere else, ask which brand (an AskUserQuestion block) and tell the owner to open Claude Code in its folder. If there is no brand folder yet, point them to `/brand-setup` in the kit's folder. `kit start` refuses any other folder (`--anywhere` is for tests only).
 - **Choosing a voice:**
   1. `voicebank.py search "<what they want>" [--lang xx]` and give them 3 preview links.
   2. `voicebank.py add <owner> <voice_id> "<name>"`, then `voicebank.py use <voice_id> --name "<name>"`.
@@ -302,3 +302,9 @@ Your own renders in scenes. A scene's clip or overlay can take `"file"` instead 
   - `self-review.md`, `host.md`, `posting.md`
 - `modes/<mode>/examples/`: worked scenes to learn techniques from, each listed in its `SHOTS.md` with when to use it.
 - `SETUP.md` explains each line of the checkup; `README.md` says what this is.
+
+## M · Optional tools and the built-in voice (local addition, 2026-11-17)
+
+**The kit works on its own code with no outside tool.** `kit suggest` lists the optional ones by category (voice, music and effects, 3D, generated video, design) with each tool's status, what it adds and how to connect it, and records `--have`, `--none` or `--other` in `brand/brand.json` under `tools`. `--dismiss` and `--undismiss` take a tool or a category. Detection is existence-only: a command on PATH, an app path, a non-empty key file (never read), a connector in `claude mcp list`, and the owner's own declaration. Nothing is sent anywhere. At start, cover, sound, export and a final render the kit may print one tip on stderr (at most one per command, a tool once per 7 days, off with `--no-tips`, `BAGELUNIT_NO_TIPS=1` or `tools.tips: false`); other tools print their own with `node tools/suggest.mjs tip <step>`. Ask the owner which tools they have with the `/suggested-tools` skill: one selectable question per category with "I have none of these", never plain text. `/brand-setup` asks once near the end.
+
+**Voice.** A real voice needs no outside tool. `tools/voice.py` uses ElevenLabs when a key is saved; with no key it speaks with the free built-in voice (macOS `say`, Windows System.Speech, Linux `piper` or `espeak-ng`), which is a real voice (QA and upload accept it; the `kit scene <dir> stand-in` tone never is). `brand/brand.json` `voice.provider` can be `elevenlabs`, `local`, `command` (`voice.command`: `my-tts --in {text_file} --out {audio_file}`, run with no shell, only those two placeholders replaced) or `auto`. `build/voice_source.json` says who spoke it and whether the word times are `whisper` or `estimated` (then captions may drift; install Whisper). After every built-in-voice run tell the user it is basic quality and that `kit suggest elevenlabs` is the upgrade. `kit budget` only applies to ElevenLabs. A `command` voice may call a paid service, so it waits for Gate A like ElevenLabs; the built-in voice does not.
