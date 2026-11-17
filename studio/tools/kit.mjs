@@ -410,7 +410,7 @@ async function scene() {
   die(`kit scene ${target} takes plan, check or stand-in (not "${action}")`);
 }
 
-// the brand's licensed assets (Uppbeat): kit licensed add|list|check|remove (tools/licensed.mjs)
+// the brand's licensed assets (any source): kit licensed add|list|check|remove (tools/licensed.mjs)
 async function licensedVerb() { process.exitCode = await licensed.cli(target, loose, flags); }
 
 const COMMANDS = {
@@ -438,7 +438,7 @@ const COMMANDS = {
   scene: [scene, 'list [<style>]  |  <dir> plan|check|stand-in [--only n] [--times 20%,end] [--pace 0.38] [--force]',
     'scene styles: list them and their templates; the plan with each scene\'s time from build/words.json; check every scene (errors, safe area, seeking) with stills in build/scenes/check/; a stand-in voice (a tone, fake word times, no key) for previews'],
   licensed: [licensedVerb, 'add <file> --type music|sfx|stock-video|motion-graphic|lut --title "..." [--artist --url --channels a,b --credit --id --notes --licence --move]  |  list [--type T]  |  check [<reel>]  |  remove <id> [--keep-file]',
-    'the brand\'s licensed assets (Uppbeat, downloaded by hand): record a download with its hash and credit, list them, check that every asset a reel uses exists and is unchanged (Gate C refuses a reel that fails), remove one'],
+    'the brand\'s licensed assets (any source, downloaded by hand; we suggest Uppbeat): record a download with its hash and credit, list them, check that every asset a reel uses exists and is unchanged (Gate C refuses a reel that fails), remove one'],
   host: [host, '<dir> [--dir <poses folder>] [--check]', 'sticker host: link the brand\'s pose set into the reel, list every pose in reel.json, and name any pose the cues need that the set lacks'],
 };
 

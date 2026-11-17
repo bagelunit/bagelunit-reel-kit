@@ -157,7 +157,7 @@ Colour jobs (accent / ink / ground / warning):
 
 ## Licensed material
 
-Music, sound effects, stock video, motion graphics and LUTs come only from Uppbeat, downloaded by the owner and recorded with `kit licensed add` (`/licensed-assets`). Use them by id: `look.lut` for a colour look, `music` for a bed under the voice, a `clip` scene for a stock-video cutaway, an `overlay` for a light leak or graphic. An overlay or cutaway is picture, not text: the safe zone and text-size rules apply to the words you put on top of it. Name each licensed piece in "Tools per scene" at Gate B. Never commit the media.
+Music, sound effects, stock video, motion graphics and LUTs can come from any source you have the rights to (we suggest Uppbeat), downloaded by the owner and recorded with `kit licensed add` (`/licensed-assets`). Use them by id: `look.lut` for a colour look, `music` for a bed under the voice, a `clip` scene for a stock-video cutaway, an `overlay` for a light leak or graphic. An overlay or cutaway is picture, not text: the safe zone and text-size rules apply to the words you put on top of it. Name each licensed piece in "Tools per scene" at Gate B. Never commit the media.
 
 ## Before you hand over
 

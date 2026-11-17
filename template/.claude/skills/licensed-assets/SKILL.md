@@ -1,7 +1,7 @@
 ---
 name: licensed-assets
 description: >
-  Record and use licensed material from Uppbeat (music, sound effects, stock video, motion graphics, LUTs) in this brand's reels.
+  Record and use licensed material (music, sound effects, stock video, motion graphics, LUTs; Uppbeat is the one we suggest, any source works) in this brand's reels.
   Use when the user says they downloaded something from Uppbeat, asks for a music bed, a stock-video cutaway, a light leak or a
   colour look, or before Gate C of a reel that uses licensed material. The kit ships no assets; this records each download and checks it.
 user-invokable: true
@@ -14,9 +14,9 @@ metadata:
 
 # Licensed assets: record every download, use it by id, never commit it
 
-Inputs: a file the owner downloaded by hand from uppbeat.io (Uppbeat has no API), or a reel that should use one. Outputs: an entry in `brand/licensed/assets.json`, the file in `brand/licensed/<type>/`, and a line in `reel.json` or `scenes.json`. Next step: `kit licensed check <reel>`, then `/reel-review`.
+Inputs: a file the owner downloaded by hand (from Uppbeat, which we suggest and which has no API, or from any other source they have rights to), or a reel that should use one. Outputs: an entry in `brand/licensed/assets.json`, the file in `brand/licensed/<type>/`, and a line in `reel.json` or `scenes.json`. Next step: `kit licensed check <reel>`, then `/reel-review`.
 
-Uppbeat (Business plan) is the only outside source this brand uses for music, sound effects, stock video, motion graphics and LUTs. Never take licensed material from anywhere else, never download for the owner, and never commit the media (the brand's `.gitignore` keeps it out; `assets.json` stays tracked). `brand/licensed/README.md` explains the download by hand.
+Any licensed source is fine; Uppbeat is what we use and suggest. Record where each file came from (`--source`, `--plan`, `--url`) so its licence can be shown later. Never download for the owner, and never commit the media (the brand's `.gitignore` keeps it out; `assets.json` stays tracked). `brand/licensed/README.md` explains the download by hand.
 
 The tool is the engine's `kit licensed` (`node ~/.claude/skills/bagelunit-reels/tools/kit.mjs licensed ...`).
 

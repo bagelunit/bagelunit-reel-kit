@@ -213,9 +213,9 @@ The installer has a step "Blender (free 3D for /blender-shot, optional)": it loo
 
 Without a text reader the Gate C QA hook lets Gate C through and says so; with one it refuses until the QA has passed on the exact final.
 
-## Licensed music, clips and looks (Uppbeat, optional)
+## Licensed music, clips and looks (optional; Uppbeat suggested)
 
-Nothing licensed ships with the kit. If the brand has an Uppbeat Business plan, you download music, sound effects, stock video, motion graphics or LUTs from uppbeat.io by hand (there is no API; for music set the download type to WAV) and record each one in the brand folder with `/licensed-assets` (`kit licensed add`). The brand folder keeps the registry in `brand/licensed/assets.json` and the media next to it, never in git. `brand/licensed/README.md` has the steps, including the YouTube Shorts safelist (Uppbeat Account > Safelist). Needs only ffmpeg, which the installer already checks.
+Nothing licensed ships with the kit. You download music, sound effects, stock video, motion graphics or LUTs by hand from any source you have rights to. We suggest Uppbeat (uppbeat.io; there is no API; for music set the download type to WAV) and record each one in the brand folder with `/licensed-assets` (`kit licensed add`). The brand folder keeps the registry in `brand/licensed/assets.json` and the media next to it, never in git. `brand/licensed/README.md` has the steps, including the YouTube Shorts safelist (Uppbeat Account > Safelist). Needs only ffmpeg, which the installer already checks.
 
 ## Optional: Apify (outlier scan)
 

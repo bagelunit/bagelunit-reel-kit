@@ -265,9 +265,9 @@ Next step: none; the reel is done. On failure: if Gate C was refused, `kit gate`
 
 ---
 
-## L · Licensed material (Uppbeat; local addition, 2026-11-17)
+## L · Licensed material (any source; Uppbeat suggested; local addition, 2026-11-17)
 
-The kit ships no music, clips, graphics or LUTs. The one outside source is Uppbeat (Business plan); the owner downloads by hand and records each file: `kit licensed add <file> --type music|sfx|stock-video|motion-graphic|lut --title "..." [--artist --url --channels --credit]` (registry `brand/licensed/assets.json`, media in `brand/licensed/<type>/`, never committed; `kit licensed list|check [<reel>]|remove <id>`; the brand folder's `/licensed-assets` skill and `brand/licensed/README.md` explain it). A reel uses an asset by its id:
+The kit ships no music, clips, graphics or LUTs. Any source the brand has rights to works; Uppbeat is the one we suggest and use. The owner downloads by hand and records each file: `kit licensed add <file> --type music|sfx|stock-video|motion-graphic|lut --title "..." [--artist --url --source --plan --channels --credit]` (registry `brand/licensed/assets.json`, media in `brand/licensed/<type>/`, never committed; `kit licensed list|check [<reel>]|remove <id>`; the brand folder's `/licensed-assets` skill and `brand/licensed/README.md` explain it). A reel uses an asset by its id:
 - `reel.json` `"look": {"lut": "<id>", "strength": 0-1}` (default 1): the grade is applied to the whole picture by `kit export` (ffmpeg `lut3d`, blended by strength). A reel LUT wins over the brand's `scripts/fx/look.cube` slot and `kit export` says so.
 - `reel.json` `"music": [{"asset": "<id>", "from": 0, "fade": 1, "gain_db": -18}]`: `kit sound` loops the bed to the end, fades it, sets it `gain_db` under full level and ducks it under the voice (ffmpeg `sidechaincompress`); `build/music.json` records each bed and its hash. A string in `"music"` is the old single-track form.
 - Scene styles, in `scenes.json`: a scene `{"clip": {"asset": "<stock-video id>", "start": 2, "duration": 5, "mute": true}, "narration": "..."}` is a cutaway (scaled and cropped to 1080x1920, same codec settings, timed from `build/words.json` like any scene, held on its last frame if the scene is longer; `kit frames` shows one frame of it), and any scene may carry `"overlay": {"asset": "<motion-graphic id>", "blend": "normal|screen", "opacity": 0-1, "at": s, "duration": s}`, composited by ffmpeg after the scene renders (alpha kept for .mov and .webm; `screen` for black-background light leaks). An overlay is picture only: it is never text for the safe zone or the on-screen text.
@@ -278,7 +278,7 @@ Next step: `kit licensed check <reel>`. On failure it names the asset (not recor
 
 ## Always
 - Their script, brand names and claims are used exactly as given. Never invent stats, prices or quotes about real products.
-- No one else's logos, footage or characters unless the user supplies them and has the rights. Licensed music, clips, graphics and LUTs only from Uppbeat, recorded with `kit licensed add` (section L).
+- No one else's logos, footage or characters unless the user supplies them and has the rights. Licensed music, clips, graphics and LUTs from any source with rights, recorded with `kit licensed add` (section L; we suggest Uppbeat).
 - Never print keys. Never post or upload anything by yourself; outside a brand folder you only create files, and in a brand folder follow its rule 11 and `/reel-posting`.
 - When a tool errors, read the message, fix the cause (often setup: run the checkup) and retry. Don't silently switch approaches.
 - Keep them posted in plain words at each stage (script ✓, voice ✓, shots 3/7, check, final), without log dumps.

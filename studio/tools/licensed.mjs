@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// licensed.mjs · the brand's licensed-assets registry (Uppbeat music, sound effects, stock video, motion graphics, LUTs) and what
-// a reel may use from it. The kit ships only this mechanism, never an asset: the owner downloads from uppbeat.io by hand (there is
+// licensed.mjs · the brand's licensed-assets registry (music, sound effects, stock video, motion graphics, LUTs from any source; we suggest Uppbeat) and what
+// a reel may use from it. The kit ships only this mechanism, never an asset: the owner downloads by hand from any site (Uppbeat is what we use; there is
 // no API) and records each download here with `kit licensed add`.
 //
 //   kit licensed add <file> --type music|sfx|stock-video|motion-graphic|lut --title "..." [--artist ..] [--url ..]
@@ -84,9 +84,9 @@ const today = () => new Date().toISOString().slice(0, 10);
 export function addAsset(brand, o) {
   if (!o.file) throw new Error('give the downloaded file: kit licensed add <file> --type ... --title ...');
   const src = path.resolve(o.file);
-  if (!fs.existsSync(src) || !fs.statSync(src).isFile()) throw new Error(`${src} is not a file (download it from uppbeat.io first)`);
+  if (!fs.existsSync(src) || !fs.statSync(src).isFile()) throw new Error(`${src} is not a file (download it first, from wherever you license it)`);
   if (!TYPES.includes(o.type)) throw new Error(`--type must be one of: ${TYPES.join(', ')}`);
-  if (!String(o.title || '').trim()) throw new Error('--title is needed (the name Uppbeat shows)');
+  if (!String(o.title || '').trim()) throw new Error('--title is needed (the name the site shows)');
   const ext = path.extname(src).toLowerCase();
   if (!EXT[o.type].includes(ext)) throw new Error(`a ${o.type} is one of ${EXT[o.type].join(' ')}, not ${ext || 'a file without an extension'}`);
   const id = o.id != null ? String(o.id) : slug(o.title);
@@ -103,15 +103,15 @@ export function addAsset(brand, o) {
   if (sha256File(dest) !== hash) { fs.rmSync(dest, { force: true }); throw new Error('the copy does not match the original (disk problem?); nothing was recorded'); }
   const channels = Array.isArray(o.channels) ? o.channels : String(o.channels || '').split(',').map((s) => s.trim()).filter(Boolean);
   const asset = {
-    id, type: o.type, title: String(o.title).trim(), artist: String(o.artist || ''), source: String(o.source || 'uppbeat'), url: String(o.url || ''),
-    plan: String(o.plan || 'business'), licence: String(o.licence || ''), channels, file: path.relative(brand, dest).split(path.sep).join('/'), sha256: hash,
+    id, type: o.type, title: String(o.title).trim(), artist: String(o.artist || ''), source: String(o.source || ''), url: String(o.url || ''),
+    plan: String(o.plan || ''), licence: String(o.licence || ''), channels, file: path.relative(brand, dest).split(path.sep).join('/'), sha256: hash,
     credit: String(o.credit || ''), downloaded: String(o.downloaded || today()), notes: String(o.notes || ''),
   };
   reg.assets.push(asset);
   saveRegistry(brand, reg);
   const warn = [];
-  if (o.type === 'music' && ext !== '.wav') warn.push('music is best as WAV: in Uppbeat set the download type to WAV before downloading (an MP3 works but is lossier)');
-  if (!asset.url) warn.push('no --url: record the Uppbeat page of the track so the licence can be shown later');
+  if (o.type === 'music' && ext !== '.wav') warn.push('music is best as WAV: choose WAV when downloading if the site offers it (an MP3 works but is lossier)');
+  if (!asset.url) warn.push('no --url: record the page you got it from so the licence can be shown later; add --source and --plan too');
   return { asset, warn };
 }
 
@@ -197,7 +197,7 @@ export function checkAssets(brand, reelDir = null) {
 
 // "Licensed assets" lines for approvals.md (Gate C): who made it, where it came from, under what plan, the credit text
 export function creditLines(used) {
-  return used.map((a) => `${a.id}: "${a.title}"${a.artist ? ` by ${a.artist}` : ''} (${a.source}${a.plan ? `, ${a.plan} plan` : ''}${a.licence ? `, ${a.licence}` : ''}${a.url ? `, ${a.url}` : ''})${a.credit ? ` credit: ${a.credit}` : ''}`);
+  return used.map((a) => { const from = [a.source, a.plan ? `${a.plan} plan` : '', a.licence, a.url].filter(Boolean).join(', '); return `${a.id}: "${a.title}"${a.artist ? ` by ${a.artist}` : ''}${from ? ` (${from})` : ''}${a.credit ? ` credit: ${a.credit}` : ''}`; });
 }
 
 /* ── the colour grade for kit export ────────────────────────────────────────────────────────────────────────────────────── */
@@ -247,7 +247,7 @@ export function cli(action, loose, flags, cwd = process.cwd()) {
       }
       if (action === 'list') {
         const rows = listAssets(brand, text('type'));
-        if (!rows.length) console.log('no licensed assets recorded' + (text('type') ? ` for type ${text('type')}` : '') + ' (download from uppbeat.io, then: kit licensed add <file> --type ... --title ...)');
+        if (!rows.length) console.log('no licensed assets recorded' + (text('type') ? ` for type ${text('type')}` : '') + ' (download one, then: kit licensed add <file> --type ... --title ...)');
         for (const a of rows) console.log(COLS(a));
         return 0;
       }

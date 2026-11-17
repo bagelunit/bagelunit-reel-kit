@@ -53,12 +53,12 @@ const CUBE_INV = ['TITLE "invert"', 'LUT_3D_SIZE 2', ...[0, 1].flatMap((b) => [0
 /* ── 1. the registry ──────────────────────────────────────────────────────────────────────────────────────────────── */
 W(path.join(dl, 'clear-skies.wav'), 'pretend wav bytes');
 let r = licensed('add', path.join(dl, 'clear-skies.wav'), '--type', 'music', '--title', 'Clear Skies', '--artist', 'A. Artist', '--url', 'https://uppbeat.io/track/x',
-  '--channels', 'my-channel, other', '--credit', 'Music: Clear Skies by A. Artist via Uppbeat');
+  '--source', 'uppbeat', '--plan', 'business', '--channels', 'my-channel, other', '--credit', 'Music: Clear Skies by A. Artist via Uppbeat');
 assert.equal(r.status, 0, out(r));
 let reg = registry();
 assert.equal(reg.length, 1);
 const a = reg[0];
-assert.equal(a.id, 'clear-skies'); assert.equal(a.type, 'music'); assert.equal(a.source, 'uppbeat'); assert.equal(a.plan, 'business');
+assert.equal(a.id, 'clear-skies'); assert.equal(a.type, 'music'); assert.equal(a.source, 'uppbeat'); assert.equal(a.plan, 'business');   // given with --source and --plan; with neither they stay empty (any site works)
 assert.deepEqual(a.channels, ['my-channel', 'other']); assert.equal(a.file, 'brand/licensed/music/clear-skies.wav');
 assert.equal(a.sha256, sha(path.join(brand, a.file))); assert.equal(a.credit, 'Music: Clear Skies by A. Artist via Uppbeat');
 assert.match(a.downloaded, /^\d{4}-\d{2}-\d{2}$/);
@@ -134,7 +134,7 @@ ok('check: PASS, unrecorded id, wrong type, sha mismatch, missing file and a fil
 
 /* ── 3. LUT validation ───────────────────────────────────────────────────────────────────────────────────────────── */
 W(path.join(dl, 'warm.cube'), CUBE_ID);
-r = licensed('add', path.join(dl, 'warm.cube'), '--type', 'lut', '--title', 'Warm');
+r = licensed('add', path.join(dl, 'warm.cube'), '--type', 'lut', '--title', 'Warm', '--source', 'uppbeat', '--plan', 'business');
 assert.equal(r.status, 0, out(r));
 for (const [name, body, why] of [['short.cube', 'LUT_3D_SIZE 2\n0 0 0\n1 1 1\n', /needs 8 rows/], ['nosize.cube', '0 0 0\n1 1 1\n', /no LUT_3D_SIZE/],
   ['text.cube', 'LUT_3D_SIZE 2\nhello there\n', /not a \.cube file/], ['huge.cube', 'LUT_3D_SIZE 999\n', /outside 2 to 256/]]) {
@@ -292,6 +292,7 @@ else {
   const gate = (...a) => run(PY, [path.join(tools, 'gate.py'), reel, ...a]);
   const skips = ['--skip-order', 't', '--skip-facts', 't', '--skip-qa', 't', '--skip-review', 't'];
   setReel({ look: { lut: 'warm' }, music: [{ asset: 'clear-skies' }] });
+  fs.rmSync(path.join(reel, 'scenes.json'), { force: true });   // earlier groups leave a plan behind; this group is about look and music only
   W(path.join(reel, 'out', 'r1.mp4'), 'a pretend final video');
   W(path.join(reel, 'approvals.md'), '# Approvals\n');
   fs.writeFileSync(path.join(brand, a.file), 'changed bytes');
