@@ -15,6 +15,7 @@ import crypto from 'node:crypto';
 import { brandRoot } from './lib.mjs';
 import { build } from './calendar.mjs';
 import { queuePublish } from './host.mjs';
+import { edit as editIdea, remove as removeIdea } from './ideas-store.mjs';
 import { resolve as previewFile, send as sendFile, rewrite as previewsFor } from './previews.mjs';
 
 const args = process.argv.slice(2);
@@ -70,6 +71,27 @@ http.createServer((req, res) => {
     html = previewsFor(html.replace(/<a href="(?!https?:)[^"]*">([^<]*)<\/a>/g, '$1'), 'served').replace('</body>', `${live}</body>`);
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex', 'Referrer-Policy': 'no-referrer' });
     return res.end(html);
+  }
+  // the post ideas: edit or remove one row of brand/ideas.md (the page's Edit and Remove buttons). The private key in the address
+  // is the gate; a request from another web page (a different Origin) is refused as well.
+  if (url.pathname === `${base}/ideas` && req.method === 'POST') {
+    const reply = (code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(obj)); };
+    const origin = req.headers.origin;
+    if (origin && new URL(origin).host !== req.headers.host) return reply(403, { error: 'Not allowed from another page.' });
+    if (!String(req.headers['content-type'] || '').startsWith('application/json')) return reply(415, { error: 'JSON only.' });
+    let raw = ''; let big = false;
+    req.on('data', (c) => { raw += c; if (raw.length > 20000) { big = true; req.destroy(); } });
+    req.on('end', () => {
+      if (big) return;
+      try {
+        const b = JSON.parse(raw || '{}');
+        if (b.action === 'remove') removeIdea(root, String(b.id));
+        else if (b.action === 'edit') editIdea(root, String(b.id), b.changes);
+        else return reply(400, { error: 'Unknown action.' });
+        rebuild('ideas'); return reply(200, { ok: true });
+      } catch (e) { return reply(400, { error: e.message }); }
+    });
+    return;
   }
   // an approved reel's final and cover, for the page's players (only reels listed in .cache/previews.json)
   if (url.pathname.startsWith(`${base}/preview/`) && ['GET', 'HEAD'].includes(req.method)) {

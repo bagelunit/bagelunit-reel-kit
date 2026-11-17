@@ -45,7 +45,7 @@ Ask every choice with a question block (AskUserQuestion), the recommended option
 | `brand/research/history.csv` | one line a day per competitor from `competitors.mjs sync` (date, handle, followers, posts read, median views, source): the only record of their growth |
 | `brand/watch.json` | the watch section: its `title` (the owner's own name for it, "News watch" until renamed), `group_word` (what one group is called, "source" by default), `fresh_days` (default 14), `updated`, and `groups`, each with a `name`, its `sources` (label, https url, kind, checked date) and the `items` seen there (date, title, url, status `new`, `checked`, `cleared`, `planned`, `used` or `skip`, the reel that used it, a note); written by `/content-calendar watch`, read only by the page (`watch-model.mjs`) |
 | `.cache/previews.json` | written by `calendar.mjs` each run: the approved finals the Wi-Fi view and the online copy may play, and where they are on this computer (never in the page; `previews.mjs`) |
-| `brand/ideas.md` | post ideas drafted from the competitors' winners: Date, Idea, Hook, Based on, Goal, Angle, Status (`suggested`, `planned`, `rejected`); written by `/content-calendar ideas` |
+| `brand/ideas.md` | post ideas drafted from the competitors' winners: Date, Idea, Hook, Based on, Goal, Angle, Status (`suggested`, `planned`, `rejected`); written by `/content-calendar ideas`. Edited and removed on the live dashboard (`/db live`) or with `ideas-store.mjs list, edit, remove`; a removed row moves to `brand/ideas-removed.md` |
 | `brand/how-often.json` | written by `how-often.mjs`: the suggested posting pace and why; the Planner panel shows it |
 | `brand/best-times.json` | written by `best-times.mjs`: the suggested posting times and why (the brand's own hours, the audience's online hours, optionally the competitors' winners); the Planner panel shows it |
 | `brand/calendar.md`, `brand/dashboard.html` | written by `calendar.mjs` each run (the page itself is drawn by `page.mjs`; fonts in `fonts/`) |
@@ -220,7 +220,8 @@ Claude's step (no script writes ideas). It turns the competitors' winners into t
    against today's median, so they are not "working now". If fewer than 3 recent posts qualify, say so and ask whether to
    widen the window instead of reaching back quietly. Then read
    `brand/voice.md`, `brand/facts.md`, `brand/tests.md`, `brand/log.md` (so no idea repeats a recent angle) and
-   `brand/swipe.md`. If fewer than 3 accounts have a median yet, say so and stop: ideas from nothing are guesses.
+   `brand/swipe.md`, and `brand/ideas-removed.md` (ideas the owner took off the dashboard: never draft those again, or the same
+   idea in other words). If fewer than 3 accounts have a median yet, say so and stop: ideas from nothing are guesses.
 2. Draft 5 to 8 ideas. Each takes the **shape** of a winner (hook shape, structure, length, the question it answers), never
    the words, footage, colours, characters or prompts (house rule 8), in this brand's voice. One goal and one angle per
    idea (rule 13), a hook written as a triple hook where it fits, and any number only from `brand/facts.md` (rule 1;
@@ -228,7 +229,8 @@ Claude's step (no script writes ideas). It turns the competitors' winners into t
 3. Show them as a table first. After the owner's yes, append the kept ones to `brand/ideas.md` (create it with the
    header `| Date | Idea | Hook | Based on | Goal | Angle | Status |` if missing), Status `suggested`, "Based on" naming the
    account and the post's link so the owner can watch it.
-4. `/content-calendar ideas accept <n>` moves idea n into `brand/plan.md` (the next open slot, after the owner's yes) and
+4. Edit or remove: on the live dashboard (`/db live`) every idea has Edit and Remove buttons; from here, `node .claude/skills/content-calendar/ideas-store.mjs list`, then `remove <n>` or `edit <n> --idea "..." --hook "..."` (ask the owner first; removing moves the row to `brand/ideas-removed.md`, it does not delete the record).
+5. `/content-calendar ideas accept <n>` moves idea n into `brand/plan.md` (the next open slot, after the owner's yes) and
    sets its Status to `planned`; `/content-calendar ideas reject <n>` sets `rejected` with the owner's reason in
    "Idea" so the next draft learns from it. Accepting never starts a reel: that is `/bagelunit-reels`.
 

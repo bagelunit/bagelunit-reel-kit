@@ -328,6 +328,41 @@
       if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, old); else old();   // the old way when the browser refuses (some file pages)
     }
   });
+  /* ── post ideas: edit and remove (only in the live view, which has the server that writes brand/ideas.md) ─────── */
+  const ideaCall = (body) => fetch(new URL('ideas', location.href), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    .then((r) => r.json().catch(() => ({})).then((j) => { if (!r.ok) throw new Error(j.error || 'Could not save.'); return j; }));
+  document.addEventListener('click', (e) => {
+    const li = e.target.closest('li[data-idea]'); if (!li) return;
+    const idea = JSON.parse(li.dataset.idea);
+    const rm = e.target.closest('.idea-rm');
+    if (rm) {
+      if (!rm.classList.contains('sure')) { rm.classList.add('sure'); rm.textContent = 'Really remove?'; setTimeout(() => { rm.classList.remove('sure'); rm.textContent = 'Remove'; }, 3500); return; }
+      rm.disabled = true; rm.textContent = 'Removing...';
+      ideaCall({ action: 'remove', id: idea.id }).catch((err) => { rm.disabled = false; rm.classList.remove('sure'); rm.textContent = 'Remove'; alert(err.message); });   // the page redraws by itself when the file changes
+      return;
+    }
+    if (e.target.closest('.idea-ed')) {
+      const wb = li.querySelector('.wb'); if (wb.querySelector('.idea-form')) return;
+      const STAT = ['suggested', 'planned', 'made', 'rejected'];
+      const opts = (STAT.includes(idea.status) ? STAT : [idea.status].concat(STAT)).map((s) => '<option' + (s === idea.status ? ' selected' : '') + '>' + h(s) + '</option>').join('');
+      const f = document.createElement('form'); f.className = 'idea-form'; wb.hidden = true; li.dataset.editing = '1';
+      f.innerHTML = '<label>Idea<input name="idea" maxlength="300" required value="' + h(idea.idea) + '"></label>'
+        + '<label>Hook<textarea name="hook" rows="2" maxlength="600">' + h(idea.hook) + '</textarea></label>'
+        + '<div class="row"><label>Goal<input name="goal" value="' + h(idea.goal) + '"></label><label>Angle<input name="angle" value="' + h(idea.angle) + '"></label><label>Status<select name="status">' + opts + '</select></label></div>'
+        + '<p class="err" hidden></p><div class="row"><button type="submit">Save</button><button type="button" class="idea-cancel">Cancel</button></div>';
+      li.appendChild(f); f.idea.focus(); return;
+    }
+    if (e.target.closest('.idea-cancel')) { li.querySelector('.idea-form').remove(); li.querySelector('.wb').hidden = false; delete li.dataset.editing; }
+  });
+  document.addEventListener('submit', (e) => {
+    const f = e.target.closest('.idea-form'); if (!f) return; e.preventDefault();
+    const li = f.closest('li[data-idea]'), idea = JSON.parse(li.dataset.idea), ch = {};
+    for (const k of ['idea', 'hook', 'goal', 'angle', 'status']) if (f[k].value.trim() !== String(idea[k] || '').trim()) ch[k] = f[k].value;
+    const err = f.querySelector('.err'); err.hidden = true;
+    if (!Object.keys(ch).length) { f.querySelector('.idea-cancel').click(); return; }
+    const b = f.querySelector('[type=submit]'); b.disabled = true; b.textContent = 'Saving...';
+    ideaCall({ action: 'edit', id: idea.id, changes: ch }).catch((x) => { err.textContent = x.message; err.hidden = false; b.disabled = false; b.textContent = 'Save'; });
+  });
   const fromHash = () => { const m = location.hash.match(/^#reel=(.+)$/); if (m) openCard(decodeURIComponent(m[1]), false); };
   addEventListener('hashchange', fromHash);
 

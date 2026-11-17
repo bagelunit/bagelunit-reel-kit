@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { read, readJSON, csv, num, median, mdTable, isObj } from './lib.mjs';
 import { accountPace } from './how-often.mjs';
+import { ideaId } from './ideas-store.mjs';
 
 export const TAGS = { niche: 'In your niche', adjacent: 'Adjacent', big: 'Big (format ideas)', other: 'Other' };
 export const MIN_POSTS = 5;                       // fewer than this and an account has no trustworthy median
@@ -141,7 +142,7 @@ export function loadCompetitors(root, { now = Date.now(), own = {}, windowDays =
   // ideas drafted from the winners (brand/ideas.md)
   const key = (r, ...names) => { for (const n of names) { const k = Object.keys(r).find((h) => h === n || h.startsWith(n)); if (k && r[k]) return r[k]; } return ''; };
   const ideas = mdTable(read(path.join(root, 'brand', 'ideas.md'))).map((r) => ({
-    date: key(r, 'date'), idea: key(r, 'idea', 'topic', 'title'), hook: key(r, 'hook'), basedOn: key(r, 'based on', 'source', 'from'),
+    id: ideaId(key(r, 'date'), key(r, 'idea', 'topic', 'title')), date: key(r, 'date'), idea: key(r, 'idea', 'topic', 'title'), hook: key(r, 'hook'), basedOn: key(r, 'based on', 'source', 'from'),
     goal: key(r, 'goal'), angle: key(r, 'angle'), status: (key(r, 'status') || 'suggested').toLowerCase(),
   })).filter((i) => i.idea);
 
