@@ -57,6 +57,9 @@ The main command, plus the steps it uses. Claude picks the right one; you can al
 | `/viral-hook-writer` | Writes hooks (the first 1 to 3 seconds) for a reel. |
 | `/hook-mining` | Makes new hooks from a file of hooks that already worked, keeping what made them work. |
 | `/ab-hook-tester` | A/B tests a reel's hook: two clearly different versions, each approved, posted as Instagram trial reels, compared on one number; add record to save the winner. |
+| `/script-plan` | Plans a script before it is written: one viewer, one promise, and a beat outline where every promise has a payoff and every list item a so-what. Checks the outline by code. Writes no script. |
+| `/script-coldread` | A fresh reader who hears only the spoken words says what the reel is about, who it is for, what to do, what it promised and whether it delivered, and which lines made no sense. |
+| `/script-score` | Scores a script out of 100 in a fresh context that did not write it, against a written rubric; 90 or more is the bar. Records the line Gate A reads. |
 | `/reel-scripter` | Turns an idea or a hook into a full 30 to 45 second script. |
 | `/reel-builder` | Turns an idea into a ready-to-shoot plan (lines, on-screen text, scenes), without rendering. |
 | `/humanizer` | Rewrites a script, caption or reply so it sounds like you, not like AI, and checks the brand's banned words. |
@@ -116,6 +119,7 @@ Run on every reel; Claude runs them at the approvals.
 | `kit effort` | Checks the reel was built for this script, not from ready-made pieces. |
 | `kit lint` | Checks the shot rules: lengths, cuts on words, rhythm, first-frame motion. |
 | `kit qa` | Checks the final file: size, loudness, black or frozen frames, text safe zone, sync. |
+| `kit script` | Checks a script makes sense heard once: the announced count against the items, long sentences, jargon, spoken menu paths, loops, and seconds from your own pace. Writes build/script-lint.md. |
 | `kit facts` | The mechanical half of the fact check, and records the fact-check verdict. |
 | `kit gate` | Records an approval (A, B or C) and checks the final file has not changed since. |
 | `kit measure` | Measures a video: cuts, words, loudness, silence, still stretches. |

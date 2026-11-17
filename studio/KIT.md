@@ -67,6 +67,8 @@ Follow `playbook/writing.md`:
 - it's conversational, 110–170 words (≈ 35–60 s) by default. When they ask for a short reel, size it to the ask: 10–15 s ≈ 40–48 words in 3–5 shots, 20–30 s ≈ 80–110 words in 5–8 shots (the voice step trims pauses and speeds up ×1.15, so you fit more words than the clock suggests), built as hook → one turn → ask (`playbook/writing.md`, "Short reels");
 - it ends on "Comment KEYWORD and I'll send you …".
 
+In a brand folder the words come through the staged flow (`/reel-scripter`): `/script-plan` (viewer, one promise, a beat outline), the draft, `kit script <project>` (the lint), `/script-coldread`, then `/script-score` (90 or more). Where this section and the brand's own word band differ, the brand folder's `CLAUDE.md` and `docs/` win. Outside a brand folder run at least `kit script <project>` on the draft.
+
 Save it as `<project>/script.txt`. Show it first only if they asked to review; otherwise keep going.
 
 ---

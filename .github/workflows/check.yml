@@ -51,6 +51,7 @@ jobs:
         shell: bash
         run: |
           python studio/tools/budget.py --selftest
+          python studio/tools/scriptlint.py --selftest
           python template/.claude/skills/account-audit/outliers.py --selftest
           python template/.claude/skills/humanizer/humanize_check.py --selftest
           python template/.claude/skills/hook-mining/mine_hooks.py --selftest

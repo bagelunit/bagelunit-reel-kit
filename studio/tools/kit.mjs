@@ -345,6 +345,7 @@ const COMMANDS = {
     'stills → <dir>/stills[/<folder>]/ + sheet.jpg (--only presenter: the print presenter sheet)'],
   render: [render, '<dir> [--final] [--from s --to s] [--fps 30] [--blur 2] [--out file]  |  scene style: <dir> [--scene n] [--force]', 'half-size draft → build/draft.mp4 · --final (1080x1920) → build/video.mp4 · a scene style renders each changed scene, joins them and writes both'],
   pace: [() => runPython('pace.py', [reelAt(target).dir, ...rest]), '<dir>', 'does it keep moving? a score and the still stretches'],
+  script: [() => runPython('scriptlint.py', [reelAt(target).dir, ...rest]), '<dir> [--seconds 45]', 'does the script make sense heard once? count vs items, loops, long sentences, jargon, spoken menu paths, seconds; writes build/script-lint.md'],
   effort: [() => runPython('effort.py', [reelAt(target).dir]), '<dir>', 'built for THIS script, or from ready-made pieces?'],
   lint: [() => runPython('lint.py', [reelAt(target).dir, ...rest]), '<dir> [video.mp4]', 'shot grammar: lengths, adjacent layouts, cuts on words, rhythm, first-frame motion'],
   qa: [() => runPython('qa.py', [reelAt(target).dir, ...rest]), '<dir> [video.mp4]', 'final file checks: spec, loudness, black/frozen frames, text safe zone, A/V sync; writes build/qa.json'],

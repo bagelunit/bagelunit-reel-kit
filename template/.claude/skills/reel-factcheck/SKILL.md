@@ -26,6 +26,12 @@ It runs twice per reel:
 Run it again whenever the script, the caption or a facts row changes: `kit gate` refuses Gate A or C
 if the last recorded check no longer matches the words (the fingerprint changed).
 
+## Where a fix goes (rule)
+A fix that adds a qualifier, an eligibility list, a jurisdiction or an exact label goes **on screen or into the caption by default**, not into the
+spoken line: a listener cannot hold it, and a voice stuffed with "may" and "eligible" stops making sense. Change the spoken words only when the claim
+itself is wrong, and then keep it to the smallest change. Any change to the spoken words sends the script back through `kit script`, `/script-coldread`
+and `/script-score` before Gate A (the old score no longer applies).
+
 ## Step 1: the mechanical half
 ```
 node ~/.claude/skills/bagelunit-reels/tools/kit.mjs facts reels/<slug> check --scope script   # or final
