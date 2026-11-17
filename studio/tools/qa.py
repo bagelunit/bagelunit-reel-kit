@@ -26,7 +26,7 @@ from pathlib import Path
 from kitcore import resolve_reel, Flags, fail, load_words, media_length, pcm, read_json
 
 TOOL = 'qa'
-SAFE = dict(top=250, bottom=450, side=60)        # px kept clear of text on a 1080x1920 canvas (platform buttons and caption bar)
+SAFE = dict(top=250, bottom=300, left=60, right=120)   # px kept clear of text on a 1080x1920 canvas: the kit's one safe zone (the bottom 300 px and the right 120 px are the platforms' caption bar and buttons; scripts/qa/reel_qa.py and scenes.mjs use the same numbers)
 MIN_TEXT_H = 44                                    # a text box shorter than this is hard to read on a phone
 MIN_STILL = 0.5                                    # black or frozen for longer than this (s) is reported
 SYNC_LIMIT = 0.080
@@ -174,7 +174,7 @@ def main():
         k, bad = SCENE_SLACK, []
         for b in scene_boxes:
             x, y, bw, bh = b.get('x', 0), b.get('y', 0), b.get('w', 0), b.get('h', 0)
-            if y < SAFE['top'] - k or y + bh > 1920 - SAFE['bottom'] + k or x < SAFE['side'] - k or x + bw > 1080 - SAFE['side'] + k:
+            if y < SAFE['top'] - k or y + bh > 1920 - SAFE['bottom'] + k or x < SAFE['left'] - k or x + bw > 1080 - SAFE['right'] + k:
                 bad.append(f'{b.get("t0", 0):.1f}s {b.get("kind", "")} "{str(b.get("label", ""))[:24]}" outside the safe zone')
         add('text', 'FAIL' if bad else 'PASS', (f'{len(bad)} of {len(scene_boxes)} scene boxes: ' + '; '.join(bad[:6])) if bad
             else f'{len(scene_boxes)} resting boxes from the scene engine (S.inspect) inside the safe zone; text size not measured for scene styles',
@@ -188,7 +188,7 @@ def main():
             why = []
             if bh < MIN_TEXT_H:
                 why.append(f'height {bh:.0f}px < {MIN_TEXT_H}')
-            if y < SAFE['top'] or y + bh > 1920 - SAFE['bottom'] or x < SAFE['side'] or x + bw > 1080 - SAFE['side']:
+            if y < SAFE['top'] or y + bh > 1920 - SAFE['bottom'] or x < SAFE['left'] or x + bw > 1080 - SAFE['right']:
                 why.append('outside the safe zone')
             if why:
                 bad.append(f'{b.get("t0", 0):.1f}s "{str(b.get("label", ""))[:24]}" ' + ', '.join(why))

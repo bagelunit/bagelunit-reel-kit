@@ -26,8 +26,8 @@ import { launch } from './chromium.mjs';
 export const STYLES_DIR = path.join(SKILL, 'styles');
 const CORE = path.join(STYLES_DIR, '_core');
 const W = 1080, H = 1920, FPS = 30;
-const SAFE = { top: 250, bottom: 450, side: 60 };      // the same numbers as tools/qa.py
-const SAFE_BOX = [SAFE.side, SAFE.top, W - SAFE.side, H - SAFE.bottom];
+const SAFE = { top: 250, bottom: 300, left: 60, right: 120 };      // the same numbers as tools/qa.py: the kit's one safe zone
+const SAFE_BOX = [SAFE.left, SAFE.top, W - SAFE.right, H - SAFE.bottom];
 const TOL = 6;                                          // px of slack on the safe area, as in the styles repo's tester
 const RENDER_VERSION = 'scenes-1';                      // change it when the frame loop or the codec settings change
 const MIN_SCENE = 0.5;                                  // s; a scene shorter than this is squeezed out of its neighbours

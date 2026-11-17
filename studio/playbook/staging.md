@@ -52,7 +52,7 @@ A big beat hits **on** the word that carries the sentence (usually its noun or i
 
 ## The platform's chrome
 
-Instagram and TikTok lay their own buttons and text over the bottom ~300 px and the right ~120 px, so anything important sits above y ≈ 1400 and between x 60 and 1020.
+Instagram and TikTok lay their own buttons and text over the bottom ~300 px and the right ~120 px, so anything important sits above y ≈ 1620 and between x 60 and 960 (the one safe zone: `tools/qa.py`, `kit scene check` and the brand's `scripts/qa/gate_qa.py` all use it).
 
 ## Sound
 
