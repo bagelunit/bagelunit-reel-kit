@@ -17,8 +17,8 @@ Read this whole file before writing `scenes.js`. The template (`modes/talking/st
    - writes `build/words.json` and `build/word_index.txt` (ElevenLabs Scribe when a key exists, else local Whisper).
 
    Tell the user the tightened length. If they asked to review the edit, get their OK on the cut before building visuals.
-3. **Script beats:** open `build/word_index.txt` and split the take into beats of 1.5–3 s. One beat = one `TH.scene`.
-4. **Write `scenes.js`** (section 4), then run the review loop from KIT.md section 6: stills → `kit render` → `kit pace` + `kit effort` both PASS → `--final` → `export`.
+3. **Script beats:** open `build/word_index.txt` and split the take into beats of 1.5 to 3 s. One beat = one `TH.scene`.
+4. **Write `scenes.js`** (section 4), then run the checks in KIT.md section G: stills → `kit render` → `kit pace` + `kit effort` both PASS → `--final` → `export`, and on to the cover, caption, fact check, review and Gate C.
 
 Never speed the take up. The user's natural pace is the pace. Only pauses get cut.
 
@@ -36,7 +36,7 @@ Never speed the take up. The user's natural pace is the pace. Only pauses get cu
 | `DARK` | ink background; put `TH.blurClone()` behind a sharp `TH.glowCard()` | `s.el` | y 1440, in paper colour |
 
 **Rules:**
-- Cut every 1.5–3 s, on a spoken word.
+- Cut every 1.5 to 3 s, on a spoken word.
 - Never use one layout more than twice in a row.
 - The face is on screen from frame 0 (SPLIT, SEAM or FACE), unless the hook is a pure graphic.
 - Every layout change gets a whoosh automatically (`TH.finalize`). Pass `{ quiet: true }` to skip it.
@@ -53,7 +53,7 @@ Never speed the take up. The user's natural pace is the pace. Only pauses get cu
 `TH.captions(KEY, { hot, max, swap })` must be called at the end of `scenes.js`.
 
 **How chunks work:**
-- Chunks are 1–2 words, swapped on every word, popping in on `back.out`.
+- Chunks are 1 to 2 words, swapped on every word, popping in on `back.out`.
 - A chunk breaks:
   - at punctuation;
   - at a pause longer than 0.18 s;
@@ -61,7 +61,7 @@ Never speed the take up. The user's natural pace is the pace. Only pauses get cu
 
 **How words look:**
 - **KEY words** (names, nouns, numbers, the promise) are set in **Anton CAPS on the accent tape**, wiping on with the word.
-  - `hot` words sit on the second ink colour instead. Use it for the 2–3 biggest words (a price, "free", the result).
+  - `hot` words sit on the second ink colour instead. Use it for the 2 to 3 biggest words (a price, "free", the result).
   - Pick about one KEY word per sentence. If everything is KEY, nothing is.
 - **Everything else** is Figtree 800: ink on paper layouts, paper with a shadow on the face.
 - **Numbers count up inside the caption** over the spoken word.
@@ -120,7 +120,8 @@ Rules:
   - `TH.cursor(parent)` + `TH.click(el, at)`;
   - `TH.world(s, { blobs, grid, vignette })` (backdrop);
   - `TH.seq(parent, dir, n, t0)` (an image sequence).
-- **CTA:** `TH.cta(s.ov, KEYWORD, T(KEYWORD) - 0.05, { preAt, sub: "I'll send you the link", subAt })` on a FACE scene with `{ noCap: true }`.
+- **CTA (a keyword ask, only for a tested keyword):** `TH.cta(s.ov, KEYWORD, T(KEYWORD) - 0.05, { preAt, sub: "I'll send you the link", subAt })` on a FACE scene with `{ noCap: true }`.
+- **A save or follow ask** (the brand's default; `brand.json` > `cta`): skip `TH.cta` and remove `cta.keyword` from `reel.json`. On the last FACE scene with `{ noCap: true }` use `TH.statusCard(label, body)` with the ask words ("Save this"), at the spoken ask.
 - **Sound:** `TH.sound(t, name, gain)`. Pops, slams, sliders, strikes, counts and layout cuts already add their own. Names: pop, impact, stamp, swoosh, whoosh, tick, click, shimmer, thud, riser, type, cash, boom.
 
 **Real material first.** When the take talks about a product, a page, an app or a number, show the real thing: a screenshot the user gives you, inside `TH.device()` or a card. Rebuild UI as HTML only when no capture can show the moment.
@@ -149,4 +150,4 @@ The face moving by itself doesn't count. The engine writes `build/motion_mask.js
 - **Don't scale the take down in SPLIT/SEAM** (`face.s` stays 1). It leaves bars at the sides. Re-frame with `x` / `y`, or with reel.json `"face": { "dx", "dy", "zoom" }` for the whole reel.
 - **A cue word that isn't in the take** makes `T()` fall back and logs it as missing (`TH.missing`, printed as a warning by `kit frames`). Read the warnings: a missing cue means a beat fires at the wrong time.
 - **Captions on the face need contrast.** Keep FACE captions on the chest (y 1330), never across the eyes or mouth.
-- **Themes:** reel.json `"theme": "studio" | "harbor" | "ochre" | "ink"` (v1.0 names clay / cobalt / forest / mono still work), or `{ "preset": "studio", "accent": "#…" }`. Colours come from `C.*` / `var(--accent)` etc., never hard-coded, so a theme switch restyles everything.
+- **Themes:** reel.json `"theme": "studio" | "harbor" | "ochre" | "ink"` (older names clay / cobalt / forest / mono still work), or `{ "preset": "studio", "accent": "#…" }`. Colours come from `C.*` / `var(--accent)` etc., never hard-coded, so a theme switch restyles everything.

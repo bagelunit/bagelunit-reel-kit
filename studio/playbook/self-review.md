@@ -1,6 +1,6 @@
 # Checking your own work
 
-Nobody should see a reel you haven't inspected. You can't play video, so inspect it the way an editor scrubs a timeline: still by still, then strip by strip, then with the numbers. Four rounds, in this order, on every reel.
+Nobody should see a reel you haven't inspected. You can't play video, so inspect it the way an editor scrubs a timeline: still by still, then strip by strip, then with the numbers. Four rounds of looking (stills, draft strips, gates, final), then the checks in `KIT.md` section G (lint, QA, fact check, review) before Gate C.
 
 ## Round 1 · Look at stills
 
@@ -20,7 +20,7 @@ Ask these questions of the grid. Every "no" has a fix.
 | Do two stills 0.6 s apart differ? | give the props an idle loop: a tick, a sway, typing, a float |
 | Is every word you must read at least 40 px, whole and free of overlaps? | resize, re-wrap or move it |
 | Is anything sliced by the frame edge by accident? | pull the lens back, shrink it or slide it in |
-| Is the bottom 300 px and the right 120 px free of anything that matters? | Instagram covers that strip: move it up or left |
+| Is the safe zone free of everything that matters (`docs/craft-playbook.md`, "Safe zones and text size": bottom 300 px, right 120 px, top 250, left 60)? | Instagram covers those strips: move it into x 60 to 960, y 250 to 1620 |
 | Do the captions stay off the hero, with the right word emphasised? | move the caption zone or change the emphasis |
 | Do rings and boxes sit exactly on what they mark? | check at full size (`--scale 1`) and nudge |
 | Is the host (in a mode with one) pointing at the hero rather than empty space? | aim it again |
@@ -56,7 +56,7 @@ The final render waits until both say PASS.
 
 ## Round 4 · Sound, final, hand-over
 
-- `kit export` mixes the sound and joins it to the picture. Read `build/sfx.json` first and keep cues for moments that deserve one; the export allows about one cue per 0.75 s and keeps cuts, stamps and slams first.
+- `kit export` mixes the sound and joins it to the picture; then run the real-sound step (`KIT.md` section G, step 6). Read `build/sfx.json` first and keep cues for moments that deserve one; the real-sound step keeps at most one cue per 0.45 s and keeps cuts, stamps and slams first.
 - If the voice mangles a word, spell it the way it sounds in `script.txt` ("Supa-base"), make the voice again and re-cue the shots, because `words.json` will have moved.
 - Once stills, draft and gates are clean: `kit render <project> --final`, then `kit export <project>`, then pull three frames of `out/<name>.mp4` at full size and look at them.
 

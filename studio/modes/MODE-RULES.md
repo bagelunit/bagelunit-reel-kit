@@ -49,7 +49,7 @@ A mode's page fills one object, `window.studio`, and `tools/session.mjs` reads i
 | `length` | the reel's length in seconds (usually the last word's end plus a short tail) |
 | `show(t)` | draws second `t` of the reel. It depends on `t` alone (no wall clock, no unseeded randomness), so frames can be drawn in any order. It may return a Promise. |
 | `grab` | `'canvas'` when the frame is `<canvas id="c">` at 1080×1920, `'screen'` when the whole page must be captured (WebGL, HTML layers) |
-| `cues` | optional sound cues `[{t, name, gain}]`; `tools/sound.py` synthesises them, so no mode carries audio files. Names: whoosh, swoosh, pop, click, tick, thud, boom, shimmer, riser, type, cash, stamp. |
+| `cues` | optional sound cues `[{t, name, gain}]`; `tools/sound.py` synthesises them, so no mode carries audio files. Names: whoosh, swoosh, pop, click, tick, thud, boom, shimmer, riser, type, cash, stamp (the real-sound step skips any other name and lists it in `build/realsound/report.txt`). |
 | `quiet` | optional regions the motion check leaves out (the talking mode uses it for the face) |
 
 Every page understands three query switches: `?t=3.5` for a single frame, `?play` for real-time playback with `audio/vo.mp3` (click to start) and `?only=<shotId>` to draw one shot by itself.
@@ -57,14 +57,14 @@ Every page understands three query switches: `?t=3.5` for a single frame, `?play
 ## What a reel folder always has
 
 - `build/words.json`, `[{"w","s","e"}]`: each spoken word with its start and end on the finished audio, written by `tools/voice.py` or `tools/take.py`. Pages load it when they boot.
-- `audio/vo.mp3`, `script.txt` and `reel.json` (`{style, name, voice?, theme?, brand?, cta: {keyword}, host?, …}`).
+- `audio/vo.mp3`, `script.txt` and `reel.json` (`{style, name, voice?, theme?, brand?, cta, host?, …}`).
 - Shots start on words, never on typed seconds. Each mode's API has a word lookup with a fallback; its guide shows it.
 
 ## Every mode, without exception
 
 - **Fonts** come only from `/fonts/`, and they are all open-licensed. Every font stack names `"Fallback"` (the non-Latin font fetched when needed) before its generic family.
-- **Nothing from outside the kit:** no absolute paths, no tools that only exist on one machine, no personal handles, and no other company's brands, logos, footage, music or sound files.
-- **Output** is deterministic, 1080×1920, and respects the platform chrome: the bottom ~300 px and right ~120 px are covered by Instagram's and TikTok's own interface, so anything important stays above y ≈ 1400 and between x 60 and 1020.
+- **Nothing from outside the kit:** no absolute paths, no tools except the ones the installer sets up (the real-sound step uses the earshot and sound libraries it installs), no personal handles, and no other company's brands, logos, footage, music or sound files.
+- **Output** is deterministic, 1080×1920, and respects the platform chrome: the bottom ~300 px and right ~120 px are covered by Instagram's and TikTok's own interface, so keep anything important inside the safe zone: x 60 to 960, y 250 to 1620. The single source is `docs/craft-playbook.md`, "Safe zones and text size".
 - **Readability:** one hero per beat, on-screen text of 40 px or more, and every state the viewer must read held for at least 0.4 s.
 
 ## Scene styles
@@ -80,7 +80,7 @@ Besides the three modes the kit offers the scene styles in `styles/` (local addi
 | `errors` | everything the runtime or the engine complained about |
 | `window.SceneStyle.inspect(t)` | optional: `[{kind, label, x, y, w, h, moving}]`, the screen boxes of what is drawn at `t`; the kit uses it for the safe-area checks |
 
-`kit render` renders each scene to its own mp4 with its slice of the voice (`build/scenes/NNN.mp4`), skips a scene whose page and voice slice did not change (content hash in `build/scenes/NNN.json`), joins the scenes without encoding the picture again, and puts the whole `audio/vo.mp3` (plus `reel.json` `"music"`, ducked under the voice at `"music_volume"`, default 0.18) under it at -14 LUFS. It writes `build/video.mp4` (1080x1920) and `build/draft.mp4` (540x960), where the modes' renders go, so `kit qa`, `kit pace`, `kit cover`, `kit export`, the gates and the publisher work as before. Scenes are hard cuts; a scene's transitions and motion are the engine's. `kit export` mixes the final sound with `tools/sound.py` as for every mode (the voice and `reel.json` `"music"`; scene styles publish no sound cues).
+`kit render` renders each scene to its own mp4 with its slice of the voice (`build/scenes/NNN.mp4`), skips a scene whose page and voice slice did not change (content hash in `build/scenes/NNN.json`), joins the scenes without encoding the picture again, and puts the whole `audio/vo.mp3` (plus `reel.json` `"music"`, ducked under the voice at `"music_volume"`, default 0.18) under it at -14 LUFS. It writes `build/video.mp4` (1080x1920) and `build/draft.mp4` (540x960), where the modes' renders go, so `kit qa`, `kit pace`, `kit cover`, `kit export`, the gates and the publisher work as before. Scenes are hard cuts; a scene's transitions and motion are the engine's. `kit export` mixes the final sound with `tools/sound.py` as for every mode (the voice and `reel.json` `"music"`). `kit render` also writes `build/sfx.json` from the scene cuts (a soft swoosh on every cut, none on frame 0; a scene can add its own `"sfx"`), so the real-sound step has cues.
 
 **Folder layout** (never edit it here: `styles/README.md`):
 
@@ -94,7 +94,7 @@ styles/
 
 A style appears in `kit start` as soon as it is in `STYLES.json` with `tall` among its formats and its `engine.js` is there.
 
-**The plan: `scenes.json`** in the reel folder, next to `reel.json` (`{style: "<id>", name, cta: {keyword}, seed?, tail?, music?, music_volume?}`) and `script.txt`:
+**The plan: `scenes.json`** in the reel folder, next to `reel.json` (`{style: "<id>", name, cta, seed?, tail?, music?, music_volume?}`) and `script.txt`:
 
 ```json
 { "scenes": [
@@ -109,6 +109,6 @@ A style appears in `kit start` as soon as it is in `STYLES.json` with `tall` amo
 - Optional per scene: `id`, `seed`.
 - **No times are typed.** Each scene's start and end come from `build/words.json`: its narration is matched to the spoken words, and the cut between two scenes falls in the middle of the pause between them, on a frame. A scene whose words cannot be found (no voice yet, or narration that is not in the script) shares the time between its neighbours evenly. `kit scene <dir> plan` prints the times and how each was found, into `build/scene_times.json`. Scenes run best at 3 to 12 s.
 
-**Checks.** `kit scene <dir> check` builds every scene and reports `window.__scene.errors`, boxes outside the safe area (y 250 to 1620, x 60 to 960 on 1080x1920, 6 px slack) and frames that change after seeking away and back, with four stills per scene and a sheet in `build/scenes/check/`. `kit render` keeps the resting `S.inspect` boxes on the reel's clock in `build/scene_boxes.json`, and `kit qa` checks the safe zone on them (text size is not measured for scene styles). `kit effort` does not apply (there is no shot code) and `kit lint` finds no shot data; `kit pace` measures the draft against the print bar.
+**Checks.** `kit scene <dir> check` builds every scene and reports `window.__scene.errors`, boxes outside the safe area (y 250 to 1620, x 60 to 960 on 1080x1920, 6 px slack) and frames that change after seeking away and back, with four stills per scene and a sheet in `build/scenes/check/`. `kit render` keeps the resting `S.inspect` boxes on the reel's clock in `build/scene_boxes.json`, and `kit qa` checks the safe zone on them (text size is not measured for scene styles). `kit effort` does not apply (there is no shot code) and `kit lint` finds no shot data; `kit pace` measures the draft against the print bar, except for a calm style (`CALM_STYLES` in `tools/kitcore.py`), which is measured but passes with a note.
 
 **Voice.** `tools/voice.py` voices `script.txt` exactly as for a mode (`reel.json` `"voice"` applies). `kit scene <dir> stand-in` makes a stand-in instead: a tone on each word with fake word times, no key and no credits, for previewing timing and for tests. It never replaces a real voice take, and `kit render` warns while it is in use.

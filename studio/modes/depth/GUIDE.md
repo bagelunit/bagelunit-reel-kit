@@ -61,14 +61,14 @@ export default ({ lines, at, when, nthWord, end, words, reel }) => [
 
 - **`from`:** a word, a phrase, a whole-number word index, or `{ s: seconds }`. Use a phrase when the word appears earlier
   in the script too ("Every order", not "Every").
-- **`title`:** the taped title for that shot: 2–5 words, the point of the shot, not the spoken line. `reel.json` "tape":
+- **`title`:** the taped title for that shot: 2 to 5 words, the point of the shot, not the spoken line. `reel.json` "tape":
   false turns all titles off.
 - **`turn`:** `'cut'` (default: a hard cut with a one-frame jolt), `'soft'` (no jolt, for two shots in the same set),
   `'whip'` (a fast pan through the cut with speed lines and an automatic whoosh) or `'swoop'` (a fast tilt with a swoosh).
   `dir: -1` flips a whip or swoop; `sound: false` keeps it silent. Use one or two per reel, on a change of place.
 - You can also return `{ cuts, length, keys }`. `keys` are extra words shown as inverted tiles.
 
-A new shot every 2–4 s.
+A new shot every 2 to 4 s.
 
 ## A shot file
 
@@ -116,7 +116,7 @@ What `k` gives you:
 - a **view name** from the set (`shot.set.views`): `'wide'`, `'screen'`, `'line'` …;
 - your own **move** `{ from: [x, y, z], to: [x, y, z], look0, look1, fov, ap, focus, kick }` in set coordinates (metres, floor
   at y 0, the lens looks toward −z). The camera eases from `from` to `to` across the whole shot and never stops dead.
-  `ap` is the depth-of-field aperture (0.0015–0.0035), `focus` the point held sharp, `kick` where it springs in from at
+  `ap` is the depth-of-field aperture (0.0015 to 0.0035), `focus` the point held sharp, `kick` where it springs in from at
   the cut (default `[0, 0.3, 0.6]`);
 - a **fixed pose** `{ pos, look, fov, ap }`;
 - a **spline**: `{ path: [[x, y, z], …], look: [x, y, z] | lookPath: [[…], …], roll: 4 | [-4, 3], fov, ap }`. The lens
@@ -133,7 +133,7 @@ Each takes `(shot.root, options)` and returns the set: `.views`, `.light(rig, at
 | Builder | What it is | Options | Handles you animate |
 |---|---|---|---|
 | `shop` | a shop interior at night: lit doorway, OPEN/CLOSED sign that flips, window with stars, a neon word on the wall beside the door, clock, hanging lamp, desk with mug + plant | `wall`, `neonWord`, `openSign` | `host` (Bix's spot), `door`, `signAt`, `wordAt`, views `wide` `host` `desk` |
-| `board` | a corkboard with 1–3 pinned cards that fly in on cue and a red string | `wall`, `cards: [{ title, lines, icon }]`, `x`, `y` | `cards[i].at`, `yarnAt`, view `board` |
+| `board` | a corkboard with 1 to 3 pinned cards that fly in on cue and a red string | `wall`, `cards: [{ title, lines, icon }]`, `x`, `y` | `cards[i].at`, `yarnAt`, view `board` |
 | `desk` | a desk by a big window with a laptop you paint live, a mug, a plant, an optional neon | `wall`, `sky: 'night'\|'day'\|'cycle'`, `neonWord`, `laptopFaces: 'lens'\|'host'` | `screen.draw(fn)`, `dawn = [t0, t1]`, `cycleFrom`, `signAt`, `host`, `peek` (a small Bix beside the laptop), view `screen` |
 | `monitor` | a tall screen on a desk, painted live; `screen` fills the frame, `wide` shows the desk | `wall`, `sw`, `sh`, `glow` | `screen.draw(fn)`, `peek` (Bix at the screen's corner), views `screen` `wide` |
 | `machine` | a sage press on a production line: copper hood with vent pipes, gauge, pull lever, indicator bulbs, a ticket slot, belts in and out, labelled trays | `wall`, `name`, `body`, `hood`, `inLabel/inSub`, `outLabel/outSub` | `line` (add your items to it), `beltX`, `startAt`, `toSet(x, y, z)`, view `line` |
@@ -189,19 +189,20 @@ He is about 1 m tall at scale 1. A crowd: `k.crowd(8, shot.root, 0.32)` returns 
 
 ## The flat layer
 
-- **Taped title:** from the cut's `title` (or `shot.title`). 2–5 words, uppercase is applied for you.
+- **Taped title:** from the cut's `title` (or `shot.title`). 2 to 5 words, uppercase is applied for you.
 - **Caption tiles:** automatic, from the words: up to 3 words (14 characters) per group, broken at punctuation, on a fixed
-  soft band at y 1360–1610. Key words (from
+  soft band at y 1360 to 1610. Key words (from
   `reel.json` "tiles.keys" and `cuts.js` keys) are inverted. `tiles: { off: true }` hides them.
 - **Badge:** `shot.badge = ['LABEL', (t) => number]`: pops in at the cut, punches each time the number changes.
 - **Chip:** `shot.chip = 'command'` or `{ text, at }`: a terminal line that types itself in, then shows "● running".
 - **Comment box:** `shot.cta = { keyword, at, sub }`: rises at the cut, the keyword types on the spoken word, Post presses,
-  hearts float up, and `sub` pops under it. Use it in the last shot only.
+  hearts float up, and `sub` pops under it. Use it in the last shot only, and only for a tested keyword.
+- **A save or follow ask** (the brand's default; `brand.json` > `cta`): leave `shot.cta` out and remove `cta.keyword` from `reel.json`. In the last shot use the taped title, `shot.title = 'SAVE THIS'` (2 to 5 words), with Bix waving, and let the caption tile carry the spoken ask.
 
 ## Timing and motion
 
 - Every beat lands on a word: `shot.at('word')`. Never type seconds.
-- Something changes every 0.5–1 s: a pin, a card, a counter tick, a hop, a sign letter.
+- Something changes every 0.5 to 1 s: a pin, a card, a counter tick, a hop, a sign letter.
 - Landings use `k.settle` (overshoot), punches `k.jolt`, appearances `k.grow`. Never linear moves.
 - One `k.punch` on the shot's biggest word. A `k.shake` only for a slam.
 
@@ -223,4 +224,4 @@ cash, riser, boom. Whip and swoop cuts add their own whoosh/swoosh. Keep it spar
 - Bix is in most shots and does something on a word.
 - Titles say the point, tiles carry the words, nothing important sits under the taped title or the tiles.
 - No real brand names on signs or screens; text on objects is short and readable on a phone.
-- The last shot is the ask: the comment box with the keyword, Bix waving.
+- The last shot is the ask, Bix waving: the brand's own ask (see "A save or follow ask" below), or the comment box with the keyword only for a tested keyword.

@@ -1,29 +1,20 @@
-# Setup
+# Setup troubleshooting
 
-One time per computer, roughly ten minutes, no coding. Open the kit folder in your AI and type **"set up the reel kit"**: it runs the checkup, explains every ✗ in plain words and fixes it with you. This page is the same path written down, in case you'd like to do it by hand.
+This page explains each line of `node tools/checkup.mjs` and how to fix a ✗. To install the kit, run `bash setup/install.sh` (Windows: `node setup/install.mjs`) from the kit's repo. The repo's `SETUP.md` has the full steps, including the browser tool and the sound library.
 
-## Where the kit runs
-
-| AI | How to open the kit |
-|---|---|
-| Claude Code | start `claude` from a terminal opened in `bagelunit-reel-kit` (or pick that folder in the desktop app's Code tab) |
-| Codex | start `codex` from the same folder |
-| Cursor | open the folder as a project and work in Agent mode |
-
-`CLAUDE.md` and `AGENTS.md` in the folder send the AI to `studio/KIT.md`. Finished reels go to `reels/`.
-Prefer one global install? Copy just `studio/` into your skills folder as `bagelunit-reels` (`~/.claude/skills/bagelunit-reels` or `~/.codex/skills/bagelunit-reels`); reels are then made in a `reels/` folder of whatever project you're in.
+The engine is installed once as the `bagelunit-reels` skill (`~/.claude/skills/bagelunit-reels`). Reels are made in a brand folder, which `/brand-setup` creates. In the commands below, run them from the engine folder (`cd ~/.claude/skills/bagelunit-reels`).
 
 ## Programs the kit calls
 
-Three programs: Node.js (version 22 or later), ffmpeg (it brings ffprobe along) and Python 3.
+Node.js (version 22 or later), ffmpeg (it brings ffprobe along) and Python 3.
 
-| System | One line installs all three |
+| System | Install |
 |---|---|
 | Mac (with Homebrew, https://brew.sh) | `brew install python ffmpeg node` |
 | Windows | `winget install Python.Python.3.12 Gyan.FFmpeg OpenJS.NodeJS.LTS` (open a fresh terminal afterwards) |
-| Linux (Debian/Ubuntu) | `sudo apt install python3 python3-pip ffmpeg nodejs npm` |
+| Linux (Debian/Ubuntu) | Node.js 22 or newer from https://nodejs.org (the `nodejs` package from apt is too old on most versions), then `sudo apt install python3 python3-pip ffmpeg` |
 
-Then, from `studio/`, fetch the kit's own pieces:
+Then, in the engine folder, fetch the kit's own pieces:
 
 ```
 npm install                    # three.js and the browser driver
@@ -41,7 +32,7 @@ The voice comes from ElevenLabs; a free account covers a handful of reels each m
 2. Put the key, alone on one line, in `~/.config/bagelunit-reels/elevenlabs.key` (Windows: `%USERPROFILE%\.config\bagelunit-reels\elevenlabs.key`). Make the folders if needed. Keys never go in the chat.
 3. Ask Claude to **find you a voice**: it searches the library, plays you samples and saves the one you like.
 
-Prefer your own voice? Hand Claude a recording. OpenAI voices are supported as well; just ask for them.
+Prefer your own voice? Hand Claude a recording. OpenAI voices are supported as well; just ask for them. `python3 tools/budget.py --left` shows the credits left.
 
 ## Talking-head edits (only if you want them)
 
@@ -53,19 +44,15 @@ Shoot vertical (9:16) if you can; wider takes get cropped to fill the frame.
 
 ## Handle and colours
 
-During setup you're asked for both; they're stored in `~/.config/bagelunit-reels/config.json` and every new reel starts with them.
-- **Handle**, e.g. `@yourname`, small in the top bar.
-- **Theme:** `studio` (warm white + vermilion, the house look), `harbor` (deep blue), `ochre` (warm gold), `ink` (black and white), or any accent colour. Older names (clay, cobalt, forest, mono) still work.
-
-Any single reel can differ: "make this one harbor".
+In a brand folder `/brand-setup` answers these. By hand: `node tools/checkup.mjs --set-brand @name --set-theme <studio|harbor|ochre|ink>`. Older theme names (clay, cobalt, forest, mono) still work. Any single reel can differ: "make this one harbor".
 
 ## Done when
 
-`node tools/checkup.mjs` shows only ✓ (○ lines are optional). Then ask for something, for example: **"A reel on why hotels put mints on the pillow."**
+`node tools/checkup.mjs` shows only ✓ (○ lines are optional). Then open Claude Code in your brand folder and type `/bagelunit-reels`.
 
 ## Common snags
 
-- **headless browser ✗:** in `studio/`, run `npm run browser` once more.
+- **headless browser ✗:** in the engine folder, run `npm run browser` once more.
 - **ffmpeg not found although you just installed it:** the terminal was opened before the install; open a new one.
 - **ElevenLabs 401:** wrong key or no credits left; create a new key.
 - **The laptop gets loud:** normal for the length of a final render. Drafts are half size, and renders take turns.

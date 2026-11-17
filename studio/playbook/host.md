@@ -1,5 +1,7 @@
 # The presenter (print mode)
 
+A brand with a sticker host uses `/sticker-host` and `kit host reels/<slug>`; this page is for the drawn presenter.
+
 Print reels have a flat-vector presenter: a head-and-shoulders bust with a die-cut sticker border, docked in the bottom-right
 corner. It points at whatever is new on the stage, follows it with its eyes, lip-syncs to the voice and acts every phrase. It is
 drawn in code, so any user can have their own look without generating images.

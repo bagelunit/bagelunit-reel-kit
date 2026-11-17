@@ -14,7 +14,7 @@ number) on the left and a readout chip on the right. Everything moves like a phy
 settles. One camera kick per big moment. Scenes change on a hard cut on a word, now and then through a shutter wipe (diagonal blinds
 close over the old scene and open on the new one).
 
-**Themes** (reel.json `"theme"`): `studio` (default), `harbor`, `ochre`, `ink`. The v1.0 names `clay`, `cobalt`, `forest`, `mono`
+**Themes** (reel.json `"theme"`): `studio` (default), `harbor`, `ochre`, `ink`. The older names `clay`, `cobalt`, `forest`, `mono`
 still work. For your own mix pass an object: `{ "preset": "studio", "accent": "#…", "paper": "#…", "ink2": "#…", "bloom": 0..1,
 "grain": 0.03 }`. `"brand": { "handle": "@you" }` prints the handle top-right whenever a scene has no readout. `"sticker": false`
 drops the presenter's sticker edge.
@@ -30,7 +30,7 @@ use them to calibrate density, staging and pace. Every word changes the stage, a
 
 ## 1.1 Numbers to hit
 
-Measured on the benchmark reels: **motion 5.0-7.8, big moves 0.7-1.6 per second.** A reel made of "one object per beat on bare
+Measured on the benchmark reels: **motion 5.0-7.8, big moves 0.7-1.6 per second.** `kit pace` passes at motion 4.8 and 0.65 big moves a second. A reel made of "one object per beat on bare
 paper" measures about 3.8 / 0.3 and reads as a slideshow. Before planning, open the three strips (one frame per second):
 
 | strip | watch for |
@@ -164,7 +164,7 @@ part of the manual and the mechanics primitives it measured motion 6.6, big 0.98
   scenes/*.js      one file per scene, an IIFE that registers SC.<key> = {...}              (yours)
   script.txt       build/words.json  build/word_index.txt  audio/vo.mp3  assets/ (your images)
 the engine (read-only, served at /mode/):
-  runtime/  load.js (loads the rest in order) lib.js ui.js media.js words.js lipsync.js captions.js acting.js presenter.js halftone.js engine.js
+  runtime/  load.js (loads the rest in order) lib.js ui.js media.js words.js lipsync.js captions.js acting.js presenter.js stickerhost.js halftone.js engine.js
   parts/    fx.js devices.js cards.js charts.js mechanics.js (motion primitives, the build-up stage, live UI, acting presets: §3.8)
 examples (read-only, never loaded by a reel): examples/objects/*.js (props, played by examples/props-reel) · examples/p*.js (scenes) · examples/casinos/ (a whole reel)
 ```
@@ -299,11 +299,13 @@ keys work too (`"ui": {"cvTitle": "// резюме"}` → `uiText('cvTitle')`). 
 (or through `uiText`), never hard-coded English. `dmBubble(..., {title: true})` uses `uiText('newMessage')`. Glyphs for any non-Latin
 text (voice words, UI strings, the keyword) are preloaded from the "Fallback" font family before the first frame.
 
-**The starter's CTA**, in order: a comment sheet slides up, the keyword gets typed and posted, it grows into a big pill, notifications
+**The starter's CTA** (a keyword ask, only for a tested keyword), in order: a comment sheet slides up, the keyword gets typed and posted, it grows into a big pill, notifications
 and replies with the keyword arrive, a DM says "sent you the link", and the presenter gives a thumbs-up. Its comment counter is **off by default**, because invented engagement numbers are a lie. Turn it
 on only with a real number: `"cta": { "keyword": "REEL", "counter": 1480 }` (an accent odometer badge rolls up to it after Post, and
 the readout shows it). Its sound is sparse on purpose (two keystrokes, the Post click and pop, the DM pop, a closing shimmer); the
 mixer drops cues that crowd each other.
+
+**A save or follow ask** (the brand's default; `brand.json` > `cta`): leave the comment sheet, keyword and DM scenes out and remove `cta.keyword` from `reel.json`. Build the last scene from the same building blocks: a `tag(...)` or `statCard(...)` card carrying the ask words ("Save this", "Follow for more"), the ask word listed in `captions.emphasize`, the presenter aimed at the card, and a closing `shimmer`. Hold the last frame.
 
 ## 2.6 The presenter
 
@@ -385,7 +387,7 @@ SC.reply = {
   const T_DRIP = wordAt('every', S0, 1, S0 + 0.5);          // each beat is a word, with a fallback time
   kick(T_DRIP + 0.03, 0.8, 0.8); cue(T_DRIP, 'thud');       // kicks and sounds are registered at load time
   SC.leak = {
-    label: '// 03 — the leak',                              // the top-left tab (default "// 0N — key")
+    label: '// 03, the leak',                              // the top-left tab (default "// 0N, key")
     readout: t => ({ k: 'LOST', v: '$40', hot: t > T_DRIP }),   // optional top-right chip
     cam: t => ({ x, y, z, r }),                             // optional camera (z 1 = identity); back to identity at the cuts
     back: (T, K, t) => {},                                  // optional full-frame background, screen space, under everything
@@ -452,7 +454,7 @@ fix. Only the presenter has to match across the cut.
 **Sound:** `cue(t, name, gainDb = 0)` with `whoosh swoosh pop click tick thud impact boom shimmer riser type cash stamp`. The gain is
 relative: 0 is the normal level, -4 quieter, -8 barely there, and positive values get clamped to 0. Less is more: whooshes go into
 cuts, and each beat gets one accent sound that matches its action (stamp for a slam, tick for a checkbox, type for typing, pop for a
-win), at most about two cues a second. `tools/sound.py` also thins the cue list on its own, so only cue what carries meaning:
+win), and no more than the real-sound step keeps (at most one cue per 0.45 s; `KIT.md` section G, step 6). That step knows `whoosh swoosh stamp boom riser shimmer thud pop click tick type cash` and skips any other name (it lists what it skipped in `build/realsound/report.txt`; use `stamp` or `boom` for a slam). `tools/sound.py` thins the cue list for the plain export, so only cue what carries meaning:
 
 | group | sounds | rule |
 |---|---|---|

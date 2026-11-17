@@ -16,9 +16,9 @@ Picture each shot as a stage that starts busy and gets busier.
 
 | Event | Rate |
 |---|---|
-| A piece arrives or changes | on each leaned-on word, roughly every 0.4–0.8 s |
+| A piece arrives or changes | on each leaned-on word, roughly every 0.4 to 0.8 s |
 | A big beat (slam, cut, whip, wipe, topple, host move) | 0.7 or more per second |
-| A small movement somewhere | every 0.3–0.5 s |
+| A small movement somewhere | every 0.3 to 0.5 s |
 | A frame with nothing moving | 1.2 s at the very most |
 | A state the viewer has to read | stays put for 0.4 s or longer |
 
@@ -30,7 +30,7 @@ A big beat hits **on** the word that carries the sentence (usually its noun or i
 
 ## Text on screen
 
-- Anything the viewer is meant to read is 40 px or larger; interface text shown inside a phone or a browser can go down to 28 px. Tiny labels and timestamps are decoration and may be smaller.
+- Anything the viewer is meant to read is 40 px or larger (the table in `docs/craft-playbook.md` gives the floor and how the checks measure it); interface text shown inside a phone or a browser can go down to 28 px. Tiny labels and timestamps are decoration and may be smaller.
 - Beyond the captions, keep the must-read text to about six words.
 - Rings, boxes and underlines land exactly on what they mark; check them at full size.
 
@@ -52,12 +52,12 @@ A big beat hits **on** the word that carries the sentence (usually its noun or i
 
 ## The platform's chrome
 
-Instagram and TikTok lay their own buttons and text over the bottom ~300 px and the right ~120 px, so anything important sits above y ≈ 1620 and between x 60 and 960 (the one safe zone: `tools/qa.py`, `kit scene check` and the brand's `scripts/qa/gate_qa.py` all use it).
+Instagram and TikTok lay their own buttons and text over the bottom ~300 px and the right ~120 px, so keep anything important out of them: clear of the bottom 300 px and the right 120 px, and also of the top 250 px and the left 60 px (x 60 to 960, y 250 to 1620). The single source is `docs/craft-playbook.md`, "Safe zones and text size"; `kit qa`, `kit scene check` and the brand's `scripts/qa/gate_qa.py` use the same numbers.
 
 ## Sound
 
-The voice is in front; effects sit roughly 18 dB below it. One effect per event that deserves it: a swoosh for a transition, a pop when something appears, a tick on a counter, a thud or stamp on a slam. No bells or dings, and no bursts of effects stacked on top of each other. Music is optional; many creators add a track inside the app.
+The voice is in front. The real-sound step (`KIT.md` section G, step 6) keeps at most one cue per 0.45 s, mixes hits louder than the rest by default, and keeps the voice on top. One effect per event that deserves it: a swoosh for a transition, a pop when something appears, a tick on a counter, a thud or stamp on a slam. No bells or dings, and no bursts of effects stacked on top of each other. Music is optional; many creators add a track inside the app.
 
 ## The last seconds
 
-The ask shows the keyword large (as a pill, a sign or a card) next to something that says "comment": a comment sheet, or the host pointing. Keep the final frame up for about half a second after the voice stops.
+The ask is the brand's own (`brand.json` > `cta`). It shows large (as a card, a sign or a stamp) with the host pointing at it. Only a tested keyword ask shows the keyword next to a comment sheet. Keep the final frame up for about half a second after the voice stops.

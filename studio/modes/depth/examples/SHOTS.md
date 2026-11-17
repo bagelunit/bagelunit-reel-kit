@@ -2,7 +2,7 @@
 
 Twenty-eight finished shots in the depth look. Each file is a complete shot: copy it into a reel's `shots/` folder, add a cut for
 it in `cuts.js`, then change its words and labels to fit your line. All of them use the set builders in
-`modes/depth/parts/rooms.js` (b09–b13 and b21 use the workbench, `k.rooms.bench`) and Bix from `parts/buddy.js`. Read a file's header comment first: it lists the line it
+`modes/depth/parts/rooms.js` (b09 to b13 and b21 use the workbench, `k.rooms.bench`) and Bix from `parts/buddy.js`. Read a file's header comment first: it lists the line it
 fits and the cue words it listens for. Every cue has a fallback, so a shot still plays if your script never says that word.
 
 | File | The picture | Fits a line like | Cue words |

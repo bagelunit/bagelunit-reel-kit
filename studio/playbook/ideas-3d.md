@@ -8,7 +8,7 @@ The 3D companion of `playbook/ideas.md`. Read it before the concept card of any 
 
 ## 1 · How a `depth` explainer holds attention
 
-1. **One world, several scales.** Pick one place and travel through 3–5 sizes of it: inside the object → hand-sized → room or street → city or planet. The jump between sizes is the most reliable "wow" you have.
+1. **One world, several scales.** Pick one place and travel through 3 to 5 sizes of it: inside the object → hand-sized → room or street → city or planet. The jump between sizes is the most reliable "wow" you have.
 2. **The invisible thing gets a substance and one colour.** Data becomes glass capsules, heat becomes amber haze, attention becomes light, money becomes coins in a tube. Pick it once, introduce it on the word that names it, and keep it for the whole reel. Failure or absence gets a second colour.
 3. **Abstractions get a body.** "History" can be translucent copies of the scene stacked behind it, "time" a stack of blocks whose height is minutes, "a decision" a fork in a rail track with a switch you can see flip.
 4. **Agents do the work.** Not arrows: a courier carries the packet, cars actually brake, drops actually land. Each agent acts on a word.
@@ -18,7 +18,7 @@ The 3D companion of `playbook/ideas.md`. Read it before the concept card of any 
 8. **Ride the token.** The camera travels with the thing that moves, from start to destination.
 9. **Count, stack, reframe.** Numbers roll on the word; the last beat restates the idea in the widest shot with a change of light.
 
-**Camera:** wide (where are we) → close (how it works) → wide (how big it is), repeated inside each explanation. A camera key every 0.7–1.4 s, 2–5 framings per beat, and the camera never parks (it drifts on holds). Location jumps hide inside a burst, an iris or a whip.
+**Camera:** wide (where are we) → close (how it works) → wide (how big it is), repeated inside each explanation. A camera key every 0.7 to 1.4 s, 2 to 5 framings per beat, and the camera never parks (it drifts on holds). Location jumps hide inside a burst, an iris or a whip.
 
 **Light:** every beat sets a mood (an empty bright hall for "alone", dusk lamps for the payoff, a dark veil for abstract layers). Keep plain whites just under the bloom threshold so only meaningful emitters glow. Impacts get anticipation, a slam, a flex, a shake and a flash. Depth of field and contact shadows sell scale on small props.
 
@@ -30,7 +30,7 @@ Fill this block at the top of `STORYBOARD.md` before any code:
 
 ```
 WORLD (top of STORYBOARD.md)
-chain       : verb → verb → verb → verb            (3–6 steps; each becomes a beat)
+chain       : verb → verb → verb → verb            (3 to 6 steps; each becomes a beat)
 substance   : <what flows> = <how it looks>, colour <x>; failure = colour <y>
 place       : <where>; sizes: <inside> ↔ <hand> ↔ <street/city>   (jumps on "<word>", "<word>")
 agents      : <who carries it>, acting on <words>
@@ -41,15 +41,15 @@ new props   : buildA (moves) · buildB (moves) · buildC (moves) …   stock par
 ```
 
 Steps:
-1. **Write the mechanism as 3–6 verbs** (who does what to what).
+1. **Write the mechanism as 3 to 6 verbs** (who does what to what).
 2. **Name the hidden quantity** and give it a substance and one colour, plus a failure colour.
 3. **Choose the place and its sizes.** Where would this happen if you could shrink or fly? Mark which words jump sizes.
 4. **Cast the agents** and give each one a word.
 5. **Find the contrast pair** for the hook and for the catch.
 6. **Mark the level shifts,** each with its own light.
-7. **Plan one wow every 10–15 s** and name the exact word it lands on.
+7. **Plan one wow every 10 to 15 s** and name the exact word it lands on.
 8. **Plan the camera** per section: wide → close → wide, a key per stressed word.
-9. **List the props you'll build** (at least 3 heroes, usually 8–15 builders in total) with their motion hooks, e.g. `open(k)`, `fill(k)`, `split(k)`, `stack(k)`.
+9. **List the props you'll build** (at least 3 heroes, usually 8 to 15 builders in total) with their motion hooks, e.g. `open(k)`, `fill(k)`, `split(k)`, `stack(k)`.
 10. **Generic check:** could this frame belong to another reel? Is a stock part carrying the idea? Is anything a diagram floating in a void instead of a place? If yes, go back to step 2.
 
 ---
@@ -68,12 +68,12 @@ Steps:
 
 | Measure | Strong | Accept |
 |---|---|---|
-| Beat length | 4–6 s | 2–8 s |
-| Your own shot code | 50–80 lines per second of video | ≥ 35 |
-| Helpers written for this reel | 2.5–6 per second | ≥ 1.5 |
-| Named builders (props, effects, sets) | 20–45 | 8–15 |
-| Camera | a key every 0.7–1.4 s | |
-| Wows | one per 10–15 s | |
+| Beat length | 4 to 6 s | 2 to 8 s |
+| Your own shot code | 50 to 80 lines per second of video | ≥ 35 |
+| Helpers written for this reel | 2.5 to 6 per second | ≥ 1.5 |
+| Named builders (props, effects, sets) | 20 to 45 | 8 to 15 |
+| Camera | a key every 0.7 to 1.4 s | |
+| Wows | one per 10 to 15 s | |
 
 `kit effort` checks the code numbers and `kit pace` the motion; both must pass before the final. Stock parts may appear at most once each, and only when the script is literally about them. Backdrop sets (streets, shops, cities) are fine.
 
@@ -108,7 +108,7 @@ Steps:
 | **Before it breaks** | a machine already overheating, a gauge in the red, steam on the word |
 | **The impossible fact** | a number rolling on a wall screen behind Bix, landing on the word |
 
-Rules: the hero object is big in frame (40–60 % of the height) at frame 0; one action, not three; the stressed word lands with a visible physical change (a slam, a drop, a light coming on).
+Rules: the hero object is big in frame (40 to 60 % of the height) at frame 0; one action, not three; the stressed word lands with a visible physical change (a slam, a drop, a light coming on).
 
 ---
 
@@ -118,29 +118,29 @@ Same method as `ideas.md` section 7, with three extra columns:
 
 ```
 #  | time    | words (CAPS = stressed) | job   | device              | set / room       | camera move          | light / mood
-1  | 0–2.4   | the pizza is FIVE minutes AWAY | hook | caught in the act | street (dusk)    | low push on Bix      | warm lamps, wet road
-2  | 2.4–6.8 | it LEFT the oven at …   | setup | ride the token      | workbench → map  | follow the box, crane up | kitchen orange → map cool
+1  | 0 to 2.4   | the pizza is FIVE minutes AWAY | hook | caught in the act | street (dusk)    | low push on Bix      | warm lamps, wet road
+2  | 2.4 to 6.8 | it LEFT the oven at …   | setup | ride the token      | workbench → map  | follow the box, crane up | kitchen orange → map cool
 …
 ```
 
-Look hardest at three things in the reel you're studying: how often the camera changes framing (every 0.7–1.4 s), where the size jumps are, and which single object the camera rides.
+Look hardest at three things in the reel you're studying: how often the camera changes framing (every 0.7 to 1.4 s), where the size jumps are, and which single object the camera rides.
 
 ---
 
 ## 9 · Two whole 3D reels, beat by beat (method only: never reuse these props)
 
 **A · depth · "How a pizza reaches you in 20 minutes" (35 s).** Chain: order lands → oven fires → rider picks up → route is solved → doorbell. Substance: the order as a glowing paper ticket (warm yellow); a delay as a red clock.
-- *Hook (0–3 s):* street at dusk, a pizza box on a doorstep with a timer badge rolling down from 20:00 to 0:00 on "twenty"; Bix opens the door, grinning.
-- *Beat 2 (3–10 s):* rewind. Workbench room: a ticket slides out of a printer on "order", Bix slaps it onto a rail; the camera rides the ticket along the rail into a brick oven glowing orange.
-- *Beat 3 (10–18 s):* mapTable from above: the box becomes a token; three possible routes draw; two turn red with tiny traffic jams on "traffic", one stays yellow and the token runs it.
-- *Beat 4 (18–28 s):* monitor room: a light dashboard with four tiles (ordered, baked, out, delivered) ticking on their words; the last tile flips on "doorbell".
-- *Ask (28–35 s):* back to the doorstep, the comment box CTA with keyword PIZZA.
+- *Hook (0 to 3 s):* street at dusk, a pizza box on a doorstep with a timer badge rolling down from 20:00 to 0:00 on "twenty"; Bix opens the door, grinning.
+- *Beat 2 (3 to 10 s):* rewind. Workbench room: a ticket slides out of a printer on "order", Bix slaps it onto a rail; the camera rides the ticket along the rail into a brick oven glowing orange.
+- *Beat 3 (10 to 18 s):* mapTable from above: the box becomes a token; three possible routes draw; two turn red with tiny traffic jams on "traffic", one stays yellow and the token runs it.
+- *Beat 4 (18 to 28 s):* monitor room: a light dashboard with four tiles (ordered, baked, out, delivered) ticking on their words; the last tile flips on "doorbell".
+- *Ask (28 to 35 s):* back to the doorstep, the comment box CTA with keyword PIZZA.
 - Size jumps: ticket ↔ kitchen ↔ whole town. Wow on "solved": the map lifts off the table in layers.
 
 **B · depth · "Why your inbox never feels empty" (30 s).** Chain: mail arrives → you answer → answers create replies → the pile grows. Substance: emails as paper envelopes (cream); replies as orange envelopes.
 - *Hook:* desk at night, Bix answers one envelope and two orange ones pop out of the laptop on "two".
 - *Beat 2:* tanks room: envelopes pour into a glass tank labelled INBOX; every answer pipes two envelopes back in. The level rises on each stressed word.
-- *Turn:* "batch them" — a valve with two notches closes; the tank stops filling.
+- *Turn:* "batch them", a valve with two notches closes; the tank stops filling.
 - *Payoff:* the tank drains into one tray on "eleven", again on "four"; Bix leans back.
 - *Ask:* keyword INBOX.
 
@@ -175,7 +175,7 @@ Keep plain white surfaces under the bloom threshold so only lamps, neon and scre
 | the host standing in an empty room for a whole beat | the host acting on a prop built for the script |
 | a diagram floating in a void | the diagram painted on a wall screen, a map table or a blackboard inside a room |
 | the same camera angle for 4 s | a new framing on each stressed word |
-| tiny objects in a wide shot | push in so the hero fills 40–60 % of the frame |
+| tiny objects in a wide shot | push in so the hero fills 40 to 60 % of the frame |
 | everything evenly lit | one key light and one meaningful emitter per shot |
 | a label covering the room's own sign | titles and labels in their bands, signs below them |
 | dark screens with dark text | light screens with dark ink, or bright text at ≥ 40 px |
@@ -183,10 +183,10 @@ Keep plain white surfaces under the bloom threshold so only lamps, neon and scre
 
 ---
 
-## 13 · Short 3D reels (10–30 s)
+## 13 · Short 3D reels (10 to 30 s)
 
-- **10–15 s:** one room or one table spot, two or three framings, one wow on the stressed word, the ask folded into the last line.
-- **20–30 s:** two or three rooms (or two table spots), one size jump, one wow, the comment box CTA.
+- **10 to 15 s:** one room or one table spot, two or three framings, one wow on the stressed word, the ask folded into the last line.
+- **20 to 30 s:** two or three rooms (or two table spots), one size jump, one wow, the comment box CTA.
 - GPU renders are slow: plan short reels with fewer, stronger shots rather than many quick ones.
 
 ---
@@ -231,7 +231,7 @@ Start from a example shots shot when the relation matches, then re-dress it (new
 
 1. **A set with no action.** Every shot needs one thing that moves because of a word.
 2. **The camera sits still.** Drift on every hold; a new framing on every stressed word.
-3. **Two wows in one beat.** Spread them, one per 10–15 s.
+3. **Two wows in one beat.** Spread them, one per 10 to 15 s.
 4. **Text too small inside the 3D scene.** Readable text goes in the overlay (titles, tiles, counters), or on big signs pushed close.
 5. **Bix missing for three shots.** Bring the host back, even as a peek.
 6. **Blown-out highlights.** Lamps and screens may glow; white cards and paper must not.

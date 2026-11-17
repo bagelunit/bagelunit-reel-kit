@@ -6,21 +6,21 @@ Read this before you write the concept card in `STORYBOARD.md`. It teaches how a
 
 ## 1 · The bar, in numbers
 
-What a strong 35–60 s print reel looks like when you measure it. `kit pace` and `kit effort` check the important ones. The per-second numbers hold for short reels too (10–30 s); only the shot count shrinks (`writing.md`, "Short reels").
+What a strong 35 to 60 s print reel looks like when you measure it. `kit pace` and `kit effort` check the important ones. The per-second numbers hold for short reels too (10 to 30 s); only the shot count shrinks (`writing.md`, "Short reels").
 
 | Measure | Strong | Accept | Too thin |
 |---|---|---|---|
-| Shot length | 2.5–4.5 s | 2–6 s | > 7 s |
-| Custom shot code | 60–100 lines per second of video | ≥ 40 (the effort gate's bar) | < 30 |
-| Helpers written for this reel (draw/motion functions) | 3–5 per second | ≥ 2.5 (the effort gate's bar) | < 1.5 |
-| Word-cued moments | 2.5–3 per second | ≥ 2 | < 1 |
-| Visible events | 5–7 per second | ≥ 3 | < 2 |
-| Big moments (a large part of the frame changes) | 0.7–1.2 per second | ≥ 0.6 | < 0.4 |
+| Shot length | 2.5 to 4.5 s | 2 to 6 s | > 7 s |
+| Custom shot code | 60 to 100 lines per second of video | ≥ 40 (the effort gate's bar) | < 30 |
+| Helpers written for this reel (draw/motion functions) | 3 to 5 per second | ≥ 2.5 (the effort gate's bar) | < 1.5 |
+| Word-cued moments | 2.5 to 3 per second | ≥ 2 | < 1 |
+| Visible events | 5 to 7 per second | ≥ 3 | < 2 |
+| Big moments (a large part of the frame changes) | 0.7 to 1.2 per second | ≥ 0.6 | < 0.4 |
 | Camera punches | one per shot | one per shot | several per shot |
-| Objects on stage by second 3 of a shot | 4–6 | ≥ 3 | 1 |
+| Objects on stage by second 3 of a shot | 4 to 6 | ≥ 3 | 1 |
 | Frames with visible change (0.1 s steps) | 98 % | ≥ 95 % | < 90 % |
 | Host acts (gesture, face, gaze) | about 2 per second | ≥ 1 per phrase | one pose per shot |
-| Sound cues | one per meaningful event, about one per 1–1.5 s | | bursts of three in a row |
+| Sound cues | one per meaningful event, about one per 1 to 1.5 s | | bursts of three in a row |
 
 ---
 
@@ -37,7 +37,7 @@ What a strong 35–60 s print reel looks like when you measure it. `kit pace` an
 9. **Real artifacts first, invented machines second.** Most props should be real objects from the script's world (the terminal, the receipt, the comment sheet, the dashboard). Invent a machine only for abstract verbs, and give it a visible limit.
 10. **Texture of reality.** Tiny mono labels (`// status`, `step 2/5`), timestamps that count, IDs, masked handles, real numbers from the brief. They make a drawing feel like a screenshot of a world.
 11. **The host reacts every phrase** (print). It points by default, re-aims with the focus, jabs on list items, gasps on money, covers its mouth on a fear, and gives a thumbs-up on the CTA.
-12. **The CTA is an object, not a sentence.** A comment sheet rises, the keyword types in and posts as a big pill, replies stack up, then a DM arrives carrying what was promised. Hold the last frame.
+12. **The CTA is an object, not a sentence.** Use the brand's own ask (`brand.json` > `cta`: save this, follow, or visit the link) and draw it as an object on screen. Only when a keyword is tested does a comment sheet rise, the keyword type in and post as a big pill, replies stack up and a DM arrive carrying what was promised. Hold the last frame.
 
 ---
 
@@ -74,8 +74,8 @@ Do this on paper, per beat, before any code.
 | Looks templated | Do this instead |
 |---|---|
 | The same prop family every reel (a gauge, a meter, because the kit has one) | a prop from this sentence's relation; kit props only when the script names them |
-| One object alone in empty space for a whole shot | 3–6 objects by second 3, one focus, the rest idling |
-| Everything pops in with the same spring on a grid | timing follows the voice: slams on stressed words, idles in between, staggers of 0.05–0.09 s in lists |
+| One object alone in empty space for a whole shot | 3 to 6 objects by second 3, one focus, the rest idling |
+| Everything pops in with the same spring on a grid | timing follows the voice: slams on stressed words, idles in between, staggers of 0.05 to 0.09 s in lists |
 | The caption does the work ("COST ↑" written on a card) | the word becomes an object's state; captions only repeat the voice |
 | A number typed as plain text | a number that rolls on an object and lands on the word |
 | The old object vanishes and a new one pops in centred | the old one steps aside or turns into the new one |
@@ -104,7 +104,7 @@ Do this on paper, per beat, before any code.
 
 Most viewers decide in the first second and a half. The hook is a sentence AND a picture, and they have to land together.
 
-**The four hook shapes that work for explainers** (pick one per reel, don't stack them):
+**The hook is a triple hook** (context, lean, contrarian snapback; `docs/hook-and-review-playbook.md` section 0), the first one or two sentences, with the context landing in the first 1.5 s. The four shapes below are ways to write the lean. Pick one per reel, don't stack them:
 
 | Shape | Sentence pattern | The picture at 0.0 s |
 |---|---|---|
@@ -114,7 +114,7 @@ Most viewers decide in the first second and a half. The hook is a sentence AND a
 | **The direct order** | "Stop paying for apps you never open." | the verb happening: cards slide out of a wallet on "paying", icons grey out on "never" |
 
 **Rules for the hook line:**
-1. 7–12 words. One idea. No "In this video…", no "Did you know…", no greeting.
+1. The context line is short (under 10 words in the playbook's triple hook). One idea. No "In this video…", no "Did you know…", no greeting.
 2. The stressed word lands before 1.2 s, and something on screen changes ON it.
 3. Concrete nouns beat categories: "your gym" beats "subscription businesses".
 4. A small gap the viewer needs closed ("…for a reason.", "…before you do.") keeps them for the next line.
@@ -139,7 +139,7 @@ When the buyer sends a reel they like ("make one like this"), don't copy its pic
 
 1. **Get the words.** Transcribe it (`take.py` or any transcript) and split it into sentences.
 2. **Time the beats.** For each sentence write start → end in seconds. Note where the cuts fall and how long the longest hold is.
-3. **Name each beat's job.** Hook · setup · proof · turn · payoff · ask. Most good 40 s reels run hook (1 line) → setup (2–3 lines) → turn (1 line) → proof or payoff (2–3 lines) → ask (1 line).
+3. **Name each beat's job.** Hook · setup · proof · turn · payoff · ask. Most good 40 s reels run hook (1 line) → setup (2 to 3 lines) → turn (1 line) → proof or payoff (2 to 3 lines) → ask (1 line).
 4. **Name each beat's device, not its prop.** "A list filling slots", "a number rolling on an object", "problem world flips to answer world", "a machine with a limit that breaks on the punch word". Devices are reusable; props aren't.
 5. **Count the events.** Over 5 s of the reel, how many separate things change? That's the density to match (section 1).
 6. **Mark the big moments.** Where does a large part of the frame change at once? Those are where your camera punches go.
@@ -149,11 +149,11 @@ When the buyer sends a reel they like ("make one like this"), don't copy its pic
 
 ```
 #  | time      | words (stressed in CAPS)        | job     | device                    | our object                         | big moment?
-1  | 0.0–2.1   | your gym is BETTING you WON'T…  | hook    | real artifact caught      | member tag + NO-SHOW stamp         | stamp
-2  | 2.1–5.4   | it SELLS way more MEMBERSHIPS   | setup   | pile-up past a limit      | key tags piling over 4 treadmills  | —
-3  | 5.4–7.6   | if EVERYONE came, it'd BREAK    | turn    | build, push, break        | crowd floods, sign flips to FULL   | crack
-4  | 7.6–9.9   | the NO-SHOWS pay for the REGULARS | payoff | flow from A to B          | ghost tags drop coins into AUTOPAY | —
-5  | 9.9–11.4  | comment GYM …                   | ask     | CTA as an object          | comment sheet, keyword posts, DM   | post
+1  | 0.0 to 2.1   | your gym is BETTING you WON'T…  | hook    | real artifact caught      | member tag + NO-SHOW stamp         | stamp
+2  | 2.1 to 5.4   | it SELLS way more MEMBERSHIPS   | setup   | pile-up past a limit      | key tags piling over 4 treadmills  |, 
+3  | 5.4 to 7.6   | if EVERYONE came, it'd BREAK    | turn    | build, push, break        | crowd floods, sign flips to FULL   | crack
+4  | 7.6 to 9.9   | the NO-SHOWS pay for the REGULARS | payoff | flow from A to B          | ghost tags drop coins into AUTOPAY |, 
+5  | 9.9 to 11.4  | comment GYM …                   | ask     | CTA as an object          | comment sheet, keyword posts, DM   | post
 ```
 
 ---
@@ -161,16 +161,16 @@ When the buyer sends a reel they like ("make one like this"), don't copy its pic
 ## 8 · Three whole reels, beat by beat (method only: never reuse these props)
 
 **A · "Why airport water costs $5" (print, 40 s).** Relation: a sealed market.
-- *Hook (0–3 s):* a water bottle with a $1 tag sits behind a gate arm; on "five" the tag flips to $5 and the gate arm drops. Host gasps.
-- *Setup (3–14 s):* a cutaway of the terminal as three paper layers: landside, security, airside. "Once you pass security" — a passenger token slides through the scanner and the scanner closes behind it. "You can't leave" — the exit door gets a big paper padlock.
-- *Turn (14–20 s):* "So shops pay rent per passenger" — a turnstile counter rolls on an odometer as tokens pass; each tick drops a coin into a landlord's jar.
-- *Payoff (20–33 s):* the jar's level drives the price tag: three products (water, coffee, sandwich) each flip their price on their own word. A versus card: CITY $1 · AIRPORT $5, airport wins in the worst way, struck through in red.
-- *Ask (33–40 s):* comment sheet, keyword WATER types and posts, a DM card with "the 3 tricks to pay city prices".
+- *Hook (0 to 3 s):* a water bottle with a $1 tag sits behind a gate arm; on "five" the tag flips to $5 and the gate arm drops. Host gasps.
+- *Setup (3 to 14 s):* a cutaway of the terminal as three paper layers: landside, security, airside. "Once you pass security", a passenger token slides through the scanner and the scanner closes behind it. "You can't leave", the exit door gets a big paper padlock.
+- *Turn (14 to 20 s):* "So shops pay rent per passenger", a turnstile counter rolls on an odometer as tokens pass; each tick drops a coin into a landlord's jar.
+- *Payoff (20 to 33 s):* the jar's level drives the price tag: three products (water, coffee, sandwich) each flip their price on their own word. A versus card: CITY $1 · AIRPORT $5, airport wins in the worst way, struck through in red.
+- *Ask (33 to 40 s):* comment sheet, keyword WATER types and posts, a DM card with "the 3 tricks to pay city prices".
 
 **B · "Your notes app is too slow to beat forgetting" (print, 30 s).** Relation: a race.
 - *Hook:* a thought bubble floats up from the host; a phone beside it shows a loading spinner. On "forget" the bubble pops before the spinner finishes.
 - *Setup:* a race track drawn on the paper: lane 1 a thought, lane 2 a sticky note. The note trips over three hurdles that are real UI steps (unlock, find app, new note), each a different gag (a keypad, a search bar, a blank page).
-- *Turn:* "Capture has to be faster than forgetting" — the track shortens to one step; a single hotkey card slams down.
+- *Turn:* "Capture has to be faster than forgetting", the track shortens to one step; a single hotkey card slams down.
 - *Payoff:* replay the race; the note wins by a hair, a seal stamps "CAUGHT".
 - *Ask:* keyword NOTE.
 
@@ -184,7 +184,7 @@ When the buyer sends a reel they like ("make one like this"), don't copy its pic
 
 ## 9 · The shape of a whole reel
 
-**Where the big moments go.** One in the hook (within 1.5 s), one on the turn, one on the payoff, one on the ask. In between, smaller events every 0.5–1 s keep the frame alive.
+**Where the big moments go.** One in the hook (within 1.5 s), one on the turn, one on the payoff, one on the ask. In between, smaller events every 0.5 to 1 s keep the frame alive.
 
 **Energy curve.** Start high (the hook), dip slightly for setup (more reading, calmer moves), rise into the turn, peak on the payoff, then settle into a clean, readable ask. A flat curve feels like a slideshow; a curve that peaks at the hook and never again feels like a trailer with nothing behind it.
 
@@ -208,18 +208,19 @@ When the buyer sends a reel they like ("make one like this"), don't copy its pic
 
 | Pattern | When | How it moves |
 |---|---|---|
-| **Comment sheet** | default | the sheet rises, the keyword types in letter by letter and posts as a big pill, replies stack, a DM card lands with what was promised |
-| **Folded into the last line** | short reels (10–20 s) | the payoff object turns into the keyword: the last stamp reads the keyword, then the DM card slides in |
+| **Save or follow** | default (the brand's `cta.style`) | the ask is a big card, sign or stamp on the last words, the host points at it, the last frame holds |
+| **Comment sheet** | only for a tested keyword | the sheet rises, the keyword types in letter by letter and posts as a big pill, replies stack, a DM card lands with what was promised |
+| **Folded into the last line** | short reels (10 to 20 s) | the payoff object turns into the keyword: the last stamp reads the keyword, then the DM card slides in |
 | **The callback** | when a continuity object exists | the object from the hook comes back and delivers the DM (the passenger token walks into an inbox) |
 
-Always: say exactly what they get ("my cancel checklist", "the 3 tricks"), hold the final frame for at least 0.6 s, and keep the keyword huge and readable on mute.
+Always: say exactly what they get ("my cancel checklist", "the 3 tricks"), hold the final frame for at least 0.6 s, and keep the ask (or the keyword, when one is tested) huge and readable on mute.
 
 ---
 
-## 12 · Short reels (10–30 s)
+## 12 · Short reels (10 to 30 s)
 
-- **10–15 s:** hook → one turn → ask. 3–5 shots, 40–48 words. One continuity object. The ask can be the last line, not a separate beat.
-- **20–30 s:** hook → setup → turn → payoff → ask. 5–8 shots, 80–110 words.
+- **10 to 15 s:** hook → one turn → ask. 3 to 5 shots, 40 to 48 words. One continuity object. The ask can be the last line, not a separate beat.
+- **20 to 30 s:** hook → setup → turn → payoff → ask. 5 to 8 shots, 80 to 110 words.
 - Density per second stays the same as a long reel; only the number of shots drops. Don't slow down to "fill" a short reel and don't cram a long script into it: cut lines until each beat has room for its one big moment.
 - The hook matters even more: a 12 s reel has no second chance.
 
@@ -270,4 +271,4 @@ The print examples (`modes/print/examples/SHOTS.md`) are 5 worked scenes, 8 prop
 4. **The host points at nothing.** Aim it at the box a part returned.
 5. **Every card the same size.** One hero card per beat, smaller supporting ones.
 6. **Numbers typed as text.** Use `odometer`, `counter`, `statCard` or a flipping price tag.
-7. **The ask buried.** The keyword is huge, posted, and the last frame holds.
+7. **The ask buried.** The ask is huge and readable on mute, and the last frame holds.

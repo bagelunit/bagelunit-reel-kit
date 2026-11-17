@@ -1,11 +1,9 @@
 # After the export: what the user gets
 
-A reel isn't finished until the user can post it in one go. Hand over:
+Hand over the approved file `reels/<slug>/out/<name>.mp4` (1080×1920, 30 fps, H.264 + AAC). It goes up exactly as it is; on Instagram, "Upload at highest quality" (Settings → Data usage and media quality) should be on first.
 
-- **The file** `reels/<slug>/out/<name>.mp4` (1080×1920, 30 fps, H.264 + AAC). It goes up exactly as it is; on Instagram, "Upload at highest quality" (Settings → Data usage and media quality) should be on first.
-- **A caption**, saved next to it as `out/caption.txt`. Open with something the hook didn't already say, give the one-line takeaway, then the ask: "Comment KEYWORD and I'll send you the link." Finish with 3–5 hashtags that name the topic. #ad and the paid-partnership label are for paid work only.
-- **The DM reminder.** A comment keyword does nothing by itself: the brand's publisher (`docs/connect.md` step 7), a no-code comment-to-DM tool or Instagram's own automations (professional account) send the reply. Ask them to set that exact keyword up before the reel goes live.
-- **The cover moment:** a timestamp, usually inside the hook (0.5–1 s), where the frame is clearest and makes people curious.
-- **An offer of one revision.** The usual ones: voice faster or slower (`voice.py --speed`, then re-cue), another voice, a shot replaced, a shorter version (cut a beat, re-voice), another keyword.
-
-Posting and uploading are always the user's job, never yours.
+- **Caption:** `/caption-and-hashtags` (the caption, up to 5 hashtags, a line of search keywords), saved as `out/caption.txt`. It is written before the final fact check.
+- **Cover:** a dedicated cover, never a frame grabbed from the hook: `kit cover reels/<slug>`.
+- **Ask:** the brand's own (`brand.json` > `cta`). A keyword ask ("Comment WORD") needs a DM auto-reply tested for that exact word before the reel goes live (`docs/connect.md` step 7).
+- **Posting:** `/reel-posting`. Never post by yourself; in a brand folder follow its rule 11.
+- **One round of changes:** voice faster or slower (`voice.py --speed`, then re-cue), another voice, a shot replaced, a shorter version (cut a beat, re-voice). A changed video needs a new QA, review and Gate C.

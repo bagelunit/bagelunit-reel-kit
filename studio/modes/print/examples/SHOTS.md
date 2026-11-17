@@ -29,7 +29,7 @@ Layering note, learned building these: the crisp layer (K) always prints over th
 
 "Casinos have no clocks…" (15 s): five chapters, one object per chapter (the casino front, the dark room, the slot, the card table,
 the comment), each cut on the first word of a sentence, cues on words throughout. Read `timeline.js` first for the cuts, then
-`scenes/props.js` for the shared props and one scene at a time. The strips in `frames/` (`look_01`–`look_03`) are 1 fps frames of
+`scenes/props.js` for the shared props and one scene at a time. The strips in `frames/` (`look_01` to `look_03`) are 1 fps frames of
 this reel's render.
 
 ## Scenes (`p*.js`)

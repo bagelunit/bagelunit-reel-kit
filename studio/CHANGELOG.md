@@ -1,4 +1,6 @@
-# Changelog
+# Engine history before the BagelUnit kit
+
+This is the engine's own history from before it became part of the BagelUnit Reel Kit. These version numbers are not the kit's versions; the kit's changelog is the repo's root `CHANGELOG.md`. Some names below (toybox, scenebank, `playbook/modes/`) no longer exist.
 
 ## v1.4.1 (2026-10-28): print, rewritten as our own
 
@@ -26,7 +28,7 @@
 
 ## v1.2.1 (2026-10-27): fixes from the second fresh-install test
 
-- **Short reels fit more words:** 10–15 s ≈ 40–48 words, 20–30 s ≈ 80–110 (the voice trims pauses and speeds up ×1.15).
+- **Short reels fit more words:** 10 to 15 s ≈ 40 to 48 words, 20 to 30 s ≈ 80 to 110 (the voice trims pauses and speeds up ×1.15).
 - **Sparser sound:** export keeps at most about one cue per 0.75 s; cuts, stamps and slams win over pops and ticks.
 - **Crew builds agree:** shared props go in `shots/_shared.js`, loaded first, and the lead writes a hand-off block in `STORYBOARD.md` (names, ids, colours, the hero item, each shot's end state).
 - **Timing rules:** a hit on a shot's last stressed word still lands before the transition (move the cut, not the hit). A payoff stays on screen at least 1.0 s before the cut.
@@ -45,7 +47,7 @@
 - **The ask cut lands on "Comment".** With the voice's tight pauses, the print starter cut to the ask one sentence early. The depth starter now starts its ask on "Comment" too.
 - **Sentences end where the next one starts.** Card sublines no longer run into the next sentence.
 - **No lone caption words.** A caption page or tile row never shows one word alone (print, depth).
-- **Short reels:** the guides size 10–15 s and 20–30 s reels (words, shots, shape). The default stays 35–60 s.
+- **Short reels:** the guides size 10 to 15 s and 20 to 30 s reels (words, shots, shape). The default stays 35 to 60 s.
 - **Saving the brand:** `checkup.mjs --set-brand @name --set-theme studio`.
 - **Named colours:** print has material and status colours (`P.brass`, `P.wood`, `P.skin`, `P.screen`, `P.ok`…). The print scenebank uses them in place of raw hex.
 - **The guide now says:**

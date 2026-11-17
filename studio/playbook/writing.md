@@ -1,23 +1,23 @@
 # Writing the script
 
-Use this only when you write the words yourself. A script the user pastes is used exactly as given (fix obvious typos only).
+In a brand folder `/reel-scripter` runs the script steps; this page is the craft it follows. A pasted script is used word for word (fix obvious typos only).
 
 ## Short reels
 
-The default is 35–45 s (about 110–130 words). When they ask for something shorter, keep one idea and cut everything else:
+The default is 35 to 45 s (about 110 to 130 words). When they ask for something shorter, keep one idea and cut everything else:
 
 | Ask | Words | Shots | Shape |
 |---|---|---|---|
-| 10–15 s | 40–48 | 3–5 | hook · one turn (the surprising fact) · ask |
-| 20–30 s | 80–110 | 5–8 | hook · problem · one turn · payoff · ask |
+| 10 to 15 s | 40 to 48 | 3 to 5 | hook · one turn (the surprising fact) · ask |
+| 20 to 30 s | 80 to 110 | 5 to 8 | hook · problem · one turn · payoff · ask |
 
 The ask still ends the reel (the brand's own ask; "Comment KEYWORD …" only when that keyword is tested), but keep it to one short sentence. Every shot needs a hero you can read in under a second.
 
-## The skeleton (about 110–130 words, about 35–45 s)
+## The skeleton (about 110 to 130 words, about 35 to 45 s)
 
 ```
-1  HOOK      who it's for, what's at stake, or what's surprising. Under 1.5 s.
-2  LOOP      a promise that only pays off at the end ("…and step five is the one nobody does").
+1  HOOK      a triple hook in the first one or two sentences: the context in the first 1.5 s, a lean (who it's for, what's at stake, or what's surprising), then a contrarian snapback (`docs/hook-and-review-playbook.md` section 0).
+2  LOOP      the snapback is the promise that only pays off at the end ("…and step five is the one nobody does").
 3  PAIN      the problem in concrete pictures and numbers.
 4  TURN      the answer, tool or method, framed as what it does for the viewer.
 5  PROOF     one hard fact the user gave you (a number, a result, a screenshot).
@@ -25,9 +25,11 @@ The ask still ends the reel (the brand's own ask; "Comment KEYWORD …" only whe
 7  ASK       the brand's one ask ("Save this", "Follow" or, only when tested, "Comment KEYWORD and I'll send you …")
 ```
 
-When a keyword ask is used (only a tested keyword), KEYWORD is one uppercase word tied to the topic (KIT, AIRPORT, TEMPLATE). It also goes into `reel.json` → `cta.keyword`.
+The ask is the brand's own: `brand.json` > `cta` (save this, follow, or visit the link). A keyword ask is used only when the keyword is listed in `cta.tested_keywords`; then it also goes into `reel.json` > `cta.keyword`.
 
-## Hooks: pick a shape, write it new
+## Hooks: pick a shape for the lean, write it new
+
+The shapes below are ways to write the lean of a triple hook. The context comes before it and the snapback after it.
 
 | Shape | Example (fresh topic) |
 |---|---|
@@ -43,7 +45,7 @@ Skip these: "POV:", "Hot take:", "Quick tip:", "Have you ever…?", clock-time o
 ## How it should sound
 
 - A friend explaining something over coffee: contractions, full sentences, relaxed.
-- One idea per sentence, about 8–18 words, so captions read cleanly.
+- One idea per sentence, about 8 to 18 words, so captions read cleanly.
 - Concrete beats clever: "you paste the same error four times" beats "debugging is painful".
 - Numbers beat adjectives, "you" beats "people".
 - Lists: say the count first ("five steps"), then number them out loud ("One… Two…") so viewers know where they are.
@@ -55,9 +57,9 @@ Only state what you're sure of or what the user told you. Product claims use the
 
 ## Final check
 
-- [ ] The hook lands in under 1.5 s and has stakes or a surprise.
-- [ ] Line 2 opens a loop, and the ending closes it.
+- [ ] The context lands in the first 1.5 s, and the first one or two sentences are a triple hook.
+- [ ] The snapback opens a loop, and the ending closes it.
 - [ ] The answer arrives only after the problem is felt.
 - [ ] Every sentence can be drawn as one clear picture.
-- [ ] About 110–130 words (or the short-reel size they asked for), ending on one ask: the brand's `cta.style`, or "Comment KEYWORD …" only when the keyword is tested.
+- [ ] About 110 to 130 words (or the short-reel size they asked for), ending on one ask: the brand's `cta.style`, or "Comment KEYWORD …" only when the keyword is tested.
 - [ ] Read aloud, it sounds like a person.
