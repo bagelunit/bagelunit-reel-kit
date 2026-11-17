@@ -253,7 +253,7 @@ def blob_shadow(loc=(0, 0, 0), w=4.0, h=2.0, strength=0.55, name='shadow'):
     gr = nt.nodes.new('ShaderNodeTexGradient')
     gr.gradient_type = 'SPHERICAL'
     mp = nt.nodes.new('ShaderNodeMapping')
-    mp.inputs['Location'].default_value = (-0.5, -0.5, 0)
+    mp.inputs['Location'].default_value = (-1, -1, 0)                   # a point is scaled first and then moved: uv * 2 - 1 is (uv - 0.5) * 2, centred
     mp.inputs['Scale'].default_value = (2, 2, 2)                        # the gradient reaches 0 at the middle of each edge of the plane
     ramp = nt.nodes.new('ShaderNodeValToRGB')
     ramp.color_ramp.interpolation = 'EASE'
