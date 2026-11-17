@@ -3,8 +3,9 @@
 
   python3 tools/predict.py <project> [video.mp4]
 
-Runs measure first if build/measure.json is missing. If ~/.config/bagelunit-reels/predict-model.json exists (made by
-tools/calibrate.py from this brand's own Insights), prints average watch time, watch fraction and skip rate with a range
+Runs measure first if build/measure.json is missing. If the brand's model exists (brand/predict-model.json in the brand
+folder, made by tools/calibrate.py from this brand's own Insights; ~/.config/bagelunit-reels/predict-model.json is read only as
+a fallback, with a note), prints average watch time, watch fraction and skip rate with a range
 taken from the leave-one-out error and says how many reels it was fitted on. With no model it prints the measurements
 only. Never invents a number. Writes build/predict.json.
 """
@@ -12,7 +13,7 @@ import json, sys
 from pathlib import Path
 import numpy as np
 
-from kitcore import resolve_reel, Flags, HOME_CFG, fail, read_json
+from kitcore import resolve_reel, Flags, HOME_CFG, fail, read_json, brand_root
 import measure
 
 TOOL = 'predict'
@@ -51,7 +52,16 @@ def main():
         fail(TOOL, 'build/measure.json is unreadable; run  kit measure <project>  again')
     measure.say(facts)
 
-    model = read_json(HOME_CFG / 'predict-model.json')
+    # this brand's own model (brand/predict-model.json, written by calibrate.py in the brand folder); the computer-wide file is
+    # read only as a fallback (models fitted before the per-brand file, or the engine on its own), and said so
+    root = brand_root(project)
+    own = root / 'brand' / 'predict-model.json' if root else None
+    model = read_json(own) if own and own.is_file() else None
+    if not model:
+        model = read_json(HOME_CFG / 'predict-model.json')
+        if model and root:
+            print(f'note: no brand/predict-model.json in {root.name} yet, so this uses the computer-wide model '
+                  f'({HOME_CFG / "predict-model.json"}), which may be another brand\'s. Run kit calibrate in this brand folder.')
     result = dict(measured=facts, model_used=False)
     if not model:
         print('\n' + NO_MODEL)

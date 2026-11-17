@@ -92,6 +92,7 @@ const GROUPS = [
     ['kit effort', 'Checks the reel was built for this script, not from ready-made pieces.', 'engine'],
     ['kit lint', 'Checks the shot rules: lengths, cuts on words, rhythm, first-frame motion.', 'engine'],
     ['kit qa', 'Checks the final file: size, loudness, black or frozen frames, text safe zone, sync.', 'engine'],
+    ['kit budget', 'Checks the script fits the ElevenLabs credits left, before Gate A (--left shows just the account).', 'engine'],
     ['kit script', 'Checks a script makes sense heard once: the announced count against the items, long sentences, jargon, spoken menu paths, loops, and seconds from your own pace. Writes build/script-lint.md.', 'engine'],
     ['kit facts', 'The mechanical half of the fact check, and records the fact-check verdict.', 'engine'],
     ['kit gate', 'Records an approval (A, B or C) and checks the final file has not changed since.', 'engine'],

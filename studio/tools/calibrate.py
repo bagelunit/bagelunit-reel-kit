@@ -13,17 +13,29 @@ standardised measured features, for the average watch fraction (watch time / len
 picked by leave-one-out error: each reel is held out in turn and predicted from the others. That error is the honest
 number to trust. It refuses to fit with fewer than MIN_REELS measured reels.
 
-Saves ~/.config/bagelunit-reels/predict-model.json. Reads local files only, no network.
+Saves the model for the brand it was fitted on: brand/predict-model.json in the brand folder (the nearest folder above the
+project root, else above the current folder, holding brand/brand.json), so a second brand on this computer never replaces the
+first one's. Outside a brand folder it saves ~/.config/bagelunit-reels/predict-model.json. Reads local files only, no network.
 """
 import csv, datetime, json, re, sys
 from pathlib import Path
 import numpy as np
 
-from kitcore import Flags, HOME_CFG, fail, read_json, find_reel
+from kitcore import Flags, HOME_CFG, fail, read_json, find_reel, brand_root
 
 TOOL = 'calibrate'
 MIN_REELS = 8
-MODEL_FILE = HOME_CFG / 'predict-model.json'
+MODEL_FILE = HOME_CFG / 'predict-model.json'          # outside a brand folder only; see model_file()
+
+
+def model_file(*places):
+    """Where the model of this brand lives: <brand>/brand/predict-model.json for the first place inside a brand folder, else
+    the computer-wide file (the engine on its own). predict.py reads the same place."""
+    for place in places:
+        root = brand_root(place) if place else None
+        if root:
+            return root / 'brand' / 'predict-model.json'
+    return MODEL_FILE
 FEATURES = ['duration_s', 'words_per_s', 'words_per_s_first5', 'first_word_s', 'loudness_range_lu', 'silence_share',
             'cuts_per_min', 'energy_mean', 'energy_first3_ratio', 'static_share', 'static_longest_s',
             'first_strong_change_s']
@@ -209,11 +221,12 @@ def main():
                  loo_mae_watch_s=watch_err, baseline_loo_mae_watch_s=watch_base,
                  mean_duration_s=float(dur.mean()),
                  note='Ridge regression, standardised features, penalty chosen by leave-one-out error. Describes this brand only.')
-    HOME_CFG.mkdir(parents=True, exist_ok=True)
-    MODEL_FILE.write_text(json.dumps(model, indent=1), encoding='utf-8')
+    target = model_file(*(roots + [Path.cwd()]))
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(model, indent=1), encoding='utf-8')
 
     sk = out['skip_rate']
-    print(f'fitted on {len(data)} reels, {len(cols)} measured features. Saved {MODEL_FILE}')
+    print(f'fitted on {len(data)} reels, {len(cols)} measured features. Saved {target}')
     print(f'  leave-one-out check (each reel predicted from the other {len(data) - 1}):')
     print(f'  watch time: typically off by {watch_err:.1f} s  (just guessing the average would be off by {watch_base:.1f} s)')
     print(f'  skip rate:  typically off by {sk["loo_mae"] * 100:.1f} points  (guessing the average: {sk["baseline_loo_mae"] * 100:.1f})')

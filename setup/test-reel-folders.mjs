@@ -117,7 +117,7 @@ let f1 = run('facts', 'reels/dated-one', 'check', '--scope', 'script');
 assert.ok(!/no facts file/.test(f1.stdout + f1.stderr), `kit facts finds brand/facts.md for a dated reel: ${f1.stdout}${f1.stderr}`);
 const f2 = run('facts', 'reels/dated-one', 'record', '--scope', 'script', '--result', 'PASS');
 assert.equal(f2.status, 0, f2.stdout + f2.stderr);
-const g = run('gate', 'reels/dated-one', 'record', '--gate', 'A');
+const g = run('gate', 'reels/dated-one', 'record', '--gate', 'A', '--skip-script-review', 'this test checks the fact check only');
 assert.equal(g.status, 0, `Gate A on a dated reel, no --skip-facts: ${g.stdout}${g.stderr}`);
 assert.ok(!/STALE|FACTS NOT RE-CHECKED/.test(g.stdout + g.stderr), 'the fact check is current, not stale or skipped');
 assert.match(fs.readFileSync(path.join(dated, 'approvals.md'), 'utf8'), /Gate A[^\n]*Fact check: PASS/);

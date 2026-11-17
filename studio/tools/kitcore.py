@@ -253,6 +253,13 @@ def resolve_in_reel(arg, cwd=None):
     return resolve_reel(typed.parent, cwd) / typed.name if str(typed.parent) not in ('', '.') else typed
 
 
+def brand_root(path):
+    """The brand folder above a reel or folder (the nearest one holding brand/brand.json), or None when there is none (the engine
+    on its own, a bare test folder). Unlike brand_of it never guesses."""
+    p = Path(path).resolve()
+    return next((d for d in [p, *p.parents] if (d / 'brand' / 'brand.json').is_file()), None)
+
+
 def brand_of(project):
     """The brand folder a reel sits in: the nearest folder above it holding brand/brand.json (as findBrand does in the dashboard
     scripts), so a reel in reels/<slug> and one in reels/2026/11 November/November 12/<slug> both find brand/facts.md. Falls back
@@ -299,6 +306,24 @@ def spoken_hash(script_path):
         return None
     lines = [l.strip() for l in raw.splitlines() if l.strip() and not l.strip().startswith(('#', '//', '['))]
     return hashlib.sha256(re.sub(r'\s+', ' ', ' '.join(lines)).strip().lower().encode()).hexdigest()[:12]
+
+
+def file_sha256(path):
+    """The full SHA-256 of a file, as hex. Gate C, kit qa (build/qa.json "sha256") and the "[video <first 12>]" of a Review line
+    all use this one fingerprint, so each names the exact file it saw."""
+    import hashlib
+    h = hashlib.sha256()
+    with open(path, 'rb') as f:
+        for chunk in iter(lambda: f.read(1 << 20), b''):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def newest_out(project):
+    """The newest out/*.mp4 of a reel (the file Gate C approves), or None. Temporary files (*.tmp.*) are left out."""
+    out = Path(project) / 'out'
+    outs = [f for f in out.glob('*.mp4') if '.tmp.' not in f.name] if out.is_dir() else []
+    return max(outs, key=lambda f: f.stat().st_mtime) if outs else None
 
 
 def gate_a_problem(project):

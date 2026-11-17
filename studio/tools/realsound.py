@@ -2,8 +2,10 @@
 """LOCAL ADD-ON (added 2026-11-05, see LOCAL-CHANGES.md)
 
 Real-recording sound step for a reel, replacing the kit's synthesised effects:
-  1. read build/sfx.json (the cue list the page writes on every render) and thin it (<= ~1 cue / 0.45 s,
-     cuts / stamps / risers win over pops and ticks);
+  1. read build/sfx.json (the cue list the page writes on every render; no file = no cues, voice and music only) and thin it
+     (<= ~1 cue / 0.45 s, cuts / stamps / risers win over pops and ticks). A cue name the map below does not know is matched
+     by keyword the way tools/sound.py does (impact, hit, slam ...); a name that still matches nothing is skipped and named
+     in the output and the report, never dropped silently;
   2. SNAP each cue to the picture: read the rendered video, measure motion per frame, move each hit onto the frame where
      the motion starts (whooshes onto the motion peak) within a small window around the word cue;
   3. mix real CC0 recordings with opus-sound-layer (voice, optional music, ducking, room, -14 LUFS, true-peak limit);
@@ -11,12 +13,18 @@ Real-recording sound step for a reel, replacing the kit's synthesised effects:
 
 Usage (run with earshot's Python, which has numpy/soundfile):
   ~/dev/sound/earshot/.venv/bin/python realsound.py <reel> [--video out/<name>.mp4|build/draft.mp4] [--out FILE.mp4]
-Relative --video and --out paths are looked up in the reel folder first, so it works from any folder (then in the folder you ran it from).
         [--lufs -14] [--no-snap] [--no-listen]
-Default video: the newest of out/*.mp4, build/final.mp4, build/draft.mp4. Default output: the same file with -real before .mp4.
+Relative --video and --out paths are looked up in the reel folder first, so it works from any folder (then in the folder you ran it from).
+Default video: the newest of out/*.mp4, build/video.mp4, build/final.mp4, build/draft.mp4 and build/pre-real/*.mp4. An out/ file
+that this step made itself (its fingerprint is in build/realsound/last.json) is never mixed again: its kit-sound original is used.
+The final is always out/<name>.mp4, the name kit export wrote and the gate, the review and the publisher expect:
+  - video in out/ (the usual case): the mix is written beside it as a temporary file, then the kit-sound original moves to
+    build/pre-real/<name>-kitsound.mp4 (kept, so the step can be redone) and the result takes its place as out/<name>.mp4;
+  - video in build/pre-real/ (a redo): the result goes back to out/<name>.mp4;
+  - video in build/ (draft.mp4, video.mp4, final.mp4): the result is written next to it with -real before .mp4;
+  - --out FILE: exactly that file, and nothing is moved.
 """
-import argparse, glob, json, os, subprocess, sys
-import numpy as np
+import argparse, glob, hashlib, json, os, subprocess, sys
 
 HOME = os.path.expanduser("~")
 OPUS = os.path.join(HOME, "dev/sound/opus-sound-layer")
@@ -38,6 +46,7 @@ MAP = {
     "tick": ("tick", "support", "start", None, 1),
     "type": ("key", "support", "start", None, 1),
     "cash": ("chime", "support", "start", None, 2),
+    "impact": ("hit", "hero", "start", "land", 3),
 }
 SNAP_HIT = (-0.10, 0.35)    # search window around the word cue for a landing (s)
 SNAP_MOVE = (-0.20, 0.35)   # for whooshes: the motion peak
@@ -58,17 +67,85 @@ def in_reel(reel, path, must_exist=True):
     return inside if os.path.isdir(os.path.dirname(inside)) or not os.path.isdir(os.path.dirname(here)) else here
 
 
+KITSOUND = "-kitsound"       # build/pre-real/<name>-kitsound.mp4: the kit-sound original of out/<name>.mp4
+
+
+def file_sha(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def last_run(reel):
+    try:
+        return json.load(open(os.path.join(reel, "build", "realsound", "last.json")))
+    except (OSError, ValueError):
+        return {}
+
+
 def pick_video(reel):
-    c = [p for p in glob.glob(os.path.join(reel, "out", "*.mp4")) if "-real" not in p]
-    c += [os.path.join(reel, "build", f) for f in ("final.mp4", "draft.mp4")]
-    c += glob.glob(os.path.join(reel, "build", "pre-real", "*.mp4"))      # a finished reel whose out/ file was replaced by the -real one
-    c = [p for p in c if os.path.exists(p)]
+    """The video to mix: the newest rendered file. An out/ file this step made itself is swapped for its kit-sound original in
+    build/pre-real/, so a redo never mixes an already mixed file (and never overwrites the kept original with it)."""
+    last, c = last_run(reel), []
+    for p in glob.glob(os.path.join(reel, "out", "*.mp4")):
+        if ".tmp." in os.path.basename(p) or p.endswith("-real.mp4"): continue
+        src = last.get("source") and os.path.join(reel, last["source"])
+        if last.get("final_sha256") and src and os.path.exists(src) and file_sha(p) == last["final_sha256"]:
+            c.append((os.path.getmtime(p), src))                           # our own result: redo from its original
+        else:
+            c.append((os.path.getmtime(p), p))
+    for f in ("video.mp4", "final.mp4", "draft.mp4"):
+        p = os.path.join(reel, "build", f)
+        if os.path.exists(p): c.append((os.path.getmtime(p), p))
+    for p in glob.glob(os.path.join(reel, "build", "pre-real", "*.mp4")):
+        if p not in [x[1] for x in c]: c.append((os.path.getmtime(p), p))
     if not c: sys.exit("no rendered video: run kit render first")
-    return max(c, key=os.path.getmtime)
+    return max(c)[1]
+
+
+def plan_output(reel, video, out_arg):
+    """(final, original_keep): where the result goes, and where the kit-sound original moves (None: nothing moves)."""
+    out_dir = os.path.join(reel, "out")
+    name = os.path.basename(video)
+    if out_arg:
+        return in_reel(reel, out_arg, must_exist=False), None
+    if os.path.dirname(os.path.abspath(video)) == os.path.abspath(out_dir):
+        stem = name[:-4]
+        return video, os.path.join(reel, "build", "pre-real", stem + KITSOUND + ".mp4")
+    if os.path.basename(os.path.dirname(os.path.abspath(video))) == "pre-real":     # a redo: the result goes back to out/
+        stem = name[:-4]
+        stem = stem[:-len(KITSOUND)] if stem.endswith(KITSOUND) else stem
+        return os.path.join(out_dir, stem + ".mp4"), None
+    return video[:-4] + "-real.mp4", None
+
+
+def map_cues(raw_cues):
+    """build/sfx.json cues -> (plan, skipped names). Known names first, then sound.py's keyword match (impact, hit, slam ...)."""
+    try:
+        from sound import ALIASES                    # one list of names: the kit's own sound step
+    except Exception:
+        ALIASES = []
+    plan, skipped = [], []
+    for c in raw_cues or []:
+        name = str(c.get("name", ""))
+        if name == "thud" and c.get("gain", 0) >= -2: name = "thud_hero"
+        if name not in MAP:
+            low = name.lower()
+            alias = next((e for e, words in ALIASES if low == e or any(w in low for w in words.split())), None)
+            if alias in MAP: name = alias
+            else:
+                skipped.append(name or "(no name)")
+                continue
+        snd, w, al, vis, pri = MAP[name]
+        plan.append({"t": float(c["t"]), "pri": pri, "name": name, "sound": snd, "weight": w, "align": al, "visual": vis})
+    return plan, skipped
 
 
 def motion(video):
     """per-frame motion, measured exactly like opus-sound-layer's qa.py (160x90 grey, mean abs change)"""
+    import numpy as np
     fps_s = sh(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=r_frame_rate",
                 "-of", "csv=p=0", video]).stdout.decode().strip().strip(",").splitlines()[0].strip(",")
     n, d = fps_s.split("/")
@@ -82,6 +159,7 @@ def motion(video):
 
 def _stop_frame(m, f, lo, hi):
     """qa.py's landing: motion falls below 5 % of the recent peak"""
+    import numpy as np
     n = len(m)
     for i in range(max(2, lo), min(n, hi)):
         pre = m[max(1, i - 15):max(2, i - 1)]
@@ -93,6 +171,7 @@ def _stop_frame(m, f, lo, hi):
 
 def snap(cues, m, fps):
     """move each cue onto the picture using qa.py's own definitions; returns how many moved"""
+    import numpy as np
     moved, n = 0, len(m)
     for c in cues:
         if c["visual"] is None:
@@ -144,22 +223,22 @@ def main():
     from kitcore import resolve_reel
     reel = str(resolve_reel(a.reel))                # a folder, reels/<slug> or the slug; dated folders too
     video = in_reel(reel, a.video) if a.video else pick_video(reel)
-    out = in_reel(reel, a.out, must_exist=False) if a.out else video[:-4] + "-real.mp4"
-    if not a.out and os.path.basename(os.path.dirname(video)) == "pre-real":     # redoing it: the result goes back to out/
-        out = os.path.join(reel, "out", os.path.basename(out))
+    if not os.path.exists(video): sys.exit(f"no video at {video}")
+    out, keep = plan_output(reel, video, a.out)
+    os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
     work = os.path.join(reel, "build", "realsound")
     os.makedirs(work, exist_ok=True)
     if not os.path.exists(os.path.join(KIT, "catalog.json")):
         sys.exit("opus-sound-layer library missing: run `uv run scripts/sfx.py kit` in " + OPUS)
 
-    raw_cues = json.load(open(os.path.join(reel, "build", "sfx.json")))
-    plan = []
-    for c in raw_cues:
-        name = c["name"]
-        if name == "thud" and c.get("gain", 0) >= -2: name = "thud_hero"
-        if name not in MAP: continue
-        snd, w, al, vis, pri = MAP[name]
-        plan.append({"t": float(c["t"]), "pri": pri, "name": name, "sound": snd, "weight": w, "align": al, "visual": vis})
+    sfx = os.path.join(reel, "build", "sfx.json")
+    try:
+        raw_cues = json.load(open(sfx)) if os.path.exists(sfx) else []
+    except ValueError:
+        sys.exit(f"{sfx} is not valid JSON: render again (kit render) so the page writes it")
+    if not os.path.exists(sfx): print("no build/sfx.json: no sound cues, so this mixes the voice (and music) only")
+    plan, skipped = map_cues(raw_cues if isinstance(raw_cues, list) else [])
+    if skipped: print(f"skipped {len(skipped)} cue(s) with a name this step does not know: {', '.join(sorted(set(skipped)))}")
     plan.sort(key=lambda c: c["t"])
     kept = []
     for c in plan:
@@ -194,10 +273,23 @@ def main():
                        cwd=work, capture_output=True, text=True)
     if r.returncode: sys.exit("mix.py failed:\n" + r.stdout[-2000:] + r.stderr[-2000:])
     mix = os.path.join(work, "audio", "mix.wav")
+    # the mix goes to a temporary file first, so a failed step leaves out/ as it was (and the step never reads and writes one file)
+    tmp = out[:-4] + ".tmp.mp4"
     sh(["ffmpeg", "-v", "error", "-y", "-i", video, "-i", mix, "-map", "0:v", "-map", "1:a", "-c:v", "copy",
-        "-c:a", "aac", "-b:a", "256k", "-shortest", out])
+        "-c:a", "aac", "-b:a", "256k", "-shortest", tmp])
+    moved_to = None
+    if keep:                                            # one final in out/: the kit-sound original goes to build/pre-real/
+        os.makedirs(os.path.dirname(keep), exist_ok=True)
+        os.replace(video, keep)
+        moved_to = keep
+    os.replace(tmp, out)
+    if os.path.dirname(os.path.abspath(out)) == os.path.abspath(os.path.join(reel, "out")):
+        src = moved_to or video
+        json.dump({"final": os.path.relpath(out, reel), "final_sha256": file_sha(out), "source": os.path.relpath(src, reel)},
+                  open(os.path.join(work, "last.json"), "w"), indent=1)
 
     lines = [f"video: {video}", f"output: {out}", f"cues: {len(kept)} kept of {len(plan)}; {moved} snapped to the picture",
+             f"skipped cue names (not mapped): {', '.join(sorted(set(skipped)))}" if skipped else "",
              r.stdout.strip().splitlines()[0] if r.stdout.strip() else ""]
     for c in kept:
         lines.append(f"  {c['t']:7.3f}s  {c['sound']:<10} {c['weight']:<8}" +
@@ -207,14 +299,10 @@ def main():
         cr = subprocess.run([EARSHOT, "critique", out], capture_output=True, text=True).stdout.splitlines()
         lines.append("earshot: " + (rl[-1] if rl else "no reading"))
         lines += ["  " + x.strip() for x in cr if any(k in x for k in ("onset +-1", "salient hit", "brightness", "L/R", "loudness"))]
-    # one final in out/: when the file that was mixed came from out/ and the result sits beside it, the plain one moves to
-    # build/pre-real/ (still there to redo this step), so out/ holds only the -real file. Not done with --out (you chose the name).
-    out_dir = os.path.join(reel, "out")
-    if not a.out and os.path.dirname(video) == out_dir and os.path.dirname(out) == out_dir and os.path.exists(out):
-        keep = os.path.join(reel, "build", "pre-real")
-        os.makedirs(keep, exist_ok=True)
-        os.replace(video, os.path.join(keep, os.path.basename(video)))
-        lines.append(f"moved {os.path.basename(video)} to build/pre-real/ so out/ holds one final: {os.path.basename(out)}")
+    # the final keeps the name kit export gave it (out/<name>.mp4); the kit-sound original was moved above, before the result took
+    # its place, and stays in build/pre-real/ for a redo. With --out nothing is moved (you chose the name).
+    lines.append(f"final: {os.path.relpath(out, reel)}" + (f"; the kit-sound original is now {os.path.relpath(moved_to, reel)}" if moved_to else ""))
+    lines = [l for l in lines if l]
     report = "\n".join(lines)
     open(os.path.join(work, "report.txt"), "w").write(report + "\n")
     print(report)

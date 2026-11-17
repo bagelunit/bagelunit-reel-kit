@@ -75,6 +75,43 @@ function brandFolderOf(dir) {
   }
 }
 
+// the brand's own settings, laid over a new reel's reel.json after the saved look, so each brand folder keeps its own handle,
+// colours, voice and host even when the computer-wide ~/.config/bagelunit-reels/config.json belongs to another brand (that file
+// stays the fallback for anything brand.json leaves empty). Returns the notes to print.
+function applyBrandLook(reel, style, home, dir) {
+  const notes = [];
+  const brand = home ? readJSON(path.join(home, 'brand', 'brand.json'), null) : null;
+  if (!brand || typeof brand !== 'object') return notes;
+  const s = (v) => (typeof v === 'string' ? v.trim() : '');
+  if (s(brand.handle)) reel.brand = { ...(reel.brand || {}), handle: s(brand.handle) };
+  const c = brand.colors || {};
+  if ('theme' in reel && (s(c.theme) || s(c.accent) || s(c.background) || s(c.ink))) {
+    const now = typeof reel.theme === 'string' ? { preset: reel.theme } : { ...(reel.theme || {}) };
+    reel.theme = { ...now, preset: s(c.theme) || now.preset || 'studio', ...(s(c.accent) ? { accent: s(c.accent) } : {}),
+      ...(s(c.background) ? { paper: s(c.background) } : {}), ...(s(c.ink) ? { ink: s(c.ink) } : {}) };
+  }
+  const v = brand.voice || {};
+  const voice = { ...(reel.voice || {}) };
+  if (s(v.voice_id)) voice.voice_id = s(v.voice_id);
+  if (s(v.voice_name)) voice.voice_name = s(v.voice_name);
+  // brand.json voice.style is the owner's words for how the voice sounds; reel.json voice.style is ElevenLabs' style number.
+  // A number is passed on as the setting, words are kept as a note and never sent as the setting.
+  if (typeof v.style === 'number') voice.style = v.style;
+  else if (s(v.style)) voice.description = s(v.style);
+  if (Object.keys(voice).length) reel.voice = voice;
+  const h = brand.host || {};
+  if (style === 'print') {
+    if (h.type === 'none' && h.enabled !== true) { reel.presenter = false; notes.push('brand.json host.type is none: the presenter is off'); }
+    else if (h.type === 'stickers' && s(h.poses_dir)) {
+      const posesDir = path.isAbsolute(s(h.poses_dir)) ? s(h.poses_dir) : path.resolve(home, s(h.poses_dir).replace(/^~(?=$|[\\/])/, os.homedir()));
+      const linked = linkHost(dir, posesDir, reel);
+      notes.push(linked.ok ? `the brand's sticker host is linked (${linked.poses} poses); cue them in reel.json, then kit host ${dir} --check`
+        : `the brand's sticker host is not linked: ${linked.why} (make it with /sticker-host, then kit host ${dir})`);
+    }
+  }
+  return notes;
+}
+
 /* ── verbs ──────────────────────────────────────────────────────────────────────────────────────────────────────────── */
 function start() {
   const style = text('style') ?? 'print';
@@ -110,7 +147,9 @@ function start() {
   fs.cpSync(starter, dir, { recursive: true, force: false, errorOnExist: false });
   for (const sub of ['build', 'audio', 'stills', 'out', 'assets']) fs.mkdirSync(path.join(dir, sub), { recursive: true });
   const reel = applySavedLook({ ...readJSON(path.join(dir, 'reel.json'), {}), style, name: text('name') ?? path.basename(dir) }, style);
+  const notes = applyBrandLook(reel, style, brandFolderOf(dir), dir);
   fs.writeFileSync(path.join(dir, 'reel.json'), JSON.stringify(reel, null, 2));
+  for (const n of notes) console.log(`brand: ${n}`);
   const hasScript = kept.includes('script.txt');
   const next = style === 'talking'
     ? `record your take, then  ${PY} ${path.join(SKILL, 'tools', 'take.py')} ${dir} --video <your-take.mov>`
@@ -127,7 +166,9 @@ function startScene(dir, style) {
   for (const [f, body] of Object.entries(files)) if (!kept.includes(f)) fs.writeFileSync(path.join(dir, f), typeof body === 'string' ? body : JSON.stringify(body, null, 2) + '\n');
   for (const sub of ['build', 'audio', 'stills', 'out', 'assets']) fs.mkdirSync(path.join(dir, sub), { recursive: true });
   const reel = applySavedLook({ ...readJSON(path.join(dir, 'reel.json'), {}), style, name: text('name') ?? path.basename(dir) }, style);
+  const notes = applyBrandLook(reel, style, brandFolderOf(dir), dir);
   fs.writeFileSync(path.join(dir, 'reel.json'), JSON.stringify(reel, null, 2));
+  for (const n of notes) console.log(`brand: ${n}`);
   console.log(`new ${style} reel (scene style): ${dir}`);
   if (kept.length) console.log(`kept what was already there (not replaced by the sample): ${kept.join(', ')}`);
   console.log(`next: ${kept.includes('script.txt') ? 'check' : 'write'} script.txt, plan scenes.json (templates: kit scene list ${style}), then  ${PY} ${path.join(SKILL, 'tools', 'voice.py')} ${dir}  and  kit scene ${dir} plan`);
@@ -274,18 +315,30 @@ function host() {
     }
   } else if (used.length) console.log('every pose the cues use is in the set');
   if (flags.check) { process.exitCode = missing.length ? 2 : 0; return; }
+  const r = linkHost(dir, posesDir, reel);
+  if (!r.ok) die(r.why);
+  fs.writeFileSync(cfgPath, JSON.stringify(reel, null, 2));
+  console.log(`${r.linked ? 'linked' : 'copied'} the set to ${path.join(dir, 'host')}; reel.json lists all ${have.length} poses`);
+  if (missing.length) process.exitCode = 2;
+}
+
+// link (or copy) a sticker host's pose folder into <dir>/host and list its poses in the reel's presenter (reel is changed in place)
+function linkHost(dir, posesDir, reel) {
+  if (!fs.existsSync(posesDir)) return { ok: false, why: `the pose folder ${posesDir} does not exist` };
+  const have = fs.readdirSync(posesDir).filter((f) => f.toLowerCase().endsWith('.png')).map((f) => f.slice(0, -4)).sort();
+  if (!have.includes('idle')) return { ok: false, why: `${posesDir} has no idle.png (every sticker host needs its base pose)` };
   const link = path.join(dir, 'host');
   let linked = false;
   try {
     const st = fs.lstatSync(link);
     if (st.isSymbolicLink()) fs.rmSync(link);
-    else die(`${link} is a real folder; move it away (or delete it) so the brand's set can be linked there`);
+    else return { ok: false, why: `${link} is a real folder; move it away (or delete it) so the brand's set can be linked there` };
   } catch (e) { if (e.code !== 'ENOENT') throw e; }
   try { fs.symlinkSync(posesDir, link, 'dir'); linked = true; } catch { fs.cpSync(posesDir, link, { recursive: true }); }
-  reel.presenter = { ...(reel.presenter ?? {}), type: 'stickers', dir: 'host', poses: have, cues };
-  fs.writeFileSync(cfgPath, JSON.stringify(reel, null, 2));
-  console.log(`${linked ? 'linked' : 'copied'} the set to ${link}; reel.json lists all ${have.length} poses`);
-  if (missing.length) process.exitCode = 2;
+  const old = reel.presenter && typeof reel.presenter === 'object' ? reel.presenter : {};
+  const cues = Array.isArray(old.cues) ? old.cues : [];
+  reel.presenter = { ...old, type: 'stickers', dir: 'host', poses: have, cues };
+  return { ok: true, linked, poses: have.length };
 }
 
 // the brand folder for `organize` and `tidy`: the folder given, or the one you are in
@@ -350,7 +403,8 @@ const COMMANDS = {
   lint: [() => runPython('lint.py', [reelAt(target).dir, ...rest]), '<dir> [video.mp4]', 'shot grammar: lengths, adjacent layouts, cuts on words, rhythm, first-frame motion'],
   qa: [() => runPython('qa.py', [reelAt(target).dir, ...rest]), '<dir> [video.mp4]', 'final file checks: spec, loudness, black/frozen frames, text safe zone, A/V sync; writes build/qa.json'],
   facts: [() => runPython('facts.py', [reelAt(target).dir, ...rest]), '<dir> [check] [--scope script|final]  |  <dir> record --scope script|final --result PASS|FAIL', 'fact check: mechanical check of the reel against brand/facts.md (writes build/factcheck.md), then record the fresh re-read verdict (/reel-factcheck)'],
-  gate: [() => runPython('gate.py', [reelAt(target).dir, ...rest]), '<dir> record|check [--gate A|B|C] [--note "text"] [--skip-facts "reason"] [--skip-script-review "reason"]', 'record an approval (gate C also hashes the final mp4) or check it is unchanged'],
+  gate: [() => runPython('gate.py', [reelAt(target).dir, ...rest]), '<dir> record|check|hash [--gate A|B|C] [--note "text"] [--skip-facts|--skip-script-review|--skip-review|--skip-qa|--skip-order "reason"]', 'record an approval in order A, B, C (gate C needs kit qa PASS and a review of this exact file, and hashes the final mp4), check it is unchanged, or print the final\'s fingerprint for the review line'],
+  budget: [() => runPython('budget.py', target ? [path.join(reelAt(target).dir, 'script.txt'), ...rest] : rest), '<dir> [--takes 2]  |  --left [--json]', 'will the script fit in the ElevenLabs credits left? (before Gate A; --left: just the account)'],
   measure: [() => runPython('measure.py', [reelAt(target).dir, ...rest]), '<dir> [video]', 'facts only: cuts, words, loudness, silence, still stretches; contact sheets in build/measure'],
   calibrate: [() => runPython('calibrate.py', [target, ...rest]), '<insights.csv> [--project-root <reels>]', 'fit the estimator on this brand\'s own Instagram Insights (needs 8+ measured reels)'],
   predict: [() => runPython('predict.py', [reelAt(target).dir, ...rest]), '<dir>', 'measured facts, plus a watch-time and skip-rate estimate once calibrated'],

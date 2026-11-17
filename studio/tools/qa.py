@@ -4,12 +4,14 @@
   python3 tools/qa.py <project> [video.mp4]     (default: newest out/*.mp4, else build/video.mp4, else build/draft.mp4)
 
 One line per check, each PASS, WARN, FAIL or SKIPPED; then  QA: PASS  or  QA: FAIL  (exit code 1 on FAIL). WARN does not fail.
-The same facts are written to build/qa.json so a reviewer can read them.
+The same facts are written to build/qa.json so a reviewer can read them, with the file checked ("video", "file") and its
+SHA-256 ("sha256"): Gate C (tools/gate.py) accepts a QA only for the very file it approves.
 
   spec       1080x1920, 30 fps, h264 video + aac audio, length within 1 s of audio/vo.mp3 (when it exists), size 0.2 to 250 MB
   loudness   integrated LUFS (ebur128): PASS -15..-9, WARN inside -16..-8, FAIL outside; true peak must be <= -1 dBTP
   black      black stretches longer than 0.5 s, listed with times (FAIL)
-  frozen     frozen stretches longer than 0.5 s, listed with times (FAIL)
+  frozen     frozen stretches longer than 0.5 s, listed with times (FAIL). The end hold is not counted: the last `tail` seconds
+             (reel.json "tail", else the engine's own default: print 0.8, depth 1.0, talking and scene styles 0.6) may stand still.
   text       text size and safe zone, from build/text_boxes.json: [{"t0": s, "t1": s, "x": px, "y": px, "w": px, "h": px,
              "label": "..."}] on the 1080x1920 canvas. No other build file holds text boxes (build/motion_mask.json lists regions
              to ignore, not text), so without that file this check is SKIPPED, never PASS.
@@ -23,7 +25,7 @@ The same facts are written to build/qa.json so a reviewer can read them.
 import json, re, subprocess, sys
 from pathlib import Path
 
-from kitcore import resolve_reel, Flags, fail, load_words, media_length, pcm, read_json
+from kitcore import resolve_reel, Flags, fail, load_words, media_length, pcm, read_json, reel_settings, file_sha256
 
 TOOL = 'qa'
 SAFE = dict(top=250, bottom=300, left=60, right=120)   # px kept clear of text on a 1080x1920 canvas: the kit's one safe zone (the bottom 300 px and the right 120 px are the platforms' caption bar and buttons; scripts/qa/reel_qa.py and scenes.mjs use the same numbers)
@@ -31,6 +33,16 @@ MIN_TEXT_H = 44                                    # a text box shorter than thi
 MIN_STILL = 0.5                                    # black or frozen for longer than this (s) is reported
 SYNC_LIMIT = 0.080
 SCENE_SLACK = 6                                    # px; scene-style boxes (S.inspect) get the styles repo tester's tolerance
+TAIL_DEFAULT = {'print': 0.8, 'depth': 1.0, 'talking': 0.6}   # the engines' own end hold when reel.json has no "tail" (scene styles 0.6)
+
+
+def end_hold(project):
+    """Seconds of end hold the engine adds after the last word (reel.json "tail", else the engine's default)."""
+    cfg = reel_settings(project)
+    try:
+        return max(0.0, float(cfg.get('tail', TAIL_DEFAULT.get(cfg.get('style'), 0.6))))
+    except (TypeError, ValueError):
+        return 0.6
 
 
 def newest_video(project, given):
@@ -163,9 +175,13 @@ def main():
     log = run_filter(video, f'freezedetect=n=-60dB:d={MIN_STILL}')
     starts = [float(x) for x in re.findall(r'freeze_start: ([\d.]+)', log)]
     ends = [float(x) for x in re.findall(r'freeze_end: ([\d.]+)', log)]
-    frozen = [(a, ends[i] if i < len(ends) else duration) for i, a in enumerate(starts)]
-    add('frozen', 'FAIL' if frozen else 'PASS', f'{len(frozen)} frozen stretch(es) over {MIN_STILL}s: {fmt_spans(frozen)}' if frozen
-        else f'no frozen frames longer than {MIN_STILL}s', stretches=[[a, b] for a, b in frozen])
+    tail = end_hold(project)
+    hold_from = max(0.0, duration - tail)               # the end hold may stand still: only what is frozen before it counts
+    frozen = [(a, min(ends[i] if i < len(ends) else duration, hold_from)) for i, a in enumerate(starts)]
+    frozen = [(a, b) for a, b in frozen if b - a > MIN_STILL]
+    hold_note = f' (the last {tail:.1f}s end hold is not counted)' if tail else ''
+    add('frozen', 'FAIL' if frozen else 'PASS', f'{len(frozen)} frozen stretch(es) over {MIN_STILL}s: {fmt_spans(frozen)}{hold_note}' if frozen
+        else f'no frozen frames longer than {MIN_STILL}s{hold_note}', stretches=[[a, b] for a, b in frozen], end_hold_s=tail)
 
     # text size and safe zone
     boxes = read_json(project / 'build' / 'text_boxes.json', None)
@@ -226,8 +242,12 @@ def main():
     print(f'QA: {result}' + ('  (some checks were skipped)' if any(r['status'] == 'SKIPPED' for r in rows) else ''))
     build = project / 'build'
     build.mkdir(parents=True, exist_ok=True)
-    (build / 'qa.json').write_text(json.dumps({'video': video.name, 'result': result, 'checks': rows}, indent=2, ensure_ascii=False),
-                                   encoding='utf-8')
+    try:
+        file = video.resolve().relative_to(project.resolve()).as_posix()
+    except ValueError:
+        file = str(video)
+    (build / 'qa.json').write_text(json.dumps({'video': video.name, 'file': file, 'sha256': file_sha256(video), 'result': result,
+                                               'checks': rows}, indent=2, ensure_ascii=False), encoding='utf-8')
     sys.exit(1 if failed else 0)
 
 

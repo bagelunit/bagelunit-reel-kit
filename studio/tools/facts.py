@@ -15,7 +15,9 @@
              listed as warnings, because those need a source that says exactly that;
            - each script sentence is paired with the nearest facts row, as a hint (a poor match is a warning);
            - a worksheet is written to build/factcheck.md for the re-read, with the "Never say" list.
-           --scope script (default) looks at the script; --scope final also looks at the caption and the on-screen text file.
+           --scope script (default) looks at the script; --scope final also looks at the caption and the on-screen text file,
+           and for a talking reel (reel.json style "talking") at the words said on camera, from build/words.json (take.py).
+           A new take changes them, so the final record goes out of date.
            It cannot tell whether a source is TRUE. That is the second half: the /reel-factcheck skill re-reads each source
            fresh and records its verdict with `record`.
   record   Saves the re-read verdict (PASS or FAIL) for this scope together with a fingerprint of the words and the facts
@@ -70,12 +72,31 @@ def parse_facts(text):
     return rows, never
 
 
+def talking_words(project):
+    """For a talking reel the words that count are the ones said on camera, not script.txt (often a pre-shoot draft or the
+    starter sample): take.py writes them, as heard, to build/words.json. Returns them as one text, or '' for any other style."""
+    try:
+        style = json.loads((project / 'reel.json').read_text(encoding='utf-8')).get('style')
+    except (OSError, ValueError, AttributeError):
+        return ''
+    if style != 'talking':
+        return ''
+    try:
+        words = json.loads((project / 'build' / 'words.json').read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return ''
+    return ' '.join(str(w.get('w', '')).strip() for w in words if isinstance(w, dict) and str(w.get('w', '')).strip())
+
+
 def words_text(project, scope):
     """The reel's words for this scope: [(file label, text)]."""
     out = []
     for label, path in (('script.txt', project / 'script.txt'),):
         out.append((label, path.read_text(encoding='utf-8') if path.exists() else ''))
     if scope == 'final':
+        spoken = talking_words(project)
+        if spoken:
+            out.append(('words.json', spoken))
         for label, path in (('caption.txt', project / 'out' / 'caption.txt'),
                             ('caption.txt', project / 'caption.txt'),
                             ('on_screen_text.txt', project / 'build' / 'on_screen_text.txt')):
@@ -201,12 +222,12 @@ def check(project, scope, facts_path):
             hit = ABSOLUTES.search(sent)
             if hit:
                 findings.append(('WARN', 'ABSOLUTE', label, f'"{hit.group(0)}" in: {sent[:90]}. Needs a source that says exactly this'))
-            if label == 'script.txt':
+            if label in ('script.txt', 'words.json'):      # words.json: what a talking reel actually says
                 idx, sc = nearest(sent, rows)
-                claims.append({'sentence': sent, 'row': (idx + 1) if idx is not None else None, 'overlap': round(sc, 2)})
+                claims.append({'sentence': sent, 'row': (idx + 1) if idx is not None else None, 'overlap': round(sc, 2), 'label': label})
     for c in claims:
         if c['overlap'] < 0.34:
-            findings.append(('WARN', 'UNMATCHED', 'script.txt', f'no facts row is close to: {c["sentence"][:90]}. If it states a fact, it has to be cleared; if it is a hook or an ask, ignore this'))
+            findings.append(('WARN', 'UNMATCHED', c.get('label', 'script.txt'), f'no facts row is close to: {c["sentence"][:90]}. If it states a fact, it has to be cleared; if it is a hook or an ask, ignore this'))
 
     errors = sum(1 for f in findings if f[0] == 'ERROR')
     warns = sum(1 for f in findings if f[0] == 'WARN')

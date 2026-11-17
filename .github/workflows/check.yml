@@ -86,6 +86,12 @@ jobs:
       - name: Score bar works (Gate C refuses a review under 90 out of 100, accepts 90 or more, records the owner's override)
         run: node setup/test-score-bar.mjs
 
+      - name: Gates and audit fixes work (A, B, C in order; Gate C needs kit qa PASS and a review of this exact file; kit gate hash; brand settings in kit start; per-brand model; real-sound names and final name; talking words in the fact check; end hold in kit qa)
+        shell: bash
+        run: |
+          python -m pip install --quiet numpy
+          node setup/test-gates.mjs
+
       - name: Reel loop learns from the numbers (too few reels, waiting, best angle, weak hook or middle, breakout, stalled)
         run: node setup/test-loop.mjs
 

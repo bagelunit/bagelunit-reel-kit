@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -15,10 +16,15 @@ const reel = path.join(dir, 'r');
 fs.mkdirSync(path.join(reel, 'out'), { recursive: true });
 fs.writeFileSync(path.join(reel, 'out', 'r.mp4'), 'not a real video');
 fs.writeFileSync(path.join(reel, 'reel.json'), '{"style":"print"}');
+// Gate C also needs Gates A and B (skipped here with --skip-order), kit qa PASS for this file and a review that names it
+const hash = crypto.createHash('sha256').update(fs.readFileSync(path.join(reel, 'out', 'r.mp4'))).digest('hex');
+fs.mkdirSync(path.join(reel, 'build'), { recursive: true });
+fs.writeFileSync(path.join(reel, 'build', 'qa.json'), JSON.stringify({ video: 'r.mp4', file: 'out/r.mp4', sha256: hash, result: 'PASS', checks: [] }));
+const V = ` [video ${hash.slice(0, 12)}]`;
 const approvals = path.join(reel, 'approvals.md');
-const gate = (...a) => spawnSync('python3', [path.join(tools, 'gate.py'), reel, 'record', '--gate', 'C', '--skip-facts', 'test', ...a], { encoding: 'utf8' });
+const gate = (...a) => spawnSync('python3', [path.join(tools, 'gate.py'), reel, 'record', '--gate', 'C', '--skip-facts', 'test', '--skip-order', 'test', ...a], { encoding: 'utf8' });
 const out = (r) => r.stdout + r.stderr;
-const say = (line) => fs.writeFileSync(approvals, `# Approvals\n\n## Gate C\n\n- ${line}\n`);
+const say = (line) => fs.writeFileSync(approvals, `# Approvals\n\n## Gate C\n\n- ${line}${V}\n`);
 
 fs.writeFileSync(approvals, '# Approvals\n');
 let r = gate();
@@ -40,7 +46,7 @@ say('Review: meets the bar (89.9/100; weakest: ending).');
 r = gate(); assert.notEqual(r.status, 0, 'under 90 by a decimal is still under');
 
 // redo and review again: only the LAST line counts, and the old ones stay as the history
-fs.writeFileSync(approvals, '# Approvals\n\n- Review: not ready (84/100; weakest: hook).\n- Review: meets the bar (92/100; weakest: ending drags after 27 s).\n');
+fs.writeFileSync(approvals, `# Approvals\n\n- Review: not ready (84/100; weakest: hook).\n- Review: meets the bar (92/100; weakest: ending drags after 27 s).${V}\n`);
 r = gate(); assert.equal(r.status, 0, out(r));
 assert.match(fs.readFileSync(approvals, 'utf8'), /Review: meets the bar \(92\/100/);
 assert.ok(!/REVIEW BELOW THE BAR/.test(fs.readFileSync(approvals, 'utf8')));
@@ -55,9 +61,9 @@ r = gate('--skip-review', 'owner wants it out today');
 assert.equal(r.status, 0, out(r));
 assert.match(fs.readFileSync(approvals, 'utf8'), /REVIEW BELOW THE BAR: owner wants it out today/);
 
-// gates A and B do not need a review
+// gate B does not need a review (only Gate A before it)
 fs.writeFileSync(approvals, '# Approvals\n');
-r = spawnSync('python3', [path.join(tools, 'gate.py'), reel, 'record', '--gate', 'B'], { encoding: 'utf8' });
+r = spawnSync('python3', [path.join(tools, 'gate.py'), reel, 'record', '--gate', 'B', '--skip-order', 'test'], { encoding: 'utf8' });
 assert.equal(r.status, 0, out(r));
 
 fs.rmSync(dir, { recursive: true, force: true });
