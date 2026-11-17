@@ -79,22 +79,33 @@ def qa_problem(project, video):
 
 
 def licensed_state(project):
-    """(problems, credit lines). Every licensed asset the reel uses (kit licensed: look.lut, music, scene clips and overlays) must be in
-    brand/licensed/assets.json, unchanged and inside brand/licensed/. Runs tools/licensed.mjs check <reel> --json. There is no owner
+    """(problems, credit lines, warnings). Every licensed asset the reel uses (kit licensed: look.lut, music, scene clips and overlays) must be in
+    brand/licensed/assets.json, unchanged and inside brand/licensed/. A generated asset (AI-generated image or video, any tool) also needs its
+    on-screen label (default "Re-creation" for video, "AI-generated" for images) to appear in the reel's on-screen text, unless the record carries a
+    reason for having none. If the on-screen text cannot be read at all, that is a warning written into approvals.md, never a silent pass. Own files
+    (a scene's {"file": ...}) are not licensed assets and are not listed. Runs tools/licensed.mjs check <reel> --json. There is no owner
     override: a licence is not a quality bar."""
     tool, node = Path(__file__).with_name('licensed.mjs'), shutil.which('node')
     if not tool.exists() or not node:
-        return [], []
+        return [], [], []
     done = subprocess.run([node, str(tool), 'check', str(project), '--json'], capture_output=True, text=True)
     try:
         data = json.loads((done.stdout or '').strip().splitlines()[-1])
     except (ValueError, IndexError):
-        return [f'the licensed-assets check could not run ({(done.stderr or done.stdout or "no output").strip()[-200:]})'], []
-    if data.get('ok'):
-        return [], list(data.get('credits') or [])
-    bad = [l for l in data.get('lines', []) if str(l).startswith('FAIL')]
-    return [f'a licensed asset this reel uses is not in order: {"; ".join(b[6:] for b in bad) or "kit licensed check says FAIL"}. '
-            f'Run  kit licensed check <reel>  and fix it (record the download with kit licensed add, or take the asset out of the reel)'], []
+        return [f'the licensed-assets check could not run ({(done.stderr or done.stdout or "no output").strip()[-200:]})'], [], []
+    label_bad = [str(l) for l in data.get('label_problems') or []]
+    skipped = [str(l) for l in data.get('label_skipped') or []]
+    problems = []
+    bad = [l for l in data.get('lines', []) if str(l).startswith('FAIL') and str(l) not in label_bad]
+    if bad:
+        problems.append(f'a licensed asset this reel uses is not in order: {"; ".join(b[6:] for b in bad)}. '
+                        f'Run  kit licensed check <reel>  and fix it (record the download with kit licensed add, or take the asset out of the reel)')
+    if label_bad:
+        problems.append(f'a generated asset this reel uses has no on-screen label: {"; ".join(b[6:] for b in label_bad)}. '
+                        f'Show the label in the reel and run  kit licensed check <reel>  again. There is no override')
+    if problems:
+        return problems, [], []
+    return [], list(data.get('credits') or []), [s[9:] if s.startswith('SKIPPED: ') else s for s in skipped]
 
 
 def review_problem(text, video_hash):
@@ -253,10 +264,12 @@ def main():
             if line:
                 review_line = f'{line} (latest: {verdict or "none recorded"})'
 
-    credits = []
+    credits, lic_warn = [], []
     if gate == 'C':
-        lic_bad, credits = licensed_state(project)
+        lic_bad, credits, lic_warn = licensed_state(project)
         problems.extend(lic_bad)
+        for w in lic_warn:
+            print(f'WARNING: SKIPPED {w}', file=sys.stderr)
 
     if problems:
         fail(TOOL, f'Gate {gate} ({NAMES[gate]}) is not recorded:\n' + '\n'.join(f'  - {p}' for p in problems))
@@ -269,6 +282,7 @@ def main():
             lines.append(f'- Cover: {cover.name} | sha256: {sha256(cover)[:12]}')
         lines += [f'- QA: {qa_text}', f'- {verdict or "none recorded"}', f'- {facts_line}']
         lines += [f'- Licensed asset: {c}' for c in credits] or ['- Licensed assets: none used']
+        lines += [f'- Generated-label check SKIPPED: {w}' for w in lic_warn]
         lines += [f'- {x}' for x in extra] + ([f'- {review_line}'] if review_line else [])
         if note:
             lines.append(f'- Note: {note}')

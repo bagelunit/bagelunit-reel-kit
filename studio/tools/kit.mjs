@@ -284,9 +284,33 @@ function exportReel() {
 // the reel's cover: its cover scene (cover.html, or a moment set in reel.json "cover") as out/cover.jpg, made to Meta's
 // cover rules (JPEG, sRGB, 9:16 at 1080x1920, under 8 MB), plus build/cover-crops.jpg to look at what the profile grid
 // (the middle 3:4) and a feed post (the middle square) will show. Gate C records the cover's fingerprint with the video.
+// --image <file> (or reel.json "cover": {"image": "<file>"}): an image the owner made (a Blender still, any picture) is the base instead of cover.html or a
+// moment of the reel; it must sit inside the brand folder (or the reel folder when there is no brand folder). --fit cover (default) fills 1080x1920 and
+// crops the overflow; --fit contain keeps the whole picture on a white 1080x1920 page.
+const COVER_IMAGE = ['.png', '.jpg', '.jpeg', '.webp', '.tif', '.tiff', '.bmp'];
 async function cover() {
   const reel = reelAt(target);
   const set = reel.cfg.cover && typeof reel.cfg.cover === 'object' ? reel.cfg.cover : {};
+  const imageArg = text('image') ?? (typeof set.image === 'string' ? set.image : null);
+  if ('image' in flags && imageArg === null) die('--image needs a file: kit cover <dir> --image <file> [--fit cover|contain]');
+  const fitMode = text('fit') ?? set.fit ?? 'cover';
+  if (!['cover', 'contain'].includes(fitMode)) die(`--fit must be cover or contain (got "${fitMode}")`);
+  if (imageArg !== null) {
+    let src;
+    try { src = licensed.resolveOwnFile(findBrand(reel.dir), reel.dir, imageArg, { where: 'cover image', exts: COVER_IMAGE, allowAbsolute: true }); } catch (e) { die(e.message); }
+    fs.mkdirSync(path.join(reel.dir, 'out'), { recursive: true });
+    fs.mkdirSync(path.join(reel.dir, 'build'), { recursive: true });
+    const file = path.join(reel.dir, 'out', 'cover.jpg'), crops = path.join(reel.dir, 'build', 'cover-crops.jpg');
+    const fill = fitMode === 'cover' ? 'scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,format=yuvj420p'
+      : 'scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:color=white,setsar=1,format=yuvj420p';
+    ffmpeg(['-i', src, '-frames:v', '1', '-vf', fill, '-q:v', '3', file]);
+    if (fs.statSync(file).size > 7.5 * 1024 * 1024) ffmpeg(['-i', src, '-frames:v', '1', '-vf', fill, '-q:v', '8', file]);
+    const shade = 'color=black@0.55:t=fill';
+    ffmpeg(['-i', file, '-vf', `drawbox=x=0:y=0:w=1080:h=240:${shade},drawbox=x=0:y=1680:w=1080:h=240:${shade},drawbox=x=0:y=240:w=1080:h=1440:color=white@0.95:t=5,drawbox=x=0:y=420:w=1080:h=1080:color=yellow@0.95:t=5,scale=540:960`, '-frames:v', '1', '-q:v', '3', crops]);
+    console.log(`cover: ${rel(reel, file)} (1080x1920, ${Math.round(fs.statSync(file).size / 1024)} KB, from the image ${imageArg}, fit ${fitMode})`);
+    console.log(`check: ${rel(reel, crops)}  white box = what the profile grid shows (middle 3:4), yellow box = a feed post (middle square). The title must sit inside the white box.`);
+    return;
+  }
   const page = text('page') ?? set.page ?? (fs.existsSync(path.join(reel.dir, 'cover.html')) ? 'cover.html' : null);
   const at = 'at' in flags ? num('at', 0) : set.at ?? (page ? 0 : null);
   if (page == null && at == null) die('no cover scene yet. Make cover.html (this reel\'s page showing only the cover: a big title, the subject, the host if any, the handle; keep words inside the middle 1080x1440), or set reel.json "cover": {"at": <seconds>} to use a still moment of the reel. Then run kit cover again.');
@@ -432,13 +456,13 @@ const COMMANDS = {
   sound: [sound, '<dir>', 'voice + effects (+ music) → build/mix.wav'],
   export: [exportReel, '<dir> [--remix]', 'picture + sound → out/<name>.mp4, ready for Instagram'],
   live: [live, '<dir> [--port n]', 'serve the reel and print a link to watch it play'],
-  cover: [cover, '<dir> [--page cover.html] [--at <seconds>]', 'the reel cover: out/cover.jpg (1080x1920 JPEG to Meta\'s cover rules) and build/cover-crops.jpg showing what the grid and a feed post crop'],
+  cover: [cover, '<dir> [--page cover.html] [--at <seconds>] [--image <file> [--fit cover|contain]]', 'the reel cover (--image: a picture you made, inside the brand folder, as the base): out/cover.jpg (1080x1920 JPEG to Meta\'s cover rules) and build/cover-crops.jpg showing what the grid and a feed post crop'],
   organize: [organize, '[--layout dated|flat] [--apply]', 'file the brand\'s reel folders by post date (reels/2026/11 November/November 12/<slug>) or back to reels/<slug>; shows the moves first, --apply does them. Nothing else changes: plans, logs and numbers use the slug'],
   tidy: [tidy, '<reel>|--all [--audio] [--force] [--apply]', 'free disk space in finished (posted) reels: removes build/, stills/ and unapproved files in out/; keeps the script, approvals, caption, reel.json and the approved video and cover. --audio also removes the voice take (re-voicing costs credits). Shows the list first'],
   scene: [scene, 'list [<style>]  |  <dir> plan|check|stand-in [--only n] [--times 20%,end] [--pace 0.38] [--force]',
     'scene styles: list them and their templates; the plan with each scene\'s time from build/words.json; check every scene (errors, safe area, seeking) with stills in build/scenes/check/; a stand-in voice (a tone, fake word times, no key) for previews'],
-  licensed: [licensedVerb, 'add <file> --type music|sfx|stock-video|motion-graphic|lut --title "..." [--artist --url --channels a,b --credit --id --notes --licence --move]  |  list [--type T]  |  check [<reel>]  |  remove <id> [--keep-file]',
-    'the brand\'s licensed assets (any source, downloaded by hand; we suggest Uppbeat): record a download with its hash and credit, list them, check that every asset a reel uses exists and is unchanged (Gate C refuses a reel that fails), remove one'],
+  licensed: [licensedVerb, 'add <file> --type music|sfx|stock-video|motion-graphic|lut|generated-image|generated-video --title "..." [--artist --url --channels a,b --credit --id --notes --licence --move]  (generated: --tool "..." [--prompt ".." --onscreen-label ".." --no-label "reason"])  |  list [--type T]  |  check [<reel>]  |  remove <id> [--keep-file]',
+    'the brand\'s recorded assets (licensed or AI-generated, from any source): record a file with its hash, credit and, for generated media, the tool and the on-screen label; list them, check that every asset a reel uses exists, is unchanged and (generated) shows its label (Gate C refuses a reel that fails), remove one. Your own renders need no record: a scene\'s {"file": ...}'],
   host: [host, '<dir> [--dir <poses folder>] [--check]', 'sticker host: link the brand\'s pose set into the reel, list every pose in reel.json, and name any pose the cues need that the set lacks'],
 };
 

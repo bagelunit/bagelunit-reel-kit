@@ -2,6 +2,21 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.2.0 (2026-11-17)
+
+**Your own renders, generated shots, terrain and better checks.** Your own Blender or code renders drop into a reel as clips and overlays, AI-generated shots are recorded and labelled honestly, and the 3D library can build real terrain maps. Every outside tool named here (Blender, Higgsfield, Canva, Firefly, Adobe and others) is only a suggestion: the kit works without any of them.
+
+**New in this version**
+
+- **Your own clips and overlays.** A scene's `clip` and `overlay` take `{"file": ...}` as well as `{"asset": ...}`: `"clip": {"file": "renders/orbit.mp4"}`, `"overlay": {"file": "glow.mov", "blend": "screen"}`. They are never treated as licensed, stay inside the brand folder (no `..`, no absolute paths, no links that leave it), and a changed file redraws only its scene. `kit scene check` reports a missing file before rendering.
+- **Cover from your own picture.** `kit cover --image <file> [--fit cover|contain]` (or `reel.json` `"cover": {"image"}`) uses a picture you made, such as a Blender still, with the same Meta cover rules, crop preview and Gate C fingerprint.
+- **Generated shots are recorded and labelled.** `kit licensed add <file> --type generated-video|generated-image --tool "..."` records AI-generated media from any tool, with an on-screen label ("Re-creation" or "AI-generated" by default). Gate C refuses, with no override, a reel that does not show the label, unless the record has `--no-label "reason"`. The tool and label go into approvals.md. The registry no longer names any source site.
+- **Terrain maps in Blender.** `/blender-shot` turns a latitude and longitude box into a shaded-relief 3D render from free open elevation tiles (no key). The download runs only when you run `terrain.py fetch`, with a tile cache, zoom and tile caps and a polite request header. The data credit is written next to the render and printed for the caption.
+- **3D camera depth and motion.** Depth of field, rack focus, motion blur, a seeded handheld drift and slow push, pull and orbit moves with easing, as flags on the product, phone and terrain shots.
+- **A sound design check.** `python3 ~/.claude/skills/bagelunit-reels/tools/mixcheck.py <reel>` checks loudness, true peak, loudness range, clipping, silence gaps and voice over music ducking with ffmpeg only, and writes `build/mix.json`. `/reel-review` runs it.
+- **Retention in the readout.** `/analytics-readout` gains a retention section: watch-through against length, the reels that beat the account median, what the best and worst hooks had in common, and one to three single-change tests. Real numbers only; under 10 reels it says the sample is small.
+- **Two new skills and a tools page.** `/generated-shots` (make and record an AI-generated shot with any provider) and `/thumbnail-design` (take a cover brief to Canva, Adobe or a Blender still, then `kit cover --image`), and `docs/suggested-tools.md`, one page of the outside tools we use and suggest and how each connects (none required).
+
 ## 1.1.1 (2026-11-17)
 
 **Updates keep your edits, and the publisher can post a first comment.**

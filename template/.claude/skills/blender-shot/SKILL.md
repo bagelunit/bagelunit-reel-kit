@@ -22,8 +22,8 @@ The owner sees each new subject (a mascot, a product, an object) before its firs
 ## Before you start
 Inputs: the brief and the reel folder. Output: a transparent clip in `reels/<slug>/build/3d/`. Next step: join it to the scene, then `/reel-review`.
 - The shell scripts need bash (Mac, Linux). On Windows, use Git Bash or WSL, or run the ffmpeg and Blender commands directly (see `brand/library/3d/blender_shot.sh` for the exact arguments).
-- Blender is installed: `blender --version` (Mac: `brew install --cask blender`; others: blender.org). Blender 5.1 or newer. If a different
-  path, set `BLENDER_PATH`. Without it, say so and stop; the rest of the reel does not need it.
+- Blender is a free tool we suggest, never a requirement: check `blender --version` (Mac: `brew install --cask blender`; others: blender.org; Blender 5.1 or
+  newer). If it is somewhere else, set `BLENDER_PATH`. Without it, say so and stop; the rest of the reel does not need it. The owner may also connect or use any other 3D tool they like.
 - Tools are in `brand/library/3d/`: `lib/bb.py` (the helper library), `shots/product.py`, `shots/phone.py` and the older recipes
   (`sprite_voxel.py` for a pixel mascot as blocks, `card_hero.py`, `stroke_drawon.py`). `blender_shot.sh` runs a shot and can encode the clip.
 - Optional: the official Blender Lab MCP (`blender` server, if the owner installed it) can open a `.blend` and take screenshots. The scripts here do not need it.
@@ -32,9 +32,9 @@ Inputs: the brief and the reel folder. Output: a transparent clip in `reels/<slu
 1. **Brief (three lines).** What the shot shows, what it does in 3 to 5 seconds (turn, orbit, push in, float, assemble), and the mood
    (colours from `brand/brand.json`; the helpers read them). Say which scene of the reel it is for and what is behind it.
 2. **Pick or write the shot.** A template if it fits: `shots/product.py` (a box or can, optional `--label`), `shots/phone.py`
-   (a phone with `--screen`: a capture from `scripts/capture/page_capture.mjs` or a still). Otherwise write a new script into the reel's
+   (a phone with `--screen`: a capture from `scripts/capture/page_capture.mjs` or a still), `shots/terrain.py` (a 3D map of a place, below). Otherwise write a new script into the reel's
    `build/3d/<shot>.py` using `lib/bb.py` (`setup`, `mat`, `mat_image`, `rounded_box`, `cylinder`, `plane`, `text3d`, `import_model`,
-   `blob_shadow`, `studio_lights`, `camera`, `orbit`, `push_in`, `smooth`, `render`). Anything an object needs but the library lacks, write inline.
+   `blob_shadow`, `studio_lights`, `camera`, `orbit`, `push_in`, `smooth`, `ease`, `dof`, `rack_focus`, `motion_blur`, `camera_move`, `handheld`, `camera_flags`, `render`). Anything an object needs but the library lacks, write inline.
 3. **Look before you render the clip.** Render ONE frame (a few seconds):
    `bash brand/library/3d/blender_shot.sh <shot.py> reels/<slug>/build/3d/<shot> --still 45 [options]`.
    Put it over the paper colour so you judge it as the reel will show it. The ffmpeg command below lays the still on a flat paper-coloured square and saves one preview picture; use the brand's paper colour from `brand.json` if it has one (`ffmpeg -f lavfi -i color=c=0xFBF5E6:s=1080x1080 -i still.png
@@ -42,8 +42,26 @@ Inputs: the brief and the reel folder. Output: a transparent clip in `reels/<slu
    subject centred and not cut off, colours match the brand (not washed out), nothing floating above its shadow, text readable and spelled right,
    no intersecting parts, a screen's picture at its true colours. Fix the script and render the still again. Up to 3 rounds; then show the owner what blocks it.
 4. **Render the clip** with the transparent background: add `--clip <name>.mov` (ProRes 4444) or `.webm`. Check the first, middle and last frames the same way.
-5. **Join it to the reel.** Overlay on the scene's video with ffmpeg after `format=rgba` on the clip (without it the overlay comes out empty). Keep the clip
-   inside the safe area (bottom 300 px and right 120 px stay clear of text). Note it in `STORYBOARD.md` under "Tools per scene".
+5. **Join it to the reel.** Two ways. (a) Place it in the scene: in the reel's `scenes.json` give the scene `"clip": {"file": "<path>"}` for a full-frame render, or
+   `"overlay": {"file": "<path>"}` for a transparent one over the scene (your own render, a path inside the reel folder), then run `kit scene check reels/<slug>`, which
+   verifies the file is there and usable. (b) Or overlay on the scene's video with ffmpeg after `format=rgba` on the clip (without it the overlay comes out empty). Keep the
+   clip inside the safe area (bottom 300 px and right 120 px stay clear of text). Note it in `STORYBOARD.md` under "Tools per scene".
+
+## Camera options (every product, phone and terrain shot)
+Add flags to the shot command: `--dof 1 --fstop 2.0` (the subject sharp, the rest soft), `--rack-focus 1` (focus shifts onto the subject), `--motion-blur 1`,
+`--handheld 1.0 --seed 7` (a small repeatable drift, for a filmed feel), `--move-preset push|pull|orbit|static` with `--move-amount` and `--sweep` (a slow eased move).
+Use them lightly: one idea per shot (a soft background on a product, a slow push on a phone). Look at the still first; blur and handheld only show in a clip, so check the
+middle frame of the clip too. The full list is in `brand/library/3d/README.md`.
+
+## Terrain map (a place, in 3D)
+For "where is this" or a landscape: `shots/terrain.py` turns a latitude/longitude box into a shaded-relief render.
+1. Fetch the elevation data, only when the owner is fine with a few small downloads from AWS open terrain tiles (no key):
+   `python3 brand/library/3d/terrain.py fetch --bbox <south>,<west>,<north>,<east> --zoom 10 --out reels/<slug>/build/3d/terrain-data` (`plan` first shows the tile count;
+   zoom and tile caps apply; tiles are cached in the reel folder). `synthetic` makes a made-up landscape with no network, for a test.
+2. Render a still, then the clip: `bash brand/library/3d/blender_shot.sh brand/library/3d/shots/terrain.py reels/<slug>/build/3d/terrain --data reels/<slug>/build/3d/terrain-data --still 45`
+   (options: `--ramp`, `--style hillshade`, `--exaggeration`, `--sun-az/--sun-el`, `--labels labels.json`, `--move orbit|push`, `--transparent 1`; the frame is vertical 1080x1920 by default, `--size`/`--height` change it).
+3. **The data credit goes in the caption.** The fetch step prints it and writes `ATTRIBUTION.txt` next to the data and the render. Give the line to `/caption-and-hashtags`.
+   A place name and a label are claims: still clear them in `brand/facts.md` (rule 1).
 
 ## Rules
 - **Colours:** always through the helpers (`bb.rgba`, `bb.mat`): Blender wants linear colour, and a straight sRGB hex looks washed out.

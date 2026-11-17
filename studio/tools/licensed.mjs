@@ -1,13 +1,16 @@
 #!/usr/bin/env node
-// licensed.mjs · the brand's licensed-assets registry (music, sound effects, stock video, motion graphics, LUTs from any source; we suggest Uppbeat) and what
-// a reel may use from it. The kit ships only this mechanism, never an asset: the owner downloads by hand from any site (Uppbeat is what we use; there is
-// no API) and records each download here with `kit licensed add`.
+// licensed.mjs · the brand's registry of material that came from somewhere else (music, sound effects, stock video, motion graphics, LUTs, and
+// AI-generated images and video) and what a reel may use from it. Any source works: a licensed site, a generator, a purchase. The kit ships only this
+// mechanism, never an asset: the owner gets the file by hand and records each one here with `kit licensed add`. (Your OWN renders, from Blender or code,
+// are not recorded here: a scene's {"file": ...} uses them directly and they are never treated as licensed.)
 //
-//   kit licensed add <file> --type music|sfx|stock-video|motion-graphic|lut --title "..." [--artist ..] [--url ..]
+//   kit licensed add <file> --type music|sfx|stock-video|motion-graphic|lut|generated-image|generated-video --title "..." [--artist ..] [--url ..]
 //                          [--channels a,b] [--credit "..."] [--id slug] [--notes ..] [--licence ..] [--plan business] [--move]
+//                          generated types also need --tool "<what made it>" and take [--prompt ".."] [--onscreen-label ".."] [--no-label "reason"]
 //   kit licensed list [--type T]
 //   kit licensed check [<reel>]         every asset the reel references exists in the registry, sits inside brand/licensed/,
-//                                       and still has its recorded SHA-256; PASS/FAIL lines, exit 1 on any FAIL
+//                                       and still has its recorded SHA-256, and every generated asset's on-screen label is shown;
+//                                       PASS/FAIL lines, exit 1 on any FAIL
 //   kit licensed remove <id> [--keep-file]
 //
 // Registry: <brand>/brand/licensed/assets.json  {"assets":[{id,type,title,artist,source,url,plan,licence,channels,file,sha256,credit,
@@ -20,13 +23,21 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { findBrand, resolveReelArg } from './folders.mjs';
 
-export const TYPES = ['music', 'sfx', 'stock-video', 'motion-graphic', 'lut'];
+export const TYPES = ['music', 'sfx', 'stock-video', 'motion-graphic', 'lut', 'generated-image', 'generated-video'];
+export const GENERATED = ['generated-image', 'generated-video'];
+export const isGenerated = (a) => Boolean(a) && GENERATED.includes(a.type);
+export const DEFAULT_LABEL = { 'generated-video': 'Re-creation', 'generated-image': 'AI-generated' };
+// what a scene's "clip" and "overlay" may point at by asset id
+export const CLIP_TYPES = ['stock-video', 'generated-video'];
+export const OVERLAY_TYPES = ['motion-graphic', 'generated-video', 'generated-image'];
 const EXT = {
   music: ['.wav', '.mp3', '.m4a', '.flac', '.aiff', '.aif', '.ogg'],
   sfx: ['.wav', '.mp3', '.m4a', '.flac', '.aiff', '.aif', '.ogg'],
   'stock-video': ['.mp4', '.mov', '.m4v', '.webm'],
   'motion-graphic': ['.mov', '.webm', '.mp4', '.png', '.gif', '.webp', '.jpg', '.jpeg'],
   lut: ['.cube'],
+  'generated-video': ['.mp4', '.mov', '.m4v', '.webm'],
+  'generated-image': ['.png', '.jpg', '.jpeg', '.webp', '.gif'],
 };
 const ID = /^[a-z0-9][a-z0-9-]*$/;
 export const registryFile = (brand) => path.join(brand, 'brand', 'licensed', 'assets.json');
@@ -94,6 +105,19 @@ export function addAsset(brand, o) {
   const reg = loadRegistry(brand);
   if (reg.assets.some((a) => a.id === id)) throw new Error(`an asset with id "${id}" is already recorded (pick another --id, or remove the old one)`);
   if (o.type === 'lut') { const bad = validateCube(src); if (bad) throw new Error(bad); }
+  const gen = GENERATED.includes(o.type), noLabel = o.noLabel == null || o.noLabel === false ? null : o.noLabel;
+  let label = '', noLabelReason = '';
+  if (gen) {
+    if (!String(o.tool || '').trim()) throw new Error(`a ${o.type} needs --tool "<what made it>" (free text: any generator, so the record is honest)`);
+    if (noLabel !== null && (noLabel === true || !String(noLabel).trim())) throw new Error('--no-label needs the reason it is recorded with: --no-label "why no on-screen label is needed"');
+    if (noLabel !== null) {
+      if (o.onscreenLabel != null && String(o.onscreenLabel).trim()) throw new Error('give either --onscreen-label "text" or --no-label "reason", not both');
+      noLabelReason = String(noLabel).trim();
+    } else if (o.onscreenLabel != null) {
+      label = String(o.onscreenLabel).trim();
+      if (!label) throw new Error('an empty --onscreen-label is only allowed with --no-label "reason" (it is recorded); otherwise leave it out for the default "' + DEFAULT_LABEL[o.type] + '"');
+    } else label = DEFAULT_LABEL[o.type];
+  } else if (o.tool || o.prompt || o.onscreenLabel != null || noLabel !== null) throw new Error(`--tool, --prompt, --onscreen-label and --no-label are for generated-image and generated-video, not ${o.type}`);
   const dir = path.join(licensedDir(brand), o.type), dest = path.join(dir, `${id}${ext}`);
   if (!inside(dir, dest)) throw new Error('the file would land outside brand/licensed/ (refused)');
   if (fs.existsSync(dest)) throw new Error(`${path.relative(brand, dest)} already exists (refused to overwrite)`);
@@ -107,11 +131,14 @@ export function addAsset(brand, o) {
     plan: String(o.plan || ''), licence: String(o.licence || ''), channels, file: path.relative(brand, dest).split(path.sep).join('/'), sha256: hash,
     credit: String(o.credit || ''), downloaded: String(o.downloaded || today()), notes: String(o.notes || ''),
   };
+  if (gen) Object.assign(asset, { generated: true, tool: String(o.tool).trim(), prompt: String(o.prompt || ''), onscreen_label: label, ...(noLabelReason ? { no_label_reason: noLabelReason } : {}) });
   reg.assets.push(asset);
   saveRegistry(brand, reg);
   const warn = [];
   if (o.type === 'music' && ext !== '.wav') warn.push('music is best as WAV: choose WAV when downloading if the site offers it (an MP3 works but is lossier)');
-  if (!asset.url) warn.push('no --url: record the page you got it from so the licence can be shown later; add --source and --plan too');
+  if (!asset.url && !gen) warn.push('no --url: record where you got it so the licence can be shown later; add --source and --plan too');
+  if (gen && noLabelReason) warn.push(`recorded WITHOUT an on-screen label: "${noLabelReason}". Make sure that is honest where the reel is posted`);
+  if (gen && label) warn.push(`a reel that uses it must show the text "${label}" on screen (Gate C refuses otherwise)`);
   return { asset, warn };
 }
 
@@ -134,7 +161,7 @@ export function removeAsset(brand, id, { keepFile = false } = {}) {
 }
 
 /* ── what a reel references ─────────────────────────────────────────────────────────────────────────────────────────────── */
-// [{id, where, type}] from reel.json ("look.lut", "music": [{asset}]) and scenes.json (a scene's "clip" and "overlay")
+// [{id, where, type (one type or a list of allowed types)}] from reel.json ("look.lut", "music": [{asset}]) and scenes.json (a scene's "clip" and "overlay")
 export function referencedAssets(reelDir) {
   const out = [], cfg = readJSON(path.join(reelDir, 'reel.json'), {}) || {};
   if (cfg.look && typeof cfg.look === 'object' && cfg.look.lut != null) out.push({ id: String(cfg.look.lut), where: 'reel.json look.lut', type: 'lut' });
@@ -142,8 +169,9 @@ export function referencedAssets(reelDir) {
   const raw = readJSON(path.join(reelDir, 'scenes.json'), null);
   const list = Array.isArray(raw) ? raw : raw && Array.isArray(raw.scenes) ? raw.scenes : [];
   list.forEach((s, i) => {
-    if (s && s.clip && s.clip.asset != null) out.push({ id: String(s.clip.asset), where: `scene ${i + 1} clip`, type: 'stock-video' });
-    if (s && s.overlay && s.overlay.asset != null) out.push({ id: String(s.overlay.asset), where: `scene ${i + 1} overlay`, type: 'motion-graphic' });
+    // a clip or overlay with a "file" is the owner's own render: it is never recorded, so it is never listed here
+    if (s && s.clip && s.clip.asset != null) out.push({ id: String(s.clip.asset), where: `scene ${i + 1} clip`, type: CLIP_TYPES });
+    if (s && s.overlay && s.overlay.asset != null) out.push({ id: String(s.overlay.asset), where: `scene ${i + 1} overlay`, type: OVERLAY_TYPES });
   });
   return out;
 }
@@ -152,18 +180,79 @@ export function referencedAssets(reelDir) {
 export function resolveAsset(brand, id, type, where = 'the reel') {
   if (!brand) throw new Error(`${where} uses licensed asset "${id}" but this reel is not inside a brand folder (no brand/brand.json above it)`);
   const a = findAsset(brand, id);
-  if (!a) throw new Error(`${where}: no licensed asset "${id}" in brand/licensed/assets.json (record it: kit licensed add <file> --type ${type} --title ...)`);
-  if (a.type !== type) throw new Error(`${where}: asset "${id}" is a ${a.type}, but a ${type} is needed here`);
+  if (!a) throw new Error(`${where}: no licensed asset "${id}" in brand/licensed/assets.json (record it: kit licensed add <file> --type ${[].concat(type)[0]} --title ...)`);
+  const want = [].concat(type);
+  if (!want.includes(a.type)) throw new Error(`${where}: asset "${id}" is a ${a.type}, but a ${want.join(' or ')} is needed here`);
   const f = assetFile(brand, a);
   if (!inside(licensedDir(brand), f)) throw new Error(`${where}: asset "${id}" points outside brand/licensed/ (${a.file}); refused`);
   if (!fs.existsSync(f)) throw new Error(`${where}: the file of asset "${id}" is missing (${a.file}); download it again and re-add it`);
   return { asset: a, file: f };
 }
 
+/* ── your OWN files (Blender renders, code output): never recorded, never licensed ──────────────────────────────────────────── */
+export const OWN_VIDEO = ['.mp4', '.mov', '.m4v', '.webm'];
+export const OWN_IMAGE = ['.png', '.jpg', '.jpeg', '.webp', '.gif'];
+const ABSOLUTE = /^([a-zA-Z]:|[\\/])/;
+// the wording-level checks that need no disk: a string, not absolute, no ".." step. Returns the reason or null.
+export function ownPathProblem(p, { allowAbsolute = false } = {}) {
+  if (typeof p !== 'string' || !p.trim()) return 'the path must be a non-empty text';
+  if (!allowAbsolute && (path.isAbsolute(p) || ABSOLUTE.test(p))) return `"${p}" is an absolute path; give it relative to the reel folder or to brand/library/`;
+  if (p.split(/[\\/]+/).includes('..')) return `"${p}" has a ".." step; a path may not climb out of its folder`;
+  return null;
+}
+// the real file for an own path: relative to the reel folder first, then to <brand>/brand/library/; it must exist, have one of `exts`, and its REAL path
+// (symlinks followed) must stay inside the brand folder (or the reel folder when the reel is not in a brand). Throws a plain-words reason.
+export function resolveOwnFile(brand, reelDir, p, { where = 'the reel', exts = null, allowAbsolute = false } = {}) {
+  const bad = ownPathProblem(p, { allowAbsolute });
+  if (bad) throw new Error(`${where}: ${bad}`);
+  const root = fs.realpathSync.native(brand || reelDir);
+  const tries = allowAbsolute && (path.isAbsolute(p) || ABSOLUTE.test(p)) ? [path.resolve(p)]
+    : [path.resolve(reelDir, p), ...(brand ? [path.resolve(brand, 'brand', 'library', p)] : []), ...(allowAbsolute ? [path.resolve(brand || reelDir, p)] : [])];
+  const found = tries.find((f) => { try { return fs.statSync(f).isFile(); } catch { return false; } });
+  if (!found) throw new Error(`${where}: your file "${p}" does not exist (looked in the reel folder${brand ? ' and brand/library/' : ''}); render or copy it there first`);
+  const real = fs.realpathSync.native(found);
+  if (!inside(root, real)) throw new Error(`${where}: "${p}" resolves outside the brand folder (${brand ? 'a link or path that leaves it' : 'the reel folder'}); refused. Copy the file inside the brand folder`);
+  const ext = path.extname(real).toLowerCase();
+  if (exts && !exts.includes(ext)) throw new Error(`${where}: "${p}" is a ${ext || 'file without an extension'}, but one of ${exts.join(' ')} is needed here`);
+  return real;
+}
+
+/* ── generated assets: the on-screen label ──────────────────────────────────────────────────────────────────────────────── */
+const fold = (t) => String(t).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+const strings = (v, out = []) => { if (typeof v === 'string') out.push(v); else if (Array.isArray(v)) v.forEach((x) => strings(x, out)); else if (v && typeof v === 'object') Object.values(v).forEach((x) => strings(x, out)); return out; };
+// the text the reel shows: build/on_screen_text.txt when the engine wrote it, else every text in the props of the drawn scenes in scenes.json (a clip scene draws no props); null when neither can be read
+export function onScreenText(reelDir) {
+  try { return { text: fs.readFileSync(path.join(reelDir, 'build', 'on_screen_text.txt'), 'utf8'), source: 'build/on_screen_text.txt' }; } catch { /* not rendered yet */ }
+  const raw = readJSON(path.join(reelDir, 'scenes.json'), null);
+  const list = Array.isArray(raw) ? raw : raw && Array.isArray(raw.scenes) ? raw.scenes : null;
+  if (!list) return null;
+  return { text: list.flatMap((sc) => (sc && !sc.clip ? strings(sc.props) : [])).join('\n'), source: 'the scene props in scenes.json' };
+}
+// for the generated assets a reel uses: { problems: [line], skipped: [line], pass: [line] }
+export function labelCheck(reelDir, used) {
+  const res = { problems: [], skipped: [], pass: [] }, gens = used.filter(isGenerated);
+  if (!gens.length) return res;
+  let seen;
+  for (const a of gens) {
+    const label = String(a.onscreen_label || '').trim();
+    if (!label) {
+      if (String(a.no_label_reason || '').trim()) res.pass.push(`PASS: ${a.id} is ${a.type} made with ${a.tool || 'an unnamed tool'}, recorded without an on-screen label (${a.no_label_reason})`);
+      else res.problems.push(`FAIL: ${a.id} is ${a.type} with no on-screen label and no recorded reason (re-add it with --onscreen-label "text" or --no-label "reason")`);
+      continue;
+    }
+    if (seen === undefined) seen = onScreenText(reelDir);
+    if (!seen) { res.skipped.push(`SKIPPED: the label "${label}" for ${a.id} was NOT checked: no build/on_screen_text.txt and no readable scenes.json (render the reel, then check again)`); continue; }
+    if (fold(seen.text).includes(fold(label))) res.pass.push(`PASS: ${a.id} (${a.type}, made with ${a.tool || 'an unnamed tool'}) shows its label "${label}" on screen (read from ${seen.source})`);
+    else res.problems.push(`FAIL: ${a.id} is ${a.type}${a.tool ? ` made with ${a.tool}` : ''} and the reel must show the text "${label}" on screen, but it is not in ${seen.source}. Add it to a scene's text`);
+  }
+  return res;
+}
+
 /* ── check ───────────────────────────────────────────────────────────────────────────────────────────────────────────────── */
 function checkOne(brand, a, where, wantType) {
   const tag = `${a.id}${where ? ` (${where})` : ''}`;
-  if (wantType && a.type !== wantType) return { ok: false, line: `FAIL: ${tag} is a ${a.type}, but a ${wantType} is needed here` };
+  const want = wantType ? [].concat(wantType) : null;
+  if (want && !want.includes(a.type)) return { ok: false, line: `FAIL: ${tag} is a ${a.type}, but a ${want.join(' or ')} is needed here` };
   const f = assetFile(brand, a);
   if (!a.file || !inside(licensedDir(brand), f)) return { ok: false, line: `FAIL: ${tag} points outside brand/licensed/ (${a.file || 'no file'})` };
   if (!fs.existsSync(f)) return { ok: false, line: `FAIL: ${tag} file is missing: ${a.file}` };
@@ -175,6 +264,7 @@ function checkOne(brand, a, where, wantType) {
 
 export function checkAssets(brand, reelDir = null) {
   const lines = [], used = [];
+  let labels = { problems: [], skipped: [], pass: [] };
   let ok = true;
   const reg = loadRegistry(brand);
   if (reelDir) {
@@ -188,16 +278,24 @@ export function checkAssets(brand, reelDir = null) {
       lines.push(res.line);
       if (!used.some((u) => u.id === a.id)) used.push(a);
     }
+    labels = labelCheck(reelDir, used);
+    if (labels.problems.length) ok = false;
+    lines.push(...labels.pass, ...labels.problems, ...labels.skipped);
   } else {
     if (!reg.assets.length) return { ok: true, lines: ['PASS: no licensed assets recorded'], used };
     for (const a of reg.assets) { const res = checkOne(brand, a, '', null); if (!res.ok) ok = false; lines.push(res.line); }
   }
-  return { ok, lines, used };
+  return { ok, lines, used, labelProblems: labels.problems, labelSkipped: labels.skipped };
 }
 
-// "Licensed assets" lines for approvals.md (Gate C): who made it, where it came from, under what plan, the credit text
+// "Licensed assets" lines for approvals.md (Gate C): who made it, where it came from, under what plan, the credit text; a generated asset also says which tool
+// made it and which label the reel shows (or why it has none)
 export function creditLines(used) {
-  return used.map((a) => { const from = [a.source, a.plan ? `${a.plan} plan` : '', a.licence, a.url].filter(Boolean).join(', '); return `${a.id}: "${a.title}"${a.artist ? ` by ${a.artist}` : ''}${from ? ` (${from})` : ''}${a.credit ? ` credit: ${a.credit}` : ''}`; });
+  return used.map((a) => {
+    const from = [a.source, a.plan ? `${a.plan} plan` : '', a.licence, a.url].filter(Boolean).join(', ');
+    const gen = isGenerated(a) ? ` [generated with ${a.tool || 'an unnamed tool'}; ${a.onscreen_label ? `on-screen label "${a.onscreen_label}"` : `no on-screen label: ${a.no_label_reason || 'none recorded'}`}]` : '';
+    return `${a.id}: "${a.title}"${a.artist ? ` by ${a.artist}` : ''}${from ? ` (${from})` : ''}${a.credit ? ` credit: ${a.credit}` : ''}${gen}`;
+  });
 }
 
 /* ── the colour grade for kit export ────────────────────────────────────────────────────────────────────────────────────── */
@@ -222,7 +320,8 @@ export function gradeFor(reelDir, cfg, brand) {
 }
 
 /* ── command line ───────────────────────────────────────────────────────────────────────────────────────────────────────── */
-const COLS = (a) => `${a.id.padEnd(22)} ${a.type.padEnd(14)} ${a.title}${a.artist ? ` by ${a.artist}` : ''}  [${a.source}, ${a.downloaded}]`;
+const COLS = (a) => `${a.id.padEnd(22)} ${a.type.padEnd(15)} ${a.title}${a.artist ? ` by ${a.artist}` : ''}  [${a.source || 'no source'}, ${a.downloaded}]` +
+  (isGenerated(a) ? `  [generated with ${a.tool || '?'}; ${a.onscreen_label ? `label "${a.onscreen_label}"` : `no label: ${a.no_label_reason || 'none recorded'}`}]` : '');
 
 // action, positional words, flags (as kit.mjs parses them) -> prints and returns the exit code
 export function cli(action, loose, flags, cwd = process.cwd()) {
@@ -240,7 +339,8 @@ export function cli(action, loose, flags, cwd = process.cwd()) {
     try {
       if (action === 'add') {
         const { asset, warn } = addAsset(brand, { file: loose[0], type: text('type'), title: text('title'), artist: text('artist'), url: text('url'), channels: text('channels'),
-          credit: text('credit'), id: text('id'), notes: text('notes'), licence: text('licence') ?? text('license'), plan: text('plan'), source: text('source'), move: Boolean(flags.move) });
+          credit: text('credit'), id: text('id'), notes: text('notes'), licence: text('licence') ?? text('license'), plan: text('plan'), source: text('source'), move: Boolean(flags.move),
+          tool: text('tool'), prompt: text('prompt'), onscreenLabel: text('onscreen-label') ?? undefined, noLabel: 'no-label' in flags ? flags['no-label'] : undefined });
         console.log(`recorded ${asset.id} (${asset.type}) in brand/licensed/assets.json, file ${asset.file}, sha256 ${asset.sha256.slice(0, 12)}`);
         for (const w of warn) console.log(`note: ${w}`);
         return 0;
@@ -259,7 +359,7 @@ export function cli(action, loose, flags, cwd = process.cwd()) {
       }
       if (action === 'check') {
         const res = checkAssets(brand, reel);
-        if (flags.json) { console.log(JSON.stringify({ ok: res.ok, lines: res.lines, credits: creditLines(res.used) })); return res.ok ? 0 : 1; }
+        if (flags.json) { console.log(JSON.stringify({ ok: res.ok, lines: res.lines, credits: creditLines(res.used), label_problems: res.labelProblems || [], label_skipped: res.labelSkipped || [] })); return res.ok ? 0 : 1; }
         for (const l of res.lines) console.log(l);
         const bad = res.lines.filter((l) => l.startsWith('FAIL')).length;
         console.log(res.ok ? 'LICENSED: PASS' : `LICENSED: FAIL (${bad} problem${bad === 1 ? '' : 's'}; fix them, then kit licensed check ${reelArg || ''})`.trim());

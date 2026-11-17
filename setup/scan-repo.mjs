@@ -33,9 +33,11 @@ const HOME_OK = /\/Users\/(runner|runneradmin|you|name|yourname)\b/;   // none e
 
 const problems = [];
 // brand/licensed/ ships only the README, the empty registry and .gitkeep files: no asset (Uppbeat music, clip, LUT...) is ever tracked
-const LICENSED_OK = /^template\/brand\/licensed\/(README\.md|assets\.json|(music|sfx|stock-video|motion-graphic|lut)\/\.gitkeep)$/;
+const LICENSED_OK = /^template\/brand\/licensed\/(README\.md|assets\.json|(music|sfx|stock-video|motion-graphic|lut|generated-image|generated-video)\/\.gitkeep)$/;
 const add = (f, why) => problems.push(`${f}: ${why}`);
 for (const f of files) {
+  // a documentation or code file that is empty is a mistake (an edit that truncated it); only placeholders like .gitkeep may be empty
+  if (/\.(md|mjs|js|py|sh|json|yml|html)$/.test(f) && fs.existsSync(path.join(REPO, f)) && fs.statSync(path.join(REPO, f)).size === 0 && !/(^|\/)(__init__\.py)$/.test(f)) add(f, 'the file is empty (an edit may have truncated it)');
   if (/^template\/brand\/licensed\//.test(f) && !LICENSED_OK.test(f)) add(f, 'a licensed asset must not be tracked (only README.md, an empty assets.json and .gitkeep files ship in brand/licensed/)');
   if (f === 'template/brand/licensed/assets.json') { try { if (JSON.parse(fs.readFileSync(path.join(REPO, f), 'utf8')).assets.length) add(f, 'the shipped registry must be empty ({"assets":[]})'); } catch { add(f, 'is not a valid registry'); } }
   if (BAD_FILES.test(f)) add(f, 'a key, secret or system file must not be tracked');

@@ -94,6 +94,12 @@ jobs:
 
       - name: Blender installer step (found, too old, not installed; never installs, never asks)
         run: node setup/test-blender-step.mjs
+      - name: Blender 3D library (terrain helper, camera helpers; the headless render is skipped without Blender)
+        run: node setup/test-blender3d.mjs
+      - name: Mix check works (loudness, true peak, clipping, silence gap, ducking on a made-up reel, mix.json written, no-video exit 2; skips without ffmpeg)
+        run: node setup/test-mixcheck.mjs
+      - name: Own clips and overlays in scenes, and kit cover --image (own renders, never licensed, refused outside the brand folder)
+        run: node setup/test-own-media.mjs
 
       - name: Keyword CTA, A/B winner rule, caption reading speed and cover check (brand keyword into reel.json, scriptlint keyword warning, 95 percent bar, chars per second, safe centre 1010x1350)
         shell: bash

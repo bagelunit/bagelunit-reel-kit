@@ -44,6 +44,14 @@ never from an old stills folder.
    groups: name the worst three and say whether the voice or the caption grouping is the cause (`--max-words 4` shows the
    effect of shorter groups). For a subtitle file use `captions.py --srt <file.srt|file.vtt>`.
 
+6. Mix check: run `python3 ~/.claude/skills/bagelunit-reels/tools/mixcheck.py reels/<slug>` (on Windows `python`; add a video path
+   after the folder to check a specific file). It needs only ffmpeg and prints PASS, WARN, FAIL or SKIPPED for integrated loudness
+   and true peak (the same -15 to -9 LUFS and -1 dBTP bar as `kit qa`), loudness range, clipping, silence gaps over 1.5 s and,
+   when `build/music.json` or `build/sfx.json` exist, how far the voice stands above the bed in the gaps between words. It writes
+   `build/mix.json`. A FAIL fails must-pass check 6 (Sound) and goes in the verdict with its number; a WARN is named in the
+   verdict and lowers "Pace and variety" or "Brand fit" only if you can hear it. A SKIPPED line means that part was not checked:
+   say so. The earshot line is optional and never required.
+
 If earshot is not installed, use `ffmpeg` for frames and `ffprobe` or the kit's sound report for the
 numbers, and say which checks you could not make.
 

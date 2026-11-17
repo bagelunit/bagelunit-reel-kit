@@ -4,7 +4,7 @@
 # It does the parts every shot repeats and that go wrong: brand colours in linear space (or everything looks washed out), a transparent
 # render, a soft studio light rig, a camera that tracks a target, a contact shadow that works with a transparent background, easing,
 # and the output (a still, or a numbered PNG sequence f_0001.png ...). Blender's Python has no PIL; use numpy if you need arrays.
-import bpy, bmesh, math, os, sys, json, re, pathlib
+import bpy, bmesh, math, os, sys, json, re, pathlib, random
 from mathutils import Vector
 
 HERE = pathlib.Path(__file__).resolve().parent                      # .../brand/library/3d/lib
@@ -334,6 +334,20 @@ def smooth(t):
     return t * t * (3 - 2 * t)
 
 
+def ease(t, kind='smooth'):
+    """0..1 -> 0..1. kind: 'linear', 'smooth' (in and out), 'smoother' (a longer, gentler in and out), 'in' or 'out'."""
+    t = max(0.0, min(1.0, t))
+    if kind == 'linear':
+        return t
+    if kind == 'in':
+        return t * t
+    if kind == 'out':
+        return 1 - (1 - t) * (1 - t)
+    if kind == 'smoother':
+        return t * t * t * (t * (t * 6 - 15) + 10)
+    return t * t * (3 - 2 * t)
+
+
 def key(obj, frame, **props):
     """Set properties (location=(x,y,z), rotation_euler=(...), scale=(...)) on obj and keyframe them at frame."""
     for k, v in props.items():
@@ -341,22 +355,168 @@ def key(obj, frame, **props):
         obj.keyframe_insert(k, frame=frame)
 
 
+# Camera paths are plain maths (no Blender objects), so they can be checked without Blender.
+def orbit_points(center, radius, height, start_deg, end_deg, n, ease_kind='smooth'):
+    """n camera positions on an arc around center (degrees; -90 is straight in front, looking along +Y)."""
+    pts = []
+    for f in range(n):
+        t = ease(f / max(1, n - 1), ease_kind)
+        a = math.radians(start_deg + (end_deg - start_deg) * t)
+        pts.append((center[0] + radius * math.cos(a), center[1] + radius * math.sin(a), center[2] + height))
+    return pts
+
+
+def line_points(start, end, n, ease_kind='smooth'):
+    """n camera positions on a straight line from start to end (a dolly)."""
+    pts = []
+    for f in range(n):
+        t = ease(f / max(1, n - 1), ease_kind)
+        pts.append(tuple(start[i] + (end[i] - start[i]) * t for i in range(3)))
+    return pts
+
+
 def orbit(cam, center=(0, 0, 0), radius=14.0, height=1.5, start_deg=-100, end_deg=-80, frames=None, ease=True):
-    """Move the camera on an arc around center from start_deg to end_deg (degrees; -90 is straight in front, looking along +Y)."""
+    """Move the camera on an arc around center from start_deg to end_deg (degrees; -90 is straight in front, looking along +Y).
+    ease=True eases in and out; ease='smoother' is gentler; ease=False is constant speed."""
     n = frames or bpy.context.scene.frame_end
-    for f in range(1, n + 1):
-        t = (f - 1) / max(1, n - 1)
-        a = math.radians(start_deg + (end_deg - start_deg) * (smooth(t) if ease else t))
-        key(cam, f, location=(center[0] + radius * math.cos(a), center[1] + radius * math.sin(a), center[2] + height))
+    kind = 'smooth' if ease is True else ('linear' if ease is False else ease)
+    for f, p in enumerate(orbit_points(center, radius, height, start_deg, end_deg, n, kind), 1):
+        key(cam, f, location=p)
 
 
 def push_in(cam, start, end, frames=None, ease=True):
-    """Dolly the camera from the start location to the end location."""
+    """Dolly the camera from the start location to the end location (ease as in orbit)."""
     n = frames or bpy.context.scene.frame_end
+    kind = 'smooth' if ease is True else ('linear' if ease is False else ease)
+    for f, p in enumerate(line_points(start, end, n, kind), 1):
+        key(cam, f, location=p)
+
+
+def camera_move(cam, preset, target=(0, 0, 0), amount=0.25, sweep=30.0, frames=None, ease='smoother'):
+    """A slow move from where the camera now is, with ease in and out. preset:
+       'push'  dolly toward target by `amount` (0.25 = a quarter of the way);  'pull' dolly away by `amount` of the distance;
+       'orbit' swing `sweep` degrees around target at the same radius and height (negative sweep goes the other way); 'static' does nothing."""
+    n = frames or bpy.context.scene.frame_end
+    p0 = tuple(cam.location)
+    if preset in ('push', 'dolly'):
+        end = tuple(p0[i] + (target[i] - p0[i]) * amount for i in range(3))
+        push_in(cam, p0, end, n, ease)
+    elif preset == 'pull':
+        end = tuple(p0[i] - (target[i] - p0[i]) * amount for i in range(3))
+        push_in(cam, p0, end, n, ease)
+    elif preset in ('orbit', 'orbit_slow'):
+        dx, dy = p0[0] - target[0], p0[1] - target[1]
+        a0 = math.degrees(math.atan2(dy, dx))
+        orbit(cam, target, math.hypot(dx, dy), p0[2] - target[2], a0 - sweep / 2, a0 + sweep / 2, n, ease)
+    elif preset != 'static':
+        raise SystemExit("camera_move: preset must be push, pull, orbit or static (got %r)" % (preset,))
+
+
+# ---- depth of field, motion blur, handheld, rack focus -------------------------------------------------------------------------------------
+def dof(cam, focus=None, distance=None, fstop=2.8):
+    """Depth of field: blur what is nearer or farther than the focus. focus = an object to keep sharp (it follows the object),
+    or distance = scene units from the camera. Lower fstop = blurrier background (1.4 strong, 2.8 soft, 8 barely)."""
+    d = cam.data.dof
+    d.use_dof = True
+    d.aperture_fstop = float(fstop)
+    if focus is not None:
+        d.focus_object = focus
+    elif distance is not None:
+        d.focus_distance = float(distance)
+    return d
+
+
+def motion_blur(on=True, shutter=0.5, steps=None):
+    """Motion blur on moving things (a 0.5 shutter is the film look). Needs an animated shot; a still has none."""
+    sc = bpy.context.scene
+    for owner in (sc.render, getattr(sc, 'eevee', None)):
+        if owner is not None and hasattr(owner, 'use_motion_blur'):
+            owner.use_motion_blur = bool(on)
+            if hasattr(owner, 'motion_blur_shutter'):
+                owner.motion_blur_shutter = float(shutter)
+            if steps and hasattr(owner, 'motion_blur_steps'):
+                owner.motion_blur_steps = int(steps)
+
+
+def handheld_offsets(n, amount=1.0, seed=1, fps=30):
+    """n small, smooth, repeatable shakes: a list of (camera dx,dy,dz, aim dx,dy,dz) per frame. Same seed, same shake; amount scales it
+    (1.0 = a steady hand, 2.0 = a nervous one, 0 = none). Built from a few slow sines with seeded phases, so it never looks like jitter."""
+    rng = random.Random(seed)
+    chans = [[(rng.uniform(0.4, 1.8), rng.uniform(0, 2 * math.pi), rng.uniform(0.4, 1.0)) for _ in range(3)] for _ in range(6)]
+    scale = (0.045, 0.045, 0.03, 0.06, 0.06, 0.04)
+    out = []
+    for f in range(n):
+        t = f / float(fps)
+        row = []
+        for c, k in zip(chans, scale):
+            v = sum(a * math.sin(2 * math.pi * hz * t + ph) for hz, ph, a in c) / 3.0
+            row.append(v * k * amount)
+        out.append(tuple(row))
+    return out
+
+
+def handheld(cam, tgt, amount=1.0, seed=1, frames=None):
+    """Add a small handheld drift to the camera and its aim point on top of whatever move is already keyed. Call it AFTER the move."""
+    sc = bpy.context.scene
+    n = frames or sc.frame_end
+    base = []
     for f in range(1, n + 1):
-        t = (f - 1) / max(1, n - 1)
-        t = smooth(t) if ease else t
-        key(cam, f, location=tuple(start[i] + (end[i] - start[i]) * t for i in range(3)))
+        sc.frame_set(f)
+        base.append((Vector(cam.location), Vector(tgt.location)))
+    for f, ((c, t), o) in enumerate(zip(base, handheld_offsets(n, amount, seed, sc.render.fps)), 1):
+        key(cam, f, location=(c.x + o[0], c.y + o[1], c.z + o[2]))
+        key(tgt, f, location=(t.x + o[3], t.y + o[4], t.z + o[5]))
+
+
+def _focus_dist(cam, a):
+    if isinstance(a, (int, float)):
+        return float(a)
+    bpy.context.view_layer.update()
+    return (a.matrix_world.translation - cam.matrix_world.translation).length
+
+
+def rack_focus(cam, a, b, start=1, end=None, fstop=None):
+    """Shift focus from a to b (each an object or a distance in scene units) between two frames, eased. Turns depth of field on."""
+    sc = bpy.context.scene
+    end = end or sc.frame_end
+    d = cam.data.dof
+    d.use_dof = True
+    d.focus_object = None
+    if fstop:
+        d.aperture_fstop = float(fstop)
+    sc.frame_set(int(start))
+    d.focus_distance = _focus_dist(cam, a)
+    d.keyframe_insert('focus_distance', frame=int(start))
+    sc.frame_set(int(end))
+    d.focus_distance = _focus_dist(cam, b)
+    d.keyframe_insert('focus_distance', frame=int(end))
+    sc.frame_set(int(start))
+
+
+def camera_flags(cam, tgt, subject=None, rack=None):
+    """Read the shared camera flags from the command line and apply them. Shots call this once, after their own camera move:
+       --move-preset push|pull|orbit|static   a slow eased move from the current position (replaces the shot's own move for the camera)
+       --move-amount 0.25   --sweep 30        how far (push/pull fraction, orbit degrees)
+       --dof 1 --fstop 2.0 [--focus-distance 14]   depth of field on the subject (or a distance)
+       --rack-focus 1                         focus shifts from in front of the subject to the subject over the clip (needs --dof's f-stop; default 2.0)
+       --motion-blur 1 [--shutter 0.5]        motion blur
+       --handheld 1.0 [--seed 7]              small seeded camera drift (0 = none)"""
+    n = bpy.context.scene.frame_end
+    pre = opt('--move-preset', None)
+    if pre:
+        bpy.context.scene.frame_set(1)                              # start from where the shot's own move starts
+        camera_move(cam, pre, tuple(tgt.location), opt('--move-amount', 0.25, float), opt('--sweep', 30.0, float), n)
+    if opt('--handheld', 0.0, float) > 0:
+        handheld(cam, tgt, opt('--handheld', 0.0, float), opt('--seed', 1, int), n)
+    if flag('--dof') and opt('--dof', 0, int):
+        dist = opt('--focus-distance', None, float)
+        dof(cam, None if dist else subject, dist, opt('--fstop', 2.0, float))
+    if opt('--rack-focus', 0, int) and subject is not None:
+        bpy.context.scene.frame_set(1)
+        d0 = _focus_dist(cam, subject)
+        rack_focus(cam, d0 * 0.55, subject, 1, n, opt('--fstop', 2.0, float))
+    if opt('--motion-blur', 0, int):
+        motion_blur(True, opt('--shutter', 0.5, float))
 
 
 # ---- output ---------------------------------------------------------------------------------------------------------------------------

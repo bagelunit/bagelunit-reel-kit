@@ -11,7 +11,7 @@ B=${BLENDER_PATH:-$(command -v blender)}; [ -z "$B" ] && [ -x /Applications/Blen
 CLIP=""; ARGS=()
 while [ $# -gt 0 ]; do case $1 in --clip) CLIP=$2; shift 2;; *) ARGS+=("$1"); shift;; esac; done
 mkdir -p "$OUT"
-"$B" -b --factory-startup -P "$SHOT" -- --out "$OUT" "${ARGS[@]}" 2>&1 | grep -E "^(STILL|FRAMES|Error|Traceback|.*Error:)|File \"|^  " | tail -25
+"$B" -b --factory-startup -P "$SHOT" -- --out "$OUT" "${ARGS[@]}" 2>&1 | grep -E "^(STILL|FRAMES|ATTRIBUTION|Error|Traceback|.*Error:)|File \"|^  " | tail -25
 if [ -n "$CLIP" ]; then
   case $CLIP in
     *.webm) ffmpeg -loglevel error -y -framerate 30 -i "$OUT/f_%04d.png" -c:v libvpx-vp9 -pix_fmt yuva420p -b:v 0 -crf 24 "$OUT/$CLIP";;

@@ -1,6 +1,7 @@
 # Product on a surface: a box or a can, optionally with a label image, turning slowly or orbited, with a soft contact shadow.
 #   blender -b -P shots/product.py -- --out out/product [--shape box|can] [--label label.png] [--color E23B2E] [--move turn|orbit|float]
-#                                     [--size 1080] [--frames 90] [--still 30] [--bg-transparent 1]
+#                                     [--size 1080] [--frames 90] [--still 30] [--opaque 1]
+# Camera options (all optional, see README): --dof 1 --fstop 2.0 | --rack-focus 1 | --motion-blur 1 | --handheld 1.0 --seed 7 | --move-preset push|pull|orbit
 # Transparent background by default: overlay it on a Print scene (format=rgba first). Colours default to the brand's (brand/brand.json).
 import sys, os, math
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'lib'))
@@ -36,4 +37,5 @@ else:
         else:                                                      # turn: a smooth half turn that settles facing the camera
             root.rotation_euler = (0, 0, math.radians(-70 + 70 * bb.smooth(t)))
         root.keyframe_insert('location', frame=f); root.keyframe_insert('rotation_euler', frame=f)
+bb.camera_flags(cam, tgt, subject=obj)                             # --dof --fstop --rack-focus --motion-blur --handheld --move-preset
 bb.render(bb.opt('--out', 'out/product'), bb.opt('--still', None, int))

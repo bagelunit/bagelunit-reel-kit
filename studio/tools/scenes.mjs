@@ -34,7 +34,7 @@ const W = 1080, H = 1920, FPS = 30;
 const SAFE = { top: 250, bottom: 300, left: 60, right: 120 };      // the same numbers as tools/qa.py: the kit's one safe zone
 const SAFE_BOX = [SAFE.left, SAFE.top, W - SAFE.right, H - SAFE.bottom];
 const TOL = 6;                                          // px of slack on the safe area, as in the styles repo's tester
-const RENDER_VERSION = 'scenes-3';                      // change it when the frame loop or the codec settings change (2: scenes also read their on-screen text; 3: clip scenes and overlays)
+const RENDER_VERSION = 'scenes-4';                      // change it when the frame loop or the codec settings change (2: scenes also read their on-screen text; 3: clip scenes and overlays; 4: own files and generated assets)
 const MIN_SCENE = 0.5;                                  // s; a scene shorter than this is squeezed out of its neighbours
 
 const readJSON = (f, d) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return d; } };
@@ -97,21 +97,63 @@ export function fakeWords(text, pace = 0.38, start = 0.35) {
 //   any scene may add  "overlay": {"asset": "<motion-graphic id>", "blend": "normal|screen", "opacity": 0-1, "at": s, "duration": s}
 //        composited over the finished scene by ffmpeg (alpha kept for .mov/.webm; "screen" for black-background light leaks). It is picture only:
 //        it never counts as text for the safe zone or the on-screen text.
+//   "asset" may also be a generated-video id (clip or overlay) or a generated-image id (overlay): those are recorded as AI-generated and the reel
+//   must show their on-screen label (Gate C).
+// Your OWN renders (Blender, code): use "file" instead of "asset", exactly one of the two:
+//   {"clip": {"file": "renders/orbit.mp4", "start": 0, "duration": 5, "mute": true}}   {"overlay": {"file": "renders/glow.mov", "blend": "screen", ...}}
+//        a path relative to the reel folder or to the brand folder's brand/library/; it must exist and stay inside the brand folder (no "..", no absolute
+//        path, no link that leaves it). It is never a licensed asset: no registry entry, no Gate C credit, kit licensed check ignores it. Its hash is part of
+//        the scene's cache hash, so a changed file draws again only that scene. Same fit, codec, alpha and blend as the recorded versions.
 const num = (v, name, k, { min = 0, max = Infinity, def = null, above = false } = {}) => {
   if (v == null) return def;
   const x = Number(v);
   if (!Number.isFinite(x) || x < min || x > max || (above && x <= min)) throw new Error(`scene ${k}: ${name} must be a number ${above ? 'above' : 'from'} ${min}${max < Infinity ? ` to ${max}` : ''} (got ${JSON.stringify(v)})`);
   return x;
 };
+// exactly one of "asset" (a recorded asset id) or "file" (your own render); returns {asset} or {file}
+function source(o, k, what, idHint) {
+  if (!o || typeof o !== 'object' || Array.isArray(o)) throw new Error(`scene ${k}: "${what}" needs either {"asset": "<${idHint} id>"} (a recorded asset) or {"file": "<path>"} (your own render)`);
+  const hasAsset = o.asset != null, hasFile = o.file != null;
+  if (hasAsset && hasFile) throw new Error(`scene ${k}: "${what}" takes exactly one of "asset" (an asset recorded with kit licensed add) or "file" (your own render), not both`);
+  if (!hasAsset && !hasFile) throw new Error(`scene ${k}: "${what}" needs either {"asset": "<${idHint} id>"} (a recorded asset) or {"file": "<path>"} (your own render, relative to the reel folder or brand/library/)`);
+  if (hasAsset) {
+    if (typeof o.asset !== 'string' || !o.asset.trim()) throw new Error(`scene ${k}: "${what}" needs {"asset": "<${idHint} id>"}`);
+    return { asset: o.asset.trim() };
+  }
+  const bad = typeof o.file !== 'string' ? `${what}.file must be a path (text)` : licensed.ownPathProblem(o.file);
+  if (bad) throw new Error(`scene ${k}: ${what}.file: ${bad}`);
+  return { file: o.file.trim().replace(/\\/g, '/') };
+}
 function normClip(c, k) {
-  if (!c || typeof c !== 'object' || Array.isArray(c) || typeof c.asset !== 'string' || !c.asset.trim()) throw new Error(`scene ${k}: "clip" needs {"asset": "<stock-video id>"}`);
-  return { asset: c.asset.trim(), start: num(c.start, 'clip.start', k, { def: 0 }), duration: num(c.duration, 'clip.duration', k, { min: 0, above: true }), mute: c.mute !== false };
+  const src = source(c, k, 'clip', 'stock-video');
+  return { ...src, start: num(c.start, 'clip.start', k, { def: 0 }), duration: num(c.duration, 'clip.duration', k, { min: 0, above: true }), mute: c.mute !== false };
 }
 function normOverlay(o, k) {
-  if (!o || typeof o !== 'object' || Array.isArray(o) || typeof o.asset !== 'string' || !o.asset.trim()) throw new Error(`scene ${k}: "overlay" needs {"asset": "<motion-graphic id>"}`);
+  const src = source(o, k, 'overlay', 'motion-graphic');
   const blend = o.blend == null ? 'normal' : String(o.blend);
   if (!['normal', 'screen'].includes(blend)) throw new Error(`scene ${k}: overlay.blend must be normal or screen (got "${blend}")`);
-  return { asset: o.asset.trim(), blend, opacity: num(o.opacity, 'overlay.opacity', k, { max: 1, def: 1 }), at: num(o.at, 'overlay.at', k, { def: 0 }), duration: num(o.duration, 'overlay.duration', k, { min: 0, above: true }) };
+  return { ...src, blend, opacity: num(o.opacity, 'overlay.opacity', k, { max: 1, def: 1 }), at: num(o.at, 'overlay.at', k, { def: 0 }), duration: num(o.duration, 'overlay.duration', k, { min: 0, above: true }) };
+}
+// the file a piece of a scene plays: a recorded asset (registry type and hash checked) or your own render (inside the brand folder; never licensed).
+// Returns {...piece, file (real path), asset (registry entry or null), own, sha, label}
+function resolvePiece(piece, what, brand, reelDir, where) {
+  if (piece.file != null) {
+    const file = licensed.resolveOwnFile(brand, reelDir, piece.file, { where: `${where} ${what}`, exts: what === 'clip' ? licensed.OWN_VIDEO : [...licensed.OWN_VIDEO, ...licensed.OWN_IMAGE] });
+    return { ...piece, file, asset: null, own: true, sha: licensed.sha256File(file), label: `file ${piece.file}` };
+  }
+  const r = licensed.resolveAsset(brand, piece.asset, what === 'clip' ? licensed.CLIP_TYPES : licensed.OVERLAY_TYPES, `${where} ${what}`);
+  if (licensed.sha256File(r.file) !== r.asset.sha256) throw new Error(`${where} ${what}: asset "${r.asset.id}" changed since it was recorded (kit licensed check)`);
+  return { ...piece, ...r, own: false, sha: r.asset.sha256, label: piece.asset };
+}
+// the problems with own files in a plan, without rendering: [text]
+export function ownFileProblems(dir, scenes) {
+  const brand = findBrand(dir), out = [];
+  for (const s of scenes) for (const what of ['clip', 'overlay']) {
+    const x = s[what];
+    if (!x || x.file == null) continue;
+    try { licensed.resolveOwnFile(brand, dir, x.file, { where: `scene ${s.n} (${s.id}) ${what}`, exts: what === 'clip' ? licensed.OWN_VIDEO : [...licensed.OWN_VIDEO, ...licensed.OWN_IMAGE] }); } catch (e) { out.push(e.message); }
+  }
+  return out;
 }
 
 export function planOf(dir, style) {
@@ -231,12 +273,12 @@ function buildPages(reel, prep) {
   return prep.scenes.map((s, k) => {
     const t = prep.times[k], dur = t.frames / FPS;
     const base = path.join(out, s.file);
-    // licensed pieces: the asset must be in the registry with the right type and an unchanged file; its hash goes into the scene's hash
+    // recorded pieces: the asset must be in the registry with the right type and an unchanged file; your own files must exist inside the brand folder.
+    // Either way the file's hash goes into the scene's hash
     const where = `scene ${s.n}`;
-    const clip = s.clip ? { ...s.clip, ...licensed.resolveAsset(brand, s.clip.asset, 'stock-video', `${where} clip`) } : null;
-    const overlay = s.overlay ? { ...s.overlay, ...licensed.resolveAsset(brand, s.overlay.asset, 'motion-graphic', `${where} overlay`) } : null;
-    for (const [what, x] of [['clip', clip], ['overlay', overlay]]) if (x && licensed.sha256File(x.file) !== x.asset.sha256) throw new Error(`${where} ${what}: asset "${x.asset.id}" changed since it was recorded (kit licensed check)`);
-    const lic = [clip && ['clip', clip.asset.sha256, clip.start, clip.duration, clip.mute], overlay && ['overlay', overlay.asset.sha256, overlay.blend, overlay.opacity, overlay.at, overlay.duration]].filter(Boolean);
+    const clip = s.clip ? resolvePiece(s.clip, 'clip', brand, reel.dir, where) : null;
+    const overlay = s.overlay ? resolvePiece(s.overlay, 'overlay', brand, reel.dir, where) : null;
+    const lic = [clip && ['clip', clip.sha, clip.start, clip.duration, clip.mute], overlay && ['overlay', overlay.sha, overlay.blend, overlay.opacity, overlay.at, overlay.duration]].filter(Boolean);
     const words = prep.words.filter((w) => w.s >= t.t0 - 1e-6 && w.s < t.t1 - 1e-6).map((w) => ({ word: w.w, start: r3(w.s - t.t0), end: r3(Math.min(w.e, t.t1) - t.t0) }));
     fs.writeFileSync(`${base}.words.json`, JSON.stringify(words));
     if (clip) return { scene: s, time: t, dur, base, html: '', hash: sha(RENDER_VERSION, JSON.stringify(lic), voHash, `${t.t0}|${dur}`), clip, overlay };
@@ -345,7 +387,7 @@ function renderClip(item, vo) {
   ffmpeg(['-ss', clip.start.toFixed(6), '-i', clip.file, ...voiceIn, '-filter_complex', graph, '-map', '[v]', '-map', '[a]', ...SCENE_CODEC, '-t', (frames / FPS).toFixed(6), '-movflags', '+faststart', tmp]);
   if (item.overlay) applyOverlay(tmp, item);
   fs.renameSync(tmp, `${base}.mp4`);
-  const manifest = { hash: item.hash, n: item.scene.n, id: item.scene.id, template: null, clip: clip.asset.id, t0: time.t0, t1: time.t1, frames, errors: [], inspect: false, boxes: [], texts: [], textures: [] };
+  const manifest = { hash: item.hash, n: item.scene.n, id: item.scene.id, template: null, clip: clip.asset ? clip.asset.id : clip.label, t0: time.t0, t1: time.t1, frames, errors: [], inspect: false, boxes: [], texts: [], textures: [] };
   fs.writeFileSync(`${base}.json`, JSON.stringify(manifest, null, 1));
   return manifest;
 }
@@ -611,6 +653,13 @@ export async function openScenes(reel, { scale = 0.5 } = {}) {
 export async function checkScenes(reel, { only = null, times = null } = {}) {
   const prep = prepare(reel);
   for (const n of prep.notes) console.log(`note: ${n}`);
+  const own = ownFileProblems(reel.dir, prep.scenes);
+  if (own.length) {   // reported as problems, before anything is built or rendered
+    console.log(`scene check (${reel.cfg.style}): not started, your own files are not usable`);
+    console.log(`\nPROBLEMS (${own.length}):\n  ${own.join('\n  ')}`);
+    process.exitCode = 2;
+    return;
+  }
   let items = buildPages(reel, prep);
   if (only != null) items = items.filter((it) => String(it.scene.n) === String(only) || it.scene.id === String(only));
   const out = path.join(reel.dir, 'build', 'scenes', 'check');
@@ -621,7 +670,7 @@ export async function checkScenes(reel, { only = null, times = null } = {}) {
   try {
     for (const it of items) {
       const { scene, dur } = it, name = `${scene.file}`;
-      if (it.clip) { console.log(`note: scene ${scene.n} (${scene.id}): a licensed clip cutaway, no drawn text to check (look at build/scenes/${scene.file}.mp4)`); continue; }
+      if (it.clip) { console.log(`note: scene ${scene.n} (${scene.id}): a clip cutaway, no drawn text to check (look at build/scenes/${scene.file}.mp4)`); continue; }
       const view = await openScene(browser, it.html, 1);
       const at = (times || ['20%', '45%', '70%', 'end']).map((x) => {
         x = String(x).trim();
@@ -685,7 +734,7 @@ export function printPlan(reel) {
   console.log(`scene plan (${reel.cfg.style}, ${prep.scenes.length} scenes, ${prep.length.toFixed(2)} s${prep.voLength ? `, voice ${prep.voLength.toFixed(2)} s` : ''})`);
   for (const t of prep.times) {
     const s = prep.scenes[t.n - 1];
-    console.log(`  ${String(t.n).padStart(2)}  ${t.t0.toFixed(2).padStart(6)}-${t.t1.toFixed(2).padStart(6)}s  ${(t.t1 - t.t0).toFixed(2).padStart(5)} s  ${(s.template || (s.clip ? `clip ${s.clip.asset}` : `code ${s.code}`)).padEnd(20)}${s.overlay ? ` +overlay ${s.overlay.asset} (${s.overlay.blend})` : ''} ` +
+    console.log(`  ${String(t.n).padStart(2)}  ${t.t0.toFixed(2).padStart(6)}-${t.t1.toFixed(2).padStart(6)}s  ${(t.t1 - t.t0).toFixed(2).padStart(5)} s  ${(s.template || (s.clip ? `clip ${s.clip.asset ?? `file ${s.clip.file}`}` : `code ${s.code}`)).padEnd(20)}${s.overlay ? ` +overlay ${s.overlay.asset ?? `file ${s.overlay.file}`} (${s.overlay.blend})` : ''} ` +
       (t.source === 'words' ? `words ${t.found}/${t.of}: "${t.first}" .. "${t.last}"` : `even split (${t.found}/${t.of} words found)`));
   }
   for (const n of prep.notes) console.log(`note: ${n}`);

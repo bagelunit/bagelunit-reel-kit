@@ -1,5 +1,6 @@
 # A phone showing a screen image (a screen capture, a mock-up), tilting slowly with a push-in and a soft contact shadow.
 #   blender -b -P shots/phone.py -- --out out/phone --screen capture.png [--color 15110E] [--move tilt|orbit|push] [--size 1080] [--frames 90] [--still 30]
+# Camera options (all optional, see README): --dof 1 --fstop 2.0 | --rack-focus 1 | --motion-blur 1 | --handheld 1.0 --seed 7 | --move-preset push|pull|orbit
 # The screen is emissive, so the picture shows at its own colours and brightness. With no --screen a flat brand-coloured screen is used.
 # Phone proportions are 9:19.5. A real product screen is first-party evidence: still clear each claim in brand/facts.md.
 import sys, os, math
@@ -38,4 +39,5 @@ else:
         root.rotation_euler = (math.radians(4 - 4 * e), 0, math.radians(-22 + 22 * e))
         root.keyframe_insert('rotation_euler', frame=f)
     bb.push_in(cam, (0, -18.5, 3.9), (0, -14.5, 3.9), N)
+bb.camera_flags(cam, tgt, subject=body)                            # --dof --fstop --rack-focus --motion-blur --handheld --move-preset
 bb.render(OUT, bb.opt('--still', None, int))

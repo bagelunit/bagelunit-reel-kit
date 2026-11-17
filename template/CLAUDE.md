@@ -98,6 +98,10 @@ When a request matches a row, load that skill with the Skill tool first and foll
 | Start a reel folder | `kit start reels/<slug> --style <style>` (it fills a new folder with a sample `script.txt` and keeps one already there). If the reel comes from a row in `brand/plan.md`, write its folder name into that row's "Reel (folder)" cell (`schedule.mjs --from-plan` needs it) |
 | Plan and write the script before Gate A | `/reel-scripter` runs the staged flow and writes the real `reels/<slug>/script.txt`: `/script-plan` (one viewer, one promise, a beat outline; it writes the Goal and Angle lines into `approvals.md`), the draft, `kit script` (checks), `/script-coldread` (a fresh reader), the fact check and the human score, then `/script-score` (90 or more). `/reel-builder` for a shoot plan without rendering; `/ig-reel` only for a script the owner films themselves |
 | A 3D shot of anything (a product, a phone with a screen, 3D text, a model) | `/blender-shot` |
+| An AI-generated shot (any tool; Higgsfield is one we suggest), recorded and labelled | `/generated-shots` |
+| A cover or thumbnail designed in Canva, Adobe or any tool, or a Blender still | `/thumbnail-design` |
+| Check the mix of a finished reel (loudness, peak, clipping, silence, ducking) | `python3 ~/.claude/skills/bagelunit-reels/tools/mixcheck.py <reel>` (`/reel-review` runs it) |
+| Which outside tools help, and how each connects (none required) | `docs/suggested-tools.md` |
 | Talking head: the person's own video | `kit start reels/<slug> --style talking`, then the engine's `take.py` with the file the person gives (any phone video, filmed upright). No voice credits |
 | Carry on with a reel after a break ("carry on with the reel about ...") | Read `reels/<slug>/approvals.md` and the folder to find the last finished step, say which step that is, and continue from there. Never re-record a gate that is already recorded, and never re-run a paid step with `--force` without asking. If the last finished step is unclear, list what is in the folder and ask which step to resume |
 | Fact check before Gate A and Gate C | `/reel-factcheck` |

@@ -276,6 +276,8 @@ Next step: `kit licensed check <reel>`. On failure it names the asset (not recor
 
 ---
 
+Your own renders in scenes. A scene's clip or overlay can take `"file"` instead of `"asset"`: `{"clip": {"file": "renders/orbit.mp4", "start": 0, "duration": 5}}`. The path is relative to the reel folder or to `brand/library/`, and must stay inside the brand folder (no `..`, no absolute paths, no links that leave it). The file is the owner's own, so it is never recorded or credited as licensed; its hash is part of the scene's cache hash. AI-generated pictures and video from any tool are recorded with `kit licensed add <file> --type generated-video|generated-image --tool "..."`. They carry an on-screen label ("Re-creation" or "AI-generated" by default) that the reel must show, or Gate C refuses it (no override); the owner can record `--no-label "reason"` instead, and the reason is kept. `kit cover <dir> --image <file> [--fit cover|contain]` builds the cover from an image you made. Every outside tool named here is only a suggestion (`docs/suggested-tools.md` in a brand folder).
+
 ## Always
 - Their script, brand names and claims are used exactly as given. Never invent stats, prices or quotes about real products.
 - No one else's logos, footage or characters unless the user supplies them and has the rights. Licensed music, clips, graphics and LUTs from any source with rights, recorded with `kit licensed add` (section L; we suggest Uppbeat).
