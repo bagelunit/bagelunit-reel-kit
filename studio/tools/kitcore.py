@@ -287,3 +287,15 @@ def review_score(line):
         return None
     n, top = float(m.group(1)), int(m.group(2))
     return round(n * 100 / top, 1)
+
+
+def spoken_hash(script_path):
+    """A fingerprint of the spoken words of script.txt (notes removed, whitespace and case ignored), 12 hex characters, or None.
+    A script review belongs to one text: the Gate A line carries this hash and Gate A refuses a review of other words."""
+    import hashlib
+    try:
+        raw = Path(script_path).read_text(encoding='utf-8')
+    except OSError:
+        return None
+    lines = [l.strip() for l in raw.splitlines() if l.strip() and not l.strip().startswith(('#', '//', '['))]
+    return hashlib.sha256(re.sub(r'\s+', ' ', ' '.join(lines)).strip().lower().encode()).hexdigest()[:12]

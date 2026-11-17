@@ -41,5 +41,7 @@ Score = sum(weight x score / 5), rounded down.
    returns the must-pass results, each criterion's score with the quote that earned it, the weakest criterion, and the smallest fix.
 2. If a must-pass fails or the score is under 90: apply the smallest fix, re-run `kit script`, `/script-coldread` and this score on the new text. After two
    passes with no gain, stop and show the owner what blocks it.
-3. When it passes, write under Gate A in `reels/<slug>/approvals.md`: `Script review: meets the bar (NN/100; weakest: <criterion>)`.
+3. When it passes, get the script's fingerprint with `node ~/.claude/skills/bagelunit-reels/tools/kit.mjs script reels/<slug> --hash` and write under Gate A in `reels/<slug>/approvals.md`:
+   `Script review: meets the bar (NN/100; weakest: <criterion>) [script <fingerprint>]`. `kit gate <reel> record --gate A` refuses without a line of 90 or more
+   that carries the fingerprint of the script as it is now (only the owner overrides, with `--skip-script-review "reason"`).
    A score belongs to one text: any change to the spoken words afterwards, including a fact-check fix, cancels it and sends the script back through the lint, the cold read and this score.

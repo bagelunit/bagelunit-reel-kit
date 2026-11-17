@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Approval gates: record what was approved, and prove later that the file is still that file.
 
-  python3 tools/gate.py <project> record [--gate A|B|C] [--note "text"] [--skip-facts "reason"] [--skip-review "reason"]
+  python3 tools/gate.py <project> record [--gate A|B|C] [--note "text"] [--skip-facts "reason"] [--skip-review "reason"] [--skip-script-review "reason"]
   python3 tools/gate.py <project> check  [--gate C]
 
 <project> is a reel folder (reels/<slug>); the log is its approvals.md. Default gate: C.
@@ -15,6 +15,10 @@
   gate A / gate C  also need a current PASS from the fact check (tools/facts.py, scope script for A, scope final for C): the
                    script, the caption and facts.md must be unchanged since it was recorded. Otherwise the record is refused.
                    --skip-facts "reason" records anyway and writes "FACTS NOT RE-CHECKED: reason" into the entry.
+  gate A           also needs the latest "Script review:" line in approvals.md to say "meets the bar" with a score of 90 or more
+                   and to carry the fingerprint of the script as it is now ("[script a1b2c3d4e5f6]", from  scriptlint.py <project> --hash):
+                   a review belongs to one text, so any change to the spoken words needs a new one (/script-score).
+                   --skip-script-review "reason" is the owner's override: it records anyway and writes "SCRIPT REVIEW BELOW THE BAR: reason".
   gate C           also needs the latest "Review:" line in approvals.md to say "meets the bar" with a score of 90 or more (out of 100;
                    the older 4.5 out of 5 counts). Below 90 the reel is redone and /reel-review is run again until it reaches 90.
                    --skip-review "reason" is the owner's override: it records anyway and writes "REVIEW BELOW THE BAR: reason".
@@ -24,7 +28,7 @@ import hashlib, re, sys
 from datetime import datetime
 from pathlib import Path
 
-from kitcore import resolve_reel, Flags, fail, read_json, review_score, MIN_SCORE
+from kitcore import resolve_reel, Flags, fail, read_json, review_score, MIN_SCORE, spoken_hash
 import facts as factlib
 
 TOOL = 'gate'
@@ -105,6 +109,30 @@ def main():
             fail(TOOL, f'Gate {gate} needs a current fact check, and it is {state}: {detail}. Run /reel-factcheck '
                        f'(or  facts.py <project> check  then  record --scope {scope} --result PASS). '
                        f'To go ahead without it, add  --skip-facts "reason".')
+    script_line = ''
+    if gate == 'A':
+        sr = re.findall(r'^\s*(?:[-*]\s*)?(Script review:.*)$', text, re.M)
+        last_s = sr[-1].strip() if sr else ''
+        sscore = review_score(last_s)
+        now_hash = spoken_hash(project / 'script.txt')
+        m_h = re.search(r'\[script ([0-9a-f]{12})\]', last_s)
+        s_ok = bool(last_s) and sscore is not None and sscore >= MIN_SCORE and 'meets the bar' in last_s.lower()
+        h_ok = bool(m_h) and m_h.group(1) == now_hash
+        skip_s = flags.get('skip-script-review')
+        if s_ok and h_ok:
+            pass
+        elif skip_s:
+            if skip_s is True:
+                fail(TOOL, '--skip-script-review needs a reason in quotes')
+            script_line = f'SCRIPT REVIEW BELOW THE BAR: {skip_s} (latest: {last_s or "none recorded"})'
+        else:
+            what = ('no "Script review:" line in approvals.md yet' if not last_s else
+                    f'the latest script review scores {sscore:g}/100' if sscore is not None and not s_ok else
+                    'the latest script review line has no score' if sscore is None else
+                    'the script changed after it was reviewed (the line has no matching [script <hash>])')
+            fail(TOOL, f'Gate A needs a script review of {MIN_SCORE}/100 or more for these exact words, and {what}. Run /script-score '
+                       f'(after kit script and /script-coldread); it writes  Script review: meets the bar (NN/100; weakest: ...) [script {now_hash}] . '
+                       f'Only the owner overrides this, with  --skip-script-review "reason".')
     review_line = ''
     if gate == 'C':
         reviews0 = re.findall(r'^\s*(?:[-*]\s*)?(Review:.*)$', text, re.M)
@@ -143,7 +171,7 @@ def main():
             lines.append(f'- Note: {note}')
         entry = '\n'.join(lines)
     else:
-        entry = f'- {stamp} Gate {gate} ({NAMES[gate]}) approved' + (f': {note}' if note else '') + (f' [{facts_line}]' if facts_line else '')
+        entry = f'- {stamp} Gate {gate} ({NAMES[gate]}) approved' + (f': {note}' if note else '') + (f' [{facts_line}]' if facts_line else '') + (f' [{script_line}]' if script_line else '')
 
     heading = f'## Gate {gate}'
     lines = text.split('\n') if text else []

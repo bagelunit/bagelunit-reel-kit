@@ -2,6 +2,7 @@
 """scriptlint.py: does this script make sense when it is heard once? Deterministic checks, no model, no credits.
 
   python3 scriptlint.py <reel folder> [--seconds 45] [--json]
+  python3 scriptlint.py <reel folder> --hash     (the script's fingerprint, 12 hex characters, for the Gate A review line)
   python3 scriptlint.py --selftest
 
 Reads <reel>/script.txt (the spoken words; lines starting with #, // or [ are notes) and, when it exists,
@@ -14,7 +15,7 @@ Checks: announced count vs the items said; a list with no announced count; loop 
 every item has a so-what, the item count, the word budget); sentence length; fragments; repeated openers; jargon with no
 plain explanation; spoken menu paths, links and commands; too many spoken numbers or names; fact-check qualifiers in the
 voice; names that appear only at the end (a tangent); and seconds from the brand's own measured pace.
-brand/jargon.md (one term per line, optional "term | plain swap") adds the brand's own jargon words."""
+brand/jargon.md (one term per line under "## Terms", optional "term | plain swap") adds the brand's own jargon words."""
 import json, re, statistics, sys
 from pathlib import Path
 
@@ -281,6 +282,11 @@ def main():
     a = sys.argv[1:]
     if '--selftest' in a:
         return selftest()
+    if '--hash' in a:
+        from kitcore import spoken_hash
+        h = spoken_hash(Path(a[0]) / 'script.txt' if not a[0].startswith('--') else '')
+        sys.exit('scriptlint: no script.txt') if not h else print(h)
+        return
     if not a or a[0].startswith('--'):
         sys.exit(__doc__)
     reel = Path(a[0])
@@ -293,7 +299,10 @@ def main():
     pace, pace_src = pace_for(root)
     extra = []
     if root and (root / 'brand' / 'jargon.md').exists():
-        extra = [l.split('|')[0].strip(' -*`').lower() for l in (root / 'brand' / 'jargon.md').read_text().splitlines() if l.strip() and not l.startswith('#')]
+        jt = (root / 'brand' / 'jargon.md').read_text()
+        jt = jt.split('## Terms', 1)[1] if '## Terms' in jt else jt          # the starter's explanation sits above "## Terms"
+        extra = [l.split('|')[0].strip(' -*`').lower() for l in jt.splitlines() if l.strip() and not l.startswith(('#', '`'))]
+        extra = [t for t in extra if 1 < len(t) < 40]
     plan = None
     pf = reel / 'script-plan.json'
     if pf.exists():
@@ -322,4 +331,5 @@ def main():
     sys.exit(1 if errs else 0)
 
 
-main()
+if __name__ == '__main__':
+    main()
