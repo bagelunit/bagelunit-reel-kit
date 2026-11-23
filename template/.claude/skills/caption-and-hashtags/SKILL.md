@@ -81,7 +81,7 @@ Give me:
 5. ALT TEXT - one accessible description of the video.
 6. OPTIONAL FIRST COMMENT - only a neutral question that sparks replies (no claims, no promises, no numbers, and no hashtags).
 
-Match the niche's own language and the audience's: the words THEY use, not the industry's jargon unless the audience uses it. No emojis-as-bullets unless on-brand. The CTA is a keyword only if the word is listed in brand.json cta.tested_keywords; otherwise a save or follow ask, per cta.style. Never invent a result, number or personal claim; use only brand/facts.md, and write {{needs cleared fact}} where one is missing.
+Match the niche's own language and the audience's: the words THEY use, not the industry's jargon unless the audience uses it. No emojis-as-bullets unless on-brand. The CTA is a keyword only if the word is listed in brand.json cta.tested_keywords or cta.keywords; otherwise a save or follow ask, per cta.style. When the reel's reel.json has series.name, add one caption line "Part of <name>, episode <n>." When the script says Comment WORD, write out/first-comment.txt from cta.first_comment (kit score prints the line). Never invent a result, number or personal claim; use only brand/facts.md, and write {{needs cleared fact}} where one is missing.
 ```
 
 **Memory tip:** read `brand/log.md` (it may be empty at first) and reuse the caption first lines of the reels that did best.

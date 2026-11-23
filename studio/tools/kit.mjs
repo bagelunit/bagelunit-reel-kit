@@ -331,6 +331,26 @@ async function cover() {
   ffmpeg(['-i', file, '-vf', `drawbox=x=0:y=0:w=1080:h=240:${shade},drawbox=x=0:y=1680:w=1080:h=240:${shade},drawbox=x=0:y=240:w=1080:h=1440:color=white@0.95:t=5,drawbox=x=0:y=420:w=1080:h=1080:color=yellow@0.95:t=5,scale=540:960`, '-q:v', '3', crops]);
   console.log(`cover: ${rel(reel, file)} (1080x1920, ${Math.round(fs.statSync(file).size / 1024)} KB, from ${page ? page : `the frame at ${at}s`})`);
   console.log(`check: ${rel(reel, crops)}  white box = what the profile grid shows (middle 3:4), yellow box = a feed post (middle square). The title must sit inside the white box.`);
+  const badge = seriesBadge(reel.cfg.series);
+  if (badge) console.log(`series: the cover and frame 0 should show "${badge}" in the top safe area (a Print reel draws it under the chapter mark).`);
+}
+
+function scoreArg() {
+  if (!target) die('which script? give a file or a reel folder');
+  if (fs.existsSync(target)) return path.resolve(target);
+  try {
+    const full = folders.resolveReelArg(target);
+    if (fs.existsSync(path.join(full, 'script.txt')) || fs.existsSync(path.join(full, 'reel.json'))) return full;
+  } catch { /* not a reel slug: score.py reports a missing file */ }
+  return target;
+}
+
+function seriesBadge(series) {
+  if (!series) return '';
+  const name = typeof series === 'string' ? series : series.name;
+  if (!name) return '';
+  const ep = typeof series === 'object' && series.episode != null && series.episode !== '' ? `EP ${series.episode}` : '';
+  return (String(name) + (ep ? `  ${ep}` : '')).toUpperCase();
 }
 
 function host() {
@@ -447,6 +467,7 @@ const COMMANDS = {
   render: [render, '<dir> [--final] [--from s --to s] [--fps 30] [--blur 2] [--out file]  |  scene style: <dir> [--scene n] [--force]', 'half-size draft → build/draft.mp4 · --final (1080x1920) → build/video.mp4 · a scene style renders each changed scene, joins them and writes both'],
   pace: [() => runPython('pace.py', [reelAt(target).dir, ...rest]), '<dir>', 'does it keep moving? a score and the still stretches'],
   script: [() => runPython('scriptlint.py', [reelAt(target).dir, ...rest]), '<dir> [--seconds 45]', 'does the script make sense heard once? count vs items, loops, long sentences, jargon, spoken menu paths, seconds; writes build/script-lint.md'],
+  score: [() => runPython('score.py', [scoreArg(), ...rest]), '<script.md or reel folder> [--seconds 45] [--facts file] [--json]', 'Gate A on a draft, no Claude Code: lint, human floor (default 70), fact structure, retention score out of 100 (bar 90: hook 25, open loop and payoff 20, pace 15, payoff 15, one viewer 10, clear aloud 10, call to action 5). Exit 1 on fail'],
   effort: [() => runPython('effort.py', [reelAt(target).dir]), '<dir>', 'built for THIS script, or from ready-made pieces?'],
   lint: [() => runPython('lint.py', [reelAt(target).dir, ...rest]), '<dir> [video.mp4]', 'shot grammar: lengths, adjacent layouts, cuts on words, rhythm, first-frame motion'],
   qa: [() => runPython('qa.py', [reelAt(target).dir, ...rest]), '<dir> [video.mp4]', 'final file checks: spec, loudness, black/frozen frames, text safe zone, A/V sync; writes build/qa.json'],

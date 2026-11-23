@@ -90,8 +90,11 @@ def main():
     first, f2 = res[0], res[4]
     big = lambda fr: [re.sub(r'\s+', ' ', l['text']).strip() for l in fr['lines'] if l['h'] / sy >= 60 and l['conf'] >= 0.5]
     h0, h2 = big(first), big(f2)
+    h15 = big(res[3]) if len(res) > 3 else []
     words0 = sum(len(x.split()) for x in h0); held = bool(h0) and any(x in h2 for x in h0)
-    report = {'file': a.mp4, 'seconds': dur, 'size': {k: v for k, v in size.items()}, 'safe': safe, 'hook': {'frame0_headline': h0, 'words': words0, 'held_to_2s': held}}
+    words15 = sum(len(x.split()) for x in h15)
+    report = {'file': a.mp4, 'seconds': dur, 'size': {k: v for k, v in size.items()}, 'safe': safe,
+              'hook': {'frame0_headline': h0, 'words': words0, 'held_to_2s': held, 'words_at_1_5': words15}}
     if a.json: print(json.dumps(report, indent=1)); return
     print(f'{a.mp4}  ({dur:.1f} s, sampled {len(times)} frames)\n')
     print(f'HOOK  frame 0.1 s headline: {" / ".join(h0) or "none found"}  [{words0} words]  held to 2.0 s: {"yes" if held else "NO"}')

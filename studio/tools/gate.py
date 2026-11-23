@@ -2,7 +2,7 @@
 """Approval gates: record what was approved, and prove later that the file is still that file.
 
   python3 tools/gate.py <project> record [--gate A|B|C] [--note "text"] [--skip-facts "reason"] [--skip-review "reason"]
-                                         [--skip-script-review "reason"] [--skip-qa "reason"] [--skip-order "reason"]
+                                         [--skip-script-review "reason"] [--skip-human "reason"] [--skip-qa "reason"] [--skip-order "reason"]
   python3 tools/gate.py <project> check  [--gate C]
   python3 tools/gate.py <project> hash      prints the first 12 hex characters of the SHA-256 of the newest out/*.mp4 (the
                                             "[video <hash>]" a /reel-review line ends with; kit gate <reel> hash)
@@ -10,9 +10,11 @@
 <project> is a reel folder (reels/<slug>); the log is its approvals.md. Default gate: C. The gates go in order, in a brand
 folder and for the engine on its own alike: Gate A (script), then Gate B (visual plan), then Gate C (final video).
   record, gate A   appends one dated line under "## Gate A". Needs a current fact check PASS (tools/facts.py, scope script: the
-                   script and facts.md unchanged since it was recorded) and the latest "Script review:" line in approvals.md to say
-                   "meets the bar" with 90 or more and to carry the fingerprint of the script as it is now ("[script a1b2c3d4e5f6]",
-                   from  scriptlint.py <project> --hash): any change to the spoken words needs a new review (/script-score).
+                   script and facts.md unchanged since it was recorded), the human score at its floor (brand.json
+                   writing.human_score_min, default 70; --skip-human "reason" when the owner overrides) and the latest
+                   "Script review:" line in approvals.md to say "meets the bar" with 90 or more and to carry the fingerprint of the
+                   script as it is now ("[script a1b2c3d4e5f6]", from scriptlint.py <project> --hash). That 90 is the retention
+                   score. Any change to the spoken words needs a new review (/script-score). No detector in the folder is not a failure.
   record, gate B   appends one dated line under "## Gate B". Needs Gate A recorded first.
   record, gate C   needs Gates A and B recorded; a current fact check PASS (scope final: script, caption and facts.md unchanged);
                    a build/qa.json (kit qa) whose result is PASS, with no FAIL check (SKIPPED checks are fine), written for the
@@ -29,6 +31,7 @@ Every refusal lists everything that is missing at once. Only the owner overrides
 that is written into the record:
   --skip-facts "reason"          FACTS NOT RE-CHECKED: reason            (gates A and C)
   --skip-script-review "reason"  SCRIPT REVIEW BELOW THE BAR: reason     (gate A)
+  --skip-human "reason"          HUMAN SCORE UNDER THE FLOOR: reason     (gate A: the human score is under its floor)
   --skip-order "reason"          GATE ORDER SKIPPED: reason              (gates B and C: an earlier gate is not recorded)
   --skip-qa "reason"             QA NOT PASSED: reason                   (gate C: qa.json missing, failing or for another file)
   --skip-review "reason"         REVIEW BELOW THE BAR: reason            (gate C: under 90, no score, or not for this file)
@@ -141,6 +144,27 @@ def override(flags, name, label, problems, want):
     return ''
 
 
+def human_floor(project, flags, problems):
+    """The human score is a floor (brand.json writing.human_score_min, default 70), not the 90 bar.
+    No detector in this folder (an engine reel with no brand skills) is not a failure."""
+    script = project / 'script.txt'
+    if not script.is_file():
+        return ''
+    try:
+        import score as gatescore
+        got = gatescore.human_for(script.read_text(encoding='utf-8'), project)
+    except Exception:
+        return ''
+    if not got:
+        return ''
+    score_n, floor = got
+    if score_n >= floor:
+        return f'Human score: {score_n:.1f} (floor {floor:.0f})'
+    return override(flags, 'skip-human', 'HUMAN SCORE UNDER THE FLOOR', problems,
+                    f'the human score is {score_n:.1f}, under the floor of {floor:.0f}. Rewrite the weakest check and run '
+                    f'kit score again. Only the owner overrides this, with  --skip-human "reason"')
+
+
 def main():
     flags = Flags()
     args = flags.positional()
@@ -244,6 +268,9 @@ def main():
                             f'Only the owner overrides this, with  --skip-script-review "reason"')
             if line:
                 extra.append(f'{line} (latest: {last_s or "none recorded"})')
+        human_line = human_floor(project, flags, problems)
+        if human_line:
+            extra.append(human_line)
 
     qa_text, review_line, verdict = '', '', ''
     if gate == 'C':

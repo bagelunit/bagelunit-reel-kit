@@ -263,6 +263,17 @@ function chromeDraw(ctx, t, sc) {
     window.__ontextKind = 'readout';   // the reel's own number or label: the probe lists it as content, not as the engine's tag
     readoutTag(ctx, reading);
   } else if (handle) text(ctx, String(handle), W - SAFE_X, CHROME_Y + 32, { font: F.voice, weight: 400, size: 25, ls: 1.5, color: C.ink, align: 'right' });
+  seriesBadge(ctx);
+}
+// reel.json "series": { "name", "episode" } prints a small badge under the chapter mark (kind chrome, so the episode
+// number is not a fact-check claim). A string series is just the name.
+function seriesBadge(ctx) {
+  const s = REEL && REEL.series;
+  const name = s && typeof s === 'object' ? s.name : (typeof s === 'string' ? s : '');
+  if (!name) return;
+  const ep = s && typeof s === 'object' && s.episode != null && s.episode !== '' ? 'EP ' + s.episode : '';
+  const label = (String(name) + (ep ? '   ' + ep : '')).toUpperCase();
+  text(ctx, label, SAFE_X, CHROME_Y + CHROME_H + 22, { font: F.voice, weight: 700, size: 22, ls: 1.2, color: C.ink, align: 'left' });
 }
 
 /* ---------- one frame ---------- */

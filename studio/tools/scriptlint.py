@@ -24,6 +24,9 @@ NUMRE = '|'.join(NUM) + r'|\d{1,2}'
 ITEM_NOUNS = ('things|ways|tips|rules|mistakes|traps|steps|prompts|reasons|signs|updates|tools|questions|risks|checks|habits|lessons|'
               'ideas|hacks|problems|fixes|secrets|trends|changes|shortcuts|templates|apps|features|myths|moves|tricks|skills|stories|examples')
 ANNOUNCE = re.compile(rf'\b({NUMRE})\s+(?:[A-Za-z\'-]+\s+){{0,2}}(?:{ITEM_NOUNS})\b', re.I)
+# "three bills", "three costs", "four prompts to try": any plural, used only when a numbered list is already there.
+# A loose plural with no "One. Two. Three." is not a list ("in three days"), so it must not become an error.
+PLURAL = re.compile(rf"\b({NUMRE})\s+(?:[A-Za-z'-]+\s+){{0,3}}([A-Za-z][A-Za-z'-]{{2,}}(?:s|es|people|children|men|women))\b", re.I)
 ENUM = re.compile(rf'^(?:({"|".join(NUM)})\s*[.:,]|(\d{{1,2}})\s*[:.)]|(?:number|rule|step|prompt|tip|trap|update|mistake)\s+({NUMRE})\s*[.:,])', re.I)
 LOOPS = [r'\bthe biggest (?:one|thing|change)\b', r'\bthe one (?:that|thing)\b', r'\bone fix\b', r'\bhere\'?s why\b', r'\bwhat gets left behind\b',
          r'\bisn\'?t the (?:risky|hard|scary) part\b', r'\bone\'?s got a deadline\b', r'\bwait (?:for|till|until)\b', r'\bbut (?:first|here\'?s the catch)\b',
@@ -37,7 +40,11 @@ NAMES_OK = {'I', 'I\'m', 'I\'ll', 'I\'ve', 'And', 'But', 'So', 'The', 'This', 'T
             'Seven', 'Eight', 'Nine', 'Ten', 'Here', 'Save', 'Follow', 'Send', 'Share', 'Comment', 'Same', 'Now', 'Then', 'Next', 'First', 'Last', 'Neither', 'Your', 'You', 'Who', 'What',
             'When', 'Why', 'How', 'Where', 'Built', 'Per', 'Up', 'Like', 'Are', 'Can', 'Will', 'Have', 'Has', 'Just', 'Only', 'Also', 'Still', 'Even', 'Every', 'Most', 'Some', 'Any',
             'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'December', 'November', 'January', 'February', 'March', 'April', 'May', 'June', 'July',
-            'August', 'September', 'October'}
+            'August', 'September', 'October',
+            'After', 'Once', 'Download', 'Sign', 'Check', 'Read', 'Customer', 'Local', 'Running', 'Took', 'Grab', 'Start',
+            'Before', 'During', 'While', 'Until', 'Because', 'Since', 'Today', 'Tomorrow', 'Please', 'Open', 'Close',
+            'Click', 'Tap', 'Look', 'Keep', 'Make', 'Use', 'Try', 'Get', 'See', 'Watch', 'Want', 'Need', 'Stop', 'Wait',
+            'Been', 'Were', 'Was', 'Did', 'Going', 'Coming', 'There', 'They', 'Them', 'Its'}
 DEFAULT_PACE = 3.2
 
 
@@ -82,7 +89,49 @@ def pace_for(root):
     return (round(statistics.median(rates), 2), f'median of {len(rates)} reels') if len(rates) >= 3 else (DEFAULT_PACE, 'default')
 
 
-def lint(text, plan=None, jargon_extra=(), seconds=45, pace=DEFAULT_PACE, cta_keyword=None):
+def count_word(token):
+    t = token.lower()
+    return NUM[t] if t in NUM else int(t)
+
+
+def series_meta(text, plan=None, series=None):
+    """Series name, episode and the named next episode, from note lines, the plan or reel.json series."""
+    name = episode = nxt = None
+    for line in text.splitlines():
+        s = line.strip()
+        m = re.match(r'^#\s*Series:\s*(.+)$', s, re.I)
+        if m:
+            name = m.group(1).strip()
+        m = re.match(r'^#\s*Episode:\s*(\d+)', s, re.I)
+        if m:
+            episode = int(m.group(1))
+        m = re.match(r'^#\s*Next:\s*(.+)$', s, re.I)
+        if m:
+            nxt = m.group(1).strip()
+    if isinstance(series, dict):
+        name = name or str(series.get('name') or '').strip() or None
+        if episode is None and series.get('episode') not in (None, ''):
+            try:
+                episode = int(series.get('episode'))
+            except (TypeError, ValueError):
+                episode = None
+        nxt = nxt or str(series.get('next') or '').strip() or None
+    elif isinstance(series, str) and series.strip():
+        name = name or series.strip()
+    if isinstance(plan, dict) and plan.get('next_episode'):
+        nxt = nxt or str(plan.get('next_episode')).strip()
+    named_next = bool(nxt) and bool(re.search(r'\d', nxt)) and bool(re.search(r'[A-Za-z]{3,}', nxt))
+    return {'name': name or None, 'episode': episode, 'next': nxt, 'named_next': named_next}
+
+
+def later_pays(sents, index):
+    """A tease is paid off when a later sentence says something, or this sentence already carries the answer."""
+    if any(len(words(s)) >= 5 for s in sents[index:]):
+        return True
+    return len(words(sents[index - 1])) >= 14
+
+
+def lint(text, plan=None, jargon_extra=(), seconds=45, pace=DEFAULT_PACE, cta_keyword=None, tested_keywords=None, series=None):
     """-> list of (level, where, message). where is a sentence number or a name."""
     out = []
     add = lambda lvl, where, msg: out.append((lvl, where, msg))
@@ -105,10 +154,7 @@ def lint(text, plan=None, jargon_extra=(), seconds=45, pace=DEFAULT_PACE, cta_ke
     # announced count vs items said
     first3 = ' '.join(sents[:3])
     m = ANNOUNCE.search(first3)
-    announced = None
-    if m:
-        t = m.group(1).lower()
-        announced = NUM[t] if t in NUM else int(t)
+    announced = count_word(m.group(1)) if m else None
     nums = []
     for i, s in enumerate(sents, 1):
         e = ENUM.match(s)
@@ -119,6 +165,11 @@ def lint(text, plan=None, jargon_extra=(), seconds=45, pace=DEFAULT_PACE, cta_ke
     consecutive = seq == list(range(1, len(seq) + 1))
     if len(seq) >= 2 and not consecutive:
         add('ERROR', nums[0][0], f'the list is numbered {seq}: it should run 1, 2, 3 in order with none missing')
+    # "Here are the three bills" plus One. Two. Three. is a list. "in three days" with no numbers is not.
+    if announced is None and len(seq) >= 2:
+        loose = PLURAL.search(first3)
+        if loose:
+            announced = count_word(loose.group(1))
     if announced and seq and max(seq) != announced:
         add('ERROR', nums[0][0], f'the opening announces {announced} but the list says {max(seq)}: the viewer is counting')
     elif announced and len(seq) < 2 and announced >= 3:
@@ -158,13 +209,40 @@ def lint(text, plan=None, jargon_extra=(), seconds=45, pace=DEFAULT_PACE, cta_ke
             if len(cw(sents[a]) & cw(sents[b])) >= 3:
                 add('WARN', a + 1, f'sentences {a + 1} and {b + 1} say nearly the same thing')
 
-    # loop openers
+    # open loops: a tease is allowed when this reel pays it off, or when a named next episode will.
+    # "watch till the end" with nothing after it is bait. A snapback ("The catch?") needs an answer after it.
+    meta = series_meta(text, plan, series)
+    bait = re.compile(r"\b(?:watch till the end|wait till the end|stay till the end|you won'?t believe|nobody (?:is talking|tells you))\b", re.I)
+    snap = re.compile(r"^(?:the catch|the good news|the twist|the kicker|the best part)\??[.!]?\s*$", re.I)
+    nxt = re.compile(r"\b(?:next episode|in episode\s+\d+|tomorrow'?s episode)\b", re.I)
     for i, s in enumerate(sents, 1):
-        for p in LOOPS:
-            if re.search(p, s, re.I):
-                closes = [b for b in (plan or {}).get('beats', []) if b.get('closes')]
-                add('WARN' if not plan else 'INFO', i, f'opens a promise ("{s[:60]}"): a later line has to pay it off in words the viewer can use' + ('' if not plan else '; checked against the plan below'))
-                break
+        kind = 'bait' if bait.search(s) else 'next' if nxt.search(s) else 'snap' if snap.match(s.strip()) else None
+        if kind is None:
+            for p in LOOPS:
+                if re.search(p, s, re.I):
+                    kind = 'tease'
+                    break
+        if not kind:
+            continue
+        paid = later_pays(sents, i)
+        if plan:
+            add('INFO', i, f'opens a promise ("{s[:60]}"): the plan has to close it, in this reel or in a named next episode')
+            continue
+        if kind == 'next':
+            if meta['named_next']:
+                add('INFO', i, f'open loop closes in the named next episode ({meta["next"]})')
+            else:
+                add('ERROR', i, 'a next-episode tease with no named episode. Add a note line "# Next: Series name episode 3" (the series and the number), or pay the tease off in this reel')
+        elif kind == 'bait' and not paid:
+            add('ERROR', i, f'bait that does not pay off ("{s[:60]}"). Say what is withheld and answer it in this reel, or name the next episode')
+        elif kind == 'bait':
+            add('WARN', i, f'"{s[:50]}" is an empty tease. The lines after it do answer something: name the withheld thing instead')
+        elif kind == 'snap' and not paid:
+            add('ERROR', i, f'snapback "{s.strip()}" is the last thing said. The next line has to answer it')
+        elif not paid:
+            add('ERROR', i, f'opens a loop ("{s[:60]}") that this reel never pays off')
+        else:
+            add('INFO', i, f'open loop is paid off later ("{s[:50]}")')
     qs = [(i, s) for i, s in enumerate(sents[: max(2, len(sents) // 6)], 1) if s.endswith('?')]
     if len(qs) >= 2:
         add('WARN', qs[0][0], f'{len(qs)} questions in the opening: answer the first before asking the next')
@@ -208,16 +286,40 @@ def lint(text, plan=None, jargon_extra=(), seconds=45, pace=DEFAULT_PACE, cta_ke
     # tangent: a name that first appears late
     if len(sents) >= 8:
         head = ' '.join(sents[: int(len(sents) * 0.75)])
-        late = ' '.join(sents[int(len(sents) * 0.75):])
-        new = [n for n in re.findall(r'\b[A-Z][a-z]{3,}\b', late) if n not in NAMES_OK and n not in head]
+        new = []
+        for s in sents[int(len(sents) * 0.75):]:
+            ws = s.split()
+            for wi, w in enumerate(ws):
+                raw = w.strip('.,:;!?"“”’\'()')
+                camel = bool(re.search(r'[A-Z].*[A-Z]', raw[1:])) if len(raw) > 2 else False
+                if re.fullmatch(r'[A-Z]{2,}s?', raw):
+                    continue   # PDFs, API, an acronym, not a person who shows up late
+                if not re.match(r'[A-Z][a-z]{3,}$', raw) and not camel:
+                    continue
+                if wi == 0 and not camel:
+                    continue   # "After", "Once", "Download" at the start of a sentence are not new names
+                if raw in NAMES_OK or raw in head:
+                    continue
+                new.append(raw)
         if new:
             add('WARN', 'script', f'new name(s) only in the last quarter: {", ".join(sorted(set(new))[:4])}. A tangent, or does the hook promise it?')
 
-    # the call to action: reel.json cta.keyword is what the closing scene shows large, so the voice has to say it too
+    # the call to action: reel.json cta.keyword is what the closing scene shows large, so the voice has to say it too.
+    # "Comment WORD" is allowed only when WORD is one of the brand's tested keywords (several are fine; one reel uses one).
     kw = str(cta_keyword or '').strip()
     if kw and sents:
         if not re.search(r'(?<![A-Za-z0-9])' + re.escape(kw) + r'(?![A-Za-z0-9])', sents[-1], re.I):
             add('WARN', len(sents), f'reel.json cta.keyword is "{kw}" but the last sentence does not say it ("{sents[-1][:60]}"). End on the line that asks for it (for example "Comment {kw.upper()} and I\'ll send it"), or fix the keyword in reel.json')
+    if tested_keywords is not None and sents:
+        allowed = {str(k).strip().upper() for k in tested_keywords if str(k).strip()}
+        said = re.findall(r'\bcomment\s+([A-Za-z][A-Za-z0-9]{1,24})\b', ' '.join(sents), re.I)
+        said = [w.upper() for w in said]
+        bad = [w for w in said if w not in allowed]
+        if bad:
+            have = ', '.join(sorted(allowed)) or 'none yet'
+            add('ERROR', len(sents), f'Comment {" ".join(bad)} is not a tested keyword ({have}). Add it to brand.json cta.tested_keywords or cta.keywords only after the auto-reply is tested from a second account, or end on a save or follow ask')
+        if len(set(said)) > 1:
+            add('WARN', len(sents), f'this reel asks for more than one keyword ({", ".join(dict.fromkeys(said))}). One reel, one keyword')
 
     # plan checks
     if plan:
@@ -227,8 +329,11 @@ def lint(text, plan=None, jargon_extra=(), seconds=45, pace=DEFAULT_PACE, cta_ke
             for o in b.get('opens', []): opened[o] = idx
             for c in b.get('closes', []): closed[c] = idx
         for k, idx in opened.items():
-            if k not in closed:
-                add('ERROR', f'beat {beats[idx].get("id", idx + 1)}', f'opens the loop "{k}" and no later beat closes it')
+            named = str(beats[idx].get('closes_in') or '').strip()
+            if k not in closed and named and re.search(r'\d', named):
+                add('INFO', f'beat {beats[idx].get("id", idx + 1)}', f'loop "{k}" is paid off in a named later episode ({named}), not in this reel')
+            elif k not in closed:
+                add('ERROR', f'beat {beats[idx].get("id", idx + 1)}', f'opens the loop "{k}" and no later beat closes it. Close it in this reel, or set closes_in to a named episode ("Series name episode 3")')
             elif closed[k] < idx:
                 add('ERROR', f'beat {beats[idx].get("id", idx + 1)}', f'loop "{k}" closes before it opens')
         for k in closed:
@@ -289,6 +394,36 @@ def selftest():
     assert not [m for _, _, m in lint(ends)[0] if 'cta.keyword' in m]
     assert [m for _, _, m in lint("Comment BAKE for the setup. Then wait.", cta_keyword='BAKE')[0] if 'cta.keyword' in m], 'keyword said early only'
     assert [m for _, _, m in lint("Say BAKERY loudly.", cta_keyword='BAKE')[0] if 'cta.keyword' in m], 'BAKERY is not BAKE'
+    bills = ("Here are the three bills a shop owner should know before Friday.\n"
+             "One. The first bill is the card fee you already pay each month.\n"
+             "Two. The second bill is the software you keep and never open.\n"
+             "Three. The third bill is the one that arrives when the trial ends.\n"
+             "Save this before you pay the next one.")
+    errs = [m for lvl, _, m in lint(bills)[0] if lvl == 'ERROR']
+    assert not errs, errs
+    late = ("You can fix the till before Friday if you follow these steps.\n"
+            "One. Count the cash drawer before you leave the shop tonight.\n"
+            "Two. Match every card slip to the day's sales total tonight.\n"
+            "Three. Write the gap down so Monday starts clean and short.\n"
+            "Four. Tell the closer what you found before they lock up.\n"
+            "Five. Leave the note where the opener will see it first thing.\n"
+            "Six. Check the lock twice on your way out the door tonight.\n"
+            "After that the book is closed. Once you lock up, sign the sheet.")
+    late_msgs = [m for _, _, m in lint(late)[0] if 'new name' in m]
+    assert not any(w in ' '.join(late_msgs) for w in ('After', 'Once', 'Sign', 'PDFs')), late_msgs
+    acronym = late + "\nGrab the certificate PDFs before the window closes on you."
+    assert not any('PDFs' in m for _, _, m in lint(acronym)[0]), [m for _, _, m in lint(acronym)[0] if 'PDFs' in m]
+    bait = "This is a real cost for your shop this week and you should hear it now.\nWatch till the end."
+    assert any(lvl == 'ERROR' and 'bait' in m for lvl, _, m in lint(bait)[0]), lint(bait)[0]
+    snap = "The catch?\nYou save the certificates before the old site closes in December.\nThen send this to the person who keeps asking."
+    assert not any(lvl == 'ERROR' and 'snapback' in m for lvl, _, m in lint(snap)[0]), lint(snap)[0]
+    nxt = "You will want the rest of this before Friday.\nI will show the fix in the next episode.\nSave this."
+    assert any('named episode' in m for lvl, _, m in lint(nxt)[0] if lvl == 'ERROR'), lint(nxt)[0]
+    named = "# Next: Shop Checks episode 3\nYou will want the rest of this before Friday.\nI will show the fix in the next episode.\nSave this."
+    assert not any(lvl == 'ERROR' and 'named episode' in m for lvl, _, m in lint(named)[0]), lint(named)[0]
+    kw = "Three checks before you open.\nComment BAKE and I will send the list."
+    assert any(lvl == 'ERROR' and 'tested keyword' in m for lvl, _, m in lint(kw, tested_keywords=['KIT'])[0])
+    assert not any('tested keyword' in m for lvl, _, m in lint(kw, tested_keywords=['BAKE', 'KIT'])[0] if lvl == 'ERROR')
     print('scriptlint selftest: ok')
 
 
@@ -325,12 +460,28 @@ def main():
         except Exception as e:
             sys.exit(f'scriptlint: script-plan.json is not valid JSON: {e}')
     cta_kw = None
+    series = None
+    tested = None
     try:
-        cta = (json.loads((reel / 'reel.json').read_text(encoding='utf-8')) or {}).get('cta')
+        cfg = json.loads((reel / 'reel.json').read_text(encoding='utf-8')) or {}
+        cta = cfg.get('cta')
         cta_kw = cta.get('keyword') if isinstance(cta, dict) else None
+        series = cfg.get('series')
     except Exception:
-        pass   # no reel.json, or one that is not valid JSON yet: no keyword check
-    res, nwords, est = lint('' if plan_only else f.read_text(), plan, extra, seconds, pace, cta_kw)
+        cfg = {}   # no reel.json, or one that is not valid JSON yet: no keyword check
+    if root and (root / 'brand' / 'brand.json').exists():
+        try:
+            brand = json.loads((root / 'brand' / 'brand.json').read_text(encoding='utf-8'))
+            cta = brand.get('cta') if isinstance(brand.get('cta'), dict) else {}
+            tested = [str(k) for k in (cta.get('tested_keywords') or [])]
+            for item in cta.get('keywords') or []:
+                word = item.get('word') if isinstance(item, dict) else item
+                if str(word or '').strip():
+                    tested.append(str(word).strip())
+        except Exception:
+            tested = None
+    raw = '' if plan_only else f.read_text()
+    res, nwords, est = lint(raw, plan, extra, seconds, pace, cta_kw, tested, series)
     if plan_only:
         res = [r for r in res if r[1] != 'script']
     errs = [r for r in res if r[0] == 'ERROR']

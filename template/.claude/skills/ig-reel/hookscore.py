@@ -43,7 +43,13 @@ NUMBER_RE = re.compile(
     r"(?:%|k\b|x\b|hrs?\b|hours?\b|mins?\b|minutes?\b"  # without a unit
     r"|days?\b|weeks?\b|months?\b|years?\b)?",
     re.IGNORECASE)
-PROPER_RE = re.compile(r"(?<!^)\b[A-Z][a-z]{2,}\b")
+PROPER_RE = re.compile(r"\b[A-Z][a-z]{2,}\b")
+CAMEL_RE = re.compile(r"\b[A-Z][a-z0-9]*[A-Z][A-Za-z0-9]*\b")
+# A name at the start of the line counts (Claude, ChatGPT). These openers do not.
+NAME_STOP = {
+    "The", "This", "That", "And", "But", "You", "Your", "What", "When", "How",
+    "Why", "Have", "Here", "There", "They", "Just", "Stop", "Wait", "Save",
+}
 HASHTAG_RE = re.compile(r"(?:^|\s)#\w+")
 EMOJI_RE = re.compile(r"[\U0001F300-\U0001FAFF☀-➿]")
 
@@ -138,7 +144,8 @@ def check_length(text):
 def check_specificity(text):
     """One concrete thing beats three abstract ones."""
     nums = [n.strip() for n in NUMBER_RE.findall(text) if n.strip()]
-    propers = set(PROPER_RE.findall(text))
+    propers = {n for n in PROPER_RE.findall(text) if n not in NAME_STOP}
+    propers.update(CAMEL_RE.findall(text))
     low = [w.lower().strip("'’") for w in words(text)]
     spoken = [w for w in low if w in SPOKEN_NUMBERS or w in MONEY_WORDS]
     hits = len(nums) + len(propers) + len(spoken)

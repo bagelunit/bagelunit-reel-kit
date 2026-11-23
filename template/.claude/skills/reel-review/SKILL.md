@@ -64,7 +64,7 @@ Each is pass or fail. A fail is named in the verdict with the second it happens.
    No current PASS, or a FAIL, fails this check.
 2. **Words match.** The spoken words and on-screen text are the approved script (typos aside). The
    brand's `voice.never_say` words are not spoken.
-3. **Frame 0 and the hook.** The triple hook (section 0 of `docs/hook-and-review-playbook.md`): the context lands at once in the voice, the first frame and the on-screen text; a lean follows; then a contrarian snapback that the rest of the reel pays off. Then the eight-point frame-0 checklist (section 1) on the real frames.
+3. **Frame 0 and the hook.** The triple hook (section 0 of `docs/hook-and-review-playbook.md`): the context lands at once in the voice, the first frame and the on-screen text; a lean follows; then a contrarian snapback that the rest of the reel pays off. Then the frame-0 checklist (section 1) on the real frames. Read `brand.json` -> `hook.frame0` first. `moving` uses the eight points (frame 0 already moving, the claim building at about 1.2 to 1.6 s). `static-headline` uses the override: a 3-to-5-word headline readable at frame 0, held about 2 seconds. Do not mark a static headline down for being still when the brand has chosen that setting. `python3 scripts/qa/gate_qa.py <slug>` enforces the same setting.
 4. **Safe zones and size.** Nothing important in the bottom 300 px or right 120 px. Text about 40 px or
    more. Nothing clipped, overlapping or placeholder.
 5. **Handle and payoffs.** The handle is visible. Typed lines finish and hold before the cut. A payoff

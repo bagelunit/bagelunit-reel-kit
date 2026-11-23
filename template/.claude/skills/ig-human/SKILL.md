@@ -52,8 +52,10 @@ the double punctuation and orphaned periods that leaves behind.
 
 **3. The slop lexicon.** delve, leverage, robust, seamless, crucial, testament
 to, "in today's fast-paced world", plus the Instagram block: "stop scrolling",
-"in today's video", "follow for more", "tag someone who needs this", "the
-algorithm loves", "run don't walk". Each swapped for a plain word or deleted,
+"in today's video", "tag someone who needs this", "the
+algorithm loves", "run don't walk". A save, "follow for more", "send this to"
+and a snapback ("The catch?", "The good news?") stay: the kit teaches them.
+Each flagged stock phrase is swapped for a plain word or deleted,
 with capitalisation preserved and URLs left untouched.
 
 ## What does NOT get fixed automatically
@@ -68,7 +70,7 @@ a sentence needs judgement:
 - Emoji bullet lists
 - Three or more shouted words in a row
 - Hashtag walls
-- Reflex bait: "follow for more", "tag someone who", "double tap if"
+- Reflex bait: "tag someone who", "double tap if", "comment below if" (a save, a follow, or "send this to the person who..." is the brand's own ask, not bait)
 
 That list is your job. Rewrite each flagged line by hand, keeping the meaning,
 then re-run `detect.py`. This is the part that moves the score from REVIEW to
@@ -88,11 +90,19 @@ PASS, and it is the part a script cannot do.
 
 The verdict weights the mean at 60% and the **weakest single check** at 40%,
 because one signal is enough. The panel's own PASS needs an overall of 70+
-with no check below 55. The bar a script, caption or Threads text must reach
-before it is shown is higher: 90, or `brand.json` -> `writing.human_score_min`.
-The detector prints it as the BAR line (MET or NOT MET). Long run-ons
-(over 28 words), stacks of tiny fragments and long lists of names do not raise
-the score.
+with no check below 55. For a script that is the floor, not the goal:
+`brand.json` -> `writing.human_score_min` (default 70). The 90 bar is the
+retention score (`kit score`, `/script-score`). The detector prints the floor
+as the FLOOR line (MET or NOT MET).
+
+BURSTINESS scores the brand's rhythm: most sentences 6 to 14 words, a few
+3-to-5-word punches, none over 28. A script that is all 6-to-14-word lines
+can pass. Spoken numbers ("fifty", "eight") and product names (ChatGPT,
+OpenRouter, Claude, including at the start of a sentence) count as concrete.
+Note lines that start with `# ` are not scored. The brand's own ask ("follow
+for more", "save this", "send this to") and a snapback ("The catch?",
+"The good news?") are not stock wording. Long run-ons (over 28 words), stacks
+of tiny fragments and long lists of names do not raise the score.
 
 ## Say this honestly
 

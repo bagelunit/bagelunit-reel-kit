@@ -34,8 +34,8 @@ If the script talks about how the brand posts, describe the brand's real setup, 
 | 5 | Lint | code | `build/script-lint.md` | no ERROR (`node ~/.claude/skills/bagelunit-reels/tools/kit.mjs script reels/<slug>`) |
 | 6 | Coherence edit | this skill | `script.txt` | lint clean; the whole script re-read, never only the changed line |
 | 7 | Cold read | `/script-coldread` | `build/coldread.md` | a reader who sees only the words retells the promise, the viewer and the takeaway, and finds nothing unanswered or confusing |
-| 8 | Facts and human score | `kit facts <reel> check --scope script`, `/reel-factcheck`, `/ig-human` | the fact check record; the human score | fact check PASS; human score 90 or more (`brand.json` -> `writing.human_score_min`) |
-| 9 | Score | `/script-score` | the `Script review: meets the bar (NN/100; ...) [script <12 hex>]` line in `approvals.md` | 90 or more, every must-pass passes |
+| 8 | Facts and human floor | `kit facts <reel> check --scope script`, `/reel-factcheck`, `/ig-human` | the fact check record; the human score | fact check PASS (hard pass or fail); human score at or above its floor, default 70 (`brand.json` -> `writing.human_score_min`) |
+| 9 | Score | `kit score reels/<slug>`, then `/script-score` | the `Script review: meets the bar (NN/100; ...) [script <12 hex>]` line in `approvals.md` | retention 90 or more (hook 25, open loop and payoff 20, pace 15, payoff 15, one viewer 10, clear aloud 10, call to action 5), every must-pass passes |
 | 10 | Credits and owner | `budget.py`, then Gate A | the Gate A record | the script fits the voice credits left; the owner says yes |
 
 ## How to draft (stage 4)

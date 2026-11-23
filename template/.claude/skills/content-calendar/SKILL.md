@@ -84,7 +84,7 @@ When the owner asks how to use it, say this in two lines and point to `docs/dash
   A winner shows under "Needs you": share it to followers in the Instagram app, then `/ab-hook-tester record`.
 - **Content mix:** the goals and angles of the last 10 posts, the angles not used lately, and a warning when one angle
   repeats. Read it (and `brand/tests.md`) in `plan` before proposing angles.
-- **Series:** reels and plan rows with the same `Series` (plan column, or `reel.json` -> `series`) are grouped.
+- **Series:** reels and plan rows with the same series name are grouped. The plan column is the name (or "Name ep 2"). `reel.json` -> `series` may be that name, or `{ "name", "episode", "next" }`. The episode number is kept on the reel. The group is the name.
 - **Time and cost:** median days from start to posted, which step reels wait longest at, and voice credits this
   month (from the engine's `build/voice-log.jsonl`; older reels are estimated from the script and marked so).
 - **The reel card:** also its series, A/B version, timeline, voice cost, new stickers and other-platform versions.
