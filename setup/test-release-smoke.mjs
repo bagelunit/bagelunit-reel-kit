@@ -24,7 +24,7 @@ const ok = (m) => console.log('ok   ' + m);
 // ── 3. the engine's commands, each one named here ─────────────────────────────────────────────────────────────────────
 // takesReel: run by slug in both layouts and must find the reel. The rest need no reel folder (or need a render, a network or a key).
 const takesReel = {
-  pace: [], effort: [], lint: [], facts: [], gate: ['check'], measure: [], predict: [], qa: [], host: ['--check'], script: [],
+  pace: [], effort: [], lint: [], facts: [], gate: ['check'], measure: [], predict: [], qa: [], host: ['--check'], script: [], score: [],
   scene: ['plan'],   // on the smoke reel (print) it finds the reel, then says it is not a scene-style reel; setup/test-scene-styles.mjs tests the rest
 };
 const needsMore = ['start', 'frames', 'render', 'calibrate', 'sound', 'export', 'live', 'cover', 'organize', 'tidy', 'budget', 'licensed', 'suggest'];   // covered by test-reel-folders.mjs, test-suggest.mjs (suggest takes no reel), test-gates.mjs, test-licensed.mjs (licensed finds its reel by slug), (budget: it would read the saved key), the sticker-host CI step, or need a render

@@ -26,6 +26,7 @@ Read `brand/voice.md`, `brand/facts.md`, `brand/log.md` (the last two angles and
 - **Promise:** one sentence, 20 words or fewer, naming what they will know or be able to do by the end.
 - **Takeaway:** the last line as an action or a decision they can make this week.
 - **Goal and angle:** one goal; an angle that is not the same as the last reel's.
+- **Series (optional):** the series name and the episode number. The same name goes in the plan row's Series cell (episode in the Notes, or "Name ep 2"). The script gets note lines `# Series:`, `# Episode:` and, when a tease is paid off later, `# Next: Series name episode 3`. `reel.json` gets `"series": { "name", "episode", "next" }`. A Print reel draws `NAME  EP N` under the chapter mark. The cover should show the same badge.
 - **Facts to use:** each cleared fact (its `facts.md` row) and where it goes: **voice** (at most 4 numbers and 6 names), **screen**
   (exact labels, eligibility lists, menu paths, qualifiers) or **caption**. Precision that a listener cannot hold goes on screen.
 - **Terms the viewer may not know:** each with a plain swap.
@@ -39,7 +40,7 @@ Read `brand/voice.md`, `brand/facts.md`, `brand/log.md` (the last two angles and
     { "id": 5, "role": "payoff",  "says": "the answer to the promise", "so_what": "what to do", "opens": [], "closes": ["can-i-trust-it"], "facts": [], "words": 20 } ] }
 ```
 Roles: `context`, `lean`, `snapback`, `setup`, `item`, `payoff`, `ask`. Rules the outline must meet:
-- every loop a beat `opens` has a later beat that `closes` it, and the payoff beat answers the promise;
+- every loop a beat `opens` has a later beat that `closes` it, or that beat sets `closes_in` to a named episode ("Shop Checks episode 3"). A tease with no payoff, and no named next episode, is bait and fails. Dramatic framing is allowed. An invented fact is not. The payoff beat answers the promise;
 - `announced_count` equals the number of `item` beats (3 items for 30 to 40 s; 5 at most, only if each is 18 words or fewer), and the hook says the count;
 - every `item` has a `so_what`; a beat whose claim is outside the promise is a tangent: cut it;
 - the word budgets add up to the size band: about 110 to 130 spoken words for 40 s, never more than 45 s at the brand's pace (this is the one place the band is set; the other skills quote it).

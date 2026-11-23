@@ -20,6 +20,8 @@ Generate a batch of scroll-stopping hooks for a reel - the make-or-break first o
 2. **Lean:** make the viewer curious in one direction, with proof or a number (only from `brand/facts.md`), a specific pain or benefit, or something interesting, shocking or unexpected.
 3. **Contrarian snapback:** pull them away from the direction they were leaning and onto another, true path that the rest of the reel pays off.
 
+Score each finished line with `python3 .claude/skills/ig-reel/hookscore.py --hook "the line"`. Under 50, rewrite it. 70 or more is the Hook criterion's strong band in `/script-score`. The score catches a greeting, a preamble and a line with nothing concrete in it. It does not pick the winner between two decent hooks.
+
 ## When to use
 You have a reel topic but the opening is weak. The hook is ~80% of whether anyone watches - this gives you options to test.
 

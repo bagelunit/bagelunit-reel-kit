@@ -11,7 +11,7 @@ The default is 35 to 45 s (about 110 to 130 words). When they ask for something 
 | 10 to 15 s | 40 to 48 | 3 to 5 | hook · one turn (the surprising fact) · ask |
 | 20 to 30 s | 80 to 110 | 5 to 8 | hook · problem · one turn · payoff · ask |
 
-The ask still ends the reel (the brand's own ask; "Comment KEYWORD …" only when that keyword is tested), but keep it to one short sentence. Every shot needs a hero you can read in under a second.
+The ask still ends the reel (the brand's own ask: save this, follow for more, send this to someone, or "Comment KEYWORD …" only when that keyword is in `cta.tested_keywords` or `cta.keywords`), but keep it to one short sentence. Every shot needs a hero you can read in under a second. Most spoken lines are 6 to 14 words.
 
 ## The skeleton (about 110 to 130 words, about 35 to 45 s)
 

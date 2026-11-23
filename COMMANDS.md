@@ -1,6 +1,6 @@
 # BagelUnit Reel Kit commands
 
-Every command in the kit (version 1.3.0) and what it does. Also as a [PDF](docs/commands.pdf) and a [spreadsheet](docs/commands.csv) (opens in Excel).
+Every command in the kit (version 1.4.0) and what it does. Also as a [PDF](docs/commands.pdf) and a [spreadsheet](docs/commands.csv) (opens in Excel).
 
 Most of the time you only need four: `/brand-setup`, `/bagelunit-reels` with your topic, `/analytics-readout` with your numbers, and `/kit-update`.
 
@@ -64,7 +64,7 @@ The main command, plus the steps it uses. Claude picks the right one; you can al
 | `/blender-shot` | Makes a short 3D shot in Blender for a reel, of anything (a product, a box or can with a label, a phone showing a screen capture, 3D text, a model): writes it from a brief, renders one still, looks at it, fixes it, then renders a transparent clip to place over the reel. Needs Blender (optional). |
 | `/script-plan` | Plans a script before it is written: one viewer, one promise, and a beat outline where every promise has a payoff and every list item a so-what. Checks the outline by code. Writes no script. |
 | `/script-coldread` | A fresh reader who hears only the spoken words says what the reel is about, who it is for, what to do, what it promised and whether it delivered, and which lines made no sense. |
-| `/script-score` | Scores a script out of 100 in a fresh context that did not write it, against a written rubric; 90 or more is the bar. Records the line Gate A reads. |
+| `/script-score` | Scores a script out of 100 in a fresh context that did not write it. The bar is 90 on retention: hook 25, open loop and payoff 20, pace 15, payoff 15, one viewer 10, clear aloud 10, call to action 5. The human score is a floor (default 70), and the fact check is a hard pass or fail. Records the line Gate A reads. Run kit score first. |
 | `/reel-scripter` | Turns an idea or a hook into a full 30 to 45 second script. |
 | `/reel-builder` | Turns an idea into a ready-to-shoot plan (lines, on-screen text, scenes), without rendering. |
 | `/humanizer` | Rewrites a script, caption or reply so it sounds like you, not like AI, and checks the brand's banned words. |
@@ -125,7 +125,8 @@ Run on every reel; Claude runs them at the approvals.
 | `kit lint` | Checks the shot rules: lengths, cuts on words, rhythm, first-frame motion. |
 | `kit qa` | Checks the final file: size, loudness, black or frozen frames, text safe zone, sync. |
 | `kit budget` | Checks the script fits the ElevenLabs credits left, before Gate A (--left shows just the account). |
-| `kit script` | Checks a script makes sense heard once: the announced count against the items, long sentences, jargon, spoken menu paths, loops, and seconds from your own pace. Writes build/script-lint.md. |
+| `kit script` | Checks a script makes sense heard once: the announced count against the items (any plural, once the items are numbered), long sentences, jargon, spoken menu paths, loops that must be paid off in this reel or in a named next episode, and seconds from your own pace. Writes build/script-lint.md. |
+| `kit score` | Gate A for a draft, with no Claude Code. Give it a script file or a reel folder. It runs the lint, the human floor (default 70), the fact-check structure when facts.md is beside the script, and the retention score (bar 90: hook 25, open loop and payoff 20, pace 15, payoff 15, one viewer 10, clear aloud 10, call to action 5). Prints each check and PASS or FAIL. Exit 1 on fail. Add --json for a machine, --facts <file> to point at facts.md, --seconds 45 for the brief. This does not record Gate A: /script-score and /reel-factcheck still do. |
 | `kit facts` | The mechanical half of the fact check, and records the fact-check verdict. |
 | `kit gate` | Records an approval (A, B or C) and checks the final file has not changed since. |
 | `kit measure` | Measures a video: cuts, words, loudness, silence, still stretches. |

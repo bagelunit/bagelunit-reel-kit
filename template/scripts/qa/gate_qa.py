@@ -38,6 +38,29 @@ def video_for(reel, gate):
     return None
 
 
+def frame0_mode(reel):
+    """brand.json hook.frame0. "moving" is the kit default (the playbook). "static-headline" is the owner's override:
+    a 3-to-5-word headline, readable at frame 0, held to about 2 seconds."""
+    for folder in [reel, *reel.parents]:
+        f = folder / 'brand' / 'brand.json'
+        if not f.is_file():
+            continue
+        try:
+            hook = json.loads(f.read_text(encoding='utf-8')).get('hook') or {}
+            mode = str(hook.get('frame0') or 'moving')
+        except Exception:
+            mode = 'moving'
+        return mode if mode in ('moving', 'static-headline') else 'moving'
+    return 'moving'
+
+
+def hook_passes(hook, mode):
+    if mode == 'static-headline':
+        return 3 <= hook.get('words', 0) <= 5 and bool(hook.get('held_to_2s'))
+    # moving: the frame is not empty, and a large claim is up by about 1.5 s. It does not have to be a still headline.
+    return hook.get('words', 0) >= 1 or hook.get('words_at_1_5', 0) >= 2
+
+
 def sha(path):
     h = hashlib.sha256()
     with open(path, 'rb') as f:
@@ -58,14 +81,15 @@ def main():
         r = subprocess.run([sys.executable, str(QA), str(vid), '--json'], capture_output=True, text=True)
         if r.returncode not in (0, 1) or not r.stdout.strip(): sys.exit('gate_qa: reel_qa.py failed:\n' + r.stderr[-800:])
         d = json.loads(r.stdout)
-        hook = d['hook']; hook_ok = hook['words'] >= 3 and hook['held_to_2s']
+        hook = d['hook']; mode = frame0_mode(reel); hook_ok = hook_passes(hook, mode)
         multi = {k: min(h for _, h in v) for k, v in d['size'].items() if len(v) >= 2}
         # text that only touches the zone for one or two samples (0.5 s steps) is a slide-in or a transition, not a placement fault
         stay = {k: v for k, v in d['safe'].items() if len(v) >= 3}
-        rec.update(hook_ok=hook_ok, hook=hook['frame0_headline'], safe={k: v[0] for k, v in stay.items()}, safe_brief=len(d['safe']) - len(stay),
+        rec.update(hook_ok=hook_ok, frame0=mode, hook=hook['frame0_headline'], safe={k: v[0] for k, v in stay.items()}, safe_brief=len(d['safe']) - len(stay),
                    small_text=dict(sorted(multi.items(), key=lambda kv: kv[1])[:20]), passed=bool(hook_ok and not stay), skipped=None)
         print(f'{reel.name}  Gate {a.gate}  {rec["file"]}')
-        print(f'  HOOK  {"PASS" if hook_ok else "FAIL"}  ({" / ".join(hook["frame0_headline"]) or "no headline at 0.1 s"})')
+        want = 'a 3-to-5-word headline at frame 0, still up at 2 s' if mode == 'static-headline' else 'large text at frame 0 or by 1.5 s (moving frame)'
+        print(f'  HOOK  {"PASS" if hook_ok else "FAIL"}  {mode}  ({" / ".join(hook["frame0_headline"]) or "no headline at 0.1 s"}; {want})')
         print(f'  SAFE  {"PASS" if not stay else "FAIL: " + str(len(stay)) + " lines stay 1.5 s or more in the bottom 300 px or right 120 px"}  ({rec["safe_brief"]} brief touches ignored)')
         for k, v in list(rec['safe'].items())[:8]: print(f'        "{k[:40]}" first at {v[0]} s, y={v[1]}')
         print(f'  SIZE  {len(multi)} lines under 30 px seen twice or more (for a person to judge; not a gate)')

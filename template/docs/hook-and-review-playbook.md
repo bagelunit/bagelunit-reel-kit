@@ -38,7 +38,9 @@ Three yeses, or rewrite it.
 
 Before Gate A, check the script with the triple hook read-back test (section 0). This checklist is checked on frames, not on the script: on the Gate B stills, on the draft and on the final.
 
-A hook passes only if all eight are true. Check it on real frames at 0 s, 0.5 s, 1 s, 2 s and 3 s.
+Which list applies is `brand.json` -> `hook.frame0`.
+
+**`moving` (the kit default).** A hook passes only if all eight are true. Check it on real frames at 0 s, 0.5 s, 1 s, 2 s and 3 s. `scripts/qa/gate_qa.py` passes when large text is already up at frame 0, or by about 1.5 s. It does not demand a still card.
 
 1. Frame 0 is already moving. No fade from black, no empty frame, no slow logo build.
 2. Frame 0 shows something the viewer recognises (the app, the platform, their problem), not abstract art.
@@ -49,9 +51,11 @@ A hook passes only if all eight are true. Check it on real frames at 0 s, 0.5 s,
 7. It works on mute (most people watch without sound).
 8. It is about the viewer's own account, work or problem, not about us or the topic in general.
 
-Loser patterns to reject: abstract background with no brand the viewer knows, a static card whose 0.5 s and 3 s frames look the same, a black or empty frame 0, small low-contrast text, a topic about "the future" or "me".
+Loser patterns to reject, on the moving setting: abstract background with no brand the viewer knows, a static card whose 0.5 s and 3 s frames look the same, a black or empty frame 0, small low-contrast text, a topic about "the future" or "me". A brand on `static-headline` is not marked down for a still headline.
 
 Same words can win or flop: what happens on screen decides it. Show the real product or screen doing the thing, not text on a card.
+
+**`static-headline` (an owner override).** Set `hook.frame0` to `static-headline` when the brand's rule is a still headline, not the eight points above. Then frame 0 shows a 3-to-5-word headline the viewer can read with no sound, held about 2 seconds, on a picture they recognise (the app, the bill, the deadline). The words name the viewer or the stake. Items 1, 3 and 5 of the moving list do not apply: the frame does not have to be moving, and the claim is allowed at 0 s. `scripts/qa/gate_qa.py` passes only when that headline is 3 to 5 words and still up at 2 s. The triple hook in the voice is unchanged.
 
 ## 2. Pick ONE goal before scripting
 

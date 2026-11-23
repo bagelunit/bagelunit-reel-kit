@@ -784,11 +784,6 @@
       "family": "closers"
     },
     {
-      "find": "save this for later",
-      "replace": "",
-      "family": "closers"
-    },
-    {
       "find": "who's with me",
       "replace": "",
       "family": "closers"
@@ -879,27 +874,12 @@
       "family": "closers"
     },
     {
-      "find": "follow for more",
-      "replace": "",
-      "family": "closers"
-    },
-    {
-      "find": "hit follow for more",
-      "replace": "",
-      "family": "closers"
-    },
-    {
       "find": "double tap if",
       "replace": "",
       "family": "closers"
     },
     {
       "find": "tag someone who needs this",
-      "replace": "",
-      "family": "closers"
-    },
-    {
-      "find": "let me know in the comments",
       "replace": "",
       "family": "closers"
     },
@@ -942,12 +922,6 @@
       "regex": "(?i)\\b(?:this|it) is(?:n'?t| not) about [^.!?\\n]{2,60}[.!] it'?s about\\b",
       "name": "\"It isn't about X. It's about Y.\"",
       "fix": "Lead with Y. The reversal is the tell."
-    },
-    {
-      "id": "the-result",
-      "regex": "(?i)^\\s*(?:the result|the best part|the kicker|the catch)\\?\\s*$",
-      "name": "One-word rhetorical question line",
-      "fix": "Answer it inline instead of staging a reveal."
     },
     {
       "id": "heres-what",
@@ -1017,9 +991,9 @@
     },
     {
       "id": "follow-bait",
-      "regex": "(?i)\\b(?:follow for more|tag someone who|double tap if|share this if|comment below if)\\b",
-      "name": "Reflex follow or tag bait",
-      "fix": "Ask for the one action this post actually earns. The generic ask trains the audience to ignore every ask."
+      "regex": "(?i)\\b(?:tag someone who|double tap if|comment below if)\\b",
+      "name": "Reflex tag bait",
+      "fix": "Ask for the one action this post actually earns. A named person (\"send this to the person who...\") is a real ask, not this."
     }
   ]
 }

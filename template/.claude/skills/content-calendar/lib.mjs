@@ -17,6 +17,17 @@ export const readJSON = (p, fallback = {}) => { try { const v = JSON.parse(fs.re
 const asObj = (v) => (isObj(v) ? v : null);
 const objs = (v) => (Array.isArray(v) ? v.filter(isObj) : []);          // a list of records, with anything broken left out
 const str = (v) => (v == null ? '' : typeof v === 'object' ? '' : String(v));
+// reel.json series may be a name, or { name, episode, next }. A plan cell may say "Name ep 2" or "Name episode 2".
+export function seriesParts(v) {
+  if (isObj(v)) {
+    const episode = v.episode == null || v.episode === '' ? null : v.episode;
+    return { name: str(v.name).trim(), episode };
+  }
+  const s = str(v).trim();
+  const m = /^(.*?)(?:\s*(?:·|\||\bep\.?|\bepisode)\s*(\d+))\s*$/i.exec(s);
+  if (!m || !m[1].trim()) return { name: s, episode: null };
+  return { name: m[1].replace(/[\s·|]+$/, '').trim(), episode: Number(m[2]) };
+}
 export const CONFIG_DIR = path.join(os.homedir(), '.config', 'bagelunit-reels');
 
 const encRel = (r) => String(r).split('/').map(encodeURIComponent).join('/');
@@ -284,7 +295,9 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
     }
     const gateAt = (g) => { const m = Object.entries(sec).find(([h]) => new RegExp(`^Gate ${g}\\b`, 'i').test(h)); const d = m && m[1].match(/(\d{4}-\d{2}-\d{2})/); return d ? parseWhen(d[1]) : null; };
     it.gateA = gateAt('A'); it.gateB = gateAt('B'); it.gateC = gateAt('C');
-    it.series = str(cfg.series).trim();
+    const series = seriesParts(cfg.series);
+    it.series = series.name;
+    it.episode = series.episode;
     // when the reel started: the earliest date in its record, else when its folder was made
     const dates = [...approvals.matchAll(/(\d{4}-\d{2}-\d{2})/g)].map((m) => parseWhen(m[1])).filter(Boolean);
     let born = null; try { const st = fs.statSync(dir); born = st.birthtimeMs > 0 ? st.birthtime : st.ctime; } catch {}
@@ -357,8 +370,9 @@ export function load(root, { today: todayArg, days = 28 } = {}) {
   for (const row of plan) {                                      // plan rows: a date for a reel, or an idea with no folder yet
     const when = parseWhen(row.date);
     const it = row.folder && items.find((x) => x.slug === row.folder || x.name === row.folder);
-    if (it) { it.plannedAt = when; it.plannedHasTime = hasTime(row.date); it.goal = row.goal; it.angle = row.angle; it.notes = row.notes; if (row.series) it.series = row.series; if (row.topic) it.title = clip(row.topic); continue; }
-    items.push({ id: `plan-${++planIndex}`, slug: row.folder || '', name: row.topic || '(untitled idea)', title: clip(row.topic || '(untitled idea)'), topic: row.topic, notes: row.notes, series: row.series, goal: row.goal, angle: row.angle, plannedAt: when, plannedHasTime: hasTime(row.date), stage: 'idea', fromPlan: true });
+    const plannedSeries = seriesParts(row.series);
+    if (it) { it.plannedAt = when; it.plannedHasTime = hasTime(row.date); it.goal = row.goal; it.angle = row.angle; it.notes = row.notes; if (plannedSeries.name) { it.series = plannedSeries.name; if (plannedSeries.episode != null) it.episode = plannedSeries.episode; } if (row.topic) it.title = clip(row.topic); continue; }
+    items.push({ id: `plan-${++planIndex}`, slug: row.folder || '', name: row.topic || '(untitled idea)', title: clip(row.topic || '(untitled idea)'), topic: row.topic, notes: row.notes, series: plannedSeries.name, episode: plannedSeries.episode, goal: row.goal, angle: row.angle, plannedAt: when, plannedHasTime: hasTime(row.date), stage: 'idea', fromPlan: true });
   }
   for (const r of log) if (r.folder && !items.some((x) => x.slug === r.folder || x.name === r.folder)) {
     const row = insights.rows.find((x) => x.reel === r.folder);

@@ -9,12 +9,18 @@ A reel that ends on "comment WORD and I'll send it" needs something that answers
 These rules from `CLAUDE.md` still apply, whichever way you connect it:
 
 - `brand.json` -> `autopilot.dm_replies` is `true`, turned on by the brand owner with the date (section 3b). It starts `false`.
-- The keyword is listed in `brand.json` -> `cta.tested_keywords`, which means it was tested by commenting from a second account (rule 4).
+- The keyword is listed in `brand.json` -> `cta.tested_keywords` or `cta.keywords`, which means it was tested by commenting from a second account (rule 4). A brand can list several words. Each reel uses one of them.
 - The public reply never contains a link. The link goes in the DM only (rule 12).
 - Replies and DMs only state what is in `brand/facts.md` (rule 1). A comment about price or a comparison with no cleared fact is left for a person.
 - DMs go only to people who commented, or who write back to the private message that answered their comment. No cold DMs (rule 6).
 - A comment that matches no keyword is left for a person, never guessed at.
 - Claude never logs in, never handles a token or password, and never starts a scheduled job by itself.
+
+## Several keywords, and the first comment
+
+`cta.keywords` is a list of `{ "word", "sends", "first_comment" }`. `word` is the comment keyword. `sends` is what the DM actually delivers (a checklist, a prompt, a link in the DM only). `first_comment` is optional and overrides `cta.first_comment` for that word.
+
+`cta.first_comment` is the template for the Instagram first comment, saved as the reel's `out/first-comment.txt`. `{keyword}` and `{sends}` are filled in. The default is `Comment {keyword} and I'll send {sends}.` No link in that comment (rule 12). `kit score` prints the filled line when the script says Comment WORD. The publisher posts `out/first-comment.txt` after the reel is up. Pin it by hand.
 
 ## Link only for followers (optional)
 

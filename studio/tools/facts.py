@@ -52,6 +52,68 @@ ABSOLUTES = re.compile(
     r"\b(only|never|always|best|better|worst|fastest|faster|slowest|cheaper|cheapest|free|every|lacks?|without|"
     r"can't|cannot|doesn't|does not|don't|no longer|guarantee[sd]?|unlimited|none|nobody|everyone)\b", re.I)
 NUMBER = re.compile(r"(?<![\w#])[$£€]?\d[\d,]*(?:\.\d+)?\s?(?:%|x|k|m|b)?(?![\w])", re.I)
+# Spoken quantities. "one" is only a number when a unit follows ("one quiz"), not in "one place".
+_SPELLED_ONES = {
+    'zero': 0, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9,
+    'ten': 10, 'eleven': 11, 'twelve': 12, 'thirteen': 13, 'fourteen': 14, 'fifteen': 15, 'sixteen': 16,
+    'seventeen': 17, 'eighteen': 18, 'nineteen': 19,
+}
+_SPELLED_TENS = {'twenty': 20, 'thirty': 30, 'forty': 40, 'fifty': 50, 'sixty': 60, 'seventy': 70, 'eighty': 80, 'ninety': 90}
+_SPELLED_ONE_UNITS = {
+    'percent', 'dollar', 'dollars', 'lesson', 'lessons', 'request', 'requests', 'quiz', 'quizzes',
+    'course', 'courses', 'hour', 'hours', 'minute', 'minutes', 'week', 'weeks', 'month', 'months',
+    'year', 'years', 'user', 'users', 'people', 'day', 'days',
+}
+
+
+def strip_notes(text):
+    """Lines starting with #, // or [ are notes, not words the viewer hears. A fact check must not treat them as claims."""
+    kept = []
+    for line in text.splitlines():
+        s = line.strip()
+        if not s or s.startswith('#') or s.startswith('//') or s.startswith('['):
+            continue
+        kept.append(line)
+    return '\n'.join(kept)
+
+
+def spelled_numbers(text):
+    """(surface, digit) for quantities said in words. "fifty" -> "50". "one place" is not a quantity."""
+    tokens = re.findall(r"[A-Za-z]+(?:-[A-Za-z]+)?", text)
+    out, i = [], 0
+    while i < len(tokens):
+        raw = tokens[i]
+        parts = raw.lower().split('-')
+        if len(parts) == 2 and parts[0] in _SPELLED_TENS and parts[1] in _SPELLED_ONES:
+            out.append((raw, str(_SPELLED_TENS[parts[0]] + _SPELLED_ONES[parts[1]])))
+            i += 1
+            continue
+        w = parts[0]
+        nxt = tokens[i + 1].lower() if i + 1 < len(tokens) else ''
+        if w in _SPELLED_TENS and nxt in _SPELLED_ONES:
+            out.append((f'{raw} {tokens[i + 1]}', str(_SPELLED_TENS[w] + _SPELLED_ONES[nxt])))
+            i += 2
+            continue
+        if w in _SPELLED_TENS or w in _SPELLED_ONES:
+            val = _SPELLED_TENS[w] if w in _SPELLED_TENS else _SPELLED_ONES[w]
+            out.append((raw, str(val)))
+            i += 1
+            continue
+        if w == 'one' and nxt in _SPELLED_ONE_UNITS:
+            out.append((raw, '1'))
+        i += 1
+    return out
+
+
+def number_is_cleared(token, facts_numbers, facts_blob):
+    """A digit or a spelled quantity is cleared when facts.md holds that number, or the words themselves."""
+    key = re.sub(r'[\s,]', '', token.lower())
+    if key in facts_numbers:
+        return True
+    bare = re.sub(r'^[$£€]', '', key)
+    if bare in facts_numbers or f'${bare}' in facts_numbers or f'£{bare}' in facts_numbers or f'€{bare}' in facts_numbers:
+        return True
+    return token.lower() in facts_blob.lower()
 STOP = set('the a an and or of to in on for with is are be it its this that your you they their them at as by from has have '
            'can will not no but so if then than into out up all any both each also more most one two what when where which who'.split())
 
@@ -135,7 +197,8 @@ def words_text(project, scope):
     """The reel's words for this scope: [(file label, text)]."""
     out = []
     for label, path in (('script.txt', project / 'script.txt'),):
-        out.append((label, path.read_text(encoding='utf-8') if path.exists() else ''))
+        raw = path.read_text(encoding='utf-8') if path.exists() else ''
+        out.append((label, strip_notes(raw)))
     if scope == 'final':
         spoken = talking_words(project)
         if spoken:
@@ -288,6 +351,11 @@ def check(project, scope, facts_path):
                         findings.append(('WARN', 'YEAR', label, f'the year {tok} is not in facts.md (…{ctx}…): true as a date, but check it'))
                     else:
                         findings.append(('ERROR', 'NUMBER-NOT-CLEARED', label, f'"{n.group(0).strip()}" is not in facts.md (…{ctx}…)'))
+            if label != CHROME_LABEL:
+                for surface, digit in spelled_numbers(chunk):
+                    if number_is_cleared(digit, facts_numbers, facts_blob) or number_is_cleared(surface, facts_numbers, facts_blob):
+                        continue
+                    findings.append(('ERROR', 'NUMBER-NOT-CLEARED', label, f'"{surface}" (spoken {digit}) is not in facts.md'))
         for sent in sentences(text):
             hit = ABSOLUTES.search(sent)
             if hit:
@@ -401,5 +469,23 @@ def main():
         sys.exit(1)
 
 
+def selftest():
+    assert strip_notes('# Reel: Claude. Facts: F-29.\nYou have until December.\n// note\n[on screen]\n') == 'You have until December.'
+    found = dict(spelled_numbers('fifty requests a day, twenty-nine courses and one quiz, in one place'))
+    assert found.get('fifty') == '50', found
+    assert found.get('twenty-nine') == '29', found
+    assert found.get('one') == '1', found  # one quiz
+    assert 'place' not in ' '.join(found)  # "one place" is not a second "one"
+    blob = '29 courses, 8 lessons and 1 quiz'
+    nums = {re.sub(r'[\s,]', '', n.group(0).lower()) for n in NUMBER.finditer(blob)}
+    assert number_is_cleared('29', nums, blob)
+    assert not number_is_cleared('50', nums, blob)
+    assert number_is_cleared('fifty', nums, 'up to fifty requests')
+    print('facts selftest: ok')
+
+
 if __name__ == '__main__':
-    main()
+    if '--selftest' in sys.argv:
+        selftest()
+    else:
+        main()

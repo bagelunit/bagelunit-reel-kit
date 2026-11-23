@@ -49,17 +49,26 @@
     "pronunciation": {}
   },
   "writing": {
+    "_note": "human_score_min is a floor for how machine-written a draft looks (default 70). It is not the goal. The 90 bar is the retention script score from kit score and /script-score. allowed_phrases are extra lines this brand uses that must not be flagged as stock wording.",
     "banned_characters": [
       "—"
     ],
     "banned_words": [],
-    "human_score_min": 90
+    "human_score_min": 70,
+    "allowed_phrases": []
+  },
+  "hook": {
+    "_note": "frame0 is how Gate C and /reel-review read the first frame. \"moving\" (the kit default) is the eight-point checklist: frame 0 is already moving and the claim builds at about 1.2 to 1.6 seconds. \"static-headline\" is an owner override: a 3-to-5-word headline, readable at frame 0, held about 2 seconds, on a picture the viewer recognises.",
+    "frame0": "moving"
   },
   "cta": {
+    "_note": "tested_keywords are words whose DM auto-reply was tested from a second account. keywords is the same list with what each word sends, for the first comment. first_comment is the template for out/first-comment.txt; {keyword} and {sends} are filled in. One reel uses one keyword.",
     "default": "",
     "style": "",
     "dm_tool": "",
-    "tested_keywords": []
+    "tested_keywords": [],
+    "keywords": [],
+    "first_comment": "Comment {keyword} and I'll send {sends}."
   },
   "loop": {
     "_note": "The reel loop (/reel-loop). All optional. viral_views_multiple: how many times the median views counts as a breakout (default 5); viral_min_views: and at least this many (default 5000); min_hours: hours a reel is out before it is judged (default 72); min_views_to_judge: views before its skip rate means anything (default 500); stall_after: judged reels in a row with no better skip rate before it says stalled (default 6).",

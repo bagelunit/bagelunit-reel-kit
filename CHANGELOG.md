@@ -2,6 +2,22 @@
 
 Newest first. The reel engine has its own, older log in `studio/CHANGELOG.md`. To update a brand workspace to the latest kit, see "Updating" in `template/README.md`.
 
+## 1.4.0 (2026-11-23)
+
+**Gate A scores what makes a reel get watched.** A fact-dense script was failing because it looked "too written by a machine", while the hook and the payoff barely counted. The fact check stays a hard pass or fail. The human score is now a floor (default 70). The 90 bar is a retention score.
+
+**New in this version**
+
+- **Retention score, bar 90.** Hook 25, open loop and payoff 20, pace 15, payoff you can use this week 15, one viewer 10, clear aloud 10, call to action 5. The hook uses `hookscore.py`, which Gate A did not call before. `/script-score` uses the same weights. `kit gate record --gate A` still wants a Script review line of 90 or more for the exact words, and it now also wants the human score at its floor (`--skip-human "reason"` is the owner's override).
+- **`kit score <file or reel>`.** One command an outside writer can run with no Claude Code: lint, human floor, fact structure (digits and spelled-out numbers, when `facts.md` is beside the script), and the retention score. It prints each check and PASS or FAIL, and exits 1 on fail. `--json` is for a script. It does not record Gate A and it does not re-read sources. That is still `/reel-factcheck` and `/script-score`.
+- **The human score stopped punishing the words these reels are made of.** Spoken numbers ("fifty", "eight") and product names (ChatGPT, OpenRouter, Claude, including at the start of a line) count as concrete. A script whose lines are all 6 to 14 words can pass the rhythm check. It used to top out near 68, because the old check wanted wild variation in sentence length. Note lines that start with `# ` are not scored as voiceover.
+- **The lint stopped crying wolf.** "Three bills" plus One, Two, Three is a list. "After" and "Once" at the start of a sentence, and an acronym like PDFs, are not new names. A tease must be paid off in this reel, or the script must name the next episode (`# Next: Series name episode 3`). "Watch till the end" with nothing after it fails. "The catch?" followed by the answer does not.
+- **The brand's own asks are not slop.** "Follow for more", "save this", "send this to" and a snapback ("The catch?", "The good news?") are no longer flagged. "Tag someone who" and "double tap if" still are.
+- **Spelled-out numbers go through the fact check.** "Fifty requests" is checked the same way "50" is. A `#` note at the top of the script is not treated as a claim.
+- **Series and episodes.** A script can carry `# Series:` and `# Episode:`. `reel.json` can hold `series.name`, `series.episode` and `series.next`. A Print reel draws `NAME EP N` under the chapter mark, and the cover step reminds you to put the same badge on the cover. The calendar groups by the series name.
+- **Several comment keywords.** `brand.json` `cta.keywords` lists each tested word and what it sends. `cta.first_comment` is the template for `out/first-comment.txt`. One reel still uses one word, and the word still has to have been tested from a second account.
+- **Frame 0 follows the brand.** `brand.json` `hook.frame0` is `moving` (the kit default: the eight-point checklist) or `static-headline` (a 3-to-5-word headline, readable at frame 0, held about 2 seconds). `/reel-review` and `scripts/qa/gate_qa.py` both read it. If your rule is the still headline, set `static-headline`. A brand that leaves the setting on `moving` is checked against the playbook.
+
 ## 1.3.0 (2026-11-17)
 
 **The kit works with no outside tool, and offers better ones.** A whole reel can now be made on pure code with a free built-in voice. Every outside tool (ElevenLabs, Uppbeat, Blender, Higgsfield, Canva, Adobe Firefly and others) is only a suggestion: the kit shows what each would add, with an example, and asks which you have.

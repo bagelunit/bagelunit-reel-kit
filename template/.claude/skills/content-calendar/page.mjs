@@ -266,7 +266,7 @@ ${GATE[k] ? `<span class="gate-mark" title="${esc(GATE[k])}: you approve here">$
       nums: it.nums ? { views: it.nums.views, reach: it.nums.reach, eng: rate(it.nums), watch: it.nums.watch, skip: it.nums.skip, likes: it.nums.likes, comments: it.nums.comments, saves: it.nums.saves, shares: it.nums.shares, source: it.nums.source } : null,
       needs: M.attention.filter((a) => a.it === it).map((a) => ({ p: a.p, what: a.what })),
       next: NEXT_FULL[it.stage], cmd: CMD(it), files: it.files || [], history: it.history || [],
-      series: it.series || '', platforms: it.platforms || [], stickers: it.stickers || [], trial: !!it.trial,
+      series: it.series || '', episode: it.episode == null ? '' : it.episode, platforms: it.platforms || [], stickers: it.stickers || [], trial: !!it.trial,
       test: it.test ? { ...it.test, others: (M.tests.find((t) => t.id === it.test.id)?.variants || []).filter((v) => v.label !== it.test.label && v.id).map((v) => ({ label: v.label, id: v.id })), title: M.tests.find((t) => t.id === it.test.id)?.title || '' } : null,
       timeline: [['Started', it.startedAt], ['Script approved', it.gateA], ['Visual plan approved', it.gateB], ['Final approved', it.gateC], ['Posted', it.postedAt]].filter(([, d]) => d).map(([n, d]) => ({ n, d: keyOf(d) })),
       pub: it.pub ? { status: it.pub.status, targets: Object.fromEntries(Object.entries(it.pub.targets).map(([k, t]) => [k, { status: t.status, link: safeUrl(t.permalink), error: t.error ? clip(String(t.error), 300) : '' }])) } : null,
